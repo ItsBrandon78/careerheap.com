@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 // Return a Supabase client. If the NEXT_PUBLIC_SUPABASE_* env vars are
 // missing (e.g. local dev without secrets), return a lightweight mock
@@ -15,15 +16,21 @@ export function createClient() {
     // pages.
     const mock = {
       auth: {
-        onAuthStateChange: (cb: any) => {
+        onAuthStateChange: (
+          _callback: (event: AuthChangeEvent, session: Session | null) => void
+        ) => {
+          void _callback;
           // Immediately return an object shaped like the real API.
           const subscription = { unsubscribe: () => undefined };
           return { data: { subscription }, subscription };
         },
         signOut: async () => ({ error: null }),
       },
-      from: (_: string) => ({ select: async () => ({ data: null, error: null }) }),
-    } as any;
+      from: (_table: string) => {
+        void _table;
+        return { select: async () => ({ data: null, error: null }) };
+      },
+    } as unknown as ReturnType<typeof createBrowserClient>;
 
     return mock;
   }

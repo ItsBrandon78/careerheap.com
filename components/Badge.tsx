@@ -1,31 +1,31 @@
-import React from 'react';
+import React from 'react'
 
 interface BadgeProps {
-  variant?: 'success' | 'warning' | 'error' | 'info' | 'primary';
-  children: React.ReactNode;
-  className?: string;
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'info'
+  children: React.ReactNode
+  className?: string
 }
 
 export const Badge: React.FC<BadgeProps> = ({
-  variant = 'primary',
+  variant = 'default',
   children,
-  className = '',
+  className = ''
 }) => {
-  const variantStyles: Record<string, string> = {
-    success: 'bg-accent/10 text-accent border border-accent/20',
-    warning: 'bg-amber-100 text-amber-800 border border-amber-300',
-    error: 'bg-red-100 text-red-800 border border-red-300',
-    info: 'bg-primary/10 text-primary border border-primary/20',
-    primary: 'bg-primary/10 text-primary border border-primary/20',
-  };
+  const variantStyles: Record<NonNullable<BadgeProps['variant']>, string> = {
+    default: 'border border-accent/20 bg-accent-light text-accent',
+    success: 'border border-success/20 bg-success-light text-success',
+    warning: 'border border-warning/25 bg-warning-light text-warning',
+    error: 'border border-error/20 bg-error-light text-error',
+    info: 'border border-accent/20 bg-accent-light text-accent'
+  }
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center rounded-pill px-3 py-1 text-[13px] font-semibold leading-none ${variantStyles[variant]} ${className}`}
     >
       {children}
     </span>
-  );
-};
+  )
+}
 
-export default Badge;
+export default Badge

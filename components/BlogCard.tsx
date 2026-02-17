@@ -1,49 +1,30 @@
-import React from 'react';
-import Link from 'next/link';
-import Badge from './Badge';
+import React from 'react'
+import Link from 'next/link'
+import Card from './Card'
 
 interface BlogCardProps {
-  title: string;
-  excerpt: string;
-  slug: string;
-  category: string;
-  date: string;
-  readTime?: string;
-  image?: string;
+  title: string
+  slug: string
+  category: string
+  date: string
+  readTime: string
 }
 
-export const BlogCard: React.FC<BlogCardProps> = ({
-  title,
-  excerpt,
-  slug,
-  category,
-  date,
-  readTime = '5 min read',
-  image,
-}) => {
+export const BlogCard: React.FC<BlogCardProps> = ({ title, slug, category, date, readTime }) => {
   return (
     <Link href={`/blog/${slug}`}>
-      <article className="group overflow-hidden rounded-lg border border-surface bg-card transition-shadow hover:shadow-md">
-        {image && (
-          <div className="relative h-48 w-full overflow-hidden bg-gray-200">
-            {/* Image placeholder - replace with image component in real app */}
-            <div className="h-full w-full bg-linear-to-br from-sky-100 to-blue-100" />
-          </div>
-        )}
-        <div className="p-6">
-          <Badge variant="info">{category}</Badge>
-          <h3 className="mt-3 text-xl font-bold text-navy group-hover:text-primary">
-            {title}
-          </h3>
-          <p className="mt-2 text-muted">{excerpt}</p>
-          <div className="mt-4 flex items-center justify-between text-xs text-surface">
-            <time dateTime={date}>{new Date(date).toLocaleDateString()}</time>
-            <span>{readTime}</span>
-          </div>
+      <Card className="h-full overflow-hidden p-0">
+        <div className="h-[180px] bg-accent-light" />
+        <div className="space-y-3 p-5">
+          <p className="text-[11px] font-semibold tracking-[1px] text-accent">{category.toUpperCase()}</p>
+          <h3 className="text-base font-semibold leading-[1.4] text-text-primary">{title}</h3>
+          <p className="text-[13px] text-text-tertiary">
+            {date} | {readTime}
+          </p>
         </div>
-      </article>
+      </Card>
     </Link>
-  );
-};
+  )
+}
 
-export default BlogCard;
+export default BlogCard

@@ -1,84 +1,57 @@
-import React from 'react';
-import Link from 'next/link';
+import React from 'react'
+import Link from 'next/link'
+import { ToolGlyph } from './Icons'
 
 export const Footer: React.FC = () => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-surface bg-navy text-white">
-      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-4">
-          {/* Brand */}
-          <div>
-            <h3 className="text-lg font-bold text-white">CareerHeap</h3>
-            <p className="mt-2 text-sm text-surface">AI-powered career tools to accelerate your growth.</p>
+    <footer className="w-full bg-bg-dark px-4 py-12 md:px-6 lg:px-10">
+      <div className="mx-auto flex w-full max-w-wide flex-col gap-10">
+        <div className="flex flex-col justify-between gap-10 lg:flex-row">
+          <div className="max-w-[280px] space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-accent text-text-on-dark">
+                <ToolGlyph kind="resume" className="h-3.5 w-3.5" />
+              </span>
+              <p className="text-base font-bold text-text-on-dark">CareerHeap</p>
+            </div>
+            <p className="text-sm leading-[1.6] text-text-on-dark-muted">
+              Smarter career tools and insights to help you land your next role.
+            </p>
           </div>
 
-          {/* Tools */}
-          <div>
-            <h4 className="font-semibold text-white">Tools</h4>
-            <ul className="mt-4 space-y-2 text-sm text-surface">
-              <li>
-                <Link href="/tools/resume-analyzer" className="hover:text-primary">
-                  Resume Analyzer
-                </Link>
-              </li>
-              <li>
-                <Link href="/tools/cover-letter" className="text-gray-600 hover:text-sky-600">
-                  Cover Letter Writer
-                </Link>
-              </li>
-              <li>
-                <Link href="/tools/interview-prep" className="text-gray-600 hover:text-sky-600">
-                  Interview Q&A Prep
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold text-white">Company</h4>
-            <ul className="mt-4 space-y-2 text-sm text-surface">
-              <li>
-                <Link href="/blog" className="text-gray-600 hover:text-sky-600">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="text-gray-600 hover:text-sky-600">
-                  Pricing
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 className="font-semibold text-white">Legal</h4>
-            <ul className="mt-4 space-y-2 text-sm text-surface">
-              <li>
-                <Link href="/privacy" className="text-gray-600 hover:text-sky-600">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-gray-600 hover:text-sky-600">
-                  Terms of Service
-                </Link>
-              </li>
-            </ul>
+          <div className="grid gap-8 sm:grid-cols-3 lg:gap-16">
+            <div className="space-y-3">
+              <p className="text-[13px] font-semibold text-text-on-dark">Product</p>
+              <Link href="/tools" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Tools</Link>
+              <Link href="/pricing" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Pricing</Link>
+              <Link href="/blog" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Blog</Link>
+            </div>
+            <div className="space-y-3">
+              <p className="text-[13px] font-semibold text-text-on-dark">Company</p>
+              <Link href="/blog" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Insights</Link>
+              <Link href="/tools" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Tools</Link>
+              <Link href="/pricing" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Plans</Link>
+            </div>
+            <div className="space-y-3">
+              <p className="text-[13px] font-semibold text-text-on-dark">Legal</p>
+              <Link href="/privacy" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Privacy</Link>
+              <Link href="/terms" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Terms</Link>
+            </div>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-surface/30 pt-8">
-          <p className="text-center text-sm text-surface">
-            &copy; {currentYear} CareerHeap. All rights reserved.
-          </p>
+        <div className="flex flex-col gap-3 border-t border-bg-dark-surface pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[13px] text-text-on-dark-muted">(c) {currentYear} CareerHeap. All rights reserved.</p>
+          <div className="flex items-center gap-4 text-sm text-text-on-dark-muted">
+            <span>X</span>
+            <span>in</span>
+          </div>
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

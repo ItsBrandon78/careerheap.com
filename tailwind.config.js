@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const tokens = require('./src/design/tokens.json')
 
 /** @type {import('tailwindcss').Config} */
@@ -10,27 +11,21 @@ module.exports = {
   theme: {
     container: {
       center: true,
-      padding: tokens.spacing.md,
+      padding: {
+        DEFAULT: tokens.spacing.md,
+        md: tokens.spacing.lg
+      },
       screens: {
-        lg: tokens.spacing.container
+        lg: tokens.container.content,
+        xl: tokens.container.wide
       }
     },
     extend: {
       colors: {
-        primary: tokens.colors.primary,
-        'primary-600': tokens.colors['primary-600'],
-        muted: tokens.colors.muted,
-        'bg-light': tokens.colors['bg-light'],
-        surface: tokens.colors.surface,
-        navy: tokens.colors.navy,
-        accent: tokens.colors.accent
+        ...tokens.colors
       },
       spacing: {
-        xs: tokens.spacing.xs,
-        sm: tokens.spacing.sm,
-        md: tokens.spacing.md,
-        lg: tokens.spacing.lg,
-        xl: tokens.spacing.xl
+        ...tokens.spacing
       },
       borderRadius: {
         sm: tokens.radius.sm,
@@ -39,16 +34,16 @@ module.exports = {
         pill: tokens.radius.pill
       },
       boxShadow: {
-        sm: tokens.shadows.sm,
-        md: tokens.shadows.md,
-        lg: tokens.shadows.lg
+        ...tokens.shadows
       },
-      fontSize: {
-        base: tokens.fontSizes.base,
-        lg: tokens.fontSizes.lg,
-        xl: tokens.fontSizes.xl,
-        '2xl': tokens.fontSizes['2xl'],
-        '3xl': tokens.fontSizes['3xl']
+      fontFamily: {
+        body: [tokens.typography.fontBody, 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: [tokens.typography.fontHeading, 'ui-sans-serif', 'system-ui', 'sans-serif']
+      },
+      maxWidth: {
+        content: tokens.container.content,
+        wide: tokens.container.wide,
+        tool: tokens.container.tool
       },
       screens: {
         sm: tokens.breakpoints.sm,

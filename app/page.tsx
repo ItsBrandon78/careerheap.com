@@ -1,90 +1,61 @@
-import Button from '@/components/Button';
-import ToolCard from '@/components/ToolCard';
-import CTASection from '@/components/CTASection';
-import Link from 'next/link';
+import Link from 'next/link'
+import Button from '@/components/Button'
+import ToolCard from '@/components/ToolCard'
+import BlogCard from '@/components/BlogCard'
+import CTASection from '@/components/CTASection'
+import Badge from '@/components/Badge'
+import { ArrowRightIcon, SparklesIcon } from '@/components/Icons'
+import { homepageBlogs, homepageTools } from '@/src/design/mockupData'
 
-const tools = [
-  {
-    id: '1',
-    title: 'Resume Analyzer',
-    description: 'Get AI-powered feedback on your resume with actionable improvements.',
-    slug: 'resume-analyzer',
-    category: 'Career Tools',
-    icon: '📄',
-    isActive: true,
-  },
-  {
-    id: '2',
-    title: 'Cover Letter Writer',
-    description: 'Create compelling cover letters tailored to job descriptions.',
-    slug: 'cover-letter',
-    category: 'Career Tools',
-    icon: '✍️',
-    isActive: false,
-  },
-  {
-    id: '3',
-    title: 'Interview Q&A Prep',
-    description: 'Prepare for interviews with suggested answers and tips.',
-    slug: 'interview-prep',
-    category: 'Career Tools',
-    icon: '🎤',
-    isActive: false,
-  },
-];
-
-export default function Home() {
+export default function HomePage() {
   return (
     <>
-      {/* Hero Section */}
-      <section className="bg-linear-to-r from-sky-50 to-blue-50 py-16 sm:py-24">
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            Accelerate Your Career with AI
+      <section className="bg-bg-secondary px-4 py-section lg:px-[170px]">
+        <div className="mx-auto flex max-w-content flex-col items-center gap-8 text-center">
+          <Badge className="gap-1.5" variant="default">
+            <SparklesIcon className="h-3.5 w-3.5" />
+            Free career tools - no sign-up required
+          </Badge>
+
+          <h1 className="text-[42px] font-bold leading-[1.15] text-text-primary md:text-[48px]">
+            Smarter Career Moves
+            <br />
+            Start Here
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-xl text-gray-600">
-            Smart, actionable tools to perfect your resume, ace interviews, and land your dream job.
+
+          <p className="max-w-[580px] text-lg leading-[1.7] text-text-secondary">
+            AI-powered tools and expert-written guides to help you write better resumes, ace interviews, and land your dream job - faster.
           </p>
 
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center sm:gap-4">
-            <Link href="/tools">
-              <Button variant="primary" size="lg">
-                Explore Tools
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link href="/tools/resume-analyzer">
+              <Button variant="primary">
+                <ArrowRightIcon className="h-4 w-4" />
+                Try Free Tool
               </Button>
             </Link>
-            <Link href="/pricing">
-              <Button variant="outline" size="lg">
-                View Pricing
-              </Button>
+            <Link href="/blog">
+              <Button variant="outline">Browse Articles</Button>
             </Link>
           </div>
-
-          <p className="mt-8 text-sm text-gray-600">
-            ✨ Try the first tool free. No credit card required.
-          </p>
         </div>
       </section>
 
-      {/* Featured Tools Section */}
-      <section className="py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-              Our Tools
-            </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Comprehensive career tools built for success
-            </p>
+      <section className="px-4 py-section lg:px-[170px]">
+        <div className="mx-auto flex max-w-content flex-col items-center gap-12">
+          <div className="text-center">
+            <p className="text-xs font-semibold tracking-[1.5px] text-accent">FREE TOOLS</p>
+            <h2 className="mt-2 text-[32px] font-bold text-text-primary">Career Tools That Actually Help</h2>
+            <p className="mt-3 text-base text-text-secondary">Try each tool 3 times free. No account needed.</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {tools.map((tool) => (
+          <div className="grid w-full gap-6 md:grid-cols-3">
+            {homepageTools.map((tool) => (
               <ToolCard
-                key={tool.id}
+                key={tool.slug}
+                slug={tool.slug}
                 title={tool.title}
                 description={tool.description}
-                slug={tool.slug}
-                category={tool.category}
                 icon={tool.icon}
                 isActive={tool.isActive}
               />
@@ -93,57 +64,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="bg-gray-50 py-16 sm:py-24">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-              Why Choose CareerHeap?
-            </h2>
+      <section className="bg-bg-secondary px-4 py-section lg:px-[170px]">
+        <div className="mx-auto max-w-content">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold tracking-[1.5px] text-accent">FROM THE BLOG</p>
+              <h2 className="mt-2 text-[32px] font-bold text-text-primary">Latest Career Insights</h2>
+            </div>
+            <Link href="/blog" className="text-[15px] text-accent">
+              View all articles -&gt;
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-            {[
-              {
-                title: 'AI-Powered Insights',
-                description: 'Get intelligent feedback powered by advanced AI models.',
-              },
-              {
-                title: 'Free to Start',
-                description: 'Try 3 free uses on each tool. No credit card required.',
-              },
-              {
-                title: 'Actionable Feedback',
-                description: 'Receive specific, practical suggestions you can implement today.',
-              },
-              {
-                title: 'Save Time',
-                description: 'Automate tedious career preparation tasks and focus on what matters.',
-              },
-            ].map((feature, index) => (
-              <div key={index} className="flex gap-4">
-                <div className="shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-600 text-white font-bold">
-                    ✓
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="mt-1 text-gray-600">{feature.description}</p>
-                </div>
-              </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {homepageBlogs.map((blog) => (
+              <BlogCard
+                key={blog.slug}
+                slug={blog.slug}
+                category={blog.category}
+                title={blog.title}
+                date={blog.date}
+                readTime={blog.readTime}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
       <CTASection
-        title="Ready to Transform Your Career?"
-        subtitle="Start with the Resume Analyzer for free. No credit card required."
-        primaryButtonText="Get Started"
-        secondaryButtonText="Learn More"
+        title="Unlock Unlimited Career Tools"
+        subtitle="Stop guessing. Start getting results. Upgrade for unlimited access to every tool."
+        primaryButtonText="Upgrade Now"
       />
     </>
-  );
+  )
 }

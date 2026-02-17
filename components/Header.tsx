@@ -1,105 +1,94 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import Button from './Button';
-import { useAuth } from '@/lib/auth/context';
+import React, { useState } from 'react'
+import Link from 'next/link'
+import Button from './Button'
+import { useAuth } from '@/lib/auth/context'
+import { ArrowRightIcon, ToolGlyph } from './Icons'
 
 export const Header: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { user, isLoading, signOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false)
+  const { user, isLoading, signOut } = useAuth()
 
   const handleSignOut = async () => {
-    await signOut();
-  };
+    await signOut()
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-surface bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="text-2xl font-bold text-primary">CareerHeap</div>
+    <header className="w-full border-b border-border bg-surface">
+      <div className="mx-auto flex w-full max-w-wide items-center justify-between px-4 py-4 md:px-6 lg:px-10">
+        <div className="flex items-center gap-4 md:gap-8">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-text-on-dark">
+              <ToolGlyph kind="resume" className="h-4 w-4" />
+            </span>
+            <span className="text-lg font-bold text-text-primary">CareerHeap</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/tools" className="text-muted hover:text-primary font-medium">
+          <nav className="hidden items-center gap-7 md:flex">
+            <Link href="/tools" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
               Tools
             </Link>
-            <Link href="/pricing" className="text-muted hover:text-primary font-medium">
-              Pricing
-            </Link>
-            <Link href="/blog" className="text-muted hover:text-primary font-medium">
+            <Link href="/blog" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
               Blog
             </Link>
+            <Link href="/pricing" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
+              Pricing
+            </Link>
           </nav>
-
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            {!isLoading && user ? (
-              <>
-                <Link href="/account" className="text-muted hover:text-primary font-medium">
-                  {user.email?.split('@')[0] || 'Account'}
-                </Link>
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
-              </>
-            ) : !isLoading ? (
-              <>
-                <Link href="/login">
-                  <Button variant="ghost" size="sm">
-                    Log In
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button variant="primary" size="sm">
-                    Get Started
-                  </Button>
-                </Link>
-              </>
-            ) : null}
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-muted hover:bg-surface"
-            >
-              <svg
-                className="h-6 w-6"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-          </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <nav className="md:hidden pb-4 space-y-2">
-            <Link href="/tools" className="block px-3 py-2 text-muted hover:bg-surface rounded">
+        <div className="flex items-center gap-3 md:gap-4">
+          {!isLoading && user ? (
+            <>
+              <Link href="/account" className="hidden text-[15px] font-medium text-text-secondary md:block">
+                {user.email?.split('@')[0] || 'Account'}
+              </Link>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </>
+          ) : !isLoading ? (
+            <>
+              <Link href="/login" className="hidden text-[15px] font-medium text-text-secondary md:block">
+                Log in
+              </Link>
+              <Link href="/tools/resume-analyzer">
+                <Button variant="primary" size="md">
+                  <ArrowRightIcon className="h-4 w-4" />
+                  Try Free
+                </Button>
+              </Link>
+            </>
+          ) : null}
+
+          <button
+            onClick={() => setIsOpen((state) => !state)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-primary text-text-secondary md:hidden"
+            aria-label="Toggle navigation menu"
+          >
+            <span className="block h-0.5 w-4 bg-current" />
+          </button>
+        </div>
+      </div>
+
+      {isOpen && (
+        <nav className="border-t border-border px-4 py-3 md:hidden">
+          <div className="mx-auto flex max-w-wide flex-col gap-2">
+            <Link href="/tools" className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary">
               Tools
             </Link>
-            <Link href="/pricing" className="block px-3 py-2 text-muted hover:bg-surface rounded">
-              Pricing
-            </Link>
-            <Link href="/blog" className="block px-3 py-2 text-muted hover:bg-surface rounded">
+            <Link href="/blog" className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary">
               Blog
             </Link>
-          </nav>
-        )}
-      </div>
+            <Link href="/pricing" className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary">
+              Pricing
+            </Link>
+          </div>
+        </nav>
+      )}
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

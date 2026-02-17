@@ -1,38 +1,71 @@
 Mockup parity checklist
 =======================
 
-This file tracks the tokens and component mapping to preserve visual parity with the Pencil mockups.
+Source of truth
+- The parity target comes from `careerheap/CareerHeap,pen.pen` top-level frames:
+  - `Homepage`
+  - `Tool Page � Active State`
+  - `Tool Page � Locked State`
+  - `Pricing Page`
+  - `Blog Post Template`
+  - `� Design System Components �`
 
-- Tokens: src/design/tokens.json + src/design/tokens.ts
-  - colors: `primary`, `primary-600`, `muted`, `bg-light`, `card`, `surface`, `navy`, `accent`
-  - spacing: `xs, sm, md, lg, xl, container` (container=1120px)
-  - radius: `sm, md, lg, pill`
-  - shadows: `sm, md, lg`
-  - breakpoints: `sm, md, lg, xl`
+Design tokens
+- Canonical token file: `src/design/tokens.ts`
+- Tailwind runtime mirror: `src/design/tokens.json` (consumed by `tailwind.config.js`)
+- Required token groups:
+  - `colors`: accent/navy surfaces, text hierarchy, borders, status colors
+  - `spacing`: `xs, sm, md, lg, xl, 2xl, 3xl, section`
+  - `radius`: `sm, md, lg, pill`
+  - `shadows`: `button, card, panel`
+  - `container`: `content=1100`, `wide=1280`, `tool=760`
+  - `breakpoints`: `sm, md, lg, xl`
 
-- Tailwind mapping: `tailwind.config.js` reads tokens.json and exposes `primary`, `muted`, `surface`, `card`, `navy`, `accent` etc.
+Global spacing/layout rules
+- Section rhythm: `py-section` (`96px`) for major sections, `py-16` for secondary sections.
+- Horizontal gutters:
+  - Mobile: `px-4`
+  - Desktop frame parity: `lg:px-[170px]` for content sections, `lg:px-[340px]` for narrow tool/pricing blocks.
+- Max widths:
+  - Main content: `max-w-content`
+  - Footer/header shell: `max-w-wide`
+  - Tool/pricing body: `max-w-tool`
 
-- Components to reuse across pages:
-  - `Header` / `Footer` — consistent container, spacing, token colors
-  - `Button` — supports `primary`, `secondary`, `outline`, `ghost`; maps to `primary` token
-  - `Badge` — small pill indicates uses / category
-  - `Card` / `ToolUIContainer` — card background `card`, border `surface`
-  - `ToolCard`, `BlogCard`, `PricingCard` — use token typography and spacing
-  - `FAQAccordion` — uses `surface` borders and `muted` text for answers
-  - `ToolHero`, `PaywallBanner`, `ToolUIContainer` — hero/section spacing uses container + tokens
+Typography rules
+- Body + headings use Inter (`font-body`, `font-heading`).
+- Hero/page title sizes:
+  - Marketing hero: `48px` desktop (`42px` mobile)
+  - Page headers: `40px`
+  - Section headers: `32px` or `24px` depending on frame density
+- Secondary body text uses `text-text-secondary`; metadata uses `text-text-tertiary`.
 
-- Spacing rules
-  - Section vertical padding: `py-16` desktop, `py-12` tablet/mobile (`sm:py-24` where needed)
-  - Content container: `container mx-auto px-4 sm:px-6 lg:px-8` (uses tokens.spacing.container)
-  - Card padding: `p-6` / `p-8` depending on density
+Component reuse contract
+- Reuse these components for parity pages and avoid one-off card/button implementations:
+  - `Header`
+  - `Footer`
+  - `Button` (`primary`, `secondary`, `ghost`, `outline`)
+  - `Badge`
+  - `Card`
+  - `ToolCard`
+  - `BlogCard`
+  - `PricingCard`
+  - `FAQAccordion`
+  - `ToolHero`
+  - `ToolUIContainer`
+  - `PaywallBanner`
 
-- Typography
-  - Headings: use `text-navy` for strong headings
-  - Body: `text-muted` for secondary copy
+Route composition contract
+- Required parity routes must be composed from shared components:
+  - `/`
+  - `/pricing`
+  - `/blog/[slug]`
+  - `/tools/[slug]`
+- Tool locked preview requirement:
+  - Query param: `/tools/[slug]?locked=1`
+  - Component API: `ToolPageTemplate({ locked: true })`
 
-- Locked tool state
-  - Render `PaywallBanner` with `usesRemaining <= 0` or query `?locked=1` for preview
-
-Add regression guardrails:
-- Use tokens for colors in components — search for direct color names (e.g., `text-gray-900`) and replace with token classes.
-- Keep `src/design/tokens.json` as the single source of truth for token values.
+Regression guardrails
+- Do not introduce raw hex color classes in route/component files; use token-mapped classes.
+- Do not bypass shared components for cards/buttons/badges in parity routes.
+- Keep Tailwind token mapping in sync when token values change.
+- Validate desktop + mobile spacing and max-width behavior after layout changes.

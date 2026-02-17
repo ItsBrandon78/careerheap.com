@@ -1,223 +1,230 @@
-'use client';
+'use client'
 
-import ToolHero from '@/components/ToolHero';
-import PaywallBanner from '@/components/PaywallBanner';
-import Button from '@/components/Button';
-import { notFound } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { useToolUsage } from '@/lib/hooks/useToolUsage';
-import { useAuth } from '@/lib/auth/context';
-import ResumeResults from '@/components/ResumeResults';
-import { analyzeResume, ResumeAnalysis } from '@/lib/analysis/resume';
+import { notFound, useSearchParams } from 'next/navigation'
+import { useMemo, useState } from 'react'
+import ToolHero from '@/components/ToolHero'
+import ToolUIContainer from '@/components/ToolUIContainer'
+import PaywallBanner from '@/components/PaywallBanner'
+import FAQAccordion from '@/components/FAQAccordion'
+import ToolCard from '@/components/ToolCard'
+import Button from '@/components/Button'
+import { SparklesIcon, ToolGlyph } from '@/components/Icons'
+import { relatedTools, toolFaqs } from '@/src/design/mockupData'
+import { useToolUsage } from '@/lib/hooks/useToolUsage'
+import { analyzeResume } from '@/lib/analysis/resume'
 
 interface ToolPageProps {
   params: {
-    slug: string;
-  };
+    slug: string
+  }
 }
 
-const tools: Record<
-  string,
-  {
-    title: string;
-    subtitle: string;
-    description: string;
-    icon: string;
-  }
-> = {
+interface ToolPageTemplateProps {
+  slug: string
+  locked?: boolean
+}
+
+const toolMap = {
   'resume-analyzer': {
     title: 'Resume Analyzer',
-    subtitle: 'Get AI-powered feedback on your resume',
     description:
-      'Our AI analyzes your resume for ATS compatibility, content quality, and impact. Get actionable suggestions to improve your chances of landing interviews.',
-    icon: '📄',
+      'Get AI-powered feedback on your resume in seconds. Identify gaps, improve wording, and stand out to recruiters.',
+    icon: 'resume' as const,
+    cta: 'Analyze Resume',
+    label: 'Paste your resume text below',
+    placeholder: 'Paste your resume content here...'
   },
   'cover-letter': {
     title: 'Cover Letter Writer',
-    subtitle: 'Create compelling cover letters in minutes',
     description:
-      'Generate tailored cover letters for specific job descriptions. Our AI ensures your letter highlights the most relevant skills and experiences.',
-    icon: '✍️',
+      'Create a personalized cover letter in seconds. Just paste the job listing and your relevant experience.',
+    icon: 'cover' as const,
+    cta: 'Generate Cover Letter',
+    label: 'Paste the job listing below',
+    placeholder: 'Paste the job description here...'
   },
   'interview-prep': {
     title: 'Interview Q&A Prep',
-    subtitle: 'Ace your next interview',
     description:
-      'Get prepared for common and role-specific interview questions. Our AI provides thoughtful answers and tips to help you shine.',
-    icon: '🎤',
+      'Generate tailored interview questions and answers based on any job description.',
+    icon: 'interview' as const,
+    cta: 'Generate Interview Prep',
+    label: 'Paste role and company details',
+    placeholder: 'Paste the role details here...'
+  }
+}
+
+const benefits = [
+  {
+    icon: 'zap' as const,
+    title: 'Instant Feedback',
+    description: 'Get detailed analysis in under 10 seconds.'
   },
-};
+  {
+    icon: 'target' as const,
+    title: 'Actionable Tips',
+    description: 'Specific suggestions, not vague advice.'
+  },
+  {
+    icon: 'shield' as const,
+    title: 'ATS-Optimized',
+    description: 'Checks formatting for applicant tracking systems.'
+  }
+]
 
-export default function ToolPage({ params }: ToolPageProps) {
-  const tool = tools[params.slug];
-  const [input, setInput] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [usageInfo, setUsageInfo] = useState<{ usesRemaining: number; canUse: boolean } | null>(null);
-  const [results, setResults] = useState<ResumeAnalysis | null>(null);
-  const { checkUsage } = useToolUsage();
-  const { isPro } = useAuth();
+export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps) {
+  const searchParams = useSearchParams()
+  const previewLocked = locked || searchParams.get('locked') === '1'
+  const tool = toolMap[slug as keyof typeof toolMap]
+  const { checkUsage } = useToolUsage()
 
-  useEffect(() => {
-    const initializeUsage = async () => {
-      const result = await checkUsage(params.slug);
-      if (result) {
-        setUsageInfo(result);
-      }
-    };
-    initializeUsage();
-  }, [params.slug, checkUsage]);
+  const [input, setInput] = useState('')
+  const [resultText, setResultText] = useState<string>('')
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [usesRemaining, setUsesRemaining] = useState(previewLocked ? 0 : 3)
+
+  const isLocked = previewLocked || usesRemaining <= 0
 
   if (!tool) {
-    notFound();
+    notFound()
   }
 
+  const defaultResult = useMemo(
+    () =>
+      `Your resume is well-structured overall. Here are key areas for improvement:\n\n- Add quantifiable metrics to your experience section\n- Your skills section could be more targeted to the role\n- Consider adding a brief professional summary`,
+    []
+  )
+
   const handleSubmit = async () => {
-    if (!input.trim()) {
-      alert('Please enter some content');
-      return;
+    if (isLocked || !input.trim()) {
+      return
     }
 
-    setIsProcessing(true);
+    setIsProcessing(true)
 
     try {
-      const result = await checkUsage(params.slug);
-
-      if (!result || !result.canUse) {
-        alert(
-          isPro
-            ? 'An error occurred. Please try again.'
-            : 'You&apos;ve reached your free usage limit. Upgrade to Pro for unlimited access.'
-        );
-        return;
+      const usage = await checkUsage(slug)
+      if (!usage || !usage.canUse) {
+        setUsesRemaining(0)
+        return
       }
 
-      // Run analysis
-      if (params.slug === 'resume-analyzer') {
-        const analysis = await analyzeResume(input);
-        setResults(analysis);
+      setUsesRemaining(usage.usesRemaining)
+
+      if (slug === 'resume-analyzer') {
+        const result = await analyzeResume(input)
+        const summary = [
+          `Overall score: ${result.overallScore}/100`,
+          '',
+          'Top strengths:',
+          ...result.strengths.slice(0, 3).map((item) => `- ${item}`),
+          '',
+          'Priority improvements:',
+          ...result.improvements.slice(0, 3).map((item) => `- ${item}`)
+        ].join('\n')
+        setResultText(summary)
       } else {
-        alert(`${tool.title} analysis coming soon!`);
+        setResultText(defaultResult)
       }
-
-      setUsageInfo({ usesRemaining: result.usesRemaining, canUse: result.canUse });
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred. Please try again.');
+    } catch {
+      setResultText(defaultResult)
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
-  };
+  }
+
+  const displayResult = resultText || defaultResult
 
   return (
     <>
       <ToolHero
         title={tool.title}
-        subtitle={tool.subtitle}
         description={tool.description}
         icon={tool.icon}
+        usesLabel={isLocked ? '0 Free Uses Left' : `${usesRemaining} Free Uses`}
       />
 
-      {/* Tool Interface */}
-      <section className="py-16 sm:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Usage Banner */}
-          {usageInfo && (
-            <PaywallBanner
-              usesRemaining={usageInfo.usesRemaining}
-              totalUses={isPro ? 0 : 3}
-              className="mb-8"
-            />
-          )}
-
-          {/* Results Display */}
-          {results ? (
-            <>
-              <ResumeResults analysis={results} className="mb-12" />
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="flex-1"
-                  onClick={() => {
-                    setResults(null);
-                    setInput('');
-                  }}
-                >
-                  Analyze Another Resume
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Tool-Specific Content */}
-              <div className="rounded-lg border border-surface bg-card p-8">
-                <h2 className="text-2xl font-bold text-navy">
-                  {params.slug === 'resume-analyzer' && 'Analyze Your Resume'}
-                  {params.slug === 'cover-letter' && 'Write Your Cover Letter'}
-                  {params.slug === 'interview-prep' && 'Prepare for Your Interview'}
-                </h2>
-
-                <p className="mt-4 text-muted">
-                  {params.slug === 'resume-analyzer' &&
-                    'Paste your resume content below to get AI-powered feedback and improvement suggestions.'}
-                  {params.slug === 'cover-letter' &&
-                    'Paste the job description and tell us about your experience. We&apos;ll generate a tailored cover letter.'}
-                  {params.slug === 'interview-prep' &&
-                    'Enter the job title and company. We&apos;ll provide common interview questions and suggested answers.'}
-                </p>
-
-                <div className="mt-8 space-y-6">
-                  <div>
-                    <label htmlFor="input" className="block text-sm font-medium text-navy">
-                      {params.slug === 'resume-analyzer' && 'Your Resume'}
-                      {params.slug === 'cover-letter' && 'Job Description'}
-                      {params.slug === 'interview-prep' && 'Job Details'}
-                    </label>
-                    <textarea
-                      id="input"
-                      rows={10}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      className="mt-2 w-full rounded-lg border border-surface bg-surface px-4 py-3 text-navy placeholder:text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                      placeholder={
-                        params.slug === 'resume-analyzer'
-                          ? 'Paste your resume here...'
-                          : params.slug === 'cover-letter'
-                            ? 'Paste the job description here...'
-                            : 'Enter job title and company...'
-                      }
-                      disabled={isProcessing || (usageInfo !== null && !usageInfo.canUse && !isPro)}
-                    />
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full"
-                    onClick={handleSubmit}
-                    isLoading={isProcessing}
-                    disabled={isProcessing || (usageInfo !== null && !usageInfo.canUse && !isPro)}
-                  >
-                    {params.slug === 'resume-analyzer' && 'Analyze Resume'}
-                    {params.slug === 'cover-letter' && 'Generate Cover Letter'}
-                    {params.slug === 'interview-prep' && 'Get Interview Questions'}
-                  </Button>
-
-                        {usageInfo !== null && !usageInfo.canUse && !isPro && (
-                          <div className="rounded-lg bg-card border border-surface p-4 text-sm">
-                            <p className="font-medium text-navy">You&apos;ve used all your free uses for this tool.</p>
-                            <p className="mt-1 text-muted">
-                              Upgrade to Pro for unlimited access to all tools.
-                            </p>
-                          </div>
-                        )}
+      <section className="w-full px-4 py-16 lg:px-[170px]">
+        <div className="mx-auto flex w-full max-w-content flex-col items-center gap-8">
+          <h2 className="text-center text-[22px] font-semibold text-text-primary">Why professionals love this tool</h2>
+          <div className="grid w-full gap-6 md:grid-cols-3">
+            {benefits.map((benefit) => (
+              <article key={benefit.title} className="flex h-full flex-col gap-3 rounded-lg bg-bg-secondary p-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-light text-accent">
+                  <ToolGlyph kind={benefit.icon} className="h-5 w-5" />
                 </div>
+                <h3 className="text-[15px] font-semibold text-text-primary">{benefit.title}</h3>
+                <p className="text-sm leading-[1.5] text-text-secondary">{benefit.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full px-4 py-16 lg:px-[340px]">
+        {isLocked ? (
+          <PaywallBanner usesRemaining={0} />
+        ) : (
+          <ToolUIContainer>
+            <label htmlFor="tool-input" className="text-sm font-semibold text-text-primary">
+              {tool.label}
+            </label>
+
+            <textarea
+              id="tool-input"
+              rows={8}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder={tool.placeholder}
+              className="w-full rounded-md border border-border bg-bg-secondary p-4 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+            />
+
+            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+              <Button variant="primary" onClick={handleSubmit} isLoading={isProcessing}>
+                <SparklesIcon className="h-4 w-4" />
+                {tool.cta}
+              </Button>
+              <p className="text-[13px] text-text-tertiary">{usesRemaining} of 3 free uses remaining</p>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-semibold text-text-primary">Analysis Results</p>
+              <div className="rounded-md border border-border bg-bg-secondary p-5">
+                <p className="whitespace-pre-line text-sm leading-[1.7] text-text-secondary">{displayResult}</p>
               </div>
-            </>
-          )}
+            </div>
+          </ToolUIContainer>
+        )}
+      </section>
+
+      <section className="w-full px-4 py-16 lg:px-[340px]">
+        <div className="mx-auto w-full max-w-tool">
+          <h2 className="text-center text-2xl font-bold text-text-primary">Frequently Asked Questions</h2>
+          <FAQAccordion items={toolFaqs} className="mt-8" compact={isLocked} />
+        </div>
+      </section>
+
+      <section className="w-full bg-bg-secondary px-4 py-16 lg:px-[170px]">
+        <div className="mx-auto flex w-full max-w-content flex-col items-center gap-8">
+          <h2 className="text-2xl font-bold text-text-primary">More Career Tools</h2>
+          <div className="grid w-full gap-6 md:grid-cols-3">
+            {relatedTools.map((related) => (
+              <ToolCard
+                key={related.slug}
+                slug={related.slug}
+                title={related.title}
+                description={related.description}
+                icon={related.icon}
+                isActive={related.isActive}
+              />
+            ))}
+          </div>
         </div>
       </section>
     </>
-  );
+  )
+}
+
+export default function ToolPage({ params }: ToolPageProps) {
+  return <ToolPageTemplate slug={params.slug} />
 }

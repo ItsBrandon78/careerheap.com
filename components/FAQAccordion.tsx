@@ -1,58 +1,49 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
+import React, { useState } from 'react'
+import { ChevronDownIcon } from './Icons'
 
 interface FAQItem {
-  question: string;
-  answer: string;
+  question: string
+  answer: string
 }
 
 interface FAQAccordionProps {
-  items: FAQItem[];
-  className?: string;
+  items: FAQItem[]
+  className?: string
+  compact?: boolean
 }
 
-export const FAQAccordion: React.FC<FAQAccordionProps> = ({ items, className = '' }) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+export const FAQAccordion: React.FC<FAQAccordionProps> = ({
+  items,
+  className = '',
+  compact = false
+}) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(compact ? null : 0)
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={className}>
       {items.map((item, index) => (
-        <div
-          key={index}
-          className="overflow-hidden rounded-lg border border-surface bg-card"
-        >
+        <article key={item.question} className="border-b border-border py-5">
           <button
+            type="button"
             onClick={() => setOpenIndex(openIndex === index ? null : index)}
-            className="flex w-full items-center justify-between px-6 py-4 text-left font-semibold text-navy hover:bg-surface"
+            className="flex w-full items-center justify-between gap-4 text-left"
           >
-            {item.question}
-            <svg
-              className={`h-5 w-5 transition-transform ${
+            <h3 className="text-base font-semibold text-text-primary">{item.question}</h3>
+            <ChevronDownIcon
+              className={`h-5 w-5 text-text-tertiary transition-transform ${
                 openIndex === index ? 'rotate-180' : ''
               }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
+            />
           </button>
-
           {openIndex === index && (
-            <div className="border-t border-surface px-6 py-4 text-muted">
-              {item.answer}
-            </div>
+            <p className="mt-3 text-sm leading-[1.6] text-text-secondary">{item.answer}</p>
           )}
-        </div>
+        </article>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default FAQAccordion;
+export default FAQAccordion
