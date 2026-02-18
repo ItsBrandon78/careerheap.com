@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Button from './Button'
 import { useAuth } from '@/lib/auth/context'
-import { ArrowRightIcon, ToolGlyph } from './Icons'
+import { ToolGlyph } from './Icons'
 
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -29,11 +29,11 @@ export const Header: React.FC = () => {
             <Link href="/tools" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
               Tools
             </Link>
-            <Link href="/blog" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
-              Blog
-            </Link>
             <Link href="/pricing" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
               Pricing
+            </Link>
+            <Link href="/blog" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
+              Blog
             </Link>
           </nav>
         </div>
@@ -51,11 +51,10 @@ export const Header: React.FC = () => {
           ) : !isLoading ? (
             <>
               <Link href="/login" className="hidden text-[15px] font-medium text-text-secondary md:block">
-                Log in
+                Log In
               </Link>
               <Link href="/tools/resume-analyzer">
                 <Button variant="primary" size="md">
-                  <ArrowRightIcon className="h-4 w-4" />
                   Try Free
                 </Button>
               </Link>
@@ -67,7 +66,11 @@ export const Header: React.FC = () => {
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-primary text-text-secondary md:hidden"
             aria-label="Toggle navigation menu"
           >
-            <span className="block h-0.5 w-4 bg-current" />
+            <span className="space-y-1">
+              <span className="block h-0.5 w-4 bg-current" />
+              <span className="block h-0.5 w-4 bg-current" />
+              <span className="block h-0.5 w-4 bg-current" />
+            </span>
           </button>
         </div>
       </div>
@@ -75,15 +78,69 @@ export const Header: React.FC = () => {
       {isOpen && (
         <nav className="border-t border-border px-4 py-3 md:hidden">
           <div className="mx-auto flex max-w-wide flex-col gap-2">
-            <Link href="/tools" className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary">
+            <Link
+              href="/tools"
+              className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
+              onClick={() => setIsOpen(false)}
+            >
               Tools
             </Link>
-            <Link href="/blog" className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary">
-              Blog
-            </Link>
-            <Link href="/pricing" className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary">
+            <Link
+              href="/pricing"
+              className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
+              onClick={() => setIsOpen(false)}
+            >
               Pricing
             </Link>
+            <Link
+              href="/blog"
+              className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
+              onClick={() => setIsOpen(false)}
+            >
+              Blog
+            </Link>
+
+            {!isLoading && !user && (
+              <>
+                <div className="my-2 border-t border-border" />
+                <Link
+                  href="/login"
+                  className="rounded-md px-3 py-2 text-[15px] font-medium text-text-secondary hover:bg-bg-secondary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Log In
+                </Link>
+                <Link href="/tools/resume-analyzer" onClick={() => setIsOpen(false)}>
+                  <Button variant="primary" size="md" className="w-full">
+                    Try Free
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            {!isLoading && user && (
+              <>
+                <div className="my-2 border-t border-border" />
+                <Link
+                  href="/account"
+                  className="rounded-md px-3 py-2 text-[15px] font-medium text-text-secondary hover:bg-bg-secondary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {user.email?.split('@')[0] || 'Account'}
+                </Link>
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="w-full"
+                  onClick={async () => {
+                    await handleSignOut()
+                    setIsOpen(false)
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       )}

@@ -1,14 +1,14 @@
-Mockup parity checklist
+ï»¿Mockup parity checklist
 =======================
 
 Source of truth
 - The parity target comes from `careerheap/CareerHeap,pen.pen` top-level frames:
   - `Homepage`
-  - `Tool Page — Active State`
-  - `Tool Page — Locked State`
+  - `Tool Page - Active State`
+  - `Tool Page - Locked State`
   - `Pricing Page`
   - `Blog Post Template`
-  - `— Design System Components —`
+  - `- Design System Components -`
 
 Design tokens
 - Canonical token file: `src/design/tokens.ts`
@@ -69,3 +69,17 @@ Regression guardrails
 - Do not bypass shared components for cards/buttons/badges in parity routes.
 - Keep Tailwind token mapping in sync when token values change.
 - Validate desktop + mobile spacing and max-width behavior after layout changes.
+
+Implementation status (roadmap/dev)
+- [x] `src/design/tokens.ts` is the canonical design-token source.
+- [x] Tailwind token mapping is wired through `tailwind.config.js`.
+- [x] Shared parity components are implemented and reused (`Header`, `Footer`, `Button`, `Badge`, `Card`, `ToolCard`, `BlogCard`, `PricingCard`, `FAQAccordion`, `ToolHero`, `ToolUIContainer`, `PaywallBanner`).
+- [x] Core parity pages are implemented:
+  - [x] `/`
+  - [x] `/pricing`
+  - [x] `/blog/[slug]`
+  - [x] `/tools/[slug]`
+- [x] Locked tool preview flows are implemented:
+  - [x] `/tools/[slug]?locked=1`
+  - [x] `/tools/[slug]/locked`
+- [x] Design system preview page is implemented: `/design-system`.

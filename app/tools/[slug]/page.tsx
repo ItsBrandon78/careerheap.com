@@ -1,7 +1,7 @@
 'use client'
 
 import { notFound, useSearchParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { use, useMemo, useState } from 'react'
 import ToolHero from '@/components/ToolHero'
 import ToolUIContainer from '@/components/ToolUIContainer'
 import PaywallBanner from '@/components/PaywallBanner'
@@ -14,9 +14,9 @@ import { useToolUsage } from '@/lib/hooks/useToolUsage'
 import { analyzeResume } from '@/lib/analysis/resume'
 
 interface ToolPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 interface ToolPageTemplateProps {
@@ -226,5 +226,6 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
 }
 
 export default function ToolPage({ params }: ToolPageProps) {
-  return <ToolPageTemplate slug={params.slug} />
+  const { slug } = use(params)
+  return <ToolPageTemplate slug={slug} />
 }

@@ -1,95 +1,58 @@
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
-      <h1 className="mb-8 text-4xl font-bold text-gray-900">Terms of Service</h1>
+    <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
+      <article className="mx-auto max-w-[860px] rounded-lg border border-border bg-surface p-8 shadow-card">
+        <p className="text-xs font-semibold tracking-[1.5px] text-accent">LEGAL</p>
+        <h1 className="mt-3 text-[40px] font-bold text-text-primary">Terms of Service</h1>
 
-      <div className="space-y-8 text-gray-600">
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">1. Acceptance of Terms</h2>
-          <p>
-            By using CareerHeap (&quot;Service&quot;), you agree to be bound by these terms. If you do not agree to
-            these terms, do not use the Service.
-          </p>
-        </section>
+        <div className="mt-8 space-y-8 text-sm leading-[1.7] text-text-secondary">
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">1. Acceptance of Terms</h2>
+            <p className="mt-3">Using CareerHeap means you agree to these terms and all applicable laws.</p>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">2. Use License</h2>
-          <p>
-            We grant you a limited, non-exclusive, non-transferable license to use the Service for personal,
-            non-commercial purposes.
-          </p>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">2. License</h2>
+            <p className="mt-3">
+              We grant a limited, non-exclusive license for personal and professional use of the service.
+            </p>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">3. Acceptable Use</h2>
-          <p>You agree not to use the Service for:</p>
-          <ul className="mt-4 list-disc space-y-2 pl-6">
-            <li>Illegal activities or violating any laws</li>
-            <li>Harassing or abusing other users</li>
-            <li>Attempting to breach security measures</li>
-            <li>Circumventing usage limits or payment requirements</li>
-            <li>Reverse engineering or copying our technology</li>
-          </ul>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">3. Acceptable Use</h2>
+            <ul className="mt-3 list-disc space-y-2 pl-6">
+              <li>No illegal, abusive, or fraudulent activity.</li>
+              <li>No attempts to bypass payment or usage limits.</li>
+              <li>No reverse engineering or unauthorized copying.</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">4. Intellectual Property</h2>
-          <p>
-            All content, features, and functionality of the Service are owned exclusively by CareerHeap. You may not
-            reproduce, distribute, or transmit any content without our permission.
-          </p>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">4. Billing and Subscriptions</h2>
+            <p className="mt-3">
+              Paid plans are billed through Stripe and can be canceled according to your active plan terms.
+            </p>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">5. Disclaimer of Warranties</h2>
-          <p>
-            The Service is provided &quot;as is&quot; without warranties of any kind, express or implied. We do not
-            guarantee that the Service will be error-free or uninterrupted.
-          </p>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">5. Disclaimer</h2>
+            <p className="mt-3">
+              Career guidance and generated content are provided as-is and do not guarantee interview or hiring outcomes.
+            </p>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">6. Limitation of Liability</h2>
-          <p>
-            CareerHeap shall not be liable for any indirect, incidental, special, consequential, or punitive damages
-            arising from your use of the Service.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">7. Indemnification</h2>
-          <p>
-            You agree to indemnify and hold harmless CareerHeap from any claims, damages, or costs arising from your
-            use of the Service or violation of these terms.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">8. Termination</h2>
-          <p>
-            We reserve the right to terminate your access to the Service at any time for violation of these terms or
-            for any reason.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">9. Changes to Terms</h2>
-          <p>
-            We may modify these terms at any time. Your continued use of the Service constitutes acceptance of the
-            updated terms.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">10. Contact Us</h2>
-          <p>
-            If you have questions about these terms, please contact us at{' '}
-            <a href="mailto:legal@careerheap.com" className="text-sky-600 hover:underline">
-              legal@careerheap.com
-            </a>
-          </p>
-        </section>
-      </div>
-    </div>
-  );
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">6. Contact</h2>
+            <p className="mt-3">
+              Questions about these terms can be sent to{' '}
+              <a href="mailto:legal@careerheap.com" className="text-accent hover:text-accent-hover">
+                legal@careerheap.com
+              </a>
+              .
+            </p>
+          </section>
+        </div>
+      </article>
+    </section>
+  )
 }

@@ -1,76 +1,58 @@
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
-      <h1 className="mb-8 text-4xl font-bold text-gray-900">Privacy Policy</h1>
+    <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
+      <article className="mx-auto max-w-[860px] rounded-lg border border-border bg-surface p-8 shadow-card">
+        <p className="text-xs font-semibold tracking-[1.5px] text-accent">LEGAL</p>
+        <h1 className="mt-3 text-[40px] font-bold text-text-primary">Privacy Policy</h1>
 
-      <div className="space-y-8 text-gray-600">
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Introduction</h2>
-          <p>
-            CareerHeap (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates the careerheap.com website. This page
-            informs you of our policies regarding the collection, use, and disclosure of personal data when you use
-            our service.
-          </p>
-        </section>
+        <div className="mt-8 space-y-8 text-sm leading-[1.7] text-text-secondary">
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">Introduction</h2>
+            <p className="mt-3">
+              CareerHeap (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates career tools and educational
+              content. This policy explains how we collect, use, and protect your information.
+            </p>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Information We Collect</h2>
-          <p>We collect the following information to provide our service:</p>
-          <ul className="mt-4 list-disc space-y-2 pl-6">
-            <li><strong>Email address</strong> - Used to track your usage tier and unlock status</li>
-            <li><strong>Usage data</strong> - How many times you use each tool</li>
-            <li><strong>Tool input data</strong> - Only processed temporarily for AI analysis, not stored</li>
-          </ul>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">Information We Collect</h2>
+            <ul className="mt-3 list-disc space-y-2 pl-6">
+              <li>Email address for account and authentication.</li>
+              <li>Usage data for tool limits and billing state.</li>
+              <li>Tool inputs processed for analysis (not stored as permanent profile content).</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">How We Use Your Data</h2>
-          <ul className="space-y-2 list-disc pl-6">
-            <li>Track your free usage limit (3 uses per tool)</li>
-            <li>Manage your subscription and payment status</li>
-            <li>Improve our service and AI models</li>
-            <li>Send important notifications about your account</li>
-          </ul>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">How We Use Data</h2>
+            <ul className="mt-3 list-disc space-y-2 pl-6">
+              <li>Provide tool results and account access.</li>
+              <li>Apply free usage limits and subscription features.</li>
+              <li>Maintain service reliability and security.</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Data Storage</h2>
-          <p>
-            Your data is stored securely in Supabase, a managed PostgreSQL database. We use industry-standard
-            encryption to protect your information.
-          </p>
-        </section>
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">Third-Party Services</h2>
+            <ul className="mt-3 list-disc space-y-2 pl-6">
+              <li>Supabase for authentication and database.</li>
+              <li>Stripe for secure payment processing.</li>
+              <li>OpenAI for AI-powered generation and analysis.</li>
+            </ul>
+          </section>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Third-Party Services</h2>
-          <p>We use the following third-party services:</p>
-          <ul className="mt-4 list-disc space-y-2 pl-6">
-            <li><strong>Supabase</strong> - Database hosting and authentication</li>
-            <li><strong>Stripe</strong> - Payment processing</li>
-            <li><strong>OpenAI</strong> - AI analysis and generation</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Your Rights</h2>
-          <p>You have the right to:</p>
-          <ul className="mt-4 list-disc space-y-2 pl-6">
-            <li>Request deletion of your data</li>
-            <li>Know what data we store about you</li>
-            <li>Opt-out of communications</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Contact Us</h2>
-          <p>
-            If you have questions about this privacy policy, please contact us at{' '}
-            <a href="mailto:privacy@careerheap.com" className="text-sky-600 hover:underline">
-              privacy@careerheap.com
-            </a>
-          </p>
-        </section>
-      </div>
-    </div>
-  );
+          <section>
+            <h2 className="text-2xl font-bold text-text-primary">Contact</h2>
+            <p className="mt-3">
+              Questions about privacy can be sent to{' '}
+              <a href="mailto:privacy@careerheap.com" className="text-accent hover:text-accent-hover">
+                privacy@careerheap.com
+              </a>
+              .
+            </p>
+          </section>
+        </div>
+      </article>
+    </section>
+  )
 }

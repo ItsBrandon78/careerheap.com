@@ -17,9 +17,12 @@ export function createClient() {
     const mock = {
       auth: {
         onAuthStateChange: (
-          _callback: (event: AuthChangeEvent, session: Session | null) => void
+          callback: (event: AuthChangeEvent, session: Session | null) => void
         ) => {
-          void _callback;
+          // Mirror Supabase behavior: emit an initial auth state so UI loading gates can resolve.
+          setTimeout(() => {
+            callback('INITIAL_SESSION', null);
+          }, 0);
           // Immediately return an object shaped like the real API.
           const subscription = { unsubscribe: () => undefined };
           return { data: { subscription }, subscription };

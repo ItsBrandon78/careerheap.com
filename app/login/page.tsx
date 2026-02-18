@@ -1,242 +1,229 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import Button from '@/components/Button';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import Button from '@/components/Button'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [authMode, setAuthMode] = useState<'magic-link' | 'password'>('magic-link');
-  const router = useRouter();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
+  const [authMode, setAuthMode] = useState<'magic-link' | 'password'>('magic-link')
+  const router = useRouter()
 
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setIsLoading(true);
+  const handleMagicLink = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    setIsLoading(true)
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOtp({
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
 
-      if (error) throw error;
+      if (signInError) throw signInError
 
-      setMessage('Check your email for a magic link to log in!');
-      setEmail('');
+      setMessage('Check your email for a magic link to log in.')
+      setEmail('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const handlePasswordSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setIsLoading(true);
+  const handlePasswordSignUp = async () => {
+    setError('')
+    setMessage('')
+    setIsLoading(true)
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
+      const supabase = createClient()
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
 
-      if (error) throw error;
+      if (signUpError) throw signUpError
 
-      setMessage('Check your email to confirm your account!');
-      setEmail('');
-      setPassword('');
+      setMessage('Check your email to confirm your account.')
+      setPassword('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const handlePasswordSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setIsLoading(true);
+  const handlePasswordSignIn = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+    setIsLoading(true)
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
-        password,
-      });
+        password
+      })
 
-      if (error) throw error;
+      if (signInError) throw signInError
 
-      router.push('/');
+      router.push('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid credentials');
+      setError(err instanceof Error ? err.message : 'Invalid credentials')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Sign In</h1>
-          <p className="mt-2 text-gray-600">or create an account to get started</p>
+    <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-[170px]">
+      <div className="mx-auto w-full max-w-[460px] rounded-lg border border-border bg-surface p-8 shadow-panel">
+        <header className="text-center">
+          <p className="text-xs font-semibold tracking-[1.5px] text-accent">ACCOUNT</p>
+          <h1 className="mt-3 text-[32px] font-bold text-text-primary">Sign In</h1>
+          <p className="mt-2 text-sm text-text-secondary">Access your tools and usage history.</p>
+        </header>
+
+        <div className="mt-6 grid grid-cols-2 gap-2 rounded-md bg-bg-secondary p-1">
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode('magic-link')
+              setError('')
+              setMessage('')
+            }}
+            className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+              authMode === 'magic-link'
+                ? 'bg-surface text-text-primary shadow-card'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Magic Link
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode('password')
+              setError('')
+              setMessage('')
+            }}
+            className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+              authMode === 'password'
+                ? 'bg-surface text-text-primary shadow-card'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Password
+          </button>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+          <div className="mt-4 rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error">
             {error}
           </div>
         )}
 
         {message && (
-          <div className="mb-4 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800">
+          <div className="mt-4 rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success">
             {message}
           </div>
         )}
 
         {authMode === 'magic-link' ? (
-          <form onSubmit={handleMagicLink} className="space-y-6">
+          <form onSubmit={handleMagicLink} className="mt-6 space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="email" className="block text-sm font-semibold text-text-primary">
                 Email Address
               </label>
               <input
                 id="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                 placeholder="you@example.com"
               />
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-              isLoading={isLoading}
-            >
+            <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
               Send Magic Link
             </Button>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('password');
-                  setError('');
-                  setMessage('');
-                }}
-                className="text-sm text-sky-600 hover:underline"
-              >
-                Use password instead
-              </button>
-            </div>
           </form>
         ) : (
-          <form onSubmit={handlePasswordSignIn} className="space-y-6">
+          <form onSubmit={handlePasswordSignIn} className="mt-6 space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="email-password" className="block text-sm font-semibold text-text-primary">
                 Email Address
               </label>
               <input
-                id="email"
+                id="email-password"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="password" className="block text-sm font-semibold text-text-primary">
                 Password
               </label>
               <input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                placeholder="••••••••"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                placeholder="********"
               />
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-              isLoading={isLoading}
-            >
+            <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
               Sign In
             </Button>
 
-            <div className="text-center text-sm">
-              <span className="text-gray-600">Don&apos;t have an account? </span>
-              <button
-                type="button"
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                  const mockEvent = { ...e, preventDefault: () => {} };
-                  handlePasswordSignUp(mockEvent as React.FormEvent);
-                }}
-                className="text-sky-600 hover:underline"
-              >
-                Create one
-              </button>
-            </div>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('magic-link');
-                  setError('');
-                  setMessage('');
-                  setPassword('');
-                }}
-                className="text-sm text-sky-600 hover:underline"
-              >
-                Use magic link instead
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handlePasswordSignUp}
+              disabled={isLoading || !email || !password}
+              className="w-full rounded-md border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-secondary transition-colors hover:text-accent disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Create Account with Email + Password
+            </button>
           </form>
         )}
 
-        <div className="mt-8 border-t border-gray-200 pt-6 text-center text-sm text-gray-600">
-          By signing in, you agree to our{' '}
-          <Link href="/terms" className="text-sky-600 hover:underline">
-            Terms of Service
+        <p className="mt-6 text-center text-sm text-text-secondary">
+          By continuing, you agree to our{' '}
+          <Link href="/terms" className="text-accent hover:text-accent-hover">
+            Terms
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="text-sky-600 hover:underline">
+          <Link href="/privacy" className="text-accent hover:text-accent-hover">
             Privacy Policy
           </Link>
-        </div>
+          .
+        </p>
       </div>
-    </div>
-  );
+    </section>
+  )
 }

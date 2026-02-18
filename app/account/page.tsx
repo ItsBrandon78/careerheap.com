@@ -1,103 +1,98 @@
-'use client';
+'use client'
 
-import { useAuth } from '@/lib/auth/context';
-import Button from '@/components/Button';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect } from 'react'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import Button from '@/components/Button'
+import { useAuth } from '@/lib/auth/context'
 
 export default function AccountPage() {
-  const { user, isPro, isLoading, signOut } = useAuth();
+  const { user, isPro, isLoading, signOut } = useAuth()
 
   useEffect(() => {
     if (!isLoading && !user) {
-      redirect('/login');
+      redirect('/login')
     }
-  }, [user, isLoading]);
+  }, [user, isLoading])
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-50">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
+      <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-[170px]">
+        <div className="mx-auto max-w-content text-center text-text-secondary">Loading account...</div>
+      </section>
+    )
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Account Settings</h1>
+    <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
+      <div className="mx-auto max-w-[860px]">
+        <p className="text-xs font-semibold tracking-[1.5px] text-accent">ACCOUNT</p>
+        <h1 className="mt-3 text-[40px] font-bold text-text-primary">Account Settings</h1>
 
-        <div className="space-y-6">
-          {/* Profile Card */}
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile</h2>
-            <div className="space-y-4">
+        <div className="mt-8 space-y-6">
+          <article className="rounded-lg border border-border bg-surface p-6 shadow-card">
+            <h2 className="text-xl font-semibold text-text-primary">Profile</h2>
+            <dl className="mt-4 grid gap-4 text-sm">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <p className="mt-1 text-gray-900">{user?.email}</p>
+                <dt className="font-semibold text-text-primary">Email</dt>
+                <dd className="mt-1 text-text-secondary">{user?.email}</dd>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700">User ID</label>
-                <p className="mt-1 font-mono text-sm text-gray-600">{user?.id}</p>
+                <dt className="font-semibold text-text-primary">User ID</dt>
+                <dd className="mt-1 break-all font-mono text-text-secondary">{user?.id}</dd>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700">Account Status</label>
-                <div className="mt-1 flex items-center space-x-2">
+                <dt className="font-semibold text-text-primary">Plan</dt>
+                <dd className="mt-1">
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                      isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'
+                    className={`inline-flex rounded-pill px-3 py-1 text-xs font-semibold ${
+                      isPro
+                        ? 'border border-success/20 bg-success-light text-success'
+                        : 'border border-border bg-bg-secondary text-text-secondary'
                     }`}
                   >
                     {isPro ? 'Pro' : 'Free'}
                   </span>
-                </div>
+                </dd>
               </div>
-            </div>
-          </div>
+            </dl>
+          </article>
 
-          {/* Subscription Card */}
           {!isPro && (
-            <div className="rounded-lg bg-white p-6 shadow-sm border-2 border-sky-100">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Upgrade to Pro</h2>
-              <p className="text-gray-600 mb-6">
-                Get unlimited access to all tools. Unlock resume analysis, cover letter
-                generation, interview prep, and more.
+            <article className="rounded-lg border border-accent/30 bg-accent-light p-6 shadow-card">
+              <h2 className="text-xl font-semibold text-text-primary">Upgrade to Pro</h2>
+              <p className="mt-2 text-sm text-text-secondary">
+                Unlock unlimited uses for every tool with priority support.
               </p>
-              <Link href="/pricing">
+              <Link href="/pricing" className="mt-5 inline-block">
                 <Button variant="primary">View Pricing</Button>
               </Link>
-            </div>
+            </article>
           )}
 
-          {/* Usage Card */}
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Tool Usage</h2>
-            <p className="text-gray-600 mb-4">
+          <article className="rounded-lg border border-border bg-surface p-6 shadow-card">
+            <h2 className="text-xl font-semibold text-text-primary">Usage</h2>
+            <p className="mt-2 text-sm text-text-secondary">
               {isPro
                 ? 'You have unlimited access to all tools.'
-                : 'Free plan includes 3 uses per tool per month.'}
+                : 'Free plan includes 3 uses per tool.'}
             </p>
-            <Link href="/tools">
-              <Button variant="outline">View Tools</Button>
+            <Link href="/tools" className="mt-5 inline-block">
+              <Button variant="outline">Open Tools</Button>
             </Link>
-          </div>
+          </article>
 
-          {/* Sign Out Card */}
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Session</h2>
-            <p className="text-gray-600 mb-4">Sign out of your account</p>
-            <button
-              onClick={signOut}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
+          <article className="rounded-lg border border-border bg-surface p-6 shadow-card">
+            <h2 className="text-xl font-semibold text-text-primary">Session</h2>
+            <p className="mt-2 text-sm text-text-secondary">Sign out from your account on this device.</p>
+            <div className="mt-5">
+              <Button variant="secondary" onClick={signOut}>
+                Sign Out
+              </Button>
+            </div>
+          </article>
         </div>
       </div>
-    </div>
-  );
+    </section>
+  )
 }
