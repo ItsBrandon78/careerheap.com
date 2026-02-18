@@ -5,7 +5,7 @@ import { SparklesIcon, ToolGlyph } from './Icons'
 interface ToolHeroProps {
   title: string
   description: string
-  icon?: 'resume' | 'interview' | 'cover' | 'job'
+  icon?: 'resume' | 'interview' | 'cover' | 'job' | 'planner'
   usesLabel?: string
 }
 

@@ -9,7 +9,7 @@
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text UNIQUE,
-  plan text DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
+  plan text DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'lifetime')),
   stripe_customer_id text UNIQUE,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -63,7 +63,7 @@ VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================================================
--- 3. Tool Usage Table (3-use limit per user/anon)
+-- 3. Tool Usage Table (legacy per-tool usage log)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.tool_usage (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -137,7 +137,7 @@ RETURNS boolean
 LANGUAGE sql
 AS $$
   SELECT COALESCE((
-    SELECT plan = 'pro'
+    SELECT plan IN ('pro', 'lifetime')
     FROM profiles
     WHERE id = user_id
   ), false);

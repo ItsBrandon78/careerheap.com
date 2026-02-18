@@ -10,7 +10,7 @@ export default function SuccessPage() {
         </div>
         <h1 className="mt-5 text-3xl font-bold text-text-primary">Welcome to Pro</h1>
         <p className="mt-3 text-text-secondary">
-          Your subscription is active. You now have unlimited access to all CareerHeap tools.
+          Your plan is active. You now have unlimited access to all CareerHeap tools.
         </p>
 
         <div className="mt-8 space-y-3">

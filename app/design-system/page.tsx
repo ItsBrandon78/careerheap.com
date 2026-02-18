@@ -44,10 +44,11 @@ export default function DesignSystemPage() {
             readTime="5 min read"
           />
           <PricingCard
-            name="Monthly"
-            price="$19"
+            name="Pro"
+            price="$7"
             subtitle="/month"
-            features={['Unlimited tool access', 'Export to PDF & Word', 'Priority support']}
+            badge="Most Popular"
+            features={['Unlimited tool uses', 'Resume upload', 'Full roadmap output']}
           />
         </section>
 
@@ -74,4 +75,3 @@ export default function DesignSystemPage() {
     </div>
   )
 }
-

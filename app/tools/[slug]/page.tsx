@@ -1,7 +1,7 @@
 'use client'
 
 import { notFound, useSearchParams } from 'next/navigation'
-import { use, useMemo, useState } from 'react'
+import { use, useEffect, useMemo, useState } from 'react'
 import ToolHero from '@/components/ToolHero'
 import ToolUIContainer from '@/components/ToolUIContainer'
 import PaywallBanner from '@/components/PaywallBanner'
@@ -10,7 +10,7 @@ import ToolCard from '@/components/ToolCard'
 import Button from '@/components/Button'
 import { SparklesIcon, ToolGlyph } from '@/components/Icons'
 import { relatedTools, toolFaqs } from '@/src/design/mockupData'
-import { useToolUsage } from '@/lib/hooks/useToolUsage'
+import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
 import { analyzeResume } from '@/lib/analysis/resume'
 
 interface ToolPageProps {
@@ -23,6 +23,8 @@ interface ToolPageTemplateProps {
   slug: string
   locked?: boolean
 }
+
+const FREE_LIMIT = 3
 
 const toolMap = {
   'resume-analyzer': {
@@ -72,22 +74,58 @@ const benefits = [
   }
 ]
 
+function toUsageLabel(usage: ToolUsageResult | null, previewLocked: boolean) {
+  if (previewLocked) return 'Locked Preview'
+  if (usage?.isUnlimited) return usage.plan === 'lifetime' ? 'Lifetime Access' : 'Unlimited Access'
+  const remaining = usage?.usesRemaining ?? FREE_LIMIT
+  return `${remaining} Free Uses Left`
+}
+
 export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps) {
   const searchParams = useSearchParams()
-  const previewLocked = locked || searchParams.get('locked') === '1'
   const tool = toolMap[slug as keyof typeof toolMap]
-  const { checkUsage } = useToolUsage()
+  const { getUsage, consumeUsage } = useToolUsage()
 
+  const previewLocked = locked || searchParams.get('locked') === '1'
+  const usageQuery = useMemo(() => {
+    const qp = new URLSearchParams()
+    const plan = searchParams.get('plan')
+    const uses = searchParams.get('uses')
+    if (plan) qp.set('plan', plan)
+    if (uses) qp.set('uses', uses)
+    return qp.toString()
+  }, [searchParams])
+
+  const [usage, setUsage] = useState<ToolUsageResult | null>(null)
   const [input, setInput] = useState('')
   const [resultText, setResultText] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [usesRemaining, setUsesRemaining] = useState(previewLocked ? 0 : 3)
-
-  const isLocked = previewLocked || usesRemaining <= 0
+  const [isUsageLoading, setIsUsageLoading] = useState(true)
 
   if (!tool) {
     notFound()
   }
+
+  useEffect(() => {
+    let active = true
+
+    const loadUsage = async () => {
+      setIsUsageLoading(true)
+      const result = await getUsage(slug, usageQuery)
+      if (active && result) {
+        setUsage(result)
+      }
+      if (active) {
+        setIsUsageLoading(false)
+      }
+    }
+
+    void loadUsage()
+
+    return () => {
+      active = false
+    }
+  }, [getUsage, slug, usageQuery])
 
   const defaultResult = useMemo(
     () =>
@@ -95,22 +133,17 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
     []
   )
 
+  const isLocked = previewLocked || (usage ? !usage.canUse : false)
+  const displayResult = resultText || defaultResult
+
   const handleSubmit = async () => {
-    if (isLocked || !input.trim()) {
+    if (isLocked || !input.trim() || isUsageLoading) {
       return
     }
 
     setIsProcessing(true)
 
     try {
-      const usage = await checkUsage(slug)
-      if (!usage || !usage.canUse) {
-        setUsesRemaining(0)
-        return
-      }
-
-      setUsesRemaining(usage.usesRemaining)
-
       if (slug === 'resume-analyzer') {
         const result = await analyzeResume(input)
         const summary = [
@@ -126,6 +159,11 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
       } else {
         setResultText(defaultResult)
       }
+
+      const nextUsage = await consumeUsage(slug, usageQuery)
+      if (nextUsage) {
+        setUsage(nextUsage)
+      }
     } catch {
       setResultText(defaultResult)
     } finally {
@@ -133,15 +171,13 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
     }
   }
 
-  const displayResult = resultText || defaultResult
-
   return (
     <>
       <ToolHero
         title={tool.title}
         description={tool.description}
         icon={tool.icon}
-        usesLabel={isLocked ? '0 Free Uses Left' : `${usesRemaining} Free Uses`}
+        usesLabel={toUsageLabel(usage, previewLocked)}
       />
 
       <section className="w-full px-4 py-16 lg:px-[170px]">
@@ -180,11 +216,22 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
             />
 
             <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-              <Button variant="primary" onClick={handleSubmit} isLoading={isProcessing}>
+              <Button
+                variant="primary"
+                onClick={handleSubmit}
+                isLoading={isProcessing}
+                disabled={isUsageLoading || !input.trim()}
+              >
                 <SparklesIcon className="h-4 w-4" />
                 {tool.cta}
               </Button>
-              <p className="text-[13px] text-text-tertiary">{usesRemaining} of 3 free uses remaining</p>
+              <p className="text-[13px] text-text-tertiary">
+                {usage?.isUnlimited
+                  ? usage.plan === 'lifetime'
+                    ? 'Lifetime unlimited access'
+                    : 'Pro unlimited access'
+                  : `${usage?.usesRemaining ?? FREE_LIMIT} of ${FREE_LIMIT} free uses remaining`}
+              </p>
             </div>
 
             <div className="flex flex-col gap-4">

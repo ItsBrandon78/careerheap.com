@@ -1,4 +1,4 @@
-export type ToolIcon = 'resume' | 'interview' | 'cover' | 'job'
+export type ToolIcon = 'resume' | 'interview' | 'cover' | 'job' | 'planner'
 
 export interface ToolSummary {
   slug: string
@@ -6,6 +6,14 @@ export interface ToolSummary {
   description: string
   icon: ToolIcon
   isActive?: boolean
+}
+
+export const featuredHomepageTool: ToolSummary = {
+  slug: 'career-switch-planner',
+  title: 'Career Switch Planner',
+  description: 'See how your skills transfer - and get a step-by-step plan.',
+  icon: 'planner',
+  isActive: true
 }
 
 export const homepageTools: ToolSummary[] = [
@@ -72,45 +80,65 @@ export interface PricingPlan {
   price: string
   subtitle: string
   highlighted?: boolean
+  badge?: string
+  buttonText?: string
   features: string[]
 }
 
 export const pricingPlans: PricingPlan[] = [
   {
-    name: 'Monthly',
-    price: '$19',
-    subtitle: '/month',
-    features: ['Unlimited tool access', 'Export to PDF & Word', 'Priority support']
+    name: 'Free',
+    price: '$0',
+    subtitle: 'For trying CareerHeap',
+    buttonText: 'Try Free',
+    features: ['3 lifetime uses total', 'Manual paste input', 'Basic report preview']
   },
   {
-    name: 'Annual',
-    price: '$12',
-    subtitle: '/month, billed annually',
+    name: 'Pro',
+    price: '$7',
+    subtitle: '/month',
     highlighted: true,
+    badge: 'Most Popular',
+    buttonText: 'Upgrade to Pro',
     features: [
-      'Everything in Monthly',
-      'Custom resume templates',
-      'Early access to new tools'
+      'Unlimited tool uses',
+      'Resume upload (PDF/DOCX)',
+      'Full career roadmap',
+      'Resume reframe generation'
+    ]
+  },
+  {
+    name: 'Lifetime',
+    price: '$49',
+    subtitle: 'One-time payment',
+    buttonText: 'Get Lifetime Access',
+    features: [
+      'Everything in Pro',
+      'No recurring billing',
+      'Optional Early Supporter badge'
     ]
   }
 ]
 
 export const pricingFaqs = [
   {
-    question: 'Can I cancel anytime?',
-    answer: 'Yes. You can cancel anytime from your account settings with no extra fees.'
+    question: 'Can I try before I buy?',
+    answer:
+      'Yes. Free includes 3 total lifetime uses across all tools with no credit card required.'
   },
   {
-    question: 'Do you offer student discounts?',
-    answer: 'Student discounts are available for annual plans. Contact support to verify eligibility.'
+    question: 'What unlocks with Pro?',
+    answer:
+      'Pro gives unlimited uses, resume upload, full roadmap outputs, and resume reframing.'
+  },
+  {
+    question: 'How is Lifetime different?',
+    answer:
+      'Lifetime includes everything in Pro with a single one-time payment and no recurring billing.'
   },
   {
     question: 'What payment methods do you accept?',
     answer: 'We support major credit cards and secure checkout powered by Stripe.'
-  },
-  {
-    question: 'Is there a money-back guarantee?',
-    answer: 'Every paid plan includes a 30-day money-back guarantee.'
   }
 ]
 
@@ -118,7 +146,7 @@ export const toolFaqs = [
   {
     question: 'How does the free trial work?',
     answer:
-      'You get 3 free uses of each tool with no credit card required. Upgrade for unlimited access.'
+      'Free includes 3 total lifetime uses shared across all tools with no credit card required.'
   },
   {
     question: 'Is my resume data stored?',
@@ -263,4 +291,3 @@ export const blogPostTemplates: BlogPostTemplate[] = [
 ]
 
 export const blogPostBySlug = new Map(blogPostTemplates.map((post) => [post.slug, post]))
-

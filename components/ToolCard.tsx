@@ -9,7 +9,7 @@ interface ToolCardProps {
   title: string
   description: string
   slug: string
-  icon?: 'resume' | 'interview' | 'cover' | 'job'
+  icon?: 'resume' | 'interview' | 'cover' | 'job' | 'planner'
   isActive?: boolean
   usesRemaining?: number
 }

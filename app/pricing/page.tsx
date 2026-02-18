@@ -14,7 +14,7 @@ export default function PricingPage() {
       </section>
 
       <section className="px-4 py-12 lg:px-[340px]">
-        <div className="mx-auto grid max-w-tool gap-6 md:grid-cols-2">
+        <div className="mx-auto grid max-w-content gap-6 md:grid-cols-3">
           {pricingPlans.map((plan) => (
             <PricingCard
               key={plan.name}
@@ -23,12 +23,14 @@ export default function PricingPage() {
               subtitle={plan.subtitle}
               features={plan.features}
               highlighted={plan.highlighted}
-              href="/checkout"
+              badge={plan.badge}
+              buttonText={plan.buttonText}
+              href={plan.name === 'Free' ? '/tools/career-switch-planner' : '/checkout'}
             />
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-text-tertiary">
-          30-day money-back guarantee. No questions asked.
+          Secure checkout. Cancel subscription plans anytime.
         </p>
       </section>
 

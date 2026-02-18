@@ -1,41 +1,76 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react'
+
+export type PlanType = 'free' | 'pro' | 'lifetime'
 
 export interface ToolUsageResult {
-  canUse: boolean;
-  usesRemaining: number;
+  plan: PlanType
+  canUse: boolean
+  isUnlimited: boolean
+  used: number
+  limit: number
+  usesRemaining: number | null
+  byTool: Record<string, number>
+}
+
+function buildSearch(search?: string) {
+  if (!search) return ''
+  return search.startsWith('?') ? search : `?${search}`
+}
+
+async function parseUsageResponse(response: Response) {
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => null)) as { error?: string } | null
+    throw new Error(errorData?.error ?? 'Usage request failed')
+  }
+  return (await response.json()) as ToolUsageResult
 }
 
 export function useToolUsage() {
-  const [isChecking, setIsChecking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false)
+  const [isConsuming, setIsConsuming] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const checkUsage = useCallback(async (toolSlug: string): Promise<ToolUsageResult | null> => {
-    setIsChecking(true);
-    setError(null);
+  const getUsage = useCallback(async (toolSlug: string, search?: string): Promise<ToolUsageResult | null> => {
+    setIsChecking(true)
+    setError(null)
 
     try {
-      const response = await fetch(`/api/tools/${toolSlug}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to check tool usage');
-      }
-
-      const data = await response.json();
-      return data as ToolUsageResult;
+      const response = await fetch(`/api/tools/${toolSlug}${buildSearch(search)}`, {
+        method: 'GET',
+        cache: 'no-store'
+      })
+      return await parseUsageResponse(response)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An error occurred';
-      setError(message);
-      return null;
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      return null
     } finally {
-      setIsChecking(false);
+      setIsChecking(false)
     }
-  }, []);
+  }, [])
 
-  return { checkUsage, isChecking, error };
+  const consumeUsage = useCallback(async (toolSlug: string, search?: string): Promise<ToolUsageResult | null> => {
+    setIsConsuming(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/tools/${toolSlug}${buildSearch(search)}`, {
+        method: 'POST',
+        cache: 'no-store'
+      })
+      return await parseUsageResponse(response)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      return null
+    } finally {
+      setIsConsuming(false)
+    }
+  }, [])
+
+  return {
+    getUsage,
+    consumeUsage,
+    isChecking,
+    isConsuming,
+    error
+  }
 }

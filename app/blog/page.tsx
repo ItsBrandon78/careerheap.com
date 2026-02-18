@@ -33,6 +33,7 @@ export default function BlogPage() {
         title="Want to Get Ahead in Your Career?"
         subtitle="Use our tools to perfect your resume, ace interviews, and land the job you deserve."
         primaryButtonText="Try Our Tools"
+        primaryHref="/tools/career-switch-planner"
       />
     </>
   )

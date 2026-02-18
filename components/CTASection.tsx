@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import Button from './Button'
 import { ArrowRightIcon } from './Icons'
 
@@ -7,6 +8,8 @@ interface CTASectionProps {
   subtitle: string
   primaryButtonText?: string
   secondaryButtonText?: string
+  primaryHref?: string
+  secondaryHref?: string
   onPrimaryClick?: () => void
   onSecondaryClick?: () => void
   className?: string
@@ -17,6 +20,8 @@ export const CTASection: React.FC<CTASectionProps> = ({
   subtitle,
   primaryButtonText = 'Get Started',
   secondaryButtonText,
+  primaryHref,
+  secondaryHref,
   onPrimaryClick,
   onSecondaryClick,
   className = ''
@@ -28,14 +33,31 @@ export const CTASection: React.FC<CTASectionProps> = ({
         <p className="mt-3 text-base text-text-on-dark-muted">{subtitle}</p>
 
         <div className="mt-6 flex flex-wrap justify-center gap-4">
-          <Button variant="primary" onClick={onPrimaryClick}>
-            <ArrowRightIcon className="h-4 w-4" />
-            {primaryButtonText}
-          </Button>
-          {secondaryButtonText && (
-            <Button variant="outline" onClick={onSecondaryClick} className="border-border text-text-on-dark hover:bg-bg-dark-surface">
-              {secondaryButtonText}
+          {primaryHref ? (
+            <Link href={primaryHref}>
+              <Button variant="primary">
+                <ArrowRightIcon className="h-4 w-4" />
+                {primaryButtonText}
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="primary" onClick={onPrimaryClick}>
+              <ArrowRightIcon className="h-4 w-4" />
+              {primaryButtonText}
             </Button>
+          )}
+          {secondaryButtonText && (
+            secondaryHref ? (
+              <Link href={secondaryHref}>
+                <Button variant="outline" className="border-border text-text-on-dark hover:bg-bg-dark-surface">
+                  {secondaryButtonText}
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="outline" onClick={onSecondaryClick} className="border-border text-text-on-dark hover:bg-bg-dark-surface">
+                {secondaryButtonText}
+              </Button>
+            )
           )}
         </div>
       </div>

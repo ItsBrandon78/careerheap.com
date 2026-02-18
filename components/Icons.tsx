@@ -40,7 +40,15 @@ export function ToolGlyph({
   kind,
   className
 }: {
-  kind: 'resume' | 'interview' | 'cover' | 'job' | 'zap' | 'target' | 'shield'
+  kind:
+    | 'resume'
+    | 'interview'
+    | 'cover'
+    | 'job'
+    | 'planner'
+    | 'zap'
+    | 'target'
+    | 'shield'
   className?: string
 }) {
   if (kind === 'resume') {
@@ -74,6 +82,20 @@ export function ToolGlyph({
       </svg>
     )
   }
+  if (kind === 'planner') {
+    return (
+      <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
+        <path
+          d="M4 15.5h12M5.5 14V6.5h9V14M8 6.5V4.8a2 2 0 0 1 4 0v1.7"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path d="M7 9.5h6M7 12h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      </svg>
+    )
+  }
   if (kind === 'target') {
     return (
       <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
@@ -91,4 +113,3 @@ export function ToolGlyph({
   }
   return <SparklesIcon className={className} />
 }
-

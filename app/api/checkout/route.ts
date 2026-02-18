@@ -9,16 +9,16 @@ export async function POST(request: NextRequest) {
     const { default: Stripe } = await import('stripe');
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
-    const { priceId, email } = await request.json();
+    const { productId, email } = await request.json();
 
-    if (!priceId || !email) {
+    if (!productId || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Map price IDs to Stripe price IDs (these would be your actual Stripe price IDs)
-    const stripePriceId = priceId === 'price_monthly' 
-      ? process.env.STRIPE_PRICE_MONTHLY 
-      : process.env.STRIPE_PRICE_ANNUAL;
+    const isLifetime = productId === 'lifetime_one_time';
+    const stripePriceId = isLifetime
+      ? process.env.STRIPE_PRICE_LIFETIME
+      : process.env.STRIPE_PRICE_PRO_MONTHLY ?? process.env.STRIPE_PRICE_MONTHLY;
 
     if (!stripePriceId) {
       return NextResponse.json(
@@ -30,13 +30,16 @@ export async function POST(request: NextRequest) {
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
+      metadata: {
+        plan: isLifetime ? 'lifetime' : 'pro',
+      },
       line_items: [
         {
           price: stripePriceId,
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: isLifetime ? 'payment' : 'subscription',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout`,
     });

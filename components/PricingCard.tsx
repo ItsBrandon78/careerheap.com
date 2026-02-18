@@ -2,6 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import Button from './Button'
 import Card from './Card'
+import { CheckIcon } from './Icons'
 
 interface PricingCardProps {
   name: string
@@ -9,6 +10,7 @@ interface PricingCardProps {
   subtitle: string
   features: string[]
   highlighted?: boolean
+  badge?: string
   buttonText?: string
   href?: string
   onSelect?: () => void
@@ -20,6 +22,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   subtitle,
   features,
   highlighted = false,
+  badge,
   buttonText = 'Get Started',
   href,
   onSelect
@@ -30,14 +33,19 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         highlighted ? 'border-2 border-accent' : 'border border-border'
       }`}
     >
-      {highlighted && <p className="mb-2 text-[13px] font-semibold text-accent">Best Value</p>}
+      {(highlighted || badge) && (
+        <p className="mb-2 text-[13px] font-semibold text-accent">{badge ?? 'Best Value'}</p>
+      )}
       <p className="text-sm font-semibold text-text-secondary">{name}</p>
       <p className="mt-3 text-[44px] font-bold leading-none text-text-primary">{price}</p>
       <p className="mt-2 text-sm text-text-secondary">{subtitle}</p>
 
       <ul className="mt-6 space-y-3 text-[15px] text-text-primary">
         {features.map((feature) => (
-          <li key={feature}>{feature}</li>
+          <li key={feature} className="flex items-start gap-2">
+            <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-success" />
+            <span>{feature}</span>
+          </li>
         ))}
       </ul>
 

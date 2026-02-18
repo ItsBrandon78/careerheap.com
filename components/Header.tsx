@@ -1,18 +1,88 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Button from './Button'
+import Badge from './Badge'
 import { useAuth } from '@/lib/auth/context'
 import { ToolGlyph } from './Icons'
+
+function initialsFromEmail(email?: string | null) {
+  if (!email) return 'CH'
+  const base = email.split('@')[0] ?? ''
+  const [first, second] = base.split(/[.\-_ ]+/)
+  const chars = `${first?.[0] ?? ''}${second?.[0] ?? ''}`.toUpperCase()
+  return chars || base.slice(0, 2).toUpperCase()
+}
+
+function PlanBadge() {
+  const { plan, usage } = useAuth()
+
+  if (plan === 'pro') {
+    return <Badge>Pro</Badge>
+  }
+
+  if (plan === 'lifetime') {
+    return <Badge>Lifetime</Badge>
+  }
+
+  const used = usage?.used ?? 0
+  const limit = usage?.limit ?? 3
+  const remaining = usage?.usesRemaining ?? Math.max(limit - used, 0)
+  return <Badge>{`Free • ${remaining}/${limit} uses left`}</Badge>
+}
+
+function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
+  const { user } = useAuth()
+  const [open, setOpen] = useState(false)
+  const initials = useMemo(() => initialsFromEmail(user?.email), [user?.email])
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((state) => !state)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-pill border border-border bg-bg-secondary text-sm font-semibold text-text-primary hover:border-accent"
+        aria-expanded={open}
+        aria-label="Open account menu"
+      >
+        {initials}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 z-20 mt-2 w-56 rounded-lg border border-border bg-surface p-2 shadow-panel">
+          <div className="px-3 py-2 text-xs text-text-tertiary">{user?.email}</div>
+          <Link href="/account" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
+            Account
+          </Link>
+          <Link href="/account?tab=billing" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
+            Billing
+          </Link>
+          <Link href="/account?tab=usage" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
+            Usage
+          </Link>
+          <Link href="/account?tab=security" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
+            Settings
+          </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              setOpen(false)
+              await onSignOut()
+            }}
+            className="mt-1 block w-full rounded-md px-3 py-2 text-left text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+          >
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { user, isLoading, signOut } = useAuth()
-
-  const handleSignOut = async () => {
-    await signOut()
-  }
 
   return (
     <header className="w-full border-b border-border bg-surface">
@@ -41,19 +111,17 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-3 md:gap-4">
           {!isLoading && user ? (
             <>
-              <Link href="/account" className="hidden text-[15px] font-medium text-text-secondary md:block">
-                {user.email?.split('@')[0] || 'Account'}
-              </Link>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                Sign Out
-              </Button>
+              <div className="hidden md:block">
+                <PlanBadge />
+              </div>
+              <UserMenuDropdown onSignOut={signOut} />
             </>
           ) : !isLoading ? (
             <>
               <Link href="/login" className="hidden text-[15px] font-medium text-text-secondary md:block">
                 Log In
               </Link>
-              <Link href="/tools/resume-analyzer">
+              <Link href="/tools/career-switch-planner">
                 <Button variant="primary" size="md">
                   Try Free
                 </Button>
@@ -100,45 +168,61 @@ export const Header: React.FC = () => {
               Blog
             </Link>
 
+            {!isLoading && user && (
+              <>
+                <div className="my-2 border-t border-border" />
+                <div className="px-3 py-1">
+                  <PlanBadge />
+                </div>
+                <Link
+                  href="/account"
+                  className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Account
+                </Link>
+                <Link
+                  href="/account?tab=billing"
+                  className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Billing
+                </Link>
+                <Link
+                  href="/account?tab=usage"
+                  className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Usage
+                </Link>
+                <button
+                  type="button"
+                  className="rounded-md px-3 py-2 text-left text-[15px] text-text-secondary hover:bg-bg-secondary"
+                  onClick={async () => {
+                    await signOut()
+                    setIsOpen(false)
+                  }}
+                >
+                  Log out
+                </button>
+              </>
+            )}
+
             {!isLoading && !user && (
               <>
                 <div className="my-2 border-t border-border" />
                 <Link
                   href="/login"
-                  className="rounded-md px-3 py-2 text-[15px] font-medium text-text-secondary hover:bg-bg-secondary"
+                  className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
                   Log In
                 </Link>
-                <Link href="/tools/resume-analyzer" onClick={() => setIsOpen(false)}>
+                <Link href="/tools/career-switch-planner" onClick={() => setIsOpen(false)}>
                   <Button variant="primary" size="md" className="w-full">
                     Try Free
                   </Button>
                 </Link>
-              </>
-            )}
-
-            {!isLoading && user && (
-              <>
-                <div className="my-2 border-t border-border" />
-                <Link
-                  href="/account"
-                  className="rounded-md px-3 py-2 text-[15px] font-medium text-text-secondary hover:bg-bg-secondary"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {user.email?.split('@')[0] || 'Account'}
-                </Link>
-                <Button
-                  variant="outline"
-                  size="md"
-                  className="w-full"
-                  onClick={async () => {
-                    await handleSignOut()
-                    setIsOpen(false)
-                  }}
-                >
-                  Sign Out
-                </Button>
               </>
             )}
           </div>

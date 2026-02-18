@@ -83,3 +83,13 @@ Implementation status (roadmap/dev)
   - [x] `/tools/[slug]?locked=1`
   - [x] `/tools/[slug]/locked`
 - [x] Design system preview page is implemented: `/design-system`.
+- [x] Shared lifetime usage gating is implemented across tools:
+  - [x] Free: `3` lifetime total uses (shared pool)
+  - [x] Pro/Lifetime: unlimited
+  - [x] QA overrides: `?plan=free|pro|lifetime&uses=0..3`
+- [x] Pricing model normalized everywhere:
+  - [x] Free: `$0`
+  - [x] Pro: `$7/month`
+  - [x] Lifetime: `$49` one-time
+- [x] Resume upload is gated to paid plans (Pro/Lifetime) with free fallback to manual paste.
+- [x] Account hub includes tabbed Profile/Security/Billing/Usage states.

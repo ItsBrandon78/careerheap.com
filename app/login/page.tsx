@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithOtp({
+      const { data, error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`
@@ -31,6 +31,11 @@ export default function LoginPage() {
       })
 
       if (signInError) throw signInError
+
+      if (data?.session) {
+        router.push('/')
+        return
+      }
 
       setMessage('Check your email for a magic link to log in.')
       setEmail('')

@@ -4,8 +4,9 @@ import ToolCard from '@/components/ToolCard'
 import BlogCard from '@/components/BlogCard'
 import CTASection from '@/components/CTASection'
 import Badge from '@/components/Badge'
+import FeaturedToolCard from '@/components/FeaturedToolCard'
 import { ArrowRightIcon, SparklesIcon } from '@/components/Icons'
-import { homepageBlogs, homepageTools } from '@/src/design/mockupData'
+import { featuredHomepageTool, homepageBlogs, homepageTools } from '@/src/design/mockupData'
 
 export default function HomePage() {
   return (
@@ -28,10 +29,10 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/tools/resume-analyzer">
+            <Link href="/tools/career-switch-planner">
               <Button variant="primary">
                 <ArrowRightIcon className="h-4 w-4" />
-                Try Free Tool
+                Start My Career Plan
               </Button>
             </Link>
             <Link href="/blog">
@@ -46,7 +47,20 @@ export default function HomePage() {
           <div className="text-center">
             <p className="text-xs font-semibold tracking-[1.5px] text-accent">FREE TOOLS</p>
             <h2 className="mt-2 text-[32px] font-bold text-text-primary">Career Tools That Actually Help</h2>
-            <p className="mt-3 text-base text-text-secondary">Try each tool 3 times free. No account needed.</p>
+            <p className="mt-3 text-base text-text-secondary">Get 3 lifetime free uses total. No account needed.</p>
+          </div>
+
+          <FeaturedToolCard
+            slug={featuredHomepageTool.slug}
+            title={featuredHomepageTool.title}
+            subtitle={featuredHomepageTool.description}
+            primaryCta="Start My Career Plan"
+            popularityLabel="Most Popular"
+            usageLabel="3 Free Uses"
+          />
+
+          <div className="w-full">
+            <p className="text-sm font-semibold text-text-secondary">More Tools</p>
           </div>
 
           <div className="grid w-full gap-6 md:grid-cols-3">
@@ -95,6 +109,7 @@ export default function HomePage() {
         title="Unlock Unlimited Career Tools"
         subtitle="Stop guessing. Start getting results. Upgrade for unlimited access to every tool."
         primaryButtonText="Upgrade Now"
+        primaryHref="/pricing"
       />
     </>
   )

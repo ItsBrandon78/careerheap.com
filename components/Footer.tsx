@@ -30,9 +30,9 @@ export const Footer: React.FC = () => {
             </div>
             <div className="space-y-3">
               <p className="text-[13px] font-semibold text-text-on-dark">Company</p>
-              <Link href="/blog" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Insights</Link>
-              <Link href="/tools" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Tools</Link>
-              <Link href="/pricing" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Plans</Link>
+              <Link href="/about" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">About</Link>
+              <Link href="/contact" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Contact</Link>
+              <Link href="/careers" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Careers</Link>
             </div>
             <div className="space-y-3">
               <p className="text-[13px] font-semibold text-text-on-dark">Legal</p>

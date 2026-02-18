@@ -1,6 +1,7 @@
 import ToolCard from '@/components/ToolCard'
 import CTASection from '@/components/CTASection'
-import { homepageTools } from '@/src/design/mockupData'
+import FeaturedToolCard from '@/components/FeaturedToolCard'
+import { featuredHomepageTool, homepageTools } from '@/src/design/mockupData'
 
 export default function ToolsPage() {
   return (
@@ -14,7 +15,17 @@ export default function ToolsPage() {
 
       <section className="px-4 py-section lg:px-[170px]">
         <div className="mx-auto max-w-content">
-          <div className="grid gap-6 md:grid-cols-3">
+          <FeaturedToolCard
+            slug={featuredHomepageTool.slug}
+            title={featuredHomepageTool.title}
+            subtitle={featuredHomepageTool.description}
+            primaryCta="Start My Career Plan"
+            popularityLabel="Most Popular"
+            usageLabel="3 Free Uses"
+          />
+
+          <h2 className="mt-10 text-sm font-semibold text-text-secondary">More Tools</h2>
+          <div className="mt-4 grid gap-6 md:grid-cols-3">
             {homepageTools.map((tool) => (
               <ToolCard
                 key={tool.slug}
@@ -33,6 +44,7 @@ export default function ToolsPage() {
         title="Ready to Get Started?"
         subtitle="Use the Resume Analyzer for free today. No credit card required."
         primaryButtonText="Try for Free"
+        primaryHref="/tools/career-switch-planner"
       />
     </>
   )

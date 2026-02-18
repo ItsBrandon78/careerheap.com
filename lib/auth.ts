@@ -60,5 +60,5 @@ export async function getUserProfile() {
  */
 export async function isUserPro() {
   const profile = await getUserProfile();
-  return profile?.plan === 'pro';
+  return profile?.plan === 'pro' || profile?.plan === 'lifetime';
 }

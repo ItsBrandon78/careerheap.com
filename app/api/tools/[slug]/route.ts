@@ -1,53 +1,70 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { checkAndIncrementToolUsage } from '@/lib/tools';
-import { v4 as uuidv4 } from 'uuid';
+import { NextRequest, NextResponse } from 'next/server'
+import { ANON_ID_COOKIE, USAGE_STATE_COOKIE, consumeUsage, getCurrentUsageSummary, resolveUsageContext } from '@/lib/server/usage'
+
+function applyUsageCookies(response: NextResponse, options: {
+  anonId: string | null
+  shouldSetAnonCookie: boolean
+  serializedState: string | null
+}) {
+  const { anonId, shouldSetAnonCookie, serializedState } = options
+
+  if (shouldSetAnonCookie && anonId) {
+    response.cookies.set(ANON_ID_COOKIE, anonId, {
+      maxAge: 60 * 60 * 24 * 365,
+      httpOnly: false,
+      sameSite: 'lax',
+      path: '/'
+    })
+  }
+
+  if (serializedState) {
+    response.cookies.set(USAGE_STATE_COOKIE, serializedState, {
+      maxAge: 60 * 60 * 24 * 365,
+      httpOnly: false,
+      sameSite: 'lax',
+      path: '/'
+    })
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const context = await resolveUsageContext(request)
+    const summary = getCurrentUsageSummary(context)
+    const response = NextResponse.json(summary)
+
+    applyUsageCookies(response, {
+      anonId: context.anonId,
+      shouldSetAnonCookie: context.shouldSetAnonCookie,
+      serializedState: null
+    })
+
+    return response
+  } catch (error) {
+    console.error('Tool usage check error:', error)
+    return NextResponse.json({ error: 'Failed to check tool usage' }, { status: 500 })
+  }
+}
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = await params;
-    const supabase = await createClient();
+    const { slug } = await params
+    const context = await resolveUsageContext(request)
+    const { summary, serializedState } = consumeUsage(context, slug)
+    const response = NextResponse.json(summary)
 
-    // Get current user
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
+    applyUsageCookies(response, {
+      anonId: context.anonId,
+      shouldSetAnonCookie: context.shouldSetAnonCookie,
+      serializedState
+    })
 
-    // Get or create anonymous ID from cookie
-    let anonId = request.cookies.get('ch_anon_id')?.value;
-    if (!anonId && !userId) {
-      anonId = uuidv4();
-    }
-
-    // Check and increment usage
-    const result = await checkAndIncrementToolUsage(slug, userId, anonId);
-
-    if (!result) {
-      return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
-    }
-
-    const response = NextResponse.json(result);
-
-    // Set anonymous ID cookie if not already set
-    if (anonId && !userId) {
-      response.cookies.set('ch_anon_id', anonId, {
-        maxAge: 60 * 60 * 24 * 365, // 1 year
-        httpOnly: false,
-        sameSite: 'lax',
-        path: '/',
-      });
-    }
-
-    return response;
+    return response
   } catch (error) {
-    console.error('Tool usage error:', error);
-    return NextResponse.json(
-      { error: 'Failed to check tool usage' },
-      { status: 500 }
-    );
+    console.error('Tool usage consume error:', error)
+    return NextResponse.json({ error: 'Failed to update tool usage' }, { status: 500 })
   }
 }
