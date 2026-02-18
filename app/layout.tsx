@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/auth/context';
+import { getSiteBaseUrl } from '@/lib/blog/utils';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -12,6 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteBaseUrl()),
   title: 'CareerHeap | AI-Powered Career Tools',
   description:
     'Accelerate your career with AI-powered tools for resume analysis, cover letter writing, and interview preparation.',
@@ -22,6 +24,20 @@ export const metadata: Metadata = {
       'Accelerate your career with AI-powered tools for resume analysis, cover letter writing, and interview preparation.',
     type: 'website',
     locale: 'en_US',
+    url: getSiteBaseUrl(),
+    images: [
+      {
+        url: `${getSiteBaseUrl()}/og-blog-default.svg`,
+        alt: 'CareerHeap'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CareerHeap | AI-Powered Career Tools',
+    description:
+      'Accelerate your career with AI-powered tools for resume analysis, cover letter writing, and interview preparation.',
+    images: [`${getSiteBaseUrl()}/og-blog-default.svg`]
   },
 };
 

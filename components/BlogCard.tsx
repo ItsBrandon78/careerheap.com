@@ -1,6 +1,5 @@
-import React from 'react'
-import Link from 'next/link'
-import Card from './Card'
+import PostCard from '@/components/blog/PostCard'
+import type { BlogPostSummary } from '@/lib/blog/types'
 
 interface BlogCardProps {
   title: string
@@ -8,23 +7,45 @@ interface BlogCardProps {
   category: string
   date: string
   readTime: string
+  excerpt?: string
+  authorName?: string
+  coverImageUrl?: string | null
 }
 
-export const BlogCard: React.FC<BlogCardProps> = ({ title, slug, category, date, readTime }) => {
-  return (
-    <Link href={`/blog/${slug}`}>
-      <Card className="h-full overflow-hidden p-0">
-        <div className="h-[180px] bg-accent-light" />
-        <div className="space-y-3 p-5">
-          <p className="text-[11px] font-semibold tracking-[1px] text-accent">{category.toUpperCase()}</p>
-          <h3 className="text-base font-semibold leading-[1.4] text-text-primary">{title}</h3>
-          <p className="text-[13px] text-text-tertiary">
-            {date} | {readTime}
-          </p>
-        </div>
-      </Card>
-    </Link>
-  )
+function parseReadTimeMinutes(readTime: string) {
+  const minutes = Number.parseInt(readTime, 10)
+  return Number.isFinite(minutes) ? Math.max(minutes, 1) : 5
 }
 
-export default BlogCard
+export default function BlogCard({
+  title,
+  slug,
+  category,
+  date,
+  readTime,
+  excerpt = 'Practical, actionable advice to help you execute your next career move.',
+  authorName = 'CareerHeap Team',
+  coverImageUrl = null
+}: BlogCardProps) {
+  const dateMs = Date.parse(date)
+
+  const post: BlogPostSummary = {
+    id: `card-${slug}`,
+    slug,
+    title,
+    excerpt,
+    category: {
+      title: category,
+      slug: category.toLowerCase().replace(/\s+/g, '-')
+    },
+    authorName,
+    publishedAt: Number.isNaN(dateMs)
+      ? new Date().toISOString()
+      : new Date(dateMs).toISOString(),
+    readTimeMinutes: parseReadTimeMinutes(readTime),
+    coverImageUrl,
+    coverImageAlt: title
+  }
+
+  return <PostCard post={post} />
+}

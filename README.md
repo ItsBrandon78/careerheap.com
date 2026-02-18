@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareerHeap App
 
-## Getting Started
+CareerHeap is a Next.js application with a Sanity-backed public blog.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router
+- Tailwind (token-mapped design system)
+- Sanity Content Lake + Sanity Studio
+
+## Local Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy env vars:
+
+```bash
+cp .env.local.example .env.local
+```
+
+3. Fill required env vars in `.env.local`:
+
+- `SANITY_PROJECT_ID`
+- `SANITY_DATASET`
+- `SANITY_API_VERSION` (example: `2026-02-18`)
+- `SANITY_READ_TOKEN` (optional; not needed for public published-content reads)
+- `NEXT_PUBLIC_SITE_URL` (set to your production site, e.g. `https://careerheap.com`)
+- Existing app keys (Supabase/Stripe) as needed
+
+4. Create or connect a Sanity project/dataset (first-time setup):
+
+```bash
+npx sanity init
+```
+
+Choose/create your project and dataset, then mirror those values in `.env.local`.
+
+5. Start Next.js:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+6. Start Sanity Studio:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run studio
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Sanity Studio runs on `http://localhost:3333` by default.
 
-## Learn More
+## Blog Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `/blog` - blog index
+- `/blog/[slug]` - blog post page
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Both routes fetch only published Sanity content and use ISR revalidation.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Sanity Content Model
 
-## Deploy on Vercel
+Defined in `sanity/schemas`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `post`
+- `category`
+- `author`
+- `callout` (for info/tip/warning blocks in article body)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## How to Publish a Blog Post
+
+1. Open Studio (`npm run studio` or deployed studio URL).
+2. Create/update `category` and `author` docs if needed.
+3. Create a `post` doc:
+   - title, slug, excerpt, cover image, category, body
+   - set `publishedAt` (required for public visibility)
+   - optional `seoTitle` and `seoDescription`
+4. Publish.
+5. Verify on `/blog` and `/blog/[slug]`.
+
+## Hosted Studio Deployment (Recommended)
+
+Deploy Studio separately:
+
+```bash
+npm run studio:deploy
+```
+
+This keeps browser authoring separate from the public web app.
+
+## Vercel Notes
+
+Set these vars in Vercel:
+
+- `SANITY_PROJECT_ID`
+- `SANITY_DATASET`
+- `SANITY_API_VERSION`
+- `SANITY_READ_TOKEN` (only if required for private datasets/previews)
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_SITE_URL`
+
+Important:
+
+- Canonical/OG URLs are normalized to production domain (`https://careerheap.com`) when local domains like `localhost` are detected.
+- Never commit `.env.local` or secret tokens.
+
+## Scripts
+
+- `npm run dev` - run Next.js locally
+- `npm run build` - production build
+- `npm run start` - production server
+- `npm run lint` - lint checks
+- `npm run studio` - run Sanity Studio locally
+- `npm run studio:deploy` - deploy hosted Studio

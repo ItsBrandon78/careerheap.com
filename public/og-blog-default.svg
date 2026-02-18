@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="CareerHeap Blog">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#F7FAFF" />
+      <stop offset="100%" stop-color="#EEF4FF" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect x="76" y="72" width="1048" height="486" rx="28" fill="#FFFFFF" stroke="#DCE4F0" />
+  <rect x="132" y="132" width="220" height="36" rx="999" fill="#EFF6FF" stroke="#2563EB33" />
+  <text x="156" y="156" fill="#2563EB" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">
+    CAREERHEAP BLOG
+  </text>
+  <text x="132" y="254" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="64" font-weight="700">
+    Practical Career Insights
+  </text>
+  <text x="132" y="320" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="32">
+    Guides, playbooks, and resume tactics that work.
+  </text>
+  <rect x="132" y="392" width="320" height="64" rx="12" fill="#2563EB" />
+  <text x="170" y="432" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">
+    Start My Career Plan
+  </text>
+</svg>
