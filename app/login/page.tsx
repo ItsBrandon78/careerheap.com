@@ -6,14 +6,140 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import { createClient } from '@/lib/supabase/client'
 
+type AuthMode = 'magic-link' | 'password'
+
+interface LoginAttemptState {
+  attempts: number
+  firstAttemptAt: number
+  lockedUntil: number
+}
+
+const LOGIN_ATTEMPT_KEY = 'careerheap_login_attempts'
+const MAX_PASSWORD_ATTEMPTS = 5
+const PASSWORD_WINDOW_MS = 15 * 60 * 1000
+
+function getKeyedAttemptState(email: string) {
+  if (typeof window === 'undefined') return null
+  const normalizedEmail = email.trim().toLowerCase()
+  if (!normalizedEmail) return null
+
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(LOGIN_ATTEMPT_KEY) || '{}'
+    ) as Record<string, LoginAttemptState>
+    return parsed[normalizedEmail] ?? null
+  } catch {
+    return null
+  }
+}
+
+function saveKeyedAttemptState(email: string, state: LoginAttemptState | null) {
+  if (typeof window === 'undefined') return
+  const normalizedEmail = email.trim().toLowerCase()
+  if (!normalizedEmail) return
+
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(LOGIN_ATTEMPT_KEY) || '{}'
+    ) as Record<string, LoginAttemptState>
+
+    if (state) {
+      parsed[normalizedEmail] = state
+    } else {
+      delete parsed[normalizedEmail]
+    }
+
+    window.localStorage.setItem(LOGIN_ATTEMPT_KEY, JSON.stringify(parsed))
+  } catch {
+    // noop
+  }
+}
+
+function getPasswordLockInfo(email: string) {
+  const now = Date.now()
+  const state = getKeyedAttemptState(email)
+  if (!state) {
+    return { isLocked: false, remainingMs: 0, state: null as LoginAttemptState | null }
+  }
+
+  if (state.lockedUntil > now) {
+    return {
+      isLocked: true,
+      remainingMs: state.lockedUntil - now,
+      state
+    }
+  }
+
+  if (now - state.firstAttemptAt > PASSWORD_WINDOW_MS) {
+    saveKeyedAttemptState(email, null)
+    return { isLocked: false, remainingMs: 0, state: null as LoginAttemptState | null }
+  }
+
+  return { isLocked: false, remainingMs: 0, state }
+}
+
+function recordFailedPasswordAttempt(email: string) {
+  const now = Date.now()
+  const existing = getKeyedAttemptState(email)
+
+  if (!existing || now - existing.firstAttemptAt > PASSWORD_WINDOW_MS) {
+    saveKeyedAttemptState(email, {
+      attempts: 1,
+      firstAttemptAt: now,
+      lockedUntil: 0
+    })
+    return
+  }
+
+  const nextAttempts = existing.attempts + 1
+  const lockedUntil =
+    nextAttempts >= MAX_PASSWORD_ATTEMPTS ? now + PASSWORD_WINDOW_MS : 0
+
+  saveKeyedAttemptState(email, {
+    attempts: nextAttempts,
+    firstAttemptAt: existing.firstAttemptAt,
+    lockedUntil
+  })
+}
+
+function clearFailedPasswordAttempts(email: string) {
+  saveKeyedAttemptState(email, null)
+}
+
+function formatRemainingMinutes(remainingMs: number) {
+  const minutes = Math.ceil(remainingMs / (60 * 1000))
+  return Math.max(1, minutes)
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
-  const [authMode, setAuthMode] = useState<'magic-link' | 'password'>('magic-link')
+  const [authMode, setAuthMode] = useState<AuthMode>('magic-link')
   const router = useRouter()
+
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setMessage('')
+    setIsLoading(true)
+
+    try {
+      const supabase = createClient()
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      if (oauthError) throw oauthError
+    } catch {
+      setError('Unable to continue with Google right now.')
+      setIsLoading(false)
+    }
+  }
 
   const handleMagicLink = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -39,34 +165,8 @@ export default function LoginPage() {
 
       setMessage('Check your email for a magic link to log in.')
       setEmail('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handlePasswordSignUp = async () => {
-    setError('')
-    setMessage('')
-    setIsLoading(true)
-
-    try {
-      const supabase = createClient()
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
-
-      if (signUpError) throw signUpError
-
-      setMessage('Check your email to confirm your account.')
-      setPassword('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+    } catch {
+      setError('We could not send a magic link right now. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -79,17 +179,31 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
+      const lockInfo = getPasswordLockInfo(email)
+      if (lockInfo.isLocked) {
+        setError(
+          `Too many login attempts. Try again in ${formatRemainingMinutes(
+            lockInfo.remainingMs
+          )} minute(s).`
+        )
+        return
+      }
+
       const supabase = createClient()
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
-      if (signInError) throw signInError
+      if (signInError) {
+        recordFailedPasswordAttempt(email)
+        throw signInError
+      }
 
+      clearFailedPasswordAttempts(email)
       router.push('/')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid credentials')
+    } catch {
+      setError('Invalid email or password.')
     } finally {
       setIsLoading(false)
     }
@@ -101,10 +215,32 @@ export default function LoginPage() {
         <header className="text-center">
           <p className="text-xs font-semibold tracking-[1.5px] text-accent">ACCOUNT</p>
           <h1 className="mt-3 text-[32px] font-bold text-text-primary">Sign In</h1>
-          <p className="mt-2 text-sm text-text-secondary">Access your tools and usage history.</p>
+          <p className="mt-2 text-sm text-text-secondary">
+            Access your tools and usage history.
+          </p>
         </header>
 
-        <div className="mt-6 grid grid-cols-2 gap-2 rounded-md bg-bg-secondary p-1">
+        <div className="mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          >
+            Continue with Google
+          </Button>
+        </div>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs font-semibold uppercase tracking-[1.2px] text-text-tertiary">
+            Or
+          </span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 rounded-md bg-bg-secondary p-1">
           <button
             type="button"
             onClick={() => {
@@ -173,7 +309,10 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handlePasswordSignIn} className="mt-6 space-y-5">
             <div>
-              <label htmlFor="email-password" className="block text-sm font-semibold text-text-primary">
+              <label
+                htmlFor="email-password"
+                className="block text-sm font-semibold text-text-primary"
+              >
                 Email Address
               </label>
               <input
@@ -206,14 +345,21 @@ export default function LoginPage() {
               Sign In
             </Button>
 
-            <button
+            <Button
               type="button"
-              onClick={handlePasswordSignUp}
-              disabled={isLoading || !email || !password}
-              className="w-full rounded-md border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-secondary transition-colors hover:text-accent disabled:cursor-not-allowed disabled:opacity-60"
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push('/signup')}
+              disabled={isLoading}
             >
               Create Account with Email + Password
-            </button>
+            </Button>
+
+            <div className="text-center">
+              <Link href="/forgot-password" className="text-sm font-medium text-accent">
+                Forgot password?
+              </Link>
+            </div>
           </form>
         )}
 
@@ -227,6 +373,12 @@ export default function LoginPage() {
             Privacy Policy
           </Link>
           .
+        </p>
+        <p className="mt-3 text-center text-sm text-text-secondary">
+          Need an account?{' '}
+          <Link href="/signup" className="text-accent hover:text-accent-hover">
+            Create one
+          </Link>
         </p>
       </div>
     </section>
