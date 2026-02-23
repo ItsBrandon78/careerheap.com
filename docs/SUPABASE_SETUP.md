@@ -32,14 +32,19 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 4. Copy the entire contents of `migrations/002_billing_and_tool_runs.sql`, run it
 5. Copy the entire contents of `migrations/003_stripe_subscription_state.sql`, run it
 6. Copy the entire contents of `migrations/004_blog_post_views.sql`, run it
-7. Paste into the editor
-8. Click **Run**
+7. Copy the entire contents of `migrations/005_career_map_planner_core.sql`, run it
+8. Paste into the editor
+9. Click **Run**
 
 This creates:
 - `tools` table (tool metadata)
 - `tool_usage` table (legacy usage tracking)
 - `tool_runs` table (canonical tool execution runs)
 - `blog_post_views_daily` (aggregated blog views for Popular sort)
+- Career Map Planner data model:
+  - `skills`, `occupations`, `occupation_skills`, `occupation_requirements`
+  - `occupation_wages`, `trade_requirements`, `dataset_sources`
+  - `career_map_reports`, `career_map_facts_bundles`, `career_map_claims`
 - `profiles` table (user plan status)
 - `profiles.free_uses_used` shared free counter
 - `profiles.stripe_cancel_at_period_end` and `profiles.stripe_current_period_end`

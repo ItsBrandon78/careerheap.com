@@ -37,6 +37,7 @@
 - `/api/usage/summary` - Global usage summary for header/account.
 - `/api/blog/views` - Increment blog post view counters (for Popular sort).
 - `/api/resume/parse` - Multipart resume parsing (PDF/DOCX, max 10MB) with LOW_TEXT handling.
+- `/api/resume/capabilities` - OCR runtime capability status for resume parsing health checks.
 - `/api/checkout` - Legacy Stripe checkout session creation alias.
 - `/api/stripe/checkout` - Stripe checkout session creation (Pro/Lifetime, cadence-aware for Pro).
 - `/api/stripe/portal` - Stripe customer portal session creation for Pro billing management.

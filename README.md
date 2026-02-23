@@ -10,6 +10,10 @@ CareerHeap is a Next.js application with a Sanity-backed public blog.
 - Supabase Auth + Postgres
 - Stripe Checkout + Customer Portal + Webhooks
 
+## Planner Contract
+
+- Product + implementation contract: `docs/CAREER_MAP_PLANNER_PRODUCT_CONTRACT.md`
+
 ## Local Setup
 
 1. Install dependencies:
@@ -72,6 +76,7 @@ If Next.js is running, you can also use embedded Studio at `http://localhost:300
    - `migrations/002_billing_and_tool_runs.sql`
    - `migrations/003_stripe_subscription_state.sql`
    - `migrations/004_blog_post_views.sql`
+   - `migrations/005_career_map_planner_core.sql`
 
 ## Stripe Setup (Test Mode)
 

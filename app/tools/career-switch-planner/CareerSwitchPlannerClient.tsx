@@ -44,6 +44,18 @@ import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 type PlannerState = 'idle' | 'loading' | 'results'
 type InputTab = 'paste' | 'upload'
 type UploadState = 'idle' | 'parsing' | 'success' | 'error'
+type OcrCapabilityMode = 'native' | 'fallback' | 'unavailable'
+type OcrCapabilityStatus = 'idle' | 'loading' | 'ready' | 'error'
+
+type ResumeOcrCapabilities = {
+  available: boolean
+  mode: OcrCapabilityMode
+  hasPdftoppm: boolean
+  hasTesseractCli: boolean
+  hasTesseractJs: boolean
+  maxPages: number
+  timeoutMs: number
+}
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
@@ -80,6 +92,8 @@ export default function CareerSwitchPlannerPage() {
   const [uploadError, setUploadError] = useState('')
   const [uploadWarning, setUploadWarning] = useState('')
   const [uploadStats, setUploadStats] = useState<{ meaningfulChars: number } | null>(null)
+  const [ocrCapabilityStatus, setOcrCapabilityStatus] = useState<OcrCapabilityStatus>('idle')
+  const [ocrCapabilities, setOcrCapabilities] = useState<ResumeOcrCapabilities | null>(null)
   const [location, setLocation] = useState('Remote (US)')
   const [timeline, setTimeline] = useState('30/60/90')
   const [education, setEducation] = useState("Bachelor's")
@@ -136,7 +150,93 @@ export default function CareerSwitchPlannerPage() {
     proPreview || hasPaidPlan || usage?.plan === 'pro' || usage?.plan === 'lifetime'
   const isLocked = previewLocked || (!hasPaidPlan && (usage ? !usage.canUse : false))
 
+  useEffect(() => {
+    if (activeTab !== 'upload' || !isProUser) {
+      return
+    }
+    if (ocrCapabilities) {
+      return
+    }
+
+    let active = true
+    const controller = new AbortController()
+    const capabilityTimeout = setTimeout(() => {
+      controller.abort()
+    }, 5_000)
+    setOcrCapabilityStatus('loading')
+
+    void fetch('/api/resume/capabilities', { cache: 'no-store', signal: controller.signal })
+      .then(async (response) => {
+        clearTimeout(capabilityTimeout)
+        const data = (await response.json().catch(() => null)) as
+          | { ok?: boolean; ocr?: ResumeOcrCapabilities }
+          | null
+
+        if (!active) return
+
+        if (!response.ok || !data?.ok || !data.ocr) {
+          setOcrCapabilityStatus('error')
+          return
+        }
+
+        setOcrCapabilities(data.ocr)
+        setOcrCapabilityStatus('ready')
+      })
+      .catch(() => {
+        clearTimeout(capabilityTimeout)
+        if (!active) return
+        setOcrCapabilityStatus('error')
+      })
+
+    return () => {
+      active = false
+      clearTimeout(capabilityTimeout)
+      controller.abort()
+    }
+  }, [activeTab, isProUser, ocrCapabilities])
+
   const experienceInput = activeTab === 'upload' ? extractedResumeText.trim() : pasteExperience.trim()
+
+  const ocrBadge = useMemo(() => {
+    if (ocrCapabilityStatus === 'loading' || ocrCapabilityStatus === 'idle') {
+      return {
+        label: 'Checking OCR...',
+        variant: 'default' as const,
+        detail: ''
+      }
+    }
+
+    if (ocrCapabilityStatus === 'error' || !ocrCapabilities) {
+      return {
+        label: 'OCR status unavailable',
+        variant: 'warning' as const,
+        detail: 'Capability check failed. Upload still works for DOCX and text-based PDFs.'
+      }
+    }
+
+    if (ocrCapabilities.mode === 'native') {
+      return {
+        label: 'OCR enabled',
+        variant: 'success' as const,
+        detail: `Scanned PDF support is active (up to ${ocrCapabilities.maxPages} pages).`
+      }
+    }
+
+    if (ocrCapabilities.mode === 'fallback') {
+      return {
+        label: 'OCR enabled',
+        variant: 'success' as const,
+        detail:
+          'Scanned PDF support is active. Processing may take a little longer on some files.'
+      }
+    }
+
+    return {
+      label: 'OCR limited',
+      variant: 'warning' as const,
+      detail: 'Scanned PDF extraction may fail. DOCX and text-based PDFs still work.'
+    }
+  }, [ocrCapabilities, ocrCapabilityStatus])
 
   const parseFile = async (file: File | null) => {
     if (!file) {
@@ -444,6 +544,12 @@ export default function CareerSwitchPlannerPage() {
                   We&apos;ll extract your resume text so you don&apos;t have to type.
                 </p>
                 <p className="text-xs text-text-tertiary">PDF/DOCX - Max 10MB</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={ocrBadge.variant}>{ocrBadge.label}</Badge>
+                  {ocrBadge.detail ? (
+                    <p className="text-xs text-text-tertiary">{ocrBadge.detail}</p>
+                  ) : null}
+                </div>
 
                 {uploadState === 'parsing' && <ParseProgress progress={uploadProgress} />}
 

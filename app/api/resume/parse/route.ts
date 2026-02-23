@@ -10,13 +10,12 @@ import {
   parseResumeUpload,
   ResumeParseError
 } from '@/lib/server/resumeParseCore.mjs'
+import { isBinaryAvailable } from '@/lib/server/ocrRuntime'
 
 export const runtime = 'nodejs'
 
 const OCR_MAX_PAGES = 5
 const OCR_TIMEOUT_MS = 20_000
-const PROCESS_CHECK_TIMEOUT_MS = 2_000
-const processAvailability = new Map<string, boolean>()
 let pdfParseWorkerConfigured = false
 
 async function getPdfParseClass() {
@@ -109,22 +108,6 @@ function runProcess(
       resolve({ stdout, stderr })
     })
   })
-}
-
-async function isProcessAvailable(command: string, args: string[]) {
-  const cacheKey = `${command}::${args.join(' ')}`
-  if (processAvailability.has(cacheKey)) {
-    return processAvailability.get(cacheKey) ?? false
-  }
-
-  try {
-    await runProcess(command, args, { timeoutMs: PROCESS_CHECK_TIMEOUT_MS })
-    processAvailability.set(cacheKey, true)
-    return true
-  } catch {
-    processAvailability.set(cacheKey, false)
-    return false
-  }
 }
 
 function extractPageNumber(fileName: string) {
@@ -242,7 +225,7 @@ async function renderPdfPagesToImagesWithPdfParse(fileBuffer: Buffer, tempDir: s
 }
 
 async function extractPdfOcrText(fileBuffer: Buffer) {
-  const hasPdftoppm = await isProcessAvailable('pdftoppm', ['-v'])
+  const hasPdftoppm = await isBinaryAvailable('pdftoppm', ['-v'])
 
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'careerheap-resume-'))
   const pdfPath = path.join(tempDir, 'input.pdf')
@@ -276,7 +259,7 @@ async function extractPdfOcrText(fileBuffer: Buffer) {
       )
     }
 
-    const hasTesseractCli = await isProcessAvailable('tesseract', ['--version'])
+    const hasTesseractCli = await isBinaryAvailable('tesseract', ['--version'])
     if (hasTesseractCli) {
       return await ocrWithTesseractCli(imageFiles, deadlineAt)
     }
