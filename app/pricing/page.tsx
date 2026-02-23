@@ -1,8 +1,15 @@
+'use client'
+
+import { useState } from 'react'
 import PricingCard from '@/components/PricingCard'
 import FAQAccordion from '@/components/FAQAccordion'
 import { pricingFaqs, pricingPlans } from '@/src/design/mockupData'
 
+type ProCadence = 'monthly' | 'yearly'
+
 export default function PricingPage() {
+  const [proCadence, setProCadence] = useState<ProCadence>('monthly')
+
   return (
     <>
       <section className="px-4 pb-4 pt-20 text-center lg:px-[170px]">
@@ -15,19 +22,59 @@ export default function PricingPage() {
 
       <section className="px-4 py-12 lg:px-[340px]">
         <div className="mx-auto grid max-w-content gap-6 md:grid-cols-3">
-          {pricingPlans.map((plan) => (
-            <PricingCard
-              key={plan.name}
-              name={plan.name}
-              price={plan.price}
-              subtitle={plan.subtitle}
-              features={plan.features}
-              highlighted={plan.highlighted}
-              badge={plan.badge}
-              buttonText={plan.buttonText}
-              href={plan.name === 'Free' ? '/tools/career-switch-planner' : '/checkout'}
-            />
-          ))}
+          {pricingPlans.map((plan) => {
+            const isPro = plan.name === 'Pro'
+            const proPrice = proCadence === 'yearly' ? '$70' : '$7'
+            const proSubtitle = proCadence === 'yearly' ? '/year' : '/month'
+
+            return (
+              <PricingCard
+                key={plan.name}
+                name={plan.name}
+                price={isPro ? proPrice : plan.price}
+                subtitle={isPro ? proSubtitle : plan.subtitle}
+                features={plan.features}
+                highlighted={plan.highlighted}
+                badge={plan.badge}
+                buttonText={plan.buttonText}
+                href={
+                  plan.name === 'Free'
+                    ? '/tools/career-switch-planner'
+                    : plan.name === 'Lifetime'
+                      ? '/checkout?plan=lifetime'
+                      : `/checkout?plan=pro&cadence=${proCadence}`
+                }
+                detailsSlot={
+                  isPro ? (
+                    <div className="inline-flex rounded-pill border border-border bg-bg-secondary p-1">
+                      <button
+                        type="button"
+                        onClick={() => setProCadence('monthly')}
+                        className={`rounded-pill px-3 py-1 text-xs font-semibold ${
+                          proCadence === 'monthly'
+                            ? 'bg-surface text-text-primary'
+                            : 'text-text-secondary'
+                        }`}
+                      >
+                        Monthly
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProCadence('yearly')}
+                        className={`rounded-pill px-3 py-1 text-xs font-semibold ${
+                          proCadence === 'yearly'
+                            ? 'bg-surface text-text-primary'
+                            : 'text-text-secondary'
+                        }`}
+                      >
+                        Yearly
+                      </button>
+                    </div>
+                  ) : undefined
+                }
+              />
+            )
+          })}
         </div>
         <p className="mt-8 text-center text-sm text-text-tertiary">
           Secure checkout. Cancel subscription plans anytime.

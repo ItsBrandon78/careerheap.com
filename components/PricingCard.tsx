@@ -14,6 +14,7 @@ interface PricingCardProps {
   buttonText?: string
   href?: string
   onSelect?: () => void
+  detailsSlot?: React.ReactNode
 }
 
 export const PricingCard: React.FC<PricingCardProps> = ({
@@ -25,7 +26,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   badge,
   buttonText = 'Get Started',
   href,
-  onSelect
+  onSelect,
+  detailsSlot
 }) => {
   return (
     <Card
@@ -39,6 +41,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       <p className="text-sm font-semibold text-text-secondary">{name}</p>
       <p className="mt-3 text-[44px] font-bold leading-none text-text-primary">{price}</p>
       <p className="mt-2 text-sm text-text-secondary">{subtitle}</p>
+      {detailsSlot ? <div className="mt-4">{detailsSlot}</div> : null}
 
       <ul className="mt-6 space-y-3 text-[15px] text-text-primary">
         {features.map((feature) => (

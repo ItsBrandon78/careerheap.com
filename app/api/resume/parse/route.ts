@@ -1,38 +1,135 @@
-import { NextResponse } from 'next/server'
+import { spawn } from 'node:child_process'
+import { access, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import mammoth from 'mammoth'
+import { NextResponse } from 'next/server'
+import {
+  normalizeWhitespace,
+  parseResumeUpload,
+  ResumeParseError
+} from '@/lib/server/resumeParseCore.mjs'
 
 export const runtime = 'nodejs'
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
-const ACCEPTED_EXTENSIONS = new Set(['pdf', 'docx'])
+const OCR_MAX_PAGES = 5
+const OCR_TIMEOUT_MS = 20_000
+const PROCESS_CHECK_TIMEOUT_MS = 2_000
+const processAvailability = new Map<string, boolean>()
+let pdfParseWorkerConfigured = false
 
-function getExtension(fileName: string) {
-  return fileName.split('.').pop()?.toLowerCase() ?? ''
-}
-
-function normalizeText(rawText: string) {
-  return rawText.replace(/\u0000/g, '').replace(/\s+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()
-}
-
-function detectSections(text: string) {
-  const haystack = text.toLowerCase()
-  return {
-    experience:
-      /experience|employment|work history|professional background/.test(haystack),
-    skills: /skills|technical skills|core competencies|toolkit/.test(haystack),
-    education: /education|university|college|degree|certification/.test(haystack)
-  }
-}
-
-async function extractPdfText(fileBuffer: Buffer) {
+async function getPdfParseClass() {
   const { PDFParse } = await import('pdf-parse')
-  const parser = new PDFParse({ data: fileBuffer })
-  try {
-    const result = await parser.getText()
-    return result.text ?? ''
-  } finally {
-    await parser.destroy()
+
+  if (!pdfParseWorkerConfigured) {
+    const workerCandidates = [
+      path.join(process.cwd(), 'node_modules', 'pdf-parse', 'dist', 'pdf-parse', 'cjs', 'pdf.worker.mjs'),
+      path.join(process.cwd(), 'node_modules', 'pdf-parse', 'dist', 'pdf-parse', 'esm', 'pdf.worker.mjs'),
+      path.join(process.cwd(), 'node_modules', 'pdf-parse', 'dist', 'pdf-parse', 'web', 'pdf.worker.mjs')
+    ]
+
+    for (const candidate of workerCandidates) {
+      try {
+        await access(candidate)
+        PDFParse.setWorker(pathToFileURL(candidate).href)
+        pdfParseWorkerConfigured = true
+        break
+      } catch {
+        // Try next candidate.
+      }
+    }
   }
+
+  return PDFParse
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(timeoutMessage))
+    }, timeoutMs)
+
+    promise
+      .then((value) => {
+        clearTimeout(timeout)
+        resolve(value)
+      })
+      .catch((error) => {
+        clearTimeout(timeout)
+        reject(error)
+      })
+  })
+}
+
+function runProcess(
+  command: string,
+  args: string[],
+  options?: { timeoutMs?: number; cwd?: string }
+) {
+  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+    const timeoutMs = options?.timeoutMs ?? 10_000
+    const child = spawn(command, args, {
+      cwd: options?.cwd,
+      windowsHide: true
+    })
+
+    let stdout = ''
+    let stderr = ''
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
+      child.kill('SIGKILL')
+    }, timeoutMs)
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString()
+    })
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString()
+    })
+
+    child.on('error', (error) => {
+      clearTimeout(timeout)
+      reject(error)
+    })
+
+    child.on('close', (code) => {
+      clearTimeout(timeout)
+      if (timedOut) {
+        reject(new Error(`${command} timed out after ${timeoutMs}ms`))
+        return
+      }
+
+      if ((code ?? 0) !== 0) {
+        reject(new Error(`${command} failed (${code}): ${stderr || stdout}`))
+        return
+      }
+
+      resolve({ stdout, stderr })
+    })
+  })
+}
+
+async function isProcessAvailable(command: string, args: string[]) {
+  const cacheKey = `${command}::${args.join(' ')}`
+  if (processAvailability.has(cacheKey)) {
+    return processAvailability.get(cacheKey) ?? false
+  }
+
+  try {
+    await runProcess(command, args, { timeoutMs: PROCESS_CHECK_TIMEOUT_MS })
+    processAvailability.set(cacheKey, true)
+    return true
+  } catch {
+    processAvailability.set(cacheKey, false)
+    return false
+  }
+}
+
+function extractPageNumber(fileName: string) {
+  const match = fileName.match(/-(\d+)\.png$/i)
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY
 }
 
 async function extractDocxText(fileBuffer: Buffer) {
@@ -40,66 +137,214 @@ async function extractDocxText(fileBuffer: Buffer) {
   return result.value ?? ''
 }
 
-export async function POST(request: Request) {
+async function extractPdfText(fileBuffer: Buffer) {
+  const PDFParse = await getPdfParseClass()
+  const parser = new PDFParse({ data: fileBuffer })
   try {
-    const formData = await request.formData()
-    const file = formData.get('file')
+    const result = await parser.getText({
+      lineEnforce: true,
+      itemJoiner: ' '
+    })
+    return result.text ?? ''
+  } finally {
+    await parser.destroy()
+  }
+}
+
+async function ocrWithTesseractCli(imagePaths: string[], deadlineAt: number) {
+  const chunks: string[] = []
+
+  for (const imagePath of imagePaths) {
+    const remaining = deadlineAt - Date.now()
+    if (remaining <= 0) {
+      throw new Error('OCR timed out after 20 seconds.')
+    }
+
+    const { stdout } = await runProcess(
+      'tesseract',
+      [imagePath, 'stdout', '--psm', '6'],
+      { timeoutMs: remaining }
+    )
+    chunks.push(stdout)
+  }
+
+  return normalizeWhitespace(chunks.join('\n'))
+}
+
+async function ocrWithTesseractJs(imagePaths: string[], deadlineAt: number) {
+  const { createWorker } = await import('tesseract.js')
+  const worker = await createWorker('eng')
+
+  try {
+    const chunks: string[] = []
+    for (const imagePath of imagePaths) {
+      const remaining = deadlineAt - Date.now()
+      if (remaining <= 0) {
+        throw new Error('OCR timed out after 20 seconds.')
+      }
+
+      const result = await withTimeout(worker.recognize(imagePath), remaining, 'OCR timed out after 20 seconds.')
+      chunks.push(result.data?.text ?? '')
+    }
+    return normalizeWhitespace(chunks.join('\n'))
+  } finally {
+    await worker.terminate()
+  }
+}
+
+async function renderPdfPagesToImagesWithPdfParse(fileBuffer: Buffer, tempDir: string) {
+  const PDFParse = await getPdfParseClass()
+  const parser = new PDFParse({ data: fileBuffer })
+
+  try {
+    const screenshotResult = await parser.getScreenshot({
+      first: OCR_MAX_PAGES,
+      imageBuffer: true,
+      imageDataUrl: false
+    })
+
+    const pages = Array.isArray(screenshotResult?.pages) ? screenshotResult.pages : []
+    const imagePaths: string[] = []
+
+    for (const page of pages) {
+      const pageNumber =
+        typeof page?.pageNumber === 'number' && Number.isFinite(page.pageNumber)
+          ? page.pageNumber
+          : imagePaths.length + 1
+      const pageData = page?.data
+      if (!pageData || typeof pageData !== 'object') continue
+      let bytes: Buffer
+      if (Buffer.isBuffer(pageData)) {
+        bytes = pageData
+      } else if (pageData instanceof Uint8Array) {
+        bytes = Buffer.from(pageData)
+      } else if (pageData instanceof ArrayBuffer) {
+        bytes = Buffer.from(pageData)
+      } else {
+        const numericBytes = Object.keys(pageData)
+          .map((key) => Number(key))
+          .filter((index) => Number.isInteger(index) && index >= 0)
+          .sort((a, b) => a - b)
+          .map((index) => Number((pageData as Record<number, unknown>)[index] ?? 0) & 0xff)
+        bytes = Buffer.from(numericBytes)
+      }
+      if (bytes.length === 0) continue
+
+      const target = path.join(tempDir, `page-${pageNumber}.png`)
+      await writeFile(target, bytes)
+      imagePaths.push(target)
+    }
+
+    return imagePaths
+  } finally {
+    await parser.destroy()
+  }
+}
+
+async function extractPdfOcrText(fileBuffer: Buffer) {
+  const hasPdftoppm = await isProcessAvailable('pdftoppm', ['-v'])
+
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), 'careerheap-resume-'))
+  const pdfPath = path.join(tempDir, 'input.pdf')
+  const outputPrefix = path.join(tempDir, 'page')
+  const deadlineAt = Date.now() + OCR_TIMEOUT_MS
+
+  try {
+    let imageFiles: string[] = []
+    if (hasPdftoppm) {
+      await writeFile(pdfPath, fileBuffer)
+
+      const convertTimeout = Math.max(1_000, deadlineAt - Date.now())
+      await runProcess(
+        'pdftoppm',
+        ['-f', '1', '-l', String(OCR_MAX_PAGES), '-png', pdfPath, outputPrefix],
+        { timeoutMs: convertTimeout }
+      )
+
+      imageFiles = (await readdir(tempDir))
+        .filter((file) => /^page-\d+\.png$/i.test(file))
+        .sort((a, b) => extractPageNumber(a) - extractPageNumber(b))
+        .slice(0, OCR_MAX_PAGES)
+        .map((file) => path.join(tempDir, file))
+    } else {
+      imageFiles = await renderPdfPagesToImagesWithPdfParse(fileBuffer, tempDir)
+    }
+
+    if (imageFiles.length === 0) {
+      throw new Error(
+        'Scanned PDF detected but pages could not be rendered for OCR. Install Poppler + Tesseract, or upload DOCX/paste your experience.'
+      )
+    }
+
+    const hasTesseractCli = await isProcessAvailable('tesseract', ['--version'])
+    if (hasTesseractCli) {
+      return await ocrWithTesseractCli(imageFiles, deadlineAt)
+    }
+
+    return await ocrWithTesseractJs(imageFiles, deadlineAt)
+  } finally {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => null)
+  }
+}
+
+function toUserMessage(error: unknown) {
+  if (error instanceof ResumeParseError) {
+    return error
+  }
+
+  const message = error instanceof Error ? error.message : 'Resume parsing failed.'
+  const lower = message.toLowerCase()
+  if (lower.includes('ocr') || lower.includes('scanned pdf') || lower.includes('tesseract')) {
+    return new ResumeParseError('PDF_SCANNED_OCR_FAILED', message, 422)
+  }
+  return new ResumeParseError('PARSE_FAILED', message, 500)
+}
+
+function logParseMeta(data: { source: 'docx' | 'pdf' | 'pdf-ocr'; textLength: number; ocrUsed: boolean }) {
+  if (process.env.NODE_ENV === 'production') return
+  console.info('[resume-parse]', data)
+}
+
+export async function POST(req: Request) {
+  try {
+    const form = await req.formData()
+    const file = form.get('file')
 
     if (!(file instanceof File)) {
       return NextResponse.json(
-        { error: 'INVALID_FILE', message: 'Please upload a PDF or DOCX file.' },
-        { status: 400 }
-      )
-    }
-
-    const extension = getExtension(file.name)
-    if (!ACCEPTED_EXTENSIONS.has(extension)) {
-      return NextResponse.json(
-        { error: 'UNSUPPORTED_FILE', message: 'Only PDF and DOCX files are supported.' },
-        { status: 400 }
-      )
-    }
-
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json(
-        { error: 'FILE_TOO_LARGE', message: 'File too large. Max 10MB allowed.' },
-        { status: 400 }
-      )
-    }
-
-    const fileBuffer = Buffer.from(await file.arrayBuffer())
-    const rawText =
-      extension === 'docx'
-        ? await extractDocxText(fileBuffer)
-        : await extractPdfText(fileBuffer)
-    const text = normalizeText(rawText)
-
-    if (text.length < 140) {
-      return NextResponse.json(
         {
-          error: 'LOW_TEXT',
-          message:
-            'This PDF looks scanned or protected. Upload a DOCX or paste your experience.'
+          ok: false,
+          error: 'NO_FILE',
+          message: 'No file uploaded. Use form key "file".'
         },
         { status: 400 }
       )
     }
 
-    const detected = detectSections(text)
-
-    return NextResponse.json({
-      text,
-      detected
+    const fileBuffer = Buffer.from(await file.arrayBuffer())
+    const parsed = await parseResumeUpload({
+      fileName: file.name,
+      mimeType: file.type || null,
+      size: file.size,
+      buffer: fileBuffer,
+      deps: {
+        extractDocxText,
+        extractPdfText,
+        extractPdfOcrText,
+        log: logParseMeta
+      }
     })
+
+    return NextResponse.json(parsed)
   } catch (error) {
-    console.error('Resume parse error:', error)
+    const known = error instanceof ResumeParseError ? error : toUserMessage(error)
     return NextResponse.json(
       {
-        error: 'PARSE_FAILED',
-        message:
-          'We could not extract text from that file. Upload a DOCX or paste your experience instead.'
+        ok: false,
+        error: known.code,
+        message: known.message
       },
-      { status: 500 }
+      { status: known.status }
     )
   }
 }

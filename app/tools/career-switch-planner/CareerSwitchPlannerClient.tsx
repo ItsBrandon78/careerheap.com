@@ -23,17 +23,23 @@ import {
   RoleRecommendationCard,
   ScoreCard,
   SegmentedTabs,
+  SelectField,
   SkillsChips,
   Toggle,
   ToolHero
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
 import {
   careerSwitchFaqs,
-  careerSwitchMoreTools,
-  getCareerSwitchPlannerMockResult,
-  type PlannerResult
-} from '@/lib/mocks/careerSwitchPlanner'
+  careerSwitchMoreTools
+} from '@/lib/planner/content'
+import {
+  type CareerSwitchPlannerResult,
+  toPlannerResultView,
+  type PlannerResultView
+} from '@/lib/planner/types'
 import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
+import { useAuth } from '@/lib/auth/context'
+import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 
 type PlannerState = 'idle' | 'loading' | 'results'
 type InputTab = 'paste' | 'upload'
@@ -43,25 +49,22 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
 const FREE_LIMIT = 3
 
-function wait(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
-
-function randomDelay() {
-  return 800 + Math.floor(Math.random() * 701)
-}
-
-function usageLabel(usage: ToolUsageResult | null, previewLocked: boolean) {
+function usageLabel(
+  usage: ToolUsageResult | null,
+  previewLocked: boolean,
+  planFallback: 'free' | 'pro' | 'lifetime'
+) {
   if (previewLocked) return 'Locked Preview'
+  if (planFallback === 'lifetime') return 'Lifetime Access'
+  if (planFallback === 'pro') return 'Unlimited Pro'
   if (usage?.isUnlimited) return usage.plan === 'lifetime' ? 'Lifetime Access' : 'Unlimited Pro'
   return `${usage?.usesRemaining ?? FREE_LIMIT} Free Uses Left`
 }
 
 export default function CareerSwitchPlannerPage() {
   const searchParams = useSearchParams()
-  const { getUsage, consumeUsage } = useToolUsage()
+  const { getUsage } = useToolUsage()
+  const { user, plan } = useAuth()
 
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
   const [activeTab, setActiveTab] = useState<InputTab>('paste')
@@ -71,10 +74,15 @@ export default function CareerSwitchPlannerPage() {
   const [pasteExperience, setPasteExperience] = useState('')
   const [extractedResumeText, setExtractedResumeText] = useState('')
   const [inputError, setInputError] = useState('')
-  const [plannerResult, setPlannerResult] = useState<PlannerResult | null>(null)
+  const [plannerResult, setPlannerResult] = useState<PlannerResultView | null>(null)
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
+  const [uploadWarning, setUploadWarning] = useState('')
+  const [uploadStats, setUploadStats] = useState<{ meaningfulChars: number } | null>(null)
+  const [location, setLocation] = useState('Remote (US)')
+  const [timeline, setTimeline] = useState('30/60/90')
+  const [education, setEducation] = useState("Bachelor's")
   const [detectedSections, setDetectedSections] = useState({
     experience: false,
     skills: false,
@@ -123,8 +131,10 @@ export default function CareerSwitchPlannerPage() {
     }
   }, [])
 
-  const isProUser = proPreview || usage?.plan === 'pro' || usage?.plan === 'lifetime'
-  const isLocked = previewLocked || (usage ? !usage.canUse : false)
+  const hasPaidPlan = plan === 'pro' || plan === 'lifetime'
+  const isProUser =
+    proPreview || hasPaidPlan || usage?.plan === 'pro' || usage?.plan === 'lifetime'
+  const isLocked = previewLocked || (!hasPaidPlan && (usage ? !usage.canUse : false))
 
   const experienceInput = activeTab === 'upload' ? extractedResumeText.trim() : pasteExperience.trim()
 
@@ -137,16 +147,22 @@ export default function CareerSwitchPlannerPage() {
     if (!ACCEPTED_EXTENSIONS.includes(extension)) {
       setUploadState('error')
       setUploadError('Please upload a PDF or DOCX file.')
+      setUploadWarning('')
+      setUploadStats(null)
       return
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setUploadState('error')
       setUploadError('File too large. Maximum size is 10MB.')
+      setUploadWarning('')
+      setUploadStats(null)
       return
     }
 
     setUploadError('')
+    setUploadWarning('')
+    setUploadStats(null)
     setUploadState('parsing')
     setUploadProgress(12)
 
@@ -168,12 +184,17 @@ export default function CareerSwitchPlannerPage() {
       })
 
       const data = (await response.json()) as {
+        ok?: boolean
+        source?: 'docx' | 'pdf' | 'pdf-ocr'
+        error?: string
         text?: string
         detected?: { experience: boolean; skills: boolean; education: boolean }
         message?: string
+        warning?: string | null
+        stats?: { meaningfulChars?: number }
       }
 
-      if (!response.ok || !data.text || !data.detected) {
+      if (!response.ok || !data.ok || !data.text || !data.detected) {
         throw new Error(
           data.message || 'Unable to parse this file. Try a DOCX file or paste your experience.'
         )
@@ -182,9 +203,22 @@ export default function CareerSwitchPlannerPage() {
       setUploadProgress(100)
       setExtractedResumeText(data.text)
       setDetectedSections(data.detected)
+      setUploadWarning(
+        data.warning ??
+          (data.source === 'pdf-ocr'
+            ? 'Scanned PDF detected - OCR used (may take a few seconds).'
+            : '')
+      )
+      setUploadStats(
+        typeof data.stats?.meaningfulChars === 'number'
+          ? { meaningfulChars: data.stats.meaningfulChars }
+          : null
+      )
       setUploadState('success')
     } catch (error) {
       setUploadState('error')
+      setUploadWarning('')
+      setUploadStats(null)
       setUploadError(
         error instanceof Error
           ? error.message
@@ -199,6 +233,11 @@ export default function CareerSwitchPlannerPage() {
 
   const handleGeneratePlan = async () => {
     if (isLocked || isUsageLoading) {
+      return
+    }
+
+    if (!user) {
+      setInputError('Sign in to generate and save your plan.')
       return
     }
 
@@ -226,20 +265,87 @@ export default function CareerSwitchPlannerPage() {
     setInputError('')
     setPlannerState('loading')
 
-    await wait(randomDelay())
+    try {
+      const response = await fetch('/api/tools/career-switch-planner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(await getSupabaseAuthHeaders())
+        },
+        body: JSON.stringify({
+          currentRole: currentRole.trim(),
+          targetRole: targetRole.trim(),
+          notSureMode,
+          experienceText: experienceInput,
+          location,
+          timeline,
+          education
+        })
+      })
 
-    const nextResult = getCareerSwitchPlannerMockResult({
-      currentRole,
-      targetRole,
-      notSureMode
-    })
+      const data = (await response.json().catch(() => null)) as
+        | {
+            score?: number
+            explanation?: string
+            transferableSkills?: string[]
+            skillGaps?: CareerSwitchPlannerResult['skillGaps']
+            roadmap?: CareerSwitchPlannerResult['roadmap']
+            resumeReframes?: CareerSwitchPlannerResult['resumeReframes']
+            recommendedRoles?: CareerSwitchPlannerResult['recommendedRoles']
+            usage?: ToolUsageResult
+            error?: string
+            message?: string
+          }
+        | null
 
-    setPlannerResult(nextResult)
-    setPlannerState('results')
+      if (response.status === 402 && data?.error === 'LOCKED') {
+        if (data.usage) {
+          setUsage(data.usage)
+        }
+        setPlannerState('idle')
+        return
+      }
 
-    const nextUsage = await consumeUsage('career-switch-planner', usageQuery)
-    if (nextUsage) {
-      setUsage(nextUsage)
+      if (response.status === 401 && data?.error === 'AUTH_REQUIRED') {
+        setInputError(data.message || 'Sign in required before generating a plan.')
+        setPlannerState('idle')
+        return
+      }
+
+      const plannerResultPayload =
+        data &&
+        typeof data.score === 'number' &&
+        typeof data.explanation === 'string' &&
+        Array.isArray(data.transferableSkills) &&
+        Array.isArray(data.skillGaps) &&
+        data.roadmap &&
+        Array.isArray(data.resumeReframes) &&
+        Array.isArray(data.recommendedRoles)
+          ? ({
+              score: data.score,
+              explanation: data.explanation,
+              transferableSkills: data.transferableSkills,
+              skillGaps: data.skillGaps,
+              roadmap: data.roadmap,
+              resumeReframes: data.resumeReframes,
+              recommendedRoles: data.recommendedRoles
+            } as CareerSwitchPlannerResult)
+          : null
+
+      if (!response.ok || !plannerResultPayload) {
+        throw new Error(data?.message || 'Unable to generate a plan right now.')
+      }
+
+      setPlannerResult(toPlannerResultView(plannerResultPayload))
+      setPlannerState('results')
+      if (data?.usage) {
+        setUsage(data.usage)
+      }
+    } catch (error) {
+      setInputError(
+        error instanceof Error ? error.message : 'Unable to generate a plan right now.'
+      )
+      setPlannerState('idle')
     }
   }
 
@@ -257,7 +363,7 @@ export default function CareerSwitchPlannerPage() {
     <>
       <ToolHero>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge className="gap-1.5">{usageLabel(usage, previewLocked)}</Badge>
+          <Badge className="gap-1.5">{usageLabel(usage, previewLocked, plan)}</Badge>
           <Badge className="gap-1.5">Resume Upload (Pro)</Badge>
         </div>
         <h1 className="text-[34px] font-bold leading-tight text-text-primary md:text-[40px]">
@@ -266,7 +372,9 @@ export default function CareerSwitchPlannerPage() {
         <p className="max-w-[680px] text-base leading-[1.6] text-text-secondary md:text-lg">
           See how your skills transfer - and get a step-by-step plan.
         </p>
-        <p className="text-[13px] text-text-tertiary">No account required to preview</p>
+        <p className="text-[13px] text-text-tertiary">
+          Sign in to generate plans and enforce usage limits.
+        </p>
       </ToolHero>
 
       <section className="px-4 py-16 lg:px-[340px]">
@@ -341,6 +449,19 @@ export default function CareerSwitchPlannerPage() {
 
                 {uploadState === 'success' && (
                   <>
+                    {uploadWarning ? (
+                      <div className="rounded-md border border-warning/25 bg-warning-light p-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          Text extracted with a warning
+                        </p>
+                        <p className="mt-1 text-sm text-text-secondary">{uploadWarning}</p>
+                        {uploadStats ? (
+                          <p className="mt-1 text-xs text-text-tertiary">
+                            Extracted characters: {uploadStats.meaningfulChars}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <ExtractedTextArea
                       value={extractedResumeText}
                       onChange={setExtractedResumeText}
@@ -354,12 +475,13 @@ export default function CareerSwitchPlannerPage() {
 
                 {uploadState === 'error' && (
                   <div className="rounded-md border border-error bg-error-light p-4">
-                    <p className="text-sm font-semibold text-error">
-                      This PDF looks scanned or protected.
-                    </p>
+                    <p className="text-sm font-semibold text-error">We couldn&apos;t parse that file.</p>
                     <p className="mt-1 text-sm text-text-secondary">
                       {uploadError ||
                         'Upload a DOCX file or paste your experience instead to continue.'}
+                    </p>
+                    <p className="mt-2 text-xs text-text-tertiary">
+                      Tip: if this is a scanned PDF, re-export as searchable PDF or upload DOCX.
                     </p>
                   </div>
                 )}
@@ -368,32 +490,41 @@ export default function CareerSwitchPlannerPage() {
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <label className="flex flex-col gap-1.5 rounded-md border border-border bg-bg-secondary p-3">
-              <span className="text-[13px] font-semibold text-text-secondary">Location</span>
-              <select className="bg-transparent text-sm text-text-primary focus:outline-none">
-                <option>Remote (US)</option>
-                <option>New York, NY</option>
-                <option>San Francisco, CA</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5 rounded-md border border-border bg-bg-secondary p-3">
-              <span className="text-[13px] font-semibold text-text-secondary">Timeline</span>
-              <select className="bg-transparent text-sm text-text-primary focus:outline-none">
-                <option>30/60/90</option>
-                <option>30 days</option>
-                <option>60 days</option>
-                <option>90 days</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5 rounded-md border border-border bg-bg-secondary p-3">
-              <span className="text-[13px] font-semibold text-text-secondary">Education Level</span>
-              <select className="bg-transparent text-sm text-text-primary focus:outline-none">
-                <option>Bachelor&apos;s</option>
-                <option>Associate</option>
-                <option>Master&apos;s</option>
-                <option>Self-taught</option>
-              </select>
-            </label>
+            <SelectField
+              id="planner-location"
+              label="Location"
+              value={location}
+              onChange={setLocation}
+              options={[
+                { value: 'Remote (US)', label: 'Remote (US)' },
+                { value: 'New York, NY', label: 'New York, NY' },
+                { value: 'San Francisco, CA', label: 'San Francisco, CA' }
+              ]}
+            />
+            <SelectField
+              id="planner-timeline"
+              label="Timeline"
+              value={timeline}
+              onChange={setTimeline}
+              options={[
+                { value: '30/60/90', label: '30/60/90' },
+                { value: '30 days', label: '30 days' },
+                { value: '60 days', label: '60 days' },
+                { value: '90 days', label: '90 days' }
+              ]}
+            />
+            <SelectField
+              id="planner-education"
+              label="Education Level"
+              value={education}
+              onChange={setEducation}
+              options={[
+                { value: "Bachelor's", label: "Bachelor's" },
+                { value: 'Associate', label: 'Associate' },
+                { value: "Master's", label: "Master's" },
+                { value: 'Self-taught', label: 'Self-taught' }
+              ]}
+            />
           </div>
 
           {inputError && (
@@ -407,9 +538,9 @@ export default function CareerSwitchPlannerPage() {
               onClick={handleGeneratePlan}
               isLoading={plannerState === 'loading'}
               className="md:flex-1"
-              disabled={isUsageLoading || plannerState === 'loading'}
+              disabled={isUsageLoading || plannerState === 'loading' || !user}
             >
-              Generate My Plan
+              {user ? 'Generate My Plan' : 'Sign In to Generate'}
             </PrimaryButton>
             <Button variant="outline" onClick={handleUseExample} className="md:flex-1">
               Use Example
@@ -419,6 +550,14 @@ export default function CareerSwitchPlannerPage() {
           <p className="mt-3 text-[13px] text-text-tertiary">
             Your data is used only to generate this report.
           </p>
+          {!user ? (
+            <p className="mt-2 text-[13px] text-text-secondary">
+              Sign in to run this tool.{' '}
+              <Link href="/login" className="text-accent hover:text-accent-hover">
+                Go to login
+              </Link>
+            </p>
+          ) : null}
         </InputCard>
       </section>
 

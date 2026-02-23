@@ -28,14 +28,21 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 1. In Supabase dashboard, go to **SQL Editor**
 2. Click **New Query**
-3. Copy the entire contents of `migrations/001_initial_schema.sql`
-4. Paste into the editor
-5. Click **Run**
+3. Copy the entire contents of `migrations/001_initial_schema.sql`, run it
+4. Copy the entire contents of `migrations/002_billing_and_tool_runs.sql`, run it
+5. Copy the entire contents of `migrations/003_stripe_subscription_state.sql`, run it
+6. Copy the entire contents of `migrations/004_blog_post_views.sql`, run it
+7. Paste into the editor
+8. Click **Run**
 
 This creates:
 - `tools` table (tool metadata)
-- `tool_usage` table (usage tracking with 3-use limit)
+- `tool_usage` table (legacy usage tracking)
+- `tool_runs` table (canonical tool execution runs)
+- `blog_post_views_daily` (aggregated blog views for Popular sort)
 - `profiles` table (user plan status)
+- `profiles.free_uses_used` shared free counter
+- `profiles.stripe_cancel_at_period_end` and `profiles.stripe_current_period_end`
 - RLS policies (row-level security)
 - Auth setup
 

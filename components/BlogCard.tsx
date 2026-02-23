@@ -43,8 +43,15 @@ export default function BlogCard({
       ? new Date().toISOString()
       : new Date(dateMs).toISOString(),
     readTimeMinutes: parseReadTimeMinutes(readTime),
-    coverImageUrl,
-    coverImageAlt: title
+    coverImage: coverImageUrl
+      ? {
+          url: coverImageUrl,
+          width: 1600,
+          height: 900,
+          alt: title
+        }
+      : null,
+    popularityScore: 0
   }
 
   return <PostCard post={post} />

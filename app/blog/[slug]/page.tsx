@@ -6,7 +6,9 @@ import { notFound } from 'next/navigation'
 import Button from '@/components/Button'
 import ContentTypography from '@/components/blog/ContentTypography'
 import InlineCTA from '@/components/blog/InlineCTA'
+import NoCoverState from '@/components/blog/NoCoverState'
 import PostMetaRow from '@/components/blog/PostMetaRow'
+import PostViewTracker from '@/components/blog/PostViewTracker'
 import RelatedPostsGrid from '@/components/blog/RelatedPostsGrid'
 import { portableTextComponents } from '@/components/blog/portableTextComponents'
 import ToolCard from '@/components/ToolCard'
@@ -45,7 +47,7 @@ export async function generateMetadata({
   const title = post.seoTitle || post.title
   const description = post.seoDescription || post.excerpt
   const canonical = `${getSiteBaseUrl()}/blog/${post.slug}`
-  const ogImage = post.coverImageUrl || getDefaultOgImageUrl()
+  const ogImage = post.coverImage?.url || getDefaultOgImageUrl()
 
   return {
     title,
@@ -62,7 +64,7 @@ export async function generateMetadata({
       images: [
         {
           url: ogImage,
-          alt: post.coverImageAlt || post.title
+          alt: post.coverImage?.alt || post.title
         }
       ]
     },
@@ -98,13 +100,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       '@type': 'Person',
       name: post.authorName
     },
-    image: post.coverImageUrl || getDefaultOgImageUrl(),
+    image: post.coverImage?.url || getDefaultOgImageUrl(),
     mainEntityOfPage: canonicalUrl,
     description: post.seoDescription || post.excerpt
   }
 
   return (
     <>
+      <PostViewTracker slug={post.slug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -126,16 +129,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           />
 
           <div className="relative h-[220px] w-full overflow-hidden rounded-lg bg-accent-light md:h-[420px]">
-            {post.coverImageUrl ? (
+            {post.coverImage ? (
               <Image
-                src={post.coverImageUrl}
-                alt={post.coverImageAlt}
+                src={post.coverImage.url}
+                alt={post.coverImage.alt || `${post.title} cover illustration`}
                 fill
                 className="object-cover"
                 priority
                 sizes="(max-width: 1280px) 100vw, 1100px"
               />
-            ) : null}
+            ) : (
+              <NoCoverState title={post.title} />
+            )}
           </div>
         </div>
       </section>

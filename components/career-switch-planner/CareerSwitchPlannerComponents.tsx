@@ -1,19 +1,18 @@
 'use client'
 
-import type { ChangeEvent, ComponentProps, ReactNode } from 'react'
+import { useState, type ChangeEvent, type ComponentProps, type ReactNode } from 'react'
 import Link from 'next/link'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
-import { CheckIcon, SparklesIcon, ToolGlyph } from '@/components/Icons'
+import { CheckIcon, ChevronDownIcon, SparklesIcon, ToolGlyph } from '@/components/Icons'
 import BaseFAQAccordion from '@/components/FAQAccordion'
 import type {
   GapDifficulty,
-  PlannerResult,
-  ResumeReframeItem,
-  RoleRecommendation,
-  RoadmapWindow
-} from '@/lib/mocks/careerSwitchPlanner'
+  PlannerRecommendedRole,
+  PlannerResultView,
+  PlannerResumeReframe
+} from '@/lib/planner/types'
 
 type ToolTab = 'paste' | 'upload'
 
@@ -122,17 +121,63 @@ interface DropzoneUploadProps {
   disabled?: boolean
 }
 
+function formatFileSize(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 KB'
+  const kb = bytes / 1024
+  if (kb < 1024) return `${Math.max(1, Math.round(kb))} KB`
+  return `${(kb / 1024).toFixed(1)} MB`
+}
+
 export function DropzoneUpload({ onFileSelected, disabled = false }: DropzoneUploadProps) {
+  const [isDragActive, setIsDragActive] = useState(false)
+  const [lastSelectedFile, setLastSelectedFile] = useState<string>('')
+
+  const applyFile = (file: File | null) => {
+    onFileSelected(file)
+    if (file) {
+      setLastSelectedFile(`${file.name} (${formatFileSize(file.size)})`)
+    }
+  }
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null
-    onFileSelected(file)
+    applyFile(file)
     event.target.value = ''
   }
 
   return (
-    <label className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-8 text-center ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}>
+    <label
+      onDragOver={(event) => {
+        event.preventDefault()
+        if (!disabled) setIsDragActive(true)
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault()
+        setIsDragActive(false)
+      }}
+      onDrop={(event) => {
+        event.preventDefault()
+        setIsDragActive(false)
+        if (disabled) return
+        const file = event.dataTransfer?.files?.[0] ?? null
+        applyFile(file)
+      }}
+      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border px-4 py-8 text-center transition-colors ${
+        disabled
+          ? 'cursor-not-allowed border-border bg-surface opacity-60'
+          : isDragActive
+            ? 'border-accent bg-accent-light'
+            : 'border-border bg-surface hover:border-accent/40'
+      }`}
+    >
       <span className="text-[15px] font-semibold text-accent">Upload PDF/DOCX</span>
+      <span className="text-xs text-text-secondary">Click to browse or drag and drop</span>
       <span className="text-xs text-text-tertiary">PDF/DOCX - Max 10MB</span>
+      {lastSelectedFile ? (
+        <span className="rounded-pill bg-bg-secondary px-3 py-1 text-xs text-text-secondary">
+          {lastSelectedFile}
+        </span>
+      ) : null}
       <input
         type="file"
         className="sr-only"
@@ -140,6 +185,45 @@ export function DropzoneUpload({ onFileSelected, disabled = false }: DropzoneUpl
         disabled={disabled}
         onChange={handleFileChange}
       />
+    </label>
+  )
+}
+
+interface SelectOption {
+  value: string
+  label: string
+}
+
+interface SelectFieldProps {
+  id: string
+  label: string
+  value: string
+  options: SelectOption[]
+  onChange: (value: string) => void
+}
+
+export function SelectField({ id, label, value, options, onChange }: SelectFieldProps) {
+  return (
+    <label
+      htmlFor={id}
+      className="flex w-full flex-col gap-1.5 rounded-md border border-border bg-bg-secondary p-3"
+    >
+      <span className="text-[13px] font-semibold text-text-secondary">{label}</span>
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full appearance-none rounded-md border border-border-light bg-surface px-3 py-2 pr-9 text-sm text-text-primary transition-colors focus:border-accent focus:outline-none"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDownIcon className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+      </div>
     </label>
   )
 }
@@ -238,7 +322,7 @@ export function PrimaryButton({ children, ...props }: PrimaryButtonProps) {
 }
 
 interface ScoreCardProps {
-  result: PlannerResult
+  result: PlannerResultView
   notSureMode: boolean
   targetRole: string
 }
@@ -284,7 +368,7 @@ function difficultyBadgeVariant(difficulty: GapDifficulty) {
   return 'warning' as const
 }
 
-export function GapsList({ gaps }: { gaps: PlannerResult['skillGaps'] }) {
+export function GapsList({ gaps }: { gaps: PlannerResultView['skillGaps'] }) {
   return (
     <Card className="p-5">
       <h3 className="text-base font-bold text-text-primary">Skill Gaps</h3>
@@ -305,7 +389,7 @@ export function GapsList({ gaps }: { gaps: PlannerResult['skillGaps'] }) {
   )
 }
 
-export function RoadmapSteps({ roadmap }: { roadmap: RoadmapWindow[] }) {
+export function RoadmapSteps({ roadmap }: { roadmap: PlannerResultView['roadmap'] }) {
   return (
     <Card className="p-5">
       <h3 className="text-base font-bold text-text-primary">Roadmap (30/60/90)</h3>
@@ -328,7 +412,7 @@ export function RoadmapSteps({ roadmap }: { roadmap: RoadmapWindow[] }) {
   )
 }
 
-export function ReframeList({ items }: { items: ResumeReframeItem[] }) {
+export function ReframeList({ items }: { items: PlannerResumeReframe[] }) {
   return (
     <Card className="p-5">
       <h3 className="text-base font-bold text-text-primary">Resume Reframe</h3>
@@ -344,7 +428,7 @@ export function ReframeList({ items }: { items: ResumeReframeItem[] }) {
   )
 }
 
-export function RoleRecommendationCard({ recommendation }: { recommendation: RoleRecommendation }) {
+export function RoleRecommendationCard({ recommendation }: { recommendation: PlannerRecommendedRole }) {
   return (
     <Card className="p-5">
       <div className="flex items-start justify-between gap-3">

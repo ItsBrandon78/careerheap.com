@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import Card from '@/components/Card'
+import NoCoverState from '@/components/blog/NoCoverState'
 import PostMetaRow from '@/components/blog/PostMetaRow'
 import type { BlogPostSummary } from '@/lib/blog/types'
 
@@ -12,17 +13,20 @@ export default function FeaturedPostCard({ post }: FeaturedPostCardProps) {
   return (
     <Link href={`/blog/${post.slug}`} className="group block">
       <Card className="overflow-hidden p-0" hover>
-        <div className="relative h-[220px] w-full bg-accent-light md:h-[340px]">
-          {post.coverImageUrl ? (
+        <div className="relative h-[220px] w-full bg-bg-secondary md:h-[340px]">
+          {post.coverImage ? (
             <Image
-              src={post.coverImageUrl}
-              alt={post.coverImageAlt}
+              src={post.coverImage.url}
+              alt=""
               fill
+              aria-hidden="true"
               className="object-cover transition-transform duration-200 group-hover:scale-[1.01]"
               sizes="(max-width: 1024px) 100vw, 1100px"
               priority
             />
-          ) : null}
+          ) : (
+            <NoCoverState title={post.title} />
+          )}
         </div>
 
         <div className="flex flex-col gap-4 p-6">

@@ -119,6 +119,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const [authMode, setAuthMode] = useState<AuthMode>('magic-link')
   const router = useRouter()
+  const statusMessageId = 'login-status-message'
 
   const handleGoogleSignIn = async () => {
     setError('')
@@ -248,6 +249,7 @@ export default function LoginPage() {
               setError('')
               setMessage('')
             }}
+            aria-pressed={authMode === 'magic-link'}
             className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
               authMode === 'magic-link'
                 ? 'bg-surface text-text-primary shadow-card'
@@ -263,6 +265,7 @@ export default function LoginPage() {
               setError('')
               setMessage('')
             }}
+            aria-pressed={authMode === 'password'}
             className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
               authMode === 'password'
                 ? 'bg-surface text-text-primary shadow-card'
@@ -274,13 +277,23 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="mt-4 rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error">
+          <div
+            id={statusMessageId}
+            role="alert"
+            aria-live="polite"
+            className="mt-4 rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error"
+          >
             {error}
           </div>
         )}
 
         {message && (
-          <div className="mt-4 rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success">
+          <div
+            id={statusMessageId}
+            role="status"
+            aria-live="polite"
+            className="mt-4 rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success"
+          >
             {message}
           </div>
         )}
@@ -297,6 +310,8 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error || message ? statusMessageId : undefined}
                 className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                 placeholder="you@example.com"
               />
@@ -321,6 +336,8 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error || message ? statusMessageId : undefined}
                 className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                 placeholder="you@example.com"
               />
@@ -336,6 +353,8 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error || message ? statusMessageId : undefined}
                 className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                 placeholder="********"
               />

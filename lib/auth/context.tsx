@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
+import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 
 export type PlanType = 'free' | 'pro' | 'lifetime'
 
@@ -19,6 +20,7 @@ export interface UsageSummary {
 interface AuthContextType {
   user: User | null
   plan: PlanType
+  subscriptionStatus: string | null
   usage: UsageSummary | null
   isLoading: boolean
   isAuthenticated: boolean
@@ -36,7 +38,11 @@ function normalizePlan(value: unknown): PlanType {
 
 async function fetchUsageSummary(search = '') {
   try {
-    const response = await fetch(`/api/usage/summary${search}`, { cache: 'no-store' })
+    const authHeaders = await getSupabaseAuthHeaders()
+    const response = await fetch(`/api/usage/summary${search}`, {
+      cache: 'no-store',
+      headers: authHeaders
+    })
     if (!response.ok) return null
     return (await response.json()) as UsageSummary
   } catch {
@@ -44,32 +50,75 @@ async function fetchUsageSummary(search = '') {
   }
 }
 
+function getUsageOverrideSearch() {
+  if (typeof window === 'undefined') return ''
+
+  // Keep QA overrides scoped to tool routes only so checkout/account query params
+  // (e.g. /checkout?plan=pro) do not spoof global auth plan state.
+  if (!window.location.pathname.startsWith('/tools')) {
+    return ''
+  }
+
+  const params = new URLSearchParams(window.location.search)
+  const override = new URLSearchParams()
+  const plan = params.get('plan')
+  const uses = params.get('uses')
+  if (plan) override.set('plan', plan)
+  if (uses) override.set('uses', uses)
+  const query = override.toString()
+  return query ? `?${query}` : ''
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [plan, setPlan] = useState<PlanType>('free')
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
   const [usage, setUsage] = useState<UsageSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const loadProfilePlan = useCallback(async (nextUser: User | null) => {
     if (!nextUser) {
       setPlan('free')
+      setSubscriptionStatus(null)
       return 'free' as const
     }
 
     try {
       const supabase = createClient()
-      const { data } = await supabase.from('profiles').select('plan').eq('id', nextUser.id).single()
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('plan,stripe_subscription_status')
+        .eq('id', nextUser.id)
+        .single()
+      if (error) {
+        const fallback = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', nextUser.id)
+          .single()
+
+        const fallbackPlan = normalizePlan(fallback.data?.plan)
+        setPlan(fallbackPlan)
+        setSubscriptionStatus(null)
+        return fallbackPlan
+      }
       const nextPlan = normalizePlan(data?.plan)
       setPlan(nextPlan)
+      setSubscriptionStatus(
+        typeof data?.stripe_subscription_status === 'string'
+          ? data.stripe_subscription_status
+          : null
+      )
       return nextPlan
     } catch {
       setPlan('free')
+      setSubscriptionStatus(null)
       return 'free' as const
     }
   }, [])
 
   const refreshUsage = useCallback(async () => {
-    const search = typeof window !== 'undefined' ? window.location.search : ''
+    const search = getUsageOverrideSearch()
     const summary = await fetchUsageSummary(search)
     if (summary) {
       setUsage(summary)
@@ -83,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(nextUser)
       const nextPlan = await loadProfilePlan(nextUser)
 
-      const search = typeof window !== 'undefined' ? window.location.search : ''
+      const search = getUsageOverrideSearch()
       const summary = await fetchUsageSummary(search)
       if (summary) {
         setUsage(summary)
@@ -138,6 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut()
     setUser(null)
     setPlan('free')
+    setSubscriptionStatus(null)
     setUsage(null)
   }, [])
 
@@ -145,6 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       plan,
+      subscriptionStatus,
       usage,
       isLoading,
       isAuthenticated: Boolean(user),
@@ -152,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       refreshUsage
     }),
-    [user, plan, usage, isLoading, signOut, refreshUsage]
+    [user, plan, subscriptionStatus, usage, isLoading, signOut, refreshUsage]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

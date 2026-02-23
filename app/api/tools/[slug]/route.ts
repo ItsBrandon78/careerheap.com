@@ -1,45 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ANON_ID_COOKIE, USAGE_STATE_COOKIE, consumeUsage, getCurrentUsageSummary, resolveUsageContext } from '@/lib/server/usage'
+import {
+  consumeSummaryOverride,
+  buildSummaryFromOverrides,
+  consumeUsageForSuccessfulRun,
+  getAnonymousUsageSummary,
+  getAuthenticatedUserFromRequest,
+  getUsageSummaryForUser,
+  parsePlanOverride,
+  parseUsesRemainingOverride
+} from '@/lib/server/toolUsage'
 
-function applyUsageCookies(response: NextResponse, options: {
-  anonId: string | null
-  shouldSetAnonCookie: boolean
-  serializedState: string | null
-}) {
-  const { anonId, shouldSetAnonCookie, serializedState } = options
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  void params
 
-  if (shouldSetAnonCookie && anonId) {
-    response.cookies.set(ANON_ID_COOKIE, anonId, {
-      maxAge: 60 * 60 * 24 * 365,
-      httpOnly: false,
-      sameSite: 'lax',
-      path: '/'
-    })
-  }
-
-  if (serializedState) {
-    response.cookies.set(USAGE_STATE_COOKIE, serializedState, {
-      maxAge: 60 * 60 * 24 * 365,
-      httpOnly: false,
-      sameSite: 'lax',
-      path: '/'
-    })
-  }
-}
-
-export async function GET(request: NextRequest) {
   try {
-    const context = await resolveUsageContext(request)
-    const summary = getCurrentUsageSummary(context)
-    const response = NextResponse.json(summary)
+    const planOverride = parsePlanOverride(request.nextUrl.searchParams.get('plan'))
+    const usesOverride = parseUsesRemainingOverride(request.nextUrl.searchParams.get('uses'))
+    if (planOverride) {
+      return NextResponse.json(
+        buildSummaryFromOverrides({
+          plan: planOverride,
+          usesRemaining: usesOverride
+        })
+      )
+    }
 
-    applyUsageCookies(response, {
-      anonId: context.anonId,
-      shouldSetAnonCookie: context.shouldSetAnonCookie,
-      serializedState: null
-    })
+    const user = await getAuthenticatedUserFromRequest(request)
+    if (!user) {
+      return NextResponse.json(getAnonymousUsageSummary())
+    }
 
-    return response
+    const summary = await getUsageSummaryForUser(user)
+    return NextResponse.json(summary)
   } catch (error) {
     console.error('Tool usage check error:', error)
     return NextResponse.json({ error: 'Failed to check tool usage' }, { status: 500 })
@@ -52,17 +47,43 @@ export async function POST(
 ) {
   try {
     const { slug } = await params
-    const context = await resolveUsageContext(request)
-    const { summary, serializedState } = consumeUsage(context, slug)
-    const response = NextResponse.json(summary)
+    const planOverride = parsePlanOverride(request.nextUrl.searchParams.get('plan'))
+    const usesOverride = parseUsesRemainingOverride(request.nextUrl.searchParams.get('uses'))
+    if (planOverride) {
+      const summary = buildSummaryFromOverrides({
+        plan: planOverride,
+        usesRemaining: usesOverride
+      })
+      if (!summary.canUse) {
+        return NextResponse.json(
+          { error: 'LOCKED', message: 'Free usage limit reached.', usage: summary },
+          { status: 402 }
+        )
+      }
+      return NextResponse.json(consumeSummaryOverride(summary))
+    }
 
-    applyUsageCookies(response, {
-      anonId: context.anonId,
-      shouldSetAnonCookie: context.shouldSetAnonCookie,
-      serializedState
+    const user = await getAuthenticatedUserFromRequest(request)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'AUTH_REQUIRED', message: 'Sign in to use this tool.' },
+        { status: 401 }
+      )
+    }
+
+    const { summary, locked } = await consumeUsageForSuccessfulRun({
+      user,
+      toolName: slug
     })
 
-    return response
+    if (locked) {
+      return NextResponse.json(
+        { error: 'LOCKED', message: 'Free usage limit reached.', usage: summary },
+        { status: 402 }
+      )
+    }
+
+    return NextResponse.json(summary)
   } catch (error) {
     console.error('Tool usage consume error:', error)
     return NextResponse.json({ error: 'Failed to update tool usage' }, { status: 500 })

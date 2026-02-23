@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 
 export type PlanType = 'free' | 'pro' | 'lifetime'
 
@@ -18,11 +19,23 @@ function buildSearch(search?: string) {
 }
 
 async function parseUsageResponse(response: Response) {
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => null)) as { error?: string } | null
-    throw new Error(errorData?.error ?? 'Usage request failed')
+  const data = (await response.json().catch(() => null)) as
+    | {
+        error?: string
+        message?: string
+        usage?: ToolUsageResult
+      }
+    | null
+
+  if (response.status === 402 && data?.usage) {
+    return data.usage
   }
-  return (await response.json()) as ToolUsageResult
+
+  if (!response.ok) {
+    throw new Error(data?.message ?? data?.error ?? 'Usage request failed')
+  }
+
+  return data as ToolUsageResult
 }
 
 export function useToolUsage() {
@@ -35,9 +48,11 @@ export function useToolUsage() {
     setError(null)
 
     try {
+      const authHeaders = await getSupabaseAuthHeaders()
       const response = await fetch(`/api/tools/${toolSlug}${buildSearch(search)}`, {
         method: 'GET',
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: authHeaders
       })
       return await parseUsageResponse(response)
     } catch (err) {
@@ -53,9 +68,11 @@ export function useToolUsage() {
     setError(null)
 
     try {
+      const authHeaders = await getSupabaseAuthHeaders()
       const response = await fetch(`/api/tools/${toolSlug}${buildSearch(search)}`, {
         method: 'POST',
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: authHeaders
       })
       return await parseUsageResponse(response)
     } catch (err) {

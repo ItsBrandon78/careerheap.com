@@ -7,7 +7,7 @@
 | Tool Page - Active (`/tools/[slug]`) | Yes | Hero, benefits, input container, results area, FAQ, and related tools aligned with shared components. |
 | Tool Page - Locked (`/tools/[slug]?locked=1`) | Yes | Locked panel and paywall treatment aligned and reusable. |
 | Pricing Page (`/pricing`) | Yes | Free / Pro / Lifetime model implemented with Pro highlighted. |
-| Blog Post Template (`/blog/[slug]`) | Partial | Layout/typography/cards are aligned; hero image remains placeholder block pending real assets. |
+| Blog Post Template (`/blog/[slug]`) | Yes | Layout/typography/cards are aligned; post cover now uses Sanity asset when present and deterministic no-cover state when missing. |
 | Design System Components (`/design-system`) | Yes | Shared component coverage and tokenized styling validated. |
 | Career Switch Planner - Idle | Yes | Tool hero, input card, and report placeholder state implemented. |
 | Career Switch Planner - Loading | Yes | Skeleton loading cards are present and consistent. |

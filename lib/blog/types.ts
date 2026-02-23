@@ -23,6 +23,13 @@ export interface BlogAuthor {
   avatarUrl?: string | null
 }
 
+export interface BlogCoverImage {
+  url: string
+  width: number
+  height: number
+  alt: string
+}
+
 export interface BlogPostSummary {
   id: string
   slug: string
@@ -32,8 +39,8 @@ export interface BlogPostSummary {
   authorName: string
   publishedAt: string
   readTimeMinutes: number
-  coverImageUrl: string | null
-  coverImageAlt: string
+  coverImage: BlogCoverImage | null
+  popularityScore: number
 }
 
 export interface BlogPost extends BlogPostSummary {

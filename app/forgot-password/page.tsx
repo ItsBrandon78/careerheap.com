@@ -13,6 +13,7 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const statusMessageId = 'forgot-password-status-message'
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -51,14 +52,24 @@ export default function ForgotPasswordPage() {
         </header>
 
         {error ? (
-          <p className="mt-4 rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error">
+          <p
+            id={statusMessageId}
+            role="alert"
+            aria-live="polite"
+            className="mt-4 rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error"
+          >
             {error}
           </p>
         ) : null}
 
         {message ? (
           <div className="mt-6 space-y-4">
-            <p className="rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success">
+            <p
+              id={statusMessageId}
+              role="status"
+              aria-live="polite"
+              className="rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success"
+            >
               {message}
             </p>
             <p className="text-sm text-text-secondary">
@@ -85,6 +96,8 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error || message ? statusMessageId : undefined}
                 className="mt-2 w-full rounded-md border border-border bg-bg-primary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                 placeholder="you@example.com"
               />

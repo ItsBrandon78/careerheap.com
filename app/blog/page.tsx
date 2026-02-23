@@ -4,6 +4,7 @@ import BlogIndexClient from '@/components/blog/BlogIndexClient'
 import CTASection from '@/components/CTASection'
 import { getDefaultOgImageUrl, getSiteBaseUrl } from '@/lib/blog/utils'
 import { getAllBlogPosts, getBlogCategories } from '@/lib/sanity/api'
+import { getBlogPopularityMap } from '@/lib/server/blogViews'
 
 export const revalidate = 120
 
@@ -37,10 +38,16 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  const [posts, categories] = await Promise.all([
+  const [posts, categories, popularityMap] = await Promise.all([
     getAllBlogPosts(),
-    getBlogCategories()
+    getBlogCategories(),
+    getBlogPopularityMap(30)
   ])
+
+  const postsWithPopularity = posts.map((post) => ({
+    ...post,
+    popularityScore: popularityMap[post.slug] ?? 0
+  }))
 
   return (
     <>
@@ -51,7 +58,7 @@ export default async function BlogPage() {
 
       <section className="px-4 py-16 lg:px-[170px]">
         <div className="mx-auto max-w-content">
-          <BlogIndexClient posts={posts} categories={categories} />
+          <BlogIndexClient posts={postsWithPopularity} categories={categories} />
         </div>
       </section>
 
