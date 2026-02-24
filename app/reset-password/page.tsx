@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
+import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ResetPasswordPage() {
@@ -57,6 +58,8 @@ export default function ResetPasswordPage() {
             Choose a strong password for your account.
           </p>
         </header>
+
+        <AuthConfigNotice className="mt-4" />
 
         {error ? (
           <p

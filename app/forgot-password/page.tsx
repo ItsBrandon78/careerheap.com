@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ForgotPasswordPage() {
@@ -50,6 +51,8 @@ export default function ForgotPasswordPage() {
             Enter your email and we&apos;ll send reset instructions if an account exists.
           </p>
         </header>
+
+        <AuthConfigNotice className="mt-4" />
 
         {error ? (
           <p

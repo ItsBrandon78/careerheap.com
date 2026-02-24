@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import Badge from '@/components/Badge'
+import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
@@ -102,6 +103,8 @@ export default function SignupPage() {
           <p className="mt-1 text-sm leading-[1.6] text-text-secondary">
             Create your account to save plans and unlock paid features when needed.
           </p>
+
+          <AuthConfigNotice className="mt-4" />
 
           {error ? (
             <p

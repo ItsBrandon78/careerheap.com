@@ -36,6 +36,18 @@ function normalizePlan(value: unknown): PlanType {
   return 'free'
 }
 
+function createFallbackUsage(plan: PlanType): UsageSummary {
+  return {
+    plan,
+    isUnlimited: false,
+    canUse: true,
+    used: 0,
+    limit: 3,
+    usesRemaining: 3,
+    byTool: {}
+  }
+}
+
 async function fetchUsageSummary(search = '') {
   try {
     const authHeaders = await getSupabaseAuthHeaders()
@@ -138,15 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUsage(summary)
         setPlan(normalizePlan(summary.plan))
       } else if (!nextUser) {
-        setUsage({
-          plan: nextPlan,
-          isUnlimited: false,
-          canUse: true,
-          used: 0,
-          limit: 3,
-          usesRemaining: 3,
-          byTool: {}
-        })
+        setUsage(createFallbackUsage(nextPlan))
       }
 
       setIsLoading(false)
@@ -155,8 +159,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   useEffect(() => {
-    const supabase = createClient()
     let mounted = true
+
+    let supabase: ReturnType<typeof createClient>
+    try {
+      supabase = createClient()
+    } catch {
+      queueMicrotask(() => {
+        void applySession(null)
+      })
+
+      return () => {
+        mounted = false
+      }
+    }
 
     const bootstrap = async () => {
       const {
@@ -183,12 +199,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [applySession])
 
   const signOut = useCallback(async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch {
+      // noop: keeps logout UX stable even when auth client is unavailable
+    }
     setUser(null)
     setPlan('free')
     setSubscriptionStatus(null)
-    setUsage(null)
+    setUsage(createFallbackUsage('free'))
   }, [])
 
   const value = useMemo<AuthContextType>(

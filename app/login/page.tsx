@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
+import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
 
 type AuthMode = 'magic-link' | 'password'
@@ -220,6 +221,8 @@ export default function LoginPage() {
             Access your tools and usage history.
           </p>
         </header>
+
+        <AuthConfigNotice className="mt-5" />
 
         <div className="mt-6">
           <Button
