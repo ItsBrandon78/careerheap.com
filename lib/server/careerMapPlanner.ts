@@ -98,6 +98,18 @@ interface RankedMatch {
   matchedSkills: string[]
   wage: OccupationWageRow | null
   regulated: boolean
+  requiredEducation: string | null
+  certsLicenses: string[]
+  requirementNotes: string | null
+  tradeRequirement: {
+    tradeCode: string
+    province: string
+    hours: number | null
+    examRequired: boolean
+    notes: string | null
+    source: string
+    sourceUrl: string | null
+  } | null
   transitionMonths: number
   officialLinks: Array<{ label: string; url: string }>
   contextKeywordHits: number
@@ -154,6 +166,22 @@ export interface CareerPlannerAnalysis {
     }>
     resumeReframe: Array<{ before: string; after: string }>
     linksResources: Array<{ label: string; url: string; type: 'official' | 'curated' }>
+    targetRequirements: {
+      education: string | null
+      certifications: string[]
+      hardGates: string[]
+      employerSignals: string[]
+      apprenticeshipHours: number | null
+      examRequired: boolean | null
+      regulated: boolean
+      sources: Array<{ label: string; url: string }>
+    }
+    bottleneck: {
+      title: string
+      why: string
+      nextAction: string
+      estimatedEffort: string
+    } | null
     dataTransparency: {
       inputsUsed: string[]
       datasetsUsed: string[]
@@ -453,6 +481,103 @@ function officialLinks(value: unknown) {
     .filter((entry): entry is { label: string; url: string } => Boolean(entry))
 }
 
+function uniqueStrings(values: string[]) {
+  const seen = new Set<string>()
+  const output: string[] = []
+  for (const value of values) {
+    const trimmed = value.trim()
+    if (!trimmed) continue
+    const key = normalizeText(trimmed)
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    output.push(trimmed)
+  }
+  return output
+}
+
+function splitRequirementSentences(text: string | null | undefined) {
+  if (!text) return []
+  return text
+    .split(/[.;]\s+/)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length >= 24)
+}
+
+function pickHardGates(options: {
+  certsLicenses: string[]
+  notes: string | null
+  regulated: boolean
+  tradeRequirement: RankedMatch['tradeRequirement']
+}) {
+  const gates: string[] = []
+  const noteSegments = splitRequirementSentences(options.notes)
+  for (const segment of noteSegments) {
+    const normalized = normalizeText(segment)
+    if (
+      /compulsory|required|licen|certif|red seal|interprovincial|exam|apprenticeship/.test(
+        normalized
+      )
+    ) {
+      gates.push(segment)
+    }
+  }
+
+  for (const cert of options.certsLicenses) {
+    if (
+      /compulsory|required|licen|certif|red seal|interprovincial|exam|apprenticeship/.test(
+        normalizeText(cert)
+      )
+    ) {
+      gates.push(cert)
+    }
+  }
+
+  if (options.tradeRequirement?.hours) {
+    gates.push(
+      `Typical apprenticeship requirement: ${options.tradeRequirement.hours.toLocaleString()} hours in ${options.tradeRequirement.province}.`
+    )
+  }
+
+  if (options.tradeRequirement?.examRequired) {
+    gates.push(
+      `Certification exam is required in ${options.tradeRequirement.province} for trade code ${options.tradeRequirement.tradeCode}.`
+    )
+  }
+
+  if (options.regulated && gates.length === 0) {
+    gates.push('This path is regulated and usually requires a licensing/certification checkpoint.')
+  }
+
+  return uniqueStrings(gates).slice(0, 6)
+}
+
+function pickEmployerSignals(options: {
+  notes: string | null
+  topReasons: string[]
+  matchedSkills: string[]
+  missingSkills: Array<{ skillName: string }>
+}) {
+  const notes = splitRequirementSentences(options.notes)
+  const noteSignals = notes.filter((segment) => {
+    const normalized = normalizeText(segment)
+    return /top tasks|ability|experience|work|install|inspect|maintain|troubleshoot|safety/.test(
+      normalized
+    )
+  })
+
+  const skillSignals = options.matchedSkills.slice(0, 3).map((skill) =>
+    `Hiring teams usually expect proof you can apply ${skill} in real projects.`
+  )
+  const gapSignals = options.missingSkills.slice(0, 2).map((gap) =>
+    `You should show evidence for ${gap.skillName} before interviews.`
+  )
+
+  return uniqueStrings([...noteSignals, ...skillSignals, ...gapSignals, ...options.topReasons]).slice(
+    0,
+    6
+  )
+}
+
 function isBaselineSoftSkill(skillName: string) {
   return BASELINE_SOFT_SKILLS.has(normalizeText(skillName))
 }
@@ -574,6 +699,17 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         roadmap: [],
         resumeReframe: [],
         linksResources: [],
+        targetRequirements: {
+          education: null,
+          certifications: [],
+          hardGates: [],
+          employerSignals: [],
+          apprenticeshipHours: null,
+          examRequired: null,
+          regulated: false,
+          sources: []
+        },
+        bottleneck: null,
         dataTransparency: { inputsUsed: ['currentRole', 'experienceText'], datasetsUsed: [], fxRateUsed: null }
       },
       legacy: {
@@ -726,6 +862,20 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       matchedSkills: edges.filter((edge) => userSkillIds.has(edge.skill_id)).map((edge) => skillNameById.get(edge.skill_id) ?? 'Unknown skill').slice(0, 8),
       wage,
       regulated: certRequired,
+      requiredEducation: requirement?.education ?? null,
+      certsLicenses: asArray(requirement?.certs_licenses),
+      requirementNotes: requirement?.notes ?? null,
+      tradeRequirement: trade
+        ? {
+            tradeCode: trade.trade_code,
+            province: trade.province,
+            hours: trade.hours,
+            examRequired: trade.exam_required,
+            notes: trade.notes,
+            source: trade.source,
+            sourceUrl: trade.source_url
+          }
+        : null,
       transitionMonths: estimatedMonths,
       officialLinks: [
         ...officialLinks(trade?.official_links),
@@ -787,10 +937,55 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     weight: toRounded(gap.weight, 4),
     difficulty: index <= 1 ? 'easy' : index <= 3 ? 'medium' : 'hard',
     howToClose: [
-      `Complete one practical exercise using ${gap.skillName}.`,
-      `Publish one artifact proving ${gap.skillName} in a real scenario.`
+      `${best?.title ?? 'This role'} requires stronger ${gap.skillName}. Build one portfolio-ready example showing measurable results.`,
+      `Show hiring evidence for ${gap.skillName}: one resume bullet + one interview story with metrics.`
     ]
   })) as CareerPlannerAnalysis['report']['skillGaps']
+
+  const targetRequirements: CareerPlannerAnalysis['report']['targetRequirements'] = {
+    education: best?.requiredEducation ?? null,
+    certifications: uniqueStrings(best?.certsLicenses ?? []).slice(0, 8),
+    hardGates: pickHardGates({
+      certsLicenses: best?.certsLicenses ?? [],
+      notes: best?.requirementNotes ?? best?.tradeRequirement?.notes ?? null,
+      regulated: Boolean(best?.regulated),
+      tradeRequirement: best?.tradeRequirement ?? null
+    }),
+    employerSignals: pickEmployerSignals({
+      notes: best?.requirementNotes ?? best?.tradeRequirement?.notes ?? null,
+      topReasons: best?.topReasons ?? [],
+      matchedSkills: best?.matchedSkills ?? [],
+      missingSkills: (best?.missingSkills ?? []).map((item) => ({ skillName: item.skillName }))
+    }),
+    apprenticeshipHours: best?.tradeRequirement?.hours ?? null,
+    examRequired:
+      typeof best?.tradeRequirement?.examRequired === 'boolean'
+        ? best.tradeRequirement.examRequired
+        : null,
+    regulated: Boolean(best?.regulated),
+    sources: uniqueStrings([
+      ...(best?.officialLinks ?? []).map((item) => `${item.label}|${item.url}`),
+      ...(best?.tradeRequirement?.sourceUrl
+        ? [`${best.tradeRequirement.source} source|${best.tradeRequirement.sourceUrl}`]
+        : [])
+    ])
+      .map((value) => {
+        const [label, url] = value.split('|')
+        return { label, url }
+      })
+      .filter((item) => item.label && item.url)
+      .slice(0, 6)
+  }
+
+  const bottleneck: CareerPlannerAnalysis['report']['bottleneck'] =
+    best?.missingSkills?.[0]
+      ? {
+          title: best.missingSkills[0].skillName,
+          why: `${best.title} hiring requirements weight this skill heavily.`,
+          nextAction: `Complete one scoped project proving ${best.missingSkills[0].skillName} in 7-14 days and add the result to your resume.`,
+          estimatedEffort: best.transitionMonths <= 3 ? '1-3 months' : transitionTime(best.transitionMonths)
+        }
+      : null
 
   const report: CareerPlannerAnalysis['report'] = {
     compatibilitySnapshot: {
@@ -847,6 +1042,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       ...(best?.officialLinks ?? []).map((link) => ({ ...link, type: 'official' as const })),
       ...(best?.wage?.source_url ? [{ label: `${best.wage.source} wage source`, url: best.wage.source_url, type: 'official' as const }] : [])
     ].slice(0, 8),
+    targetRequirements,
+    bottleneck,
     dataTransparency: {
       inputsUsed: ['currentRole', 'targetRole', 'experienceText', 'skills', 'location', 'timeline', 'education'],
       datasetsUsed: ['occupations', 'occupation_skills', 'occupation_requirements', 'occupation_wages', 'trade_requirements'],

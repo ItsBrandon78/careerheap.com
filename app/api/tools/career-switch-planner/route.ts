@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateCareerMapPlannerAnalysis } from '@/lib/server/careerMapPlanner'
+import { resolveOccupationInput } from '@/lib/server/careerData'
 import type { CareerSwitchPlannerInput } from '@/lib/planner/types'
 import {
   consumeUsageForSuccessfulRun,
@@ -76,6 +77,12 @@ function validateInput(input: ReturnType<typeof normalizeInput>) {
     return 'Target role is required unless Not sure mode is enabled.'
   }
   return null
+}
+
+function regionFromWorkRegion(workRegion: string): 'CA' | 'US' | undefined {
+  if (workRegion === 'ca' || workRegion === 'remote-ca') return 'CA'
+  if (workRegion === 'us' || workRegion === 'remote-us') return 'US'
+  return undefined
 }
 
 function applyFreeTierOutputLimits<T extends { roadmap: unknown[]; resumeReframe: unknown[] }>(report: T) {
@@ -167,10 +174,32 @@ export async function POST(request: Request) {
       )
     }
 
+    const roleRegion = regionFromWorkRegion(input.workRegion)
+    const currentRoleResolution = await resolveOccupationInput({
+      input: input.currentRoleText || input.currentRole,
+      region: roleRegion,
+      limit: 6
+    })
+    const targetRoleResolution =
+      input.recommendMode || !input.targetRoleText
+        ? null
+        : await resolveOccupationInput({
+            input: input.targetRoleText,
+            region: roleRegion,
+            limit: 6
+          })
+
+    const resolvedCurrentRoleTitle =
+      currentRoleResolution.bestMatch?.title || input.currentRole || input.currentRoleText
+    const resolvedTargetRoleTitle =
+      input.recommendMode
+        ? ''
+        : targetRoleResolution?.bestMatch?.title || input.targetRole || input.targetRoleText
+
     const analysis = await generateCareerMapPlannerAnalysis({
       userId: user.id,
-      currentRole: input.currentRole || 'Career transition',
-      targetRole: input.targetRole,
+      currentRole: resolvedCurrentRoleTitle || 'Career transition',
+      targetRole: resolvedTargetRoleTitle,
       notSureMode: input.notSureMode,
       skills: input.skills,
       experienceText: input.experienceText,
@@ -200,6 +229,23 @@ export async function POST(request: Request) {
     const finalReport = summary.plan === 'free'
       ? applyFreeTierOutputLimits(analysis.report)
       : analysis.report
+    const reportWithResolution = {
+      ...finalReport,
+      roleResolution: {
+        current: {
+          input: input.currentRoleText || input.currentRole,
+          matched: currentRoleResolution.bestMatch ?? null,
+          suggestions: currentRoleResolution.suggestions
+        },
+        target: input.recommendMode
+          ? null
+          : {
+              input: input.targetRoleText || input.targetRole,
+              matched: targetRoleResolution?.bestMatch ?? null,
+              suggestions: targetRoleResolution?.suggestions ?? []
+            }
+      }
+    }
     const finalLegacy = summary.plan === 'free'
       ? {
           ...analysis.legacy,
@@ -214,14 +260,14 @@ export async function POST(request: Request) {
 
     await persistReport(user.id, {
       input,
-      score: finalReport.compatibilitySnapshot.score,
+      score: reportWithResolution.compatibilitySnapshot.score,
       scoringSnapshot: analysis.scoringSnapshot,
-      report: finalReport
+      report: reportWithResolution
     })
 
     return NextResponse.json({
       ...finalLegacy,
-      report: finalReport,
+      report: reportWithResolution,
       scoring: analysis.scoringSnapshot,
       usage: summary
     })

@@ -81,6 +81,24 @@ type ResumeOcrCapabilities = {
   timeoutMs: number
 }
 
+type RoleResolutionMatch = {
+  input: string
+  matched: {
+    occupationId: string
+    title: string
+    region: 'CA' | 'US'
+    confidence: number
+    matchedBy: string
+  } | null
+  suggestions: Array<{
+    occupationId: string
+    title: string
+    region: 'CA' | 'US'
+    confidence: number
+    matchedBy: string
+  }>
+}
+
 type PlannerReportPayload = {
   compatibilitySnapshot: {
     score: number
@@ -143,6 +161,26 @@ type PlannerReportPayload = {
   }>
   resumeReframe: Array<{ before: string; after: string }>
   linksResources?: Array<{ label: string; url: string; type: 'official' | 'curated' }>
+  targetRequirements?: {
+    education: string | null
+    certifications: string[]
+    hardGates: string[]
+    employerSignals: string[]
+    apprenticeshipHours: number | null
+    examRequired: boolean | null
+    regulated: boolean
+    sources: Array<{ label: string; url: string }>
+  }
+  bottleneck?: {
+    title: string
+    why: string
+    nextAction: string
+    estimatedEffort: string
+  } | null
+  roleResolution?: {
+    current: RoleResolutionMatch
+    target: RoleResolutionMatch | null
+  }
   dataTransparency: {
     inputsUsed: string[]
     datasetsUsed: string[]
@@ -157,6 +195,8 @@ type ResumeStructuredSnapshot = {
 type SubmittedPlannerSnapshot = {
   currentRole: string
   targetRole: string
+  currentRoleInput: string
+  targetRoleInput: string
   recommendMode: boolean
   timelineBucket: TimelineBucketValue
 }
@@ -399,6 +439,18 @@ export default function CareerSwitchPlannerPage() {
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
   const [currentRoleText, setCurrentRoleText] = useState('')
   const [targetRoleText, setTargetRoleText] = useState('')
+  const [currentRoleSelectedMatch, setCurrentRoleSelectedMatch] = useState<{
+    occupationId: string
+    title: string
+    confidence: number
+    matchedBy: string
+  } | null>(null)
+  const [targetRoleSelectedMatch, setTargetRoleSelectedMatch] = useState<{
+    occupationId: string
+    title: string
+    confidence: number
+    matchedBy: string
+  } | null>(null)
   const [recommendMode, setRecommendMode] = useState(false)
   const [skills, setSkills] = useState<string[]>([])
   const [experienceText, setExperienceText] = useState('')
@@ -739,6 +791,7 @@ export default function CareerSwitchPlannerPage() {
     }))
     if (!currentRoleText.trim() && pendingResumeRoleCandidate) {
       setCurrentRoleText(pendingResumeRoleCandidate)
+      setCurrentRoleSelectedMatch(null)
     }
     setPendingResumeSkills([])
     setPendingResumeCertifications([])
@@ -749,6 +802,20 @@ export default function CareerSwitchPlannerPage() {
     setPendingResumeSkills([])
     setPendingResumeCertifications([])
     setPendingResumeRoleCandidate(null)
+  }
+
+  const handleCurrentRoleInputChange = (value: string) => {
+    setCurrentRoleText(value)
+    if (currentRoleSelectedMatch && value.trim() !== currentRoleSelectedMatch.title) {
+      setCurrentRoleSelectedMatch(null)
+    }
+  }
+
+  const handleTargetRoleInputChange = (value: string) => {
+    setTargetRoleText(value)
+    if (targetRoleSelectedMatch && value.trim() !== targetRoleSelectedMatch.title) {
+      setTargetRoleSelectedMatch(null)
+    }
   }
 
   const handleGeneratePlan = async () => {
@@ -804,6 +871,9 @@ export default function CareerSwitchPlannerPage() {
         body: JSON.stringify({
           currentRoleText: currentRoleText.trim(),
           targetRoleText: recommendMode ? null : targetRoleValue,
+          currentRoleOccupationId: currentRoleSelectedMatch?.occupationId ?? null,
+          targetRoleOccupationId:
+            recommendMode ? null : targetRoleSelectedMatch?.occupationId ?? null,
           recommendMode,
           skills: confirmedSkills,
           experienceText: normalizedExperience,
@@ -876,9 +946,18 @@ export default function CareerSwitchPlannerPage() {
 
       setPlannerResult(toPlannerResultView(plannerResultPayload))
       setPlannerReport(data?.report ?? null)
+      const resolvedCurrentRole =
+        data?.report?.roleResolution?.current?.matched?.title ??
+        currentRoleText.trim() ||
+        currentRoleFallback
+      const resolvedTargetRole = recommendMode
+        ? ''
+        : data?.report?.roleResolution?.target?.matched?.title ?? targetRoleValue
       setLastSubmittedSnapshot({
-        currentRole: currentRoleText.trim() || currentRoleFallback,
-        targetRole: targetRoleValue,
+        currentRole: resolvedCurrentRole,
+        targetRole: resolvedTargetRole,
+        currentRoleInput: currentRoleText.trim() || currentRoleFallback,
+        targetRoleInput: targetRoleValue,
         recommendMode,
         timelineBucket
       })
@@ -897,6 +976,8 @@ export default function CareerSwitchPlannerPage() {
   const handleUseExample = () => {
     setCurrentRoleText('Customer Success Specialist')
     setTargetRoleText('Product Operations Manager')
+    setCurrentRoleSelectedMatch(null)
+    setTargetRoleSelectedMatch(null)
     setExperienceText(
       '5 years in customer operations. Led onboarding for 12 new teammates, improved retention by 14%, and built KPI dashboards for cross-functional teams.'
     )
@@ -976,6 +1057,8 @@ export default function CareerSwitchPlannerPage() {
     roadmap: plannerReport?.roadmap ?? [],
     resources: transitionResourceLinks
   })
+  const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
+  const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
     .map((dataset) => FRIENDLY_DATASET_NAMES[dataset] ?? dataset.replaceAll('_', ' '))
   const wageSourceDateSummary = Array.from(
@@ -1023,7 +1106,15 @@ export default function CareerSwitchPlannerPage() {
                   value={currentRoleText}
                   placeholder="Type your current role"
                   region={roleAutocompleteRegion}
-                  onChange={setCurrentRoleText}
+                  onChange={handleCurrentRoleInputChange}
+                  onSuggestionSelect={(suggestion) => {
+                    setCurrentRoleSelectedMatch({
+                      occupationId: suggestion.occupationId,
+                      title: suggestion.title,
+                      confidence: suggestion.confidence ?? 0,
+                      matchedBy: suggestion.matchedBy ?? 'fallback'
+                    })
+                  }}
                 />
                 <RoleAutocomplete
                   id="target-role"
@@ -1039,7 +1130,15 @@ export default function CareerSwitchPlannerPage() {
                       ? 'Recommendation mode is enabled. We will rank top roles for you.'
                       : undefined
                   }
-                  onChange={setTargetRoleText}
+                  onChange={handleTargetRoleInputChange}
+                  onSuggestionSelect={(suggestion) => {
+                    setTargetRoleSelectedMatch({
+                      occupationId: suggestion.occupationId,
+                      title: suggestion.title,
+                      confidence: suggestion.confidence ?? 0,
+                      matchedBy: suggestion.matchedBy ?? 'fallback'
+                    })
+                  }}
                 />
               </div>
               <Toggle
@@ -1048,6 +1147,7 @@ export default function CareerSwitchPlannerPage() {
                   setRecommendMode(next)
                   if (next) {
                     setTargetRoleText('')
+                    setTargetRoleSelectedMatch(null)
                   }
                 }}
                 label="Not sure - recommend roles for me"
@@ -1280,6 +1380,138 @@ export default function CareerSwitchPlannerPage() {
             </div>
           ) : plannerResult ? (
             <div className="mt-5 space-y-3">
+              {(currentRoleResolution || targetRoleResolution) ? (
+                <Card className="p-5">
+                  <h3 className="text-base font-bold text-text-primary">Role Match</h3>
+                  {currentRoleResolution ? (
+                    <div className="mt-3 rounded-md border border-border-light bg-bg-secondary p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Current role
+                      </p>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        You entered: {currentRoleResolution.input || 'Not provided'}
+                      </p>
+                      {currentRoleResolution.matched ? (
+                        <p className="mt-1 text-sm text-text-primary">
+                          Matched to: {currentRoleResolution.matched.title}{' '}
+                          <span className="text-text-tertiary">
+                            ({Math.round(currentRoleResolution.matched.confidence * 100)}%)
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-sm text-warning">
+                          No exact match. We used the closest role context from your input.
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                  {targetRoleResolution ? (
+                    <div className="mt-3 rounded-md border border-border-light bg-bg-secondary p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Target role
+                      </p>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        You entered: {targetRoleResolution.input || 'Not provided'}
+                      </p>
+                      {targetRoleResolution.matched ? (
+                        <p className="mt-1 text-sm text-text-primary">
+                          Matched to: {targetRoleResolution.matched.title}{' '}
+                          <span className="text-text-tertiary">
+                            ({Math.round(targetRoleResolution.matched.confidence * 100)}%)
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-sm text-warning">
+                          No exact match. Select one of the closest options and regenerate.
+                        </p>
+                      )}
+                      {targetRoleResolution.suggestions.length > 0 ? (
+                        <p className="mt-2 text-xs text-text-tertiary">
+                          Closest: {targetRoleResolution.suggestions.slice(0, 3).map((item) => item.title).join(' | ')}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </Card>
+              ) : null}
+              {plannerReport?.targetRequirements ? (
+                <Card className="p-5">
+                  <h3 className="text-base font-bold text-text-primary">What This Job Requires</h3>
+                  {plannerReport.targetRequirements.education ? (
+                    <p className="mt-2 text-sm text-text-secondary">
+                      <span className="font-semibold text-text-primary">Education:</span>{' '}
+                      {plannerReport.targetRequirements.education}
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm text-text-secondary">
+                      <span className="font-semibold text-text-primary">Education:</span> No formal
+                      education baseline found in the dataset for this role.
+                    </p>
+                  )}
+                  {plannerReport.targetRequirements.apprenticeshipHours ? (
+                    <p className="mt-1 text-sm text-text-secondary">
+                      <span className="font-semibold text-text-primary">Apprenticeship:</span>{' '}
+                      {plannerReport.targetRequirements.apprenticeshipHours.toLocaleString()} hours
+                      expected.
+                    </p>
+                  ) : null}
+                  {typeof plannerReport.targetRequirements.examRequired === 'boolean' ? (
+                    <p className="mt-1 text-sm text-text-secondary">
+                      <span className="font-semibold text-text-primary">Exam requirement:</span>{' '}
+                      {plannerReport.targetRequirements.examRequired ? 'Yes' : 'Not required'}
+                    </p>
+                  ) : null}
+                  {plannerReport.targetRequirements.certifications.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Certifications / licenses
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                        {plannerReport.targetRequirements.certifications.slice(0, 4).map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {plannerReport.targetRequirements.hardGates.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Hard gates
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                        {plannerReport.targetRequirements.hardGates.slice(0, 4).map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {plannerReport.targetRequirements.employerSignals.length > 0 ? (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        What hiring managers look for
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                        {plannerReport.targetRequirements.employerSignals.slice(0, 4).map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </Card>
+              ) : null}
+              {plannerReport?.bottleneck ? (
+                <Card className="p-5">
+                  <h3 className="text-base font-bold text-text-primary">#1 Bottleneck</h3>
+                  <p className="mt-2 text-sm font-semibold text-warning">{plannerReport.bottleneck.title}</p>
+                  <p className="mt-2 text-sm text-text-secondary">{plannerReport.bottleneck.why}</p>
+                  <p className="mt-2 text-sm text-text-primary">
+                    <span className="font-semibold">Next action:</span> {plannerReport.bottleneck.nextAction}
+                  </p>
+                  <p className="mt-1 text-xs text-text-tertiary">
+                    Estimated effort: {plannerReport.bottleneck.estimatedEffort}
+                  </p>
+                </Card>
+              ) : null}
               {isTransitionMode ? (
                 <>
                   <TransitionOverviewCard

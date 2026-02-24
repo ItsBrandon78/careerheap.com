@@ -48,6 +48,8 @@ export function InputCard({ children, className = '' }: SectionProps) {
 interface RoleSuggestion {
   occupationId: string
   title: string
+  confidence?: number
+  matchedBy?: string
 }
 
 interface RoleAutocompleteProps {
@@ -58,6 +60,7 @@ interface RoleAutocompleteProps {
   region?: 'US' | 'CA' | 'either'
   helperText?: string
   disabled?: boolean
+  onSuggestionSelect?: (suggestion: RoleSuggestion) => void
   onChange: (value: string) => void
 }
 
@@ -69,11 +72,13 @@ export function RoleAutocomplete({
   region = 'either',
   helperText,
   disabled = false,
+  onSuggestionSelect,
   onChange
 }: RoleAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [suggestions, setSuggestions] = useState<RoleSuggestion[]>([])
+  const [hasClosestMatches, setHasClosestMatches] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -96,9 +101,14 @@ export function RoleAutocomplete({
       .then(async (response) => {
         const data = (await response.json().catch(() => null)) as
           | {
+              bestMatch?: {
+                confidence?: number
+              } | null
               items?: Array<{
                 occupationId?: string
                 title?: string
+                confidence?: number
+                matchedBy?: string
               }>
             }
           | null
@@ -114,15 +124,29 @@ export function RoleAutocomplete({
             const occupationId =
               typeof item.occupationId === 'string' ? item.occupationId : title.toLowerCase()
             if (!title) return null
-            return { occupationId, title }
+            return {
+              occupationId,
+              title,
+              confidence:
+                typeof item.confidence === 'number' ? item.confidence : undefined,
+              matchedBy:
+                typeof item.matchedBy === 'string' ? item.matchedBy : undefined
+            }
           })
           .filter((item): item is RoleSuggestion => Boolean(item))
 
         setSuggestions(nextSuggestions)
+        setHasClosestMatches(
+          nextSuggestions.length > 0 &&
+            ((typeof data?.bestMatch?.confidence === 'number' &&
+              data.bestMatch.confidence < 0.72) ||
+              typeof data?.bestMatch?.confidence !== 'number')
+        )
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === 'AbortError') return
         setSuggestions([])
+        setHasClosestMatches(false)
       })
       .finally(() => {
         setIsLoading(false)
@@ -160,6 +184,7 @@ export function RoleAutocomplete({
             onChange(nextValue)
             if (nextValue.trim().length < 2) {
               setSuggestions([])
+              setHasClosestMatches(false)
               setIsLoading(false)
             } else {
               setIsLoading(true)
@@ -173,23 +198,36 @@ export function RoleAutocomplete({
             {isLoading ? (
               <p className="px-3 py-2 text-xs text-text-secondary">Searching roles...</p>
             ) : (
-              <ul role="listbox" className="py-1">
-                {suggestions.map((suggestion) => (
-                  <li key={suggestion.occupationId}>
-                    <button
-                      type="button"
-                      className="w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-secondary"
-                      onMouseDown={(event) => {
-                        event.preventDefault()
-                        onChange(suggestion.title)
-                        setIsOpen(false)
-                      }}
-                    >
-                      {suggestion.title}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <>
+                {hasClosestMatches ? (
+                  <p className="border-b border-border px-3 py-2 text-xs text-text-secondary">
+                    Not an exact match - showing closest known roles.
+                  </p>
+                ) : null}
+                <ul role="listbox" className="py-1">
+                  {suggestions.map((suggestion) => (
+                    <li key={suggestion.occupationId}>
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-secondary"
+                        onMouseDown={(event) => {
+                          event.preventDefault()
+                          onChange(suggestion.title)
+                          onSuggestionSelect?.(suggestion)
+                          setIsOpen(false)
+                        }}
+                      >
+                        <span>{suggestion.title}</span>
+                        {typeof suggestion.confidence === 'number' ? (
+                          <span className="text-xs text-text-tertiary">
+                            {Math.round(suggestion.confidence * 100)}%
+                          </span>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         ) : null}
