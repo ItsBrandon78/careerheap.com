@@ -1100,7 +1100,7 @@ export function LockedPanel({ onUpgrade }: LockedPanelProps) {
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-pill bg-warning-light text-warning">
         <ToolGlyph kind="shield" className="h-6 w-6" />
       </div>
-      <h3 className="mt-4 text-2xl font-bold text-text-primary">You&apos;ve used your free analysis</h3>
+      <h3 className="mt-4 text-2xl font-bold text-text-primary">You&apos;ve used your free analyses</h3>
       <p className="mx-auto mt-3 max-w-[520px] text-[15px] leading-[1.6] text-text-secondary">
         Upgrade to unlock unlimited reports, resume upload, full roadmap output, and resume reframing.
       </p>

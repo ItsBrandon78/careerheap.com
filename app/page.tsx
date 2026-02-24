@@ -6,9 +6,13 @@ import CTASection from '@/components/CTASection'
 import Badge from '@/components/Badge'
 import FeaturedToolCard from '@/components/FeaturedToolCard'
 import { ArrowRightIcon, SparklesIcon } from '@/components/Icons'
-import { featuredHomepageTool, homepageBlogs, homepageTools } from '@/src/design/mockupData'
+import { formatPublishedDate, toReadTimeLabel } from '@/lib/blog/utils'
+import { getAllBlogPosts } from '@/lib/sanity/api'
+import { featuredHomepageTool, homepageTools } from '@/src/design/mockupData'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const latestPosts = (await getAllBlogPosts()).slice(0, 3)
+
   return (
     <>
       <section className="bg-bg-secondary px-4 py-section lg:px-[170px]">
@@ -91,16 +95,28 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {homepageBlogs.map((blog) => (
-              <BlogCard
-                key={blog.slug}
-                slug={blog.slug}
-                category={blog.category}
-                title={blog.title}
-                date={blog.date}
-                readTime={blog.readTime}
-              />
-            ))}
+            {latestPosts.length > 0 ? (
+              latestPosts.map((post) => (
+                <BlogCard
+                  key={post.slug}
+                  slug={post.slug}
+                  category={post.category.title}
+                  title={post.title}
+                  date={formatPublishedDate(post.publishedAt)}
+                  readTime={toReadTimeLabel(post.readTimeMinutes)}
+                  excerpt={post.excerpt}
+                  authorName={post.authorName}
+                  coverImageUrl={post.coverImage?.url || null}
+                />
+              ))
+            ) : (
+              <div className="md:col-span-3 rounded-lg border border-border bg-surface px-6 py-8 text-center">
+                <h3 className="text-xl font-bold text-text-primary">No posts yet - coming this week</h3>
+                <p className="mt-2 text-sm text-text-secondary">
+                  We&apos;re publishing practical career guides soon.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>

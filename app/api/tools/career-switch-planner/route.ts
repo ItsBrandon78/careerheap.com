@@ -78,26 +78,6 @@ function validateInput(input: ReturnType<typeof normalizeInput>) {
   return null
 }
 
-async function countUserReports(userId: string) {
-  const admin = createAdminClient()
-  const { count, error } = await admin
-    .from('reports')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-
-  if (!error) {
-    return count ?? 0
-  }
-
-  const { count: fallbackCount, error: fallbackError } = await admin
-    .from('career_map_reports')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-
-  if (fallbackError) return 0
-  return fallbackCount ?? 0
-}
-
 function applyFreeTierOutputLimits<T extends { roadmap: unknown[]; resumeReframe: unknown[] }>(report: T) {
   return {
     ...report,
@@ -185,26 +165,6 @@ export async function POST(request: Request) {
         },
         { status: 402 }
       )
-    }
-
-    if (usageBefore.plan === 'free') {
-      const existingReports = await countUserReports(user.id)
-      if (existingReports >= 1) {
-        await recordToolRun({
-          userId: user.id,
-          toolName: 'career-switch-planner',
-          status: 'locked',
-          inputHash: inputHashForFailure
-        })
-        return NextResponse.json(
-          {
-            error: 'LOCKED',
-            message: 'Free tier includes one full analysis. Upgrade to Pro for unlimited analyses.',
-            usage: usageBefore
-          },
-          { status: 402 }
-        )
-      }
     }
 
     const analysis = await generateCareerMapPlannerAnalysis({

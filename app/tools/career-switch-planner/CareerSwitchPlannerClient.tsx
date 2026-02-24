@@ -163,7 +163,7 @@ type SubmittedPlannerSnapshot = {
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
-const FREE_LIMIT = 1
+const FREE_LIMIT = 3
 // TODO: replace with /api/career-map/skills once a skills autocomplete endpoint is available.
 const FALLBACK_SKILL_SUGGESTIONS = [
   'Stakeholder management',
@@ -385,7 +385,10 @@ function usageLabel(
   if (planFallback === 'lifetime') return 'Lifetime Access'
   if (planFallback === 'pro') return 'Unlimited Pro'
   if (usage?.isUnlimited) return usage.plan === 'lifetime' ? 'Lifetime Access' : 'Unlimited Pro'
-  return `${FREE_LIMIT} Free Full Analysis`
+  if (typeof usage?.usesRemaining === 'number') {
+    return `${usage.usesRemaining} Free Uses Remaining`
+  }
+  return `${FREE_LIMIT} Free Uses Total`
 }
 
 export default function CareerSwitchPlannerPage() {
@@ -481,9 +484,12 @@ export default function CareerSwitchPlannerPage() {
 
   useEffect(() => {
     if (!isProUser) {
+      setOcrCapabilityStatus('idle')
+      setOcrCapabilities(null)
       return
     }
     if (ocrCapabilities) {
+      setOcrCapabilityStatus('ready')
       return
     }
 
@@ -491,7 +497,7 @@ export default function CareerSwitchPlannerPage() {
     const controller = new AbortController()
     const capabilityTimeout = setTimeout(() => {
       controller.abort()
-    }, 5_000)
+    }, 6_000)
     setOcrCapabilityStatus('loading')
 
     void fetch('/api/resume/capabilities', { cache: 'no-store', signal: controller.signal })
@@ -504,6 +510,7 @@ export default function CareerSwitchPlannerPage() {
         if (!active) return
 
         if (!response.ok || !data?.ok || !data.ocr) {
+          setOcrCapabilities(null)
           setOcrCapabilityStatus('error')
           return
         }
@@ -514,6 +521,7 @@ export default function CareerSwitchPlannerPage() {
       .catch(() => {
         clearTimeout(capabilityTimeout)
         if (!active) return
+        setOcrCapabilities(null)
         setOcrCapabilityStatus('error')
       })
 
@@ -525,9 +533,25 @@ export default function CareerSwitchPlannerPage() {
   }, [isProUser, ocrCapabilities])
 
   const ocrBadge = useMemo(() => {
-    if (ocrCapabilityStatus === 'loading' || ocrCapabilityStatus === 'idle') {
+    if (!isProUser) {
+      return {
+        label: 'Pro required',
+        variant: 'default' as const,
+        detail: 'Resume upload and OCR checks are available on Pro and Lifetime plans.'
+      }
+    }
+
+    if (ocrCapabilityStatus === 'loading') {
       return {
         label: 'Checking OCR...',
+        variant: 'default' as const,
+        detail: ''
+      }
+    }
+
+    if (ocrCapabilityStatus === 'idle') {
+      return {
+        label: 'OCR status pending',
         variant: 'default' as const,
         detail: ''
       }
@@ -537,7 +561,7 @@ export default function CareerSwitchPlannerPage() {
       return {
         label: 'OCR status unavailable',
         variant: 'warning' as const,
-        detail: 'Capability check failed. Upload still works for DOCX and text-based PDFs.'
+        detail: 'OCR service unavailable - try again.'
       }
     }
 
@@ -563,7 +587,7 @@ export default function CareerSwitchPlannerPage() {
       variant: 'warning' as const,
       detail: 'Scanned PDF extraction may fail. DOCX and text-based PDFs still work.'
     }
-  }, [ocrCapabilities, ocrCapabilityStatus])
+  }, [isProUser, ocrCapabilities, ocrCapabilityStatus])
 
   const parseFile = async (file: File | null) => {
     if (!file) {
@@ -980,7 +1004,7 @@ export default function CareerSwitchPlannerPage() {
           Structured inputs, deterministic scoring, and real wage data for US and Canada.
         </p>
         <p className="text-[13px] text-text-tertiary">
-          Free includes 1 full analysis.
+          Free includes 3 lifetime analyses total.
         </p>
         <p className="text-[13px] text-text-tertiary">
           Pro includes unlimited analyses, resume parsing, full roadmap depth, and resume reframe output.
