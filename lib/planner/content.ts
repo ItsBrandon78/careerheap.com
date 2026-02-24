@@ -2,7 +2,7 @@ export const careerSwitchFaqs = [
   {
     question: 'How many free plans can I generate?',
     answer:
-      'Free includes 3 lifetime tool uses shared across CareerHeap tools. Upgrade for unlimited reports and premium inputs.'
+      'Free includes 1 full Career Map analysis. Upgrade for unlimited analyses, resume parsing, and full roadmap output.'
   },
   {
     question: 'Can I upload my resume instead of typing?',

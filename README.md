@@ -13,6 +13,7 @@ CareerHeap is a Next.js application with a Sanity-backed public blog.
 ## Planner Contract
 
 - Product + implementation contract: `docs/CAREER_MAP_PLANNER_PRODUCT_CONTRACT.md`
+- Career data ingestion runbook: `docs/CAREER_DATA_INGESTION.md`
 
 ## Local Setup
 
@@ -77,6 +78,9 @@ If Next.js is running, you can also use embedded Studio at `http://localhost:300
    - `migrations/003_stripe_subscription_state.sql`
    - `migrations/004_blog_post_views.sql`
    - `migrations/005_career_map_planner_core.sql`
+   - `migrations/006_career_map_planner_execution_core.sql`
+8. Seed planner FX conversion rate:
+   - `npm run seed:fx-rates`
 
 ## Stripe Setup (Test Mode)
 
@@ -187,6 +191,10 @@ Important:
 - `npm run start` - production server
 - `npm run lint` - lint checks
 - `npm test` - regression tests
+- `npm run ingest:career-data -- --all --dry-run` - run planner data ingestion in dry-run mode
+- `npm run preflight:planner` - verify planner schema/data/fx readiness before runtime
+- `npm run seed:fx-rates` - seed latest USD/CAD conversion rate from Bank of Canada
+- `npm run smoke:career-map -- --base-url=http://127.0.0.1:3000` - end-to-end free/pro planner smoke test
 - `npm run lighthouse:local` - build/start locally on `127.0.0.1` and run Lighthouse for `/`, `/tools/career-switch-planner`, `/pricing`, `/blog`
 - `npm run studio` - run Sanity Studio locally
 - `npm run studio:deploy` - deploy hosted Studio

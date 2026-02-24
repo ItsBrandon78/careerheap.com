@@ -33,8 +33,9 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 5. Copy the entire contents of `migrations/003_stripe_subscription_state.sql`, run it
 6. Copy the entire contents of `migrations/004_blog_post_views.sql`, run it
 7. Copy the entire contents of `migrations/005_career_map_planner_core.sql`, run it
-8. Paste into the editor
-9. Click **Run**
+8. Copy the entire contents of `migrations/006_career_map_planner_execution_core.sql`, run it
+9. Paste into the editor
+10. Click **Run**
 
 This creates:
 - `tools` table (tool metadata)
@@ -67,6 +68,30 @@ npm run dev
 # Should see login form
 ```
 
+## Step 6 (Optional): Seed Career Data
+
+After running migration `005`, you can ingest Career Map Planner datasets:
+
+```bash
+# Dry-run (recommended first)
+npm run ingest:career-data -- --all --dry-run
+
+# Persist to Supabase
+npm run ingest:career-data -- --all --write
+
+# Seed latest USD/CAD FX rate (required for CAD->USD display)
+npm run seed:fx-rates
+
+# Planner runtime preflight (schema + counts + FX freshness)
+npm run preflight:planner
+```
+
+Optional dev health endpoint (non-production only):
+
+```
+GET /api/dev/planner-health
+```
+
 ## Troubleshooting
 
 **"No RLS policy found"**: Make sure you ran the full migration script
@@ -74,3 +99,6 @@ npm run dev
 **Auth not working**: Check redirect URLs match your domain exactly
 
 **Connection refused**: Verify `NEXT_PUBLIC_SUPABASE_URL` is correct
+
+**`PGRST205: Could not find the table 'public.dataset_sources' in the schema cache`**:
+Run migration `migrations/005_career_map_planner_core.sql` (after `001`-`004`) in Supabase SQL Editor, then rerun `npm run ingest:career-data -- --all --write`.

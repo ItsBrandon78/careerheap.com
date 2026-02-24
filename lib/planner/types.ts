@@ -24,6 +24,14 @@ export interface PlannerRecommendedRole {
 }
 
 export interface CareerSwitchPlannerInput {
+  currentRoleText?: string
+  targetRoleText?: string | null
+  recommendMode?: boolean
+  skills?: string[]
+  educationLevel?: string
+  workRegion?: string
+  timelineBucket?: string
+  incomeTarget?: string
   currentRole: string
   targetRole?: string
   notSureMode: boolean

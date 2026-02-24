@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 
-export async function getSupabaseAuthHeaders() {
+export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> {
   try {
     const supabase = createClient()
     const {
@@ -20,4 +20,3 @@ export async function getSupabaseAuthHeaders() {
     return {}
   }
 }
-

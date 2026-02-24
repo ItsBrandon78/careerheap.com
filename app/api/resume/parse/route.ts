@@ -5,12 +5,15 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import mammoth from 'mammoth'
 import { NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getAuthenticatedUserFromRequest, getUsageSummaryForUser } from '@/lib/server/toolUsage'
 import {
   normalizeWhitespace,
   parseResumeUpload,
   ResumeParseError
 } from '@/lib/server/resumeParseCore.mjs'
 import { isBinaryAvailable } from '@/lib/server/ocrRuntime'
+import { extractStructuredResumeData } from '@/lib/server/resumeStructuredExtract'
 
 export const runtime = 'nodejs'
 
@@ -194,14 +197,14 @@ async function renderPdfPagesToImagesWithPdfParse(fileBuffer: Buffer, tempDir: s
         typeof page?.pageNumber === 'number' && Number.isFinite(page.pageNumber)
           ? page.pageNumber
           : imagePaths.length + 1
-      const pageData = page?.data
-      if (!pageData || typeof pageData !== 'object') continue
+      const pageData: unknown = page?.data
+      if (!pageData) continue
       let bytes: Buffer
       if (Buffer.isBuffer(pageData)) {
         bytes = pageData
       } else if (pageData instanceof Uint8Array) {
         bytes = Buffer.from(pageData)
-      } else if (pageData instanceof ArrayBuffer) {
+      } else if (typeof pageData === 'object' && pageData instanceof ArrayBuffer) {
         bytes = Buffer.from(pageData)
       } else {
         const numericBytes = Object.keys(pageData)
@@ -290,8 +293,37 @@ function logParseMeta(data: { source: 'docx' | 'pdf' | 'pdf-ocr'; textLength: nu
 
 export async function POST(req: Request) {
   try {
+    const user = await getAuthenticatedUserFromRequest(req)
+    if (!user) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'AUTH_REQUIRED',
+          message: 'Sign in to parse a resume.'
+        },
+        { status: 401 }
+      )
+    }
+
+    const usage = await getUsageSummaryForUser(user)
+    if (usage.plan === 'free') {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'PRO_REQUIRED',
+          message: 'Resume parsing is available on Pro.'
+        },
+        { status: 402 }
+      )
+    }
+
     const form = await req.formData()
     const file = form.get('file')
+    const regionHintRaw = form.get('regionHint')
+    const regionHint =
+      typeof regionHintRaw === 'string' && (regionHintRaw === 'US' || regionHintRaw === 'CA')
+        ? regionHintRaw
+        : undefined
 
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -318,7 +350,33 @@ export async function POST(req: Request) {
       }
     })
 
-    return NextResponse.json(parsed)
+    const structured = await extractStructuredResumeData({
+      text: parsed.text,
+      regionHint
+    })
+
+    const admin = createAdminClient()
+    let resumeRow: { id?: string } | null = null
+    try {
+      const { data } = await admin
+        .from('resumes')
+        .insert({
+          user_id: user.id,
+          raw_text: parsed.text,
+          parsed_data: structured
+        })
+        .select('id')
+        .maybeSingle()
+      resumeRow = data ?? null
+    } catch {
+      resumeRow = null
+    }
+
+    return NextResponse.json({
+      ...parsed,
+      structured,
+      resumeId: resumeRow?.id ?? null
+    })
   } catch (error) {
     const known = error instanceof ResumeParseError ? error : toUserMessage(error)
     return NextResponse.json(

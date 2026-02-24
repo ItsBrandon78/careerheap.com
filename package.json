@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test tests/*.test.mjs",
+    "ingest:career-data": "node scripts/ingest-career-data.mjs",
+    "preflight:planner": "node scripts/planner-preflight.mjs",
+    "seed:fx-rates": "node scripts/seed-fx-rates.mjs",
+    "smoke:career-map": "node scripts/smoke-career-map.mjs",
     "lighthouse:local": "node scripts/lighthouse-local.mjs",
     "studio": "node scripts/sanity-runner.mjs dev",
     "studio:deploy": "node scripts/sanity-runner.mjs deploy"
