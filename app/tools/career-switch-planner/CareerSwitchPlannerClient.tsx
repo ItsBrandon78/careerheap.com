@@ -948,8 +948,7 @@ export default function CareerSwitchPlannerPage() {
       setPlannerReport(data?.report ?? null)
       const resolvedCurrentRole =
         data?.report?.roleResolution?.current?.matched?.title ??
-        currentRoleText.trim() ||
-        currentRoleFallback
+        (currentRoleText.trim() || currentRoleFallback)
       const resolvedTargetRole = recommendMode
         ? ''
         : data?.report?.roleResolution?.target?.matched?.title ?? targetRoleValue

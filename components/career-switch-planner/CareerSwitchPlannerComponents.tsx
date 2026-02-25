@@ -118,22 +118,20 @@ export function RoleAutocomplete({
           return
         }
 
-        const nextSuggestions: RoleSuggestion[] = data.items
-          .map((item) => {
-            const title = typeof item.title === 'string' ? item.title.trim() : ''
-            const occupationId =
-              typeof item.occupationId === 'string' ? item.occupationId : title.toLowerCase()
-            if (!title) return null
-            return {
-              occupationId,
-              title,
-              confidence:
-                typeof item.confidence === 'number' ? item.confidence : undefined,
-              matchedBy:
-                typeof item.matchedBy === 'string' ? item.matchedBy : undefined
-            }
+        const nextSuggestions = data.items.reduce<RoleSuggestion[]>((acc, item) => {
+          const title = typeof item.title === 'string' ? item.title.trim() : ''
+          const occupationId =
+            typeof item.occupationId === 'string' ? item.occupationId : title.toLowerCase()
+          if (!title) return acc
+
+          acc.push({
+            occupationId,
+            title,
+            confidence: typeof item.confidence === 'number' ? item.confidence : undefined,
+            matchedBy: typeof item.matchedBy === 'string' ? item.matchedBy : undefined
           })
-          .filter((item): item is RoleSuggestion => Boolean(item))
+          return acc
+        }, [])
 
         setSuggestions(nextSuggestions)
         setHasClosestMatches(
