@@ -84,11 +84,16 @@ export async function hasTesseractJsAvailable() {
 export type ResumeOcrCapabilities = {
   available: boolean
   mode: 'native' | 'fallback' | 'unavailable'
+  hasDomMatrix: boolean
   hasPdftoppm: boolean
   hasTesseractCli: boolean
   hasTesseractJs: boolean
   maxPages: number
   timeoutMs: number
+}
+
+export function hasDomMatrixAvailable() {
+  return typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix === 'function'
 }
 
 export async function getResumeOcrCapabilities() {
@@ -97,8 +102,11 @@ export async function getResumeOcrCapabilities() {
     isBinaryAvailable('tesseract', ['--version']),
     hasTesseractJsAvailable()
   ])
+  const hasDomMatrix = hasDomMatrixAvailable()
 
-  const available = hasTesseractCli || hasTesseractJs
+  const hasOcrEngine = hasTesseractCli || hasTesseractJs
+  const canRenderScannedPdf = hasPdftoppm || hasDomMatrix
+  const available = hasOcrEngine && canRenderScannedPdf
   const mode: ResumeOcrCapabilities['mode'] =
     hasPdftoppm && hasTesseractCli
       ? 'native'
@@ -109,6 +117,7 @@ export async function getResumeOcrCapabilities() {
   return {
     available,
     mode,
+    hasDomMatrix,
     hasPdftoppm,
     hasTesseractCli,
     hasTesseractJs,

@@ -12,7 +12,7 @@ import {
   parseResumeUpload,
   ResumeParseError
 } from '@/lib/server/resumeParseCore.mjs'
-import { isBinaryAvailable } from '@/lib/server/ocrRuntime'
+import { hasDomMatrixAvailable, isBinaryAvailable } from '@/lib/server/ocrRuntime'
 import { extractStructuredResumeData } from '@/lib/server/resumeStructuredExtract'
 
 export const runtime = 'nodejs'
@@ -229,6 +229,7 @@ async function renderPdfPagesToImagesWithPdfParse(fileBuffer: Buffer, tempDir: s
 
 async function extractPdfOcrText(fileBuffer: Buffer) {
   const hasPdftoppm = await isBinaryAvailable('pdftoppm', ['-v'])
+  const hasDomMatrix = hasDomMatrixAvailable()
 
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'careerheap-resume-'))
   const pdfPath = path.join(tempDir, 'input.pdf')
@@ -253,6 +254,13 @@ async function extractPdfOcrText(fileBuffer: Buffer) {
         .slice(0, OCR_MAX_PAGES)
         .map((file) => path.join(tempDir, file))
     } else {
+      if (!hasDomMatrix) {
+        throw new ResumeParseError(
+          'PDF_SCANNED_OCR_FAILED',
+          'Scanned PDF OCR is unavailable in this runtime. Upload DOCX or paste your experience.',
+          422
+        )
+      }
       imageFiles = await renderPdfPagesToImagesWithPdfParse(fileBuffer, tempDir)
     }
 
@@ -280,6 +288,13 @@ function toUserMessage(error: unknown) {
 
   const message = error instanceof Error ? error.message : 'Resume parsing failed.'
   const lower = message.toLowerCase()
+  if (lower.includes('dommatrix')) {
+    return new ResumeParseError(
+      'PDF_SCANNED_OCR_FAILED',
+      'Scanned PDF OCR is unavailable in this runtime. Upload DOCX or paste your experience.',
+      422
+    )
+  }
   if (lower.includes('ocr') || lower.includes('scanned pdf') || lower.includes('tesseract')) {
     return new ResumeParseError('PDF_SCANNED_OCR_FAILED', message, 422)
   }
