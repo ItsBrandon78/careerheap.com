@@ -45,8 +45,8 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col gap-3 border-t border-bg-dark-surface pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[13px] text-text-on-dark-muted">(c) {currentYear} CareerHeap. All rights reserved.</p>
           <div className="flex items-center gap-4 text-sm text-text-on-dark-muted">
-            <span>X</span>
-            <span>in</span>
+            <span aria-hidden="true">X</span>
+            <span aria-hidden="true">in</span>
           </div>
         </div>
       </div>

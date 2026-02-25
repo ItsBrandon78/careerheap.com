@@ -18,6 +18,28 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest')
+  const popularEnabled = useMemo(
+    () => posts.some((post) => post.popularityScore > 0),
+    [posts]
+  )
+  const effectiveSortBy: 'newest' | 'popular' = popularEnabled ? sortBy : 'newest'
+
+  const displayCategories = useMemo<BlogCategory[]>(() => {
+    const seeded: BlogCategory[] = [
+      { slug: 'career-switch', title: 'Career Switch' },
+      { slug: 'resume', title: 'Resume' }
+    ]
+
+    const bySlug = new Map<string, BlogCategory>()
+    for (const item of seeded) {
+      bySlug.set(item.slug, item)
+    }
+    for (const item of categories) {
+      bySlug.set(item.slug, item)
+    }
+
+    return Array.from(bySlug.values())
+  }, [categories])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -44,9 +66,9 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
     })
 
     const sorted = [...filtered].sort((a, b) => {
-      if (sortBy === 'popular') {
-        if (b.readTimeMinutes !== a.readTimeMinutes) {
-          return b.readTimeMinutes - a.readTimeMinutes
+      if (effectiveSortBy === 'popular' && popularEnabled) {
+        if (b.popularityScore !== a.popularityScore) {
+          return b.popularityScore - a.popularityScore
         }
 
         const publishedDiff =
@@ -68,7 +90,7 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
     })
 
     return sorted
-  }, [posts, debouncedSearchTerm, selectedCategory, sortBy])
+  }, [posts, debouncedSearchTerm, selectedCategory, effectiveSortBy, popularEnabled])
 
   const featuredPost = filteredPosts[0] || null
   const gridPosts = filteredPosts.slice(1)
@@ -81,13 +103,14 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
       </div>
 
       <FilterRow
-        categories={categories}
+        categories={displayCategories}
         selectedCategory={selectedCategory}
         onCategorySelect={setSelectedCategory}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        sortBy={sortBy}
+        sortBy={effectiveSortBy}
         onSortChange={setSortBy}
+        popularEnabled={popularEnabled}
       />
 
       {filteredPosts.length === 0 ? (
@@ -121,9 +144,13 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-text-primary">Latest Posts</h2>
-            {sortBy === 'popular' ? (
+            {effectiveSortBy === 'popular' && popularEnabled ? (
               <p className="text-xs font-semibold text-text-tertiary">
-                Popular is currently read-time weighted (MVP)
+                Popular ranks by real views in the last 30 days.
+              </p>
+            ) : !popularEnabled ? (
+              <p className="text-xs font-semibold text-text-tertiary">
+                Popular activates after the first tracked views.
               </p>
             ) : null}
           </div>

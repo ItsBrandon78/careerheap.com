@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { createClient } from '@/lib/supabase/server'
+import { isSupabasePublicEnvConfigured } from '@/lib/supabase/publicEnv'
 import {
   FREE_LIFETIME_LIMIT,
   getActorUsage,
@@ -27,12 +28,7 @@ export interface UsageContext {
 }
 
 function hasSupabaseEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-
-  return Boolean(url && anonKey)
+  return isSupabasePublicEnvConfigured()
 }
 
 async function resolveSessionUserId() {

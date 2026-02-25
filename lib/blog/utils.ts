@@ -3,15 +3,16 @@ import type { BlogBodyBlock } from '@/lib/blog/types'
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
-  year: 'numeric'
+  year: 'numeric',
+  timeZone: 'UTC'
 })
 
 export function formatPublishedDate(isoDate: string) {
-  try {
-    return dateFormatter.format(new Date(isoDate))
-  } catch {
-    return isoDate
+  const parsed = new Date(isoDate)
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Date TBD'
   }
+  return dateFormatter.format(parsed)
 }
 
 export function estimateReadTimeMinutes(text: string) {

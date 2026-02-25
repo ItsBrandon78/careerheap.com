@@ -1,55 +1,102 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
+import {
+  ensureBillingProfile,
+  getAuthenticatedBillingUser,
+  updateBillingProfileByUserId
+} from '@/lib/server/billing'
+import { resolveEntitledPlan } from '@/lib/server/billingEntitlements'
+import { assertRequiredEnv, getMissingStripeEnv } from '@/lib/server/envValidation'
+import { getAppBaseUrl, getPriceIdForPlan, getStripeClient, type BillingCadence } from '@/lib/server/stripe'
 
-// API endpoints should not be prerendered
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest) {
+type LegacyProductId = 'pro_monthly' | 'lifetime_one_time'
+
+function toPlan(value: unknown) {
+  if (value === 'lifetime' || value === 'lifetime_one_time') return 'lifetime' as const
+  return 'pro' as const
+}
+
+function toCadence(value: unknown): BillingCadence {
+  if (value === 'yearly' || value === 'pro_yearly') return 'yearly'
+  return 'monthly'
+}
+
+export async function POST(request: Request) {
   try {
-    // Dynamically import Stripe only when needed
-    const { default: Stripe } = await import('stripe');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+    assertRequiredEnv(getMissingStripeEnv(), 'Stripe')
 
-    const { productId, email } = await request.json();
-
-    if (!productId || !email) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const user = await getAuthenticatedBillingUser()
+    if (!user) {
+      return NextResponse.json({ error: 'AUTH_REQUIRED' }, { status: 401 })
     }
 
-    const isLifetime = productId === 'lifetime_one_time';
-    const stripePriceId = isLifetime
-      ? process.env.STRIPE_PRICE_LIFETIME
-      : process.env.STRIPE_PRICE_PRO_MONTHLY ?? process.env.STRIPE_PRICE_MONTHLY;
+    const body = (await request.json().catch(() => null)) as
+      | { plan?: string; productId?: LegacyProductId; cadence?: string }
+      | null
 
-    if (!stripePriceId) {
-      return NextResponse.json(
-        { error: 'Price not configured' },
-        { status: 500 }
-      );
+    const plan = toPlan(body?.plan ?? body?.productId ?? 'pro')
+    const cadence = toCadence(body?.cadence ?? body?.productId)
+    const stripe = getStripeClient()
+    const priceId = getPriceIdForPlan(plan, cadence)
+
+    if (!priceId) {
+      return NextResponse.json({ error: 'Price not configured' }, { status: 500 })
     }
 
-    // Create checkout session
+    const profile = await ensureBillingProfile(user)
+    const entitledPlan = resolveEntitledPlan({
+      plan: profile.plan,
+      stripeSubscriptionStatus: profile.stripe_subscription_status
+    })
+    if (entitledPlan === 'lifetime') {
+      return NextResponse.json({ error: 'Lifetime plan is already active for this account.' }, { status: 409 })
+    }
+    if (entitledPlan === 'pro' && plan === 'pro') {
+      return NextResponse.json({ error: 'Pro subscription is already active for this account.' }, { status: 409 })
+    }
+    let customerId = profile.stripe_customer_id
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        metadata: { userId: user.id }
+      })
+      customerId = customer.id
+      await updateBillingProfileByUserId(user.id, { stripe_customer_id: customer.id })
+    }
+
+    const baseUrl = getAppBaseUrl()
     const session = await stripe.checkout.sessions.create({
-      customer_email: email,
+      mode: plan === 'lifetime' ? 'payment' : 'subscription',
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/checkout?plan=${plan}`,
       metadata: {
-        plan: isLifetime ? 'lifetime' : 'pro',
+        userId: user.id,
+        plan,
+        priceId,
+        cadence
       },
-      line_items: [
-        {
-          price: stripePriceId,
-          quantity: 1,
-        },
-      ],
-      mode: isLifetime ? 'payment' : 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/checkout`,
-    });
+      client_reference_id: user.id
+    })
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({
+      url: session.url,
+      sessionUrl: session.url
+    })
   } catch (error) {
-    console.error('Checkout error:', error);
+    console.error('Legacy checkout route error:', error)
+    const details = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      {
+        error:
+          process.env.NODE_ENV === 'production'
+            ? 'Failed to create checkout session'
+            : `Failed to create checkout session: ${details}`
+      },
       { status: 500 }
-    );
+    )
   }
 }

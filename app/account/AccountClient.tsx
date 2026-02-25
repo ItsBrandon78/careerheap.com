@@ -7,6 +7,7 @@ import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import { useAuth } from '@/lib/auth/context'
+import { createClient } from '@/lib/supabase/client'
 
 type AccountTab = 'profile' | 'security' | 'billing' | 'usage'
 
@@ -32,10 +33,15 @@ export default function AccountPage() {
   const searchParams = useSearchParams()
   const tab = tabFromQuery(searchParams.get('tab'))
 
-  const { user, plan, usage, isLoading, signOut, isUnlimited } = useAuth()
+  const { user, plan, subscriptionStatus, usage, isLoading, signOut, isUnlimited, refreshUsage } =
+    useAuth()
   const [fullName, setFullName] = useState('')
   const [toast, setToast] = useState('')
   const [securityError, setSecurityError] = useState('')
+  const [securityLoading, setSecurityLoading] = useState(false)
+  const [billingError, setBillingError] = useState('')
+  const [billingLoading, setBillingLoading] = useState(false)
+  const [billingSyncLoading, setBillingSyncLoading] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -79,6 +85,104 @@ export default function AccountPage() {
 
   if (!user) return null
 
+  const handlePasswordUpdate = async () => {
+    if (newPassword.length < 8) {
+      setSecurityError('New password must be at least 8 characters.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setSecurityError('New passwords do not match.')
+      return
+    }
+
+    if (!currentPassword) {
+      setSecurityError('Enter your current password.')
+      return
+    }
+
+    setSecurityLoading(true)
+    setSecurityError('')
+    try {
+      const supabase = createClient()
+      const signInResult = await supabase.auth.signInWithPassword({
+        email: user.email ?? '',
+        password: currentPassword
+      })
+      if (signInResult.error) {
+        throw new Error('Could not verify your current password.')
+      }
+
+      const updateResult = await supabase.auth.updateUser({ password: newPassword })
+      if (updateResult.error) {
+        throw new Error('Unable to update your password right now.')
+      }
+
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setToast('Password updated.')
+    } catch (error) {
+      setSecurityError(error instanceof Error ? error.message : 'Unable to update password.')
+    } finally {
+      setSecurityLoading(false)
+    }
+  }
+
+  const handleManageBilling = async () => {
+    setBillingError('')
+    setBillingLoading(true)
+    try {
+      const response = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = (await response.json().catch(() => null)) as
+        | { url?: string; error?: string }
+        | null
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error || 'Unable to open billing portal.')
+      }
+      window.location.href = data.url
+    } catch (error) {
+      setBillingError(
+        error instanceof Error ? error.message : 'Unable to open billing portal.'
+      )
+    } finally {
+      setBillingLoading(false)
+    }
+  }
+
+  const handlePrimaryBillingAction = async () => {
+    if (plan === 'free') {
+      router.push('/pricing')
+      return
+    }
+
+    await handleManageBilling()
+  }
+
+  const handleSyncBillingStatus = async () => {
+    setBillingError('')
+    setBillingSyncLoading(true)
+    try {
+      const response = await fetch('/api/stripe/sync-latest', { method: 'POST' })
+      const data = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string }
+        | null
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error || 'Unable to sync billing status.')
+      }
+
+      await refreshUsage()
+      setToast('Billing status synced.')
+    } catch (error) {
+      setBillingError(
+        error instanceof Error ? error.message : 'Unable to sync billing status.'
+      )
+    } finally {
+      setBillingSyncLoading(false)
+    }
+  }
+
   const renderTab = () => {
     if (tab === 'security') {
       return (
@@ -87,7 +191,11 @@ export default function AccountPage() {
           <p className="mt-1 text-sm text-text-secondary">Update your password to keep your account secure.</p>
 
           {securityError && (
-            <p className="mt-4 rounded-md border border-error/20 bg-error-light px-3 py-2 text-sm text-error">
+            <p
+              role="alert"
+              aria-live="polite"
+              className="mt-4 rounded-md border border-error/20 bg-error-light px-3 py-2 text-sm text-error"
+            >
               {securityError}
             </p>
           )}
@@ -125,25 +233,13 @@ export default function AccountPage() {
           <div className="mt-5 flex flex-wrap gap-3">
             <Button
               variant="primary"
-              onClick={() => {
-                if (newPassword.length < 8) {
-                  setSecurityError('New password must be at least 8 characters.')
-                  return
-                }
-                if (newPassword !== confirmPassword) {
-                  setSecurityError('New passwords do not match.')
-                  return
-                }
-                setSecurityError('')
-                setCurrentPassword('')
-                setNewPassword('')
-                setConfirmPassword('')
-                setToast('Password updated.')
-              }}
+              onClick={handlePasswordUpdate}
+              isLoading={securityLoading}
+              disabled={securityLoading}
             >
               Update Password
             </Button>
-            <Link href="/login" className="text-sm font-medium text-accent">
+            <Link href="/forgot-password" className="text-sm font-medium text-accent">
               Forgot password?
             </Link>
           </div>
@@ -157,37 +253,84 @@ export default function AccountPage() {
           <h2 className="text-xl font-bold text-text-primary">Billing</h2>
           {plan === 'free' ? (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-text-secondary">Plan: Free</p>
+              <p className="text-sm text-text-secondary">Current plan: Free</p>
+              <p className="text-sm text-text-secondary">
+                No payment method or subscription history yet.
+              </p>
               <p className="text-sm text-text-secondary">
                 You have used {usage?.used ?? 0} of {usage?.limit ?? 3} lifetime uses.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Link href="/checkout">
-                  <Button variant="primary">Upgrade to Pro - $7/mo</Button>
+                <Link href="/pricing">
+                  <Button variant="primary">See Plans</Button>
                 </Link>
-                <Link href="/checkout?plan=lifetime">
-                  <Button variant="outline">Get Lifetime - $49</Button>
-                </Link>
+                <Button
+                  variant="outline"
+                  onClick={handleSyncBillingStatus}
+                  isLoading={billingSyncLoading}
+                  disabled={billingSyncLoading}
+                >
+                  Sync Billing Status
+                </Button>
               </div>
             </div>
           ) : plan === 'pro' ? (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-text-secondary">Plan: Pro ($7/month)</p>
-              <p className="text-sm text-text-secondary">Next billing date: Mar 18, 2026</p>
-              <p className="text-sm text-text-secondary">Payment method: Visa ending in 4242</p>
+              <p className="text-sm text-text-secondary">Current plan: Pro</p>
+              <p className="text-sm text-text-secondary">
+                Subscription status: {subscriptionStatus || 'active'}
+              </p>
+              <p className="text-sm text-text-secondary">
+                Payment method details and invoice history are managed in Stripe Billing Portal.
+              </p>
+              {billingError ? (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="rounded-md border border-error/20 bg-error-light px-3 py-2 text-sm text-error"
+                >
+                  {billingError}
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-3">
-                <Button variant="primary">Update payment method</Button>
-                <Button variant="outline">Download invoices</Button>
-                <Button variant="ghost">Cancel subscription</Button>
+                <Button
+                  variant="primary"
+                  onClick={handleManageBilling}
+                  isLoading={billingLoading}
+                  disabled={billingLoading}
+                >
+                  Manage Billing
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSyncBillingStatus}
+                  isLoading={billingSyncLoading}
+                  disabled={billingSyncLoading}
+                >
+                  Sync Billing Status
+                </Button>
               </div>
             </div>
           ) : (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-text-secondary">Plan: Lifetime ($49 one-time)</p>
+              <p className="text-sm text-text-secondary">Current plan: Lifetime</p>
               <p className="text-sm text-text-secondary">No renewal. Your access is permanent.</p>
+              <p className="text-sm text-text-secondary">
+                Purchase receipts and payment details are available from Stripe emails.
+              </p>
               <p className="rounded-md border border-success/20 bg-success-light px-3 py-2 text-sm text-success">
                 Thank you for supporting CareerHeap as an early adopter.
               </p>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleSyncBillingStatus}
+                  isLoading={billingSyncLoading}
+                  disabled={billingSyncLoading}
+                >
+                  Sync Billing Status
+                </Button>
+              </div>
             </div>
           )}
         </Card>
@@ -269,7 +412,11 @@ export default function AccountPage() {
         <h1 className="mt-3 text-[40px] font-bold text-text-primary">Account Hub</h1>
 
         {toast && (
-          <p className="mt-4 rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success">
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-4 rounded-md border border-success/20 bg-success-light px-4 py-3 text-sm text-success"
+          >
             {toast}
           </p>
         )}
@@ -304,15 +451,27 @@ export default function AccountPage() {
                 <Badge>{planLabel(plan)}</Badge>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Link href="/account?tab=billing">
-                  <Button variant="primary">
-                    {plan === 'free' ? 'Upgrade' : 'Manage Billing'}
-                  </Button>
-                </Link>
+                <Button
+                  variant="primary"
+                  onClick={handlePrimaryBillingAction}
+                  isLoading={billingLoading}
+                  disabled={billingLoading}
+                >
+                  {plan === 'free' ? 'See Plans' : 'Manage Billing'}
+                </Button>
                 <Button variant="outline" onClick={signOut}>
                   Log out
                 </Button>
               </div>
+              {billingError ? (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="mt-4 rounded-md border border-error/20 bg-error-light px-3 py-2 text-sm text-error"
+                >
+                  {billingError}
+                </p>
+              ) : null}
             </Card>
 
             {renderTab()}

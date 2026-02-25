@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import AccessibilityMenu from '@/components/AccessibilityMenu';
 import { AuthProvider } from '@/lib/auth/context';
+import { accessibilityInitScript } from '@/lib/accessibility/preferences';
 import { getSiteBaseUrl } from '@/lib/blog/utils';
+import { reportMissingEnvInDev } from '@/lib/server/envValidation';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,7 +34,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${getSiteBaseUrl()}/og-blog-default.svg`,
-        alt: 'CareerHeap'
+        alt: 'CareerHeap career tools and guides preview'
       }
     ]
   },
@@ -48,15 +52,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  reportMissingEnvInDev();
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} flex min-h-screen flex-col bg-bg-primary font-body text-text-primary antialiased`}
       >
+        <Script id="a11y-preferences-init" strategy="beforeInteractive">
+          {accessibilityInitScript}
+        </Script>
+        <a
+          href="#main-content"
+          className="skip-link"
+        >
+          Skip to main content
+        </a>
         <AuthProvider>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1" tabIndex={-1}>
+            {children}
+          </main>
           <Footer />
+          <AccessibilityMenu />
         </AuthProvider>
         <Analytics />
         <SpeedInsights />

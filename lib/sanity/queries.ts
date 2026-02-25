@@ -11,7 +11,13 @@ const postFields = groq`
   seoDescription,
   coverImage{
     alt,
-    asset
+    crop,
+    hotspot,
+    asset,
+    "dimensions": asset->metadata.dimensions{
+      width,
+      height
+    }
   },
   category->{
     title,

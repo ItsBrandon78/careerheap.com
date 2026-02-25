@@ -7,6 +7,13 @@ CareerHeap is a Next.js application with a Sanity-backed public blog.
 - Next.js App Router
 - Tailwind (token-mapped design system)
 - Sanity Content Lake + Sanity Studio
+- Supabase Auth + Postgres
+- Stripe Checkout + Customer Portal + Webhooks
+
+## Planner Contract
+
+- Product + implementation contract: `docs/CAREER_MAP_PLANNER_PRODUCT_CONTRACT.md`
+- Career data ingestion runbook: `docs/CAREER_DATA_INGESTION.md`
 
 ## Local Setup
 
@@ -27,7 +34,18 @@ cp .env.local.example .env.local
 - `SANITY_PROJECT_ID`
 - `SANITY_DATASET`
 - `SANITY_API_VERSION` (example: `2026-02-18`)
+- `NEXT_PUBLIC_SANITY_PROJECT_ID` (same value as `SANITY_PROJECT_ID`, for `/studio`)
+- `NEXT_PUBLIC_SANITY_DATASET` (same value as `SANITY_DATASET`, for `/studio`)
+- `NEXT_PUBLIC_SANITY_API_VERSION` (optional, defaults to `2026-02-18`)
 - `SANITY_READ_TOKEN` (optional; not needed for public published-content reads)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (legacy fallback: `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
+- `SUPABASE_SECRET_KEY` (legacy fallback: `SUPABASE_SERVICE_ROLE_KEY`)
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_PRO_MONTHLY`
+- `STRIPE_PRICE_PRO_YEARLY` (optional)
+- `STRIPE_PRICE_LIFETIME`
 - `NEXT_PUBLIC_SITE_URL` (set to your production site, e.g. `https://careerheap.com`)
 - Existing app keys (Supabase/Stripe) as needed
 
@@ -52,6 +70,51 @@ npm run studio
 ```
 
 Sanity Studio runs on `http://localhost:3333` by default.
+If Next.js is running, you can also use embedded Studio at `http://localhost:3000/studio`.
+
+7. Apply database migrations in Supabase SQL Editor:
+   - `migrations/001_initial_schema.sql`
+   - `migrations/002_billing_and_tool_runs.sql`
+   - `migrations/003_stripe_subscription_state.sql`
+   - `migrations/004_blog_post_views.sql`
+   - `migrations/005_career_map_planner_core.sql`
+   - `migrations/006_career_map_planner_execution_core.sql`
+8. Seed planner FX conversion rate:
+   - `npm run seed:fx-rates`
+
+## Stripe Setup (Test Mode)
+
+1. Create products/prices in Stripe test mode:
+   - Pro monthly (`$7/month`) -> set as `STRIPE_PRICE_PRO_MONTHLY`
+   - Pro yearly (optional) -> set as `STRIPE_PRICE_PRO_YEARLY`
+   - Lifetime one-time (`$49`) -> set as `STRIPE_PRICE_LIFETIME`
+2. Start a webhook forwarder:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+3. Copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
+
+Billing APIs:
+
+- `POST /api/stripe/checkout` body: `{ "plan": "pro" | "lifetime", "cadence"?: "monthly" | "yearly" }`
+- `POST /api/stripe/portal` (Pro users)
+- `POST /api/stripe/webhook`
+
+Local Stripe test checklist:
+1. Start app: `npm run dev`
+2. Start webhook forwarding: `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+3. Complete checkout from `/checkout`
+4. Confirm plan updates in `/account?tab=billing` and usage is unlimited in `/account?tab=usage`
+5. Open customer portal from `/account?tab=billing`
+
+## Auth Flows
+
+- Magic link sign-in
+- Email/password sign-up + sign-in
+- Forgot/reset password (`/forgot-password`, `/reset-password`)
+- Google OAuth sign-in button (configure Google provider in Supabase Auth)
 
 ## Blog Routes
 
@@ -59,6 +122,9 @@ Sanity Studio runs on `http://localhost:3333` by default.
 - `/blog/[slug]` - blog post page
 
 Both routes fetch only published Sanity content and use ISR revalidation.
+Post cover behavior:
+- If `coverImage` exists in Sanity, UI renders that exact asset on `/blog` and `/blog/[slug]`.
+- If missing, UI renders a deterministic no-cover state (no random/stock fallback images).
 
 ## Sanity Content Model
 
@@ -97,7 +163,19 @@ Set these vars in Vercel:
 - `SANITY_PROJECT_ID`
 - `SANITY_DATASET`
 - `SANITY_API_VERSION`
+- `NEXT_PUBLIC_SANITY_PROJECT_ID`
+- `NEXT_PUBLIC_SANITY_DATASET`
+- `NEXT_PUBLIC_SANITY_API_VERSION` (optional)
 - `SANITY_READ_TOKEN` (only if required for private datasets/previews)
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (legacy fallback: `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
+- `SUPABASE_SECRET_KEY` (legacy fallback: `SUPABASE_SERVICE_ROLE_KEY`)
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_PRO_MONTHLY`
+- `STRIPE_PRICE_PRO_YEARLY` (optional)
+- `STRIPE_PRICE_LIFETIME`
+- `STRIPE_PORTAL_RETURN_URL` (optional)
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_SITE_URL`
 
@@ -112,5 +190,11 @@ Important:
 - `npm run build` - production build
 - `npm run start` - production server
 - `npm run lint` - lint checks
+- `npm test` - regression tests
+- `npm run ingest:career-data -- --all --dry-run` - run planner data ingestion in dry-run mode
+- `npm run preflight:planner` - verify planner schema/data/fx readiness before runtime
+- `npm run seed:fx-rates` - seed latest USD/CAD conversion rate from Bank of Canada
+- `npm run smoke:career-map -- --base-url=http://127.0.0.1:3000` - end-to-end free/pro planner smoke test
+- `npm run lighthouse:local` - build/start locally on `127.0.0.1` and run Lighthouse for `/`, `/tools/career-switch-planner`, `/pricing`, `/blog`
 - `npm run studio` - run Sanity Studio locally
 - `npm run studio:deploy` - deploy hosted Studio

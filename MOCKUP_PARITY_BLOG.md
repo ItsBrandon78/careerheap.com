@@ -57,4 +57,4 @@ Reference: `CareerHeap,pen.pen` frames for blog index/post desktop + mobile.
 ## Noted Deviations
 
 - Dynamic CMS content means exact post image/copy will differ from static mockup examples by design.
-- "Popular" sort currently uses read-time as MVP proxy (documented in UI), pending analytics-backed popularity metric.
+- Popular ranking reflects tracked real views and may be sparse until traffic data accumulates.

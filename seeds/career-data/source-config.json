@@ -1,0 +1,49 @@
+{
+  "onet": {
+    "indexUrl": "https://www.onetcenter.org/database.html",
+    "sourceName": "O*NET Database",
+    "sourceIdPrefix": "us_onet_db"
+  },
+  "openCanada": {
+    "apiBase": "https://open.canada.ca/data/api/3/action"
+  },
+  "oasis": {
+    "packageId": "10ce43bd-fb58-4969-806b-4bffebc87bec",
+    "sourceName": "Occupational and Skills Information System (OaSIS)",
+    "resourceMatchers": {
+      "skills": [
+        "skills_oasis_",
+        "Skills"
+      ],
+      "leadStatements": [
+        "lead-statement_oasis_",
+        "Lead Statement"
+      ],
+      "employmentRequirements": [
+        "employment-requirements_oasis_",
+        "Employment Requirements"
+      ],
+      "mainDuties": [
+        "main-duties_oasis_",
+        "Main Duties"
+      ],
+      "exampleTitles": [
+        "example-titles_oasis_",
+        "Example Titles"
+      ]
+    }
+  },
+  "jobBankWages": {
+    "packageId": "adad580f-76b0-4502-bd05-20c125de9116",
+    "sourceName": "Job Bank Wages"
+  },
+  "noc": {
+    "packageId": "1feee3b5-8068-4dbb-b361-180875837593",
+    "sourceName": "National Occupational Classification (NOC) 2021 Version 1.0"
+  },
+  "skilledTradesOntario": {
+    "listingUrl": "https://www.skilledtradesontario.ca/about-trades/trades-information/",
+    "sourceName": "Skilled Trades Ontario Trade Information",
+    "province": "ON"
+  }
+}

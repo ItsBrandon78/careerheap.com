@@ -12,6 +12,7 @@ import { SparklesIcon, ToolGlyph } from '@/components/Icons'
 import { relatedTools, toolFaqs } from '@/src/design/mockupData'
 import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
 import { analyzeResume } from '@/lib/analysis/resume'
+import { useAuth } from '@/lib/auth/context'
 
 interface ToolPageProps {
   params: Promise<{
@@ -74,8 +75,14 @@ const benefits = [
   }
 ]
 
-function toUsageLabel(usage: ToolUsageResult | null, previewLocked: boolean) {
+function toUsageLabel(
+  usage: ToolUsageResult | null,
+  previewLocked: boolean,
+  planFallback: 'free' | 'pro' | 'lifetime'
+) {
   if (previewLocked) return 'Locked Preview'
+  if (planFallback === 'lifetime') return 'Lifetime Access'
+  if (planFallback === 'pro') return 'Unlimited Access'
   if (usage?.isUnlimited) return usage.plan === 'lifetime' ? 'Lifetime Access' : 'Unlimited Access'
   const remaining = usage?.usesRemaining ?? FREE_LIMIT
   return `${remaining} Free Uses Left`
@@ -85,6 +92,7 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
   const searchParams = useSearchParams()
   const tool = toolMap[slug as keyof typeof toolMap]
   const { getUsage, consumeUsage } = useToolUsage()
+  const { user, plan } = useAuth()
 
   const previewLocked = locked || searchParams.get('locked') === '1'
   const usageQuery = useMemo(() => {
@@ -133,11 +141,17 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
     []
   )
 
-  const isLocked = previewLocked || (usage ? !usage.canUse : false)
+  const hasPaidPlan = plan === 'pro' || plan === 'lifetime'
+  const isLocked = previewLocked || (!hasPaidPlan && (usage ? !usage.canUse : false))
   const displayResult = resultText || defaultResult
 
   const handleSubmit = async () => {
     if (isLocked || !input.trim() || isUsageLoading) {
+      return
+    }
+
+    if (!user) {
+      setResultText('Sign in to run this tool and save your usage history.')
       return
     }
 
@@ -177,7 +191,7 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
         title={tool.title}
         description={tool.description}
         icon={tool.icon}
-        usesLabel={toUsageLabel(usage, previewLocked)}
+        usesLabel={toUsageLabel(usage, previewLocked, plan)}
       />
 
       <section className="w-full px-4 py-16 lg:px-[170px]">
@@ -220,14 +234,15 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
                 variant="primary"
                 onClick={handleSubmit}
                 isLoading={isProcessing}
-                disabled={isUsageLoading || !input.trim()}
+                disabled={isUsageLoading || !input.trim() || !user}
               >
                 <SparklesIcon className="h-4 w-4" />
-                {tool.cta}
+                {!user ? 'Sign In to Continue' : tool.cta}
               </Button>
               <p className="text-[13px] text-text-tertiary">
                 {usage?.isUnlimited
-                  ? usage.plan === 'lifetime'
+                  || hasPaidPlan
+                  ? plan === 'lifetime' || usage?.plan === 'lifetime'
                     ? 'Lifetime unlimited access'
                     : 'Pro unlimited access'
                   : `${usage?.usesRemaining ?? FREE_LIMIT} of ${FREE_LIMIT} free uses remaining`}

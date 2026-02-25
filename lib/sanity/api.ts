@@ -1,6 +1,4 @@
-import type { PortableTextBlock } from 'sanity'
-import { blogPostTemplates } from '@/src/design/mockupData'
-import type { BlogBodyBlock, BlogCategory, BlogPost } from '@/lib/blog/types'
+import type { BlogBodyBlock, BlogCategory, BlogCoverImage, BlogPost } from '@/lib/blog/types'
 import { estimateReadTimeMinutes, portableTextToPlainText } from '@/lib/blog/utils'
 import { sanityFetch } from '@/lib/sanity/client'
 import { isSanityConfigured } from '@/lib/sanity/env'
@@ -14,12 +12,17 @@ import {
   relatedPostsQuery
 } from '@/lib/sanity/queries'
 
-const isDevelopmentFallbackMode =
-  !isSanityConfigured && process.env.NODE_ENV !== 'production'
+interface SanityImageDimensions {
+  width?: number
+  height?: number
+}
 
 interface SanityImageValue {
   alt?: string
+  crop?: unknown
+  hotspot?: unknown
   asset?: unknown
+  dimensions?: SanityImageDimensions
 }
 
 interface SanityCategoryValue {
@@ -48,30 +51,6 @@ interface SanityPostValue {
   body?: BlogBodyBlock[]
 }
 
-const fallbackImages = [
-  'https://images.unsplash.com/photo-1564627488683-453be0de2aad?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1762341123685-098ecb6c3ef7?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1681505526188-b05e68c77582?auto=format&fit=crop&w=1600&q=80',
-  'https://images.unsplash.com/photo-1758874383489-7be291a44415?auto=format&fit=crop&w=1600&q=80'
-]
-
-function makeBlock(text: string, key: string, style: PortableTextBlock['style'] = 'normal'): PortableTextBlock {
-  return {
-    _type: 'block',
-    _key: key,
-    style,
-    markDefs: [],
-    children: [
-      {
-        _type: 'span',
-        _key: `${key}-span`,
-        marks: [],
-        text
-      }
-    ]
-  }
-}
-
 function normalizeCategory(category?: SanityCategoryValue): BlogCategory {
   if (!category?.title || !category?.slug) {
     return {
@@ -86,6 +65,40 @@ function normalizeCategory(category?: SanityCategoryValue): BlogCategory {
   }
 }
 
+function toPositiveInt(value: unknown, fallback: number) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback
+  }
+  return Math.floor(parsed)
+}
+
+function buildCoverImage(postTitle: string, coverImage?: SanityImageValue): BlogCoverImage | null {
+  if (!coverImage?.asset) {
+    return null
+  }
+
+  const width = toPositiveInt(coverImage.dimensions?.width, 1600)
+  const height = toPositiveInt(coverImage.dimensions?.height, 900)
+  const url = getSanityImageUrl(coverImage)
+    ?.width(width)
+    ?.height(height)
+    ?.fit('crop')
+    ?.auto('format')
+    ?.url()
+
+  if (!url) {
+    return null
+  }
+
+  return {
+    url,
+    width,
+    height,
+    alt: coverImage.alt?.trim() || `${postTitle} cover illustration`
+  }
+}
+
 function normalizePost(post: SanityPostValue): BlogPost | null {
   if (!post.slug || !post.title || !post.publishedAt) {
     return null
@@ -96,14 +109,7 @@ function normalizePost(post: SanityPostValue): BlogPost | null {
   const plainText = portableTextToPlainText(body)
   const excerpt = post.excerpt?.trim() || plainText.slice(0, 180)
   const readTimeMinutes = post.readTime || estimateReadTimeMinutes(`${excerpt} ${plainText}`.trim())
-  const coverImageUrl = post.coverImage?.asset
-    ? getSanityImageUrl(post.coverImage.asset)
-        ?.width(1600)
-        ?.height(900)
-        ?.fit('crop')
-        ?.auto('format')
-        ?.url() || null
-    : null
+  const coverImage = buildCoverImage(post.title, post.coverImage)
 
   const authorAvatarUrl = post.author?.avatar?.asset
     ? getSanityImageUrl(post.author.avatar.asset)
@@ -121,8 +127,8 @@ function normalizePost(post: SanityPostValue): BlogPost | null {
     excerpt,
     publishedAt: post.publishedAt,
     readTimeMinutes,
-    coverImageUrl,
-    coverImageAlt: post.coverImage?.alt || post.title,
+    coverImage,
+    popularityScore: 0,
     category,
     authorName: post.author?.name || 'CareerHeap Team',
     author: post.author
@@ -138,45 +144,7 @@ function normalizePost(post: SanityPostValue): BlogPost | null {
   }
 }
 
-function fallbackPosts(): BlogPost[] {
-  return blogPostTemplates.map((post, index) => {
-    const sectionBlocks = post.sections.flatMap((section, sectionIndex) => [
-      makeBlock(section.heading, `${post.slug}-h2-${sectionIndex}`, 'h2'),
-      makeBlock(section.body, `${post.slug}-p-${sectionIndex}`, 'normal')
-    ])
-
-    const body = [makeBlock(post.intro, `${post.slug}-intro`), ...sectionBlocks]
-
-    return {
-      id: `mock-${post.slug}`,
-      slug: post.slug,
-      title: post.title,
-      excerpt: post.intro,
-      category: {
-        title: post.category,
-        slug: post.category.toLowerCase().replace(/\s+/g, '-')
-      },
-      authorName: post.author,
-      publishedAt: new Date(Date.parse(post.date)).toISOString(),
-      readTimeMinutes: Number.parseInt(post.readTime, 10) || estimateReadTimeMinutes(post.intro),
-      coverImageUrl: fallbackImages[index % fallbackImages.length],
-      coverImageAlt: post.title,
-      author: {
-        name: post.author,
-        bio: null,
-        avatarUrl: null
-      },
-      body,
-      seoTitle: post.title,
-      seoDescription: post.intro
-    }
-  })
-}
-
 export async function getAllBlogPosts() {
-  if (isDevelopmentFallbackMode) {
-    return fallbackPosts()
-  }
   if (!isSanityConfigured) {
     return []
   }
@@ -190,9 +158,6 @@ export async function getAllBlogPosts() {
 }
 
 export async function getBlogPostBySlug(slug: string) {
-  if (isDevelopmentFallbackMode) {
-    return fallbackPosts().find((post) => post.slug === slug) || null
-  }
   if (!isSanityConfigured) {
     return null
   }
@@ -217,11 +182,6 @@ export async function getRelatedBlogPosts(options: {
 }) {
   const { postId, categorySlug, limit = 3 } = options
 
-  if (isDevelopmentFallbackMode) {
-    return fallbackPosts()
-      .filter((post) => post.id !== postId && post.category.slug === categorySlug)
-      .slice(0, limit)
-  }
   if (!isSanityConfigured) {
     return []
   }
@@ -252,13 +212,6 @@ export async function getRelatedBlogPosts(options: {
 }
 
 export async function getBlogCategories() {
-  if (isDevelopmentFallbackMode) {
-    const categories = new Map<string, BlogCategory>()
-    for (const post of fallbackPosts()) {
-      categories.set(post.category.slug, post.category)
-    }
-    return Array.from(categories.values())
-  }
   if (!isSanityConfigured) {
     return []
   }
@@ -277,9 +230,6 @@ export async function getBlogCategories() {
 }
 
 export async function getBlogSlugs() {
-  if (isDevelopmentFallbackMode) {
-    return fallbackPosts().map((post) => post.slug)
-  }
   if (!isSanityConfigured) {
     return []
   }

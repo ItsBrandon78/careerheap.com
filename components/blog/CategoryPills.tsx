@@ -1,6 +1,5 @@
 'use client'
 
-import Badge from '@/components/Badge'
 import type { BlogCategory } from '@/lib/blog/types'
 
 interface CategoryPillsProps {
@@ -14,24 +13,22 @@ export default function CategoryPills({
   selectedCategory,
   onSelect
 }: CategoryPillsProps) {
+  const chipBase =
+    'inline-flex items-center rounded-pill border px-3 py-1 text-xs font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30'
+
+  const selectedChip = 'border-accent/30 bg-accent-light text-accent'
+  const idleChip =
+    'border-border bg-surface text-text-secondary hover:border-accent/25 hover:text-accent'
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => onSelect('all')}
         aria-pressed={selectedCategory === 'all'}
-        className="rounded-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        className={`${chipBase} ${selectedCategory === 'all' ? selectedChip : idleChip}`}
       >
-        <Badge
-          variant="default"
-          className={
-            selectedCategory === 'all'
-              ? ''
-              : 'border-border bg-surface text-text-secondary'
-          }
-        >
-          All
-        </Badge>
+        All
       </button>
       {categories.map((category) => (
         <button
@@ -39,18 +36,11 @@ export default function CategoryPills({
           type="button"
           onClick={() => onSelect(category.slug)}
           aria-pressed={selectedCategory === category.slug}
-          className="rounded-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          className={`${chipBase} ${
+            selectedCategory === category.slug ? selectedChip : idleChip
+          }`}
         >
-          <Badge
-            variant="default"
-            className={
-              selectedCategory === category.slug
-                ? ''
-                : 'border-border bg-surface text-text-secondary'
-            }
-          >
-            {category.title}
-          </Badge>
+          {category.title}
         </button>
       ))}
     </div>
