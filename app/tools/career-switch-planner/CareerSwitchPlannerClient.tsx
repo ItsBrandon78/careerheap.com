@@ -148,7 +148,16 @@ type PlannerReportPayload = {
     skillName: string
     weight: number
     difficulty: 'easy' | 'medium' | 'hard'
+    gapLevel: 'met' | 'partial' | 'missing'
+    frequency: number
     howToClose: string[]
+    evidence: Array<{
+      source: 'adzuna' | 'user_posting' | 'onet'
+      quote: string
+      postingId?: string
+      confidence: number
+    }>
+    evidenceLabel: string
   }>
   roadmap: Array<{
     id: string
@@ -170,6 +179,89 @@ type PlannerReportPayload = {
     examRequired: boolean | null
     regulated: boolean
     sources: Array<{ label: string; url: string }>
+  }
+  transitionSections?: {
+    mandatoryGateRequirements: Array<{
+      id: string
+      label: string
+      status: 'met' | 'missing'
+      gapLevel: 'met' | 'partial' | 'missing'
+      frequency: number
+      howToGet: string
+      estimatedTime: string
+      evidenceLabel: string
+      evidence: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+    }>
+    coreHardSkills: Array<{
+      id: string
+      label: string
+      gapLevel: 'met' | 'partial' | 'missing'
+      frequency: number
+      howToLearn: string
+      evidenceLabel: string
+      evidence: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+    }>
+    toolsPlatforms: Array<{
+      id: string
+      label: string
+      gapLevel: 'met' | 'partial' | 'missing'
+      frequency: number
+      quickProject: string
+      evidenceLabel: string
+      evidence: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+    }>
+    experienceSignals: Array<{
+      id: string
+      label: string
+      gapLevel: 'met' | 'partial' | 'missing'
+      frequency: number
+      howToBuild: string
+      evidenceLabel: string
+      evidence: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+    }>
+    transferableStrengths: Array<{
+      id: string
+      label: string
+      requirement: string
+      source: 'experience_text' | 'skills'
+    }>
+    roadmapPlan: {
+      zeroToTwoWeeks: Array<{ id: string; action: string; tiedRequirement: string }>
+      oneToThreeMonths: Array<{ id: string; action: string; tiedRequirement: string }>
+      threeToTwelveMonths: Array<{ id: string; action: string; tiedRequirement: string }>
+      fastestPathToApply: string[]
+      strongCandidatePath: string[]
+    }
+  }
+  marketEvidence?: {
+    enabled: boolean
+    used: boolean
+    baselineOnly: boolean
+    usedCache: boolean
+    postingsCount: number
+    fetchedAt: string | null
+    query: { role: string; location: string; country: string } | null
+    sourcePriority: Array<'user_posting' | 'adzuna' | 'onet'>
   }
   bottleneck?: {
     title: string
@@ -204,7 +296,6 @@ type SubmittedPlannerSnapshot = {
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
 const FREE_LIMIT = 3
-// TODO: replace with /api/career-map/skills once a skills autocomplete endpoint is available.
 const FALLBACK_SKILL_SUGGESTIONS = [
   'Stakeholder management',
   'Electrical safety',
@@ -260,7 +351,12 @@ const FRIENDLY_DATASET_NAMES: Record<string, string> = {
   occupation_requirements: 'Education and requirement profiles',
   occupation_wages: 'Regional wage data',
   trade_requirements: 'Official trade requirements',
-  fx_rates: 'FX rates'
+  fx_rates: 'FX rates',
+  job_queries: 'Employer query cache',
+  job_postings: 'Employer posting snapshots',
+  job_requirements: 'Employer requirements index',
+  user_posting: 'User-provided posting evidence',
+  onet_baseline: 'Baseline (O*NET)'
 }
 
 const GAP_LABEL_OVERRIDES: Record<string, string> = {
@@ -281,6 +377,22 @@ const REQUIRED_GAP_PATTERN =
 function mapSkillGapLabel(value: string) {
   const key = value.trim().toLowerCase()
   return GAP_LABEL_OVERRIDES[key] ?? value
+}
+
+function evidenceChipClass(label: string) {
+  if (label.startsWith('User posting')) {
+    return 'border-success/30 bg-success/10 text-success'
+  }
+  if (label.startsWith('Employer evidence')) {
+    return 'border-accent/30 bg-accent/10 text-accent'
+  }
+  return 'border-warning/30 bg-warning-light text-warning'
+}
+
+function gapLevelLabel(level: 'met' | 'partial' | 'missing') {
+  if (level === 'met') return 'Met'
+  if (level === 'partial') return 'Partial'
+  return 'Missing'
 }
 
 function mergeUniqueCaseInsensitive(base: string[], incoming: string[]) {
@@ -431,7 +543,11 @@ function usageLabel(
   return `${FREE_LIMIT} Free Uses Total`
 }
 
-export default function CareerSwitchPlannerPage() {
+export default function CareerSwitchPlannerPage({
+  marketEvidenceAvailable = false
+}: {
+  marketEvidenceAvailable?: boolean
+}) {
   const searchParams = useSearchParams()
   const { getUsage } = useToolUsage()
   const { user, plan } = useAuth()
@@ -472,9 +588,13 @@ export default function CareerSwitchPlannerPage() {
   const [ocrCapabilityStatus, setOcrCapabilityStatus] = useState<OcrCapabilityStatus>('idle')
   const [ocrCapabilities, setOcrCapabilities] = useState<ResumeOcrCapabilities | null>(null)
   const [workRegion, setWorkRegion] = useState<WorkRegionValue>('remote-us')
+  const [locationText, setLocationText] = useState('Remote (US)')
+  const [locationTouched, setLocationTouched] = useState(false)
   const [timelineBucket, setTimelineBucket] = useState<TimelineBucketValue>('1-3 months')
   const [educationLevel, setEducationLevel] = useState<EducationLevelValue>("Bachelor's")
   const [incomeTarget, setIncomeTarget] = useState<IncomeTargetValue>('Not sure')
+  const [userPostingText, setUserPostingText] = useState('')
+  const [useMarketEvidence, setUseMarketEvidence] = useState(marketEvidenceAvailable)
   const [detectedSections, setDetectedSections] = useState({
     experience: false,
     skills: false,
@@ -533,6 +653,12 @@ export default function CareerSwitchPlannerPage() {
   const isTransitionMode = Boolean(
     lastSubmittedSnapshot?.targetRole && !lastSubmittedSnapshot?.recommendMode
   )
+
+  useEffect(() => {
+    if (!locationTouched) {
+      setLocationText(toLocationFromWorkRegion(workRegion))
+    }
+  }, [locationTouched, workRegion])
 
   useEffect(() => {
     if (!isProUser) {
@@ -838,6 +964,11 @@ export default function CareerSwitchPlannerPage() {
       return
     }
 
+    if (!locationText.trim()) {
+      setInputError('Add your target location to generate market evidence.')
+      return
+    }
+
     setInputError('')
     setPlannerReport(null)
     setPlannerState('loading')
@@ -877,14 +1008,17 @@ export default function CareerSwitchPlannerPage() {
           recommendMode,
           skills: confirmedSkills,
           experienceText: normalizedExperience,
+          userPostingText: userPostingText.trim(),
+          useMarketEvidence,
           educationLevel,
           workRegion,
+          locationText: locationText.trim(),
           timelineBucket,
           incomeTarget,
           currentRole: currentRoleFallback,
           targetRole: targetRoleValue,
           notSureMode: recommendMode,
-          location: toLocationFromWorkRegion(workRegion),
+          location: locationText.trim(),
           timeline: timelineBucket,
           education: educationLevel
         })
@@ -983,9 +1117,15 @@ export default function CareerSwitchPlannerPage() {
     setSkills(['Stakeholder management', 'Process improvement', 'SQL'])
     setRecommendMode(false)
     setWorkRegion('ca')
+    setLocationText('Toronto, Ontario, Canada')
+    setLocationTouched(true)
     setTimelineBucket('1-3 months')
     setEducationLevel("Bachelor's")
     setIncomeTarget('$75-100k')
+    setUserPostingText(
+      'Requirements: 3+ years coordinating cross-functional operations, proficiency with SQL and dashboard tooling, ability to define process KPIs, and experience shipping process improvements with measurable outcomes.'
+    )
+    setUseMarketEvidence(marketEvidenceAvailable)
     dismissDetectedResumeData()
     setInputError('')
   }
@@ -1167,8 +1307,9 @@ export default function CareerSwitchPlannerPage() {
                 label="Skills"
                 skills={skills}
                 suggestions={FALLBACK_SKILL_SUGGESTIONS}
+                suggestionEndpoint="/api/career-map/skills"
                 placeholder="Start typing (e.g., stakeholder management, electrical safety)"
-                helperText="Autocomplete uses a local starter list for now. Custom skills are allowed."
+                helperText="Autocomplete uses matched skills from our dataset. Custom skills are allowed."
                 onChange={setSkills}
               />
 
@@ -1266,6 +1407,22 @@ export default function CareerSwitchPlannerPage() {
 
             <div className="space-y-3">
               <h2 className="text-base font-bold text-text-primary">3) Constraints</h2>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[13px] font-semibold text-text-primary">Target location</span>
+                <input
+                  type="text"
+                  value={locationText}
+                  onChange={(event) => {
+                    setLocationTouched(true)
+                    setLocationText(event.target.value)
+                  }}
+                  placeholder="City, region, or country (e.g., Toronto, ON)"
+                  className="w-full rounded-md border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                />
+                <span className="text-xs text-text-tertiary">
+                  Required for market-demand matching and employer-evidence requirements.
+                </span>
+              </label>
               <div className="grid gap-3 md:grid-cols-3">
                 <SelectField
                   id="planner-work-region"
@@ -1288,6 +1445,37 @@ export default function CareerSwitchPlannerPage() {
                   onChange={(value) => setIncomeTarget(value as IncomeTargetValue)}
                   options={INCOME_TARGET_OPTIONS}
                 />
+              </div>
+
+              <div className="rounded-md border border-border bg-bg-secondary p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-text-primary">4) Employer Evidence</p>
+                  {marketEvidenceAvailable ? (
+                    <Toggle
+                      checked={useMarketEvidence}
+                      onChange={setUseMarketEvidence}
+                      label="Use market evidence (beta)"
+                    />
+                  ) : (
+                    <Badge variant="warning">Market evidence unavailable</Badge>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-text-tertiary">
+                  Paste a target posting for highest-fidelity requirements. Market evidence pulls
+                  live demand and caches results.
+                </p>
+                <label className="mt-3 flex flex-col gap-1.5">
+                  <span className="text-[13px] font-semibold text-text-primary">
+                    Paste target job posting (optional)
+                  </span>
+                  <textarea
+                    rows={5}
+                    value={userPostingText}
+                    onChange={(event) => setUserPostingText(event.target.value)}
+                    placeholder="Paste full requirements section from a posting."
+                    className="w-full rounded-md border border-border bg-surface p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                  />
+                </label>
               </div>
             </div>
           </div>
@@ -1318,6 +1506,7 @@ export default function CareerSwitchPlannerPage() {
                 plannerState === 'loading' ||
                 !user ||
                 !hasMinimumRequiredInput ||
+                !locationText.trim() ||
                 (!recommendMode && !targetRoleText.trim())
               }
             >
@@ -1329,7 +1518,7 @@ export default function CareerSwitchPlannerPage() {
           </div>
 
           <p className="mt-3 text-[13px] text-text-tertiary">
-            We use your inputs + real occupational and wage datasets to generate this report.
+            We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.
           </p>
           {!user ? (
             <p className="mt-2 text-[13px] text-text-secondary">
@@ -1431,6 +1620,234 @@ export default function CareerSwitchPlannerPage() {
                       ) : null}
                     </div>
                   ) : null}
+                </Card>
+              ) : null}
+              {plannerReport?.marketEvidence?.baselineOnly ? (
+                <Card className="p-5">
+                  <p className="text-sm font-semibold text-warning">
+                    No employer evidence available right now - showing baseline requirements.
+                  </p>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    Add a pasted posting or enable market evidence to get live demand signals for
+                    your location.
+                  </p>
+                </Card>
+              ) : null}
+              {plannerReport?.transitionSections ? (
+                <Card className="space-y-5 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-base font-bold text-text-primary">
+                      Evidence-Driven Transition Map
+                    </h3>
+                    {plannerReport.marketEvidence?.usedCache ? (
+                      <Badge variant="default">Using cached market fingerprint</Badge>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-text-primary">
+                      1) Mandatory Gate Requirements
+                    </h4>
+                    {plannerReport.transitionSections.mandatoryGateRequirements.length > 0 ? (
+                      <div className="space-y-2">
+                        {plannerReport.transitionSections.mandatoryGateRequirements
+                          .slice(0, 6)
+                          .map((item) => (
+                            <div
+                              key={item.id}
+                              className="rounded-md border border-border-light bg-bg-secondary p-3"
+                            >
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm font-semibold text-text-primary">{item.label}</p>
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {gapLevelLabel(item.gapLevel)}
+                                </span>
+                                <span
+                                  className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                                >
+                                  {item.evidenceLabel}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-text-secondary">
+                                {item.howToGet} Estimated time: {item.estimatedTime}.
+                              </p>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-text-secondary">No gate requirements identified.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-text-primary">2) Core Hard Skills</h4>
+                    {plannerReport.transitionSections.coreHardSkills.length > 0 ? (
+                      <div className="space-y-2">
+                        {plannerReport.transitionSections.coreHardSkills.slice(0, 8).map((item) => (
+                          <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-text-primary">{item.label}</p>
+                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                {gapLevelLabel(item.gapLevel)}
+                              </span>
+                              <span
+                                className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                              >
+                                {item.evidenceLabel}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-text-secondary">{item.howToLearn}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-text-secondary">No hard-skill signals found.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-text-primary">
+                      3) Tools / Platforms / Equipment
+                    </h4>
+                    {plannerReport.transitionSections.toolsPlatforms.length > 0 ? (
+                      <div className="space-y-2">
+                        {plannerReport.transitionSections.toolsPlatforms.slice(0, 6).map((item) => (
+                          <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-text-primary">{item.label}</p>
+                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                {gapLevelLabel(item.gapLevel)}
+                              </span>
+                              <span
+                                className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                              >
+                                {item.evidenceLabel}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-text-secondary">{item.quickProject}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-text-secondary">No tool signals found.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-text-primary">4) Experience Signals</h4>
+                    {plannerReport.transitionSections.experienceSignals.length > 0 ? (
+                      <div className="space-y-2">
+                        {plannerReport.transitionSections.experienceSignals.slice(0, 6).map((item) => (
+                          <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-text-primary">{item.label}</p>
+                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                {gapLevelLabel(item.gapLevel)}
+                              </span>
+                              <span
+                                className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                              >
+                                {item.evidenceLabel}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-text-secondary">{item.howToBuild}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-text-secondary">No experience signals found.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-text-primary">
+                      5) Transferable Strengths (from your inputs)
+                    </h4>
+                    {plannerReport.transitionSections.transferableStrengths.length > 0 ? (
+                      <ul className="space-y-2">
+                        {plannerReport.transitionSections.transferableStrengths.map((item) => (
+                          <li
+                            key={item.id}
+                            className="rounded-md border border-border-light bg-bg-secondary p-3 text-sm text-text-secondary"
+                          >
+                            <p className="font-semibold text-text-primary">{item.requirement}</p>
+                            <p className="mt-1">{item.label}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-text-secondary">
+                        Add more measurable experience to increase mapped transferable strengths.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-text-primary">6) Roadmap Plan</h4>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          0-2 weeks
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {plannerReport.transitionSections.roadmapPlan.zeroToTwoWeeks.map((step) => (
+                            <li key={step.id}>
+                              - {step.action}
+                              <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          1-3 months
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {plannerReport.transitionSections.roadmapPlan.oneToThreeMonths.map((step) => (
+                            <li key={step.id}>
+                              - {step.action}
+                              <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          3-12 months
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {plannerReport.transitionSections.roadmapPlan.threeToTwelveMonths.map((step) => (
+                            <li key={step.id}>
+                              - {step.action}
+                              <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Fastest path to apply
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {plannerReport.transitionSections.roadmapPlan.fastestPathToApply.map((item) => (
+                            <li key={item}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Strong candidate path
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {plannerReport.transitionSections.roadmapPlan.strongCandidatePath.map((item) => (
+                            <li key={item}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </Card>
               ) : null}
               {plannerReport?.targetRequirements ? (
@@ -1702,6 +2119,14 @@ export default function CareerSwitchPlannerPage() {
                       ? friendlyDatasetNames.join(', ')
                       : 'Not available'}
                   </p>
+                  {plannerReport.marketEvidence ? (
+                    <p className="mt-1 text-sm text-text-secondary">
+                      Market evidence:{' '}
+                      {plannerReport.marketEvidence.baselineOnly
+                        ? 'Baseline only'
+                        : `${plannerReport.marketEvidence.postingsCount} postings analyzed${plannerReport.marketEvidence.usedCache ? ' (cached)' : ''}`}
+                    </p>
+                  ) : null}
                   {wageSourceDateSummary.length > 0 ? (
                     <p className="mt-1 text-sm text-text-secondary">
                       Wage sources: {wageSourceDateSummary.join(', ')}

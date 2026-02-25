@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateCareerMapPlannerAnalysis } from '@/lib/server/careerMapPlanner'
 import { resolveOccupationInput } from '@/lib/server/careerData'
+import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import type { CareerSwitchPlannerInput } from '@/lib/planner/types'
 import {
   consumeUsageForSuccessfulRun,
@@ -41,8 +42,12 @@ function normalizeInput(input: Partial<CareerSwitchPlannerInput> & Record<string
   const experienceText = asString(input.experienceText)
   const educationLevel = asString(input.educationLevel)
   const workRegion = asString(input.workRegion)
+  const locationText = asString(input.locationText)
   const timelineBucket = asString(input.timelineBucket)
   const incomeTarget = asString(input.incomeTarget)
+  const userPostingText = asString(input.userPostingText)
+  const useMarketEvidence =
+    typeof input.useMarketEvidence === 'boolean' ? input.useMarketEvidence : true
 
   const currentRole = currentRoleText || asString(input.currentRole)
   const targetRole = recommendMode ? '' : targetRoleText || asString(input.targetRole)
@@ -55,10 +60,13 @@ function normalizeInput(input: Partial<CareerSwitchPlannerInput> & Record<string
     targetRole,
     notSureMode: recommendMode,
     experienceText: normalizedExperience,
-    location: asString(input.location) || locationFromWorkRegion(workRegion),
+    location: locationText || asString(input.location) || locationFromWorkRegion(workRegion),
+    locationText,
     timeline: asString(input.timeline) || timelineBucket,
     education: asString(input.education) || educationLevel,
     incomeTarget,
+    userPostingText,
+    useMarketEvidence,
     currentRoleText,
     targetRoleText: recommendMode ? '' : targetRoleText,
     recommendMode,
@@ -75,6 +83,9 @@ function validateInput(input: ReturnType<typeof normalizeInput>) {
   }
   if (!input.recommendMode && !input.targetRole) {
     return 'Target role is required unless Not sure mode is enabled.'
+  }
+  if (!input.location) {
+    return 'Location is required to generate employer-evidence requirements.'
   }
   return null
 }
@@ -132,6 +143,33 @@ export async function POST(request: Request) {
   let inputHashForFailure: string | undefined
 
   try {
+    const rateLimit = consumeRateLimit({
+      namespace: 'planner-generate',
+      identifier: getClientIp(request),
+      max: 12,
+      windowMs: 60_000
+    })
+
+    if (!rateLimit.allowed) {
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((rateLimit.resetAt - Date.now()) / 1_000)
+      )
+      return NextResponse.json(
+        {
+          error: 'RATE_LIMITED',
+          message: 'Too many planner requests. Try again in about a minute.'
+        },
+        {
+          status: 429,
+          headers: {
+            ...toRateLimitHeaders(rateLimit),
+            'Retry-After': String(retryAfterSeconds)
+          }
+        }
+      )
+    }
+
     const user = await getAuthenticatedUserFromRequest(request)
     if (!user) {
       return NextResponse.json(
@@ -206,7 +244,9 @@ export async function POST(request: Request) {
       location: input.location,
       timeline: input.timeline,
       education: input.education,
-      incomeTarget: input.incomeTarget
+      incomeTarget: input.incomeTarget,
+      userPostingText: input.userPostingText,
+      useMarketEvidence: input.useMarketEvidence
     })
 
     const { summary, locked } = await consumeUsageForSuccessfulRun({

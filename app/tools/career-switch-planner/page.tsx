@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import CareerSwitchPlannerClientPage from './CareerSwitchPlannerClient'
+import { isMarketEvidenceConfigured } from '@/lib/server/jobRequirements'
 
 function PlannerFallback() {
   return (
@@ -77,9 +78,11 @@ function PlannerFallback() {
 }
 
 export default function CareerSwitchPlannerPage() {
+  const marketEvidenceAvailable = isMarketEvidenceConfigured()
+
   return (
     <Suspense fallback={<PlannerFallback />}>
-      <CareerSwitchPlannerClientPage />
+      <CareerSwitchPlannerClientPage marketEvidenceAvailable={marketEvidenceAvailable} />
     </Suspense>
   )
 }

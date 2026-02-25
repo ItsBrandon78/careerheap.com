@@ -30,8 +30,11 @@ export interface CareerSwitchPlannerInput {
   skills?: string[]
   educationLevel?: string
   workRegion?: string
+  locationText?: string
   timelineBucket?: string
   incomeTarget?: string
+  userPostingText?: string
+  useMarketEvidence?: boolean
   currentRole: string
   targetRole?: string
   notSureMode: boolean

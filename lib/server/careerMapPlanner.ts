@@ -1,5 +1,15 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CAREER_MAP_SCORE_WEIGHTS } from '@/lib/planner/contract'
+import {
+  ensureEvidenceRequirements,
+  isMarketEvidenceConfigured
+} from '@/lib/server/jobRequirements'
+import { toTaskLevelLabel } from '@/lib/requirements/normalize'
+import type {
+  AggregatedRequirement,
+  RequirementEvidence,
+  RequirementType
+} from '@/lib/requirements/types'
 
 type CountryCode = 'US' | 'CA'
 type TimelineBucket = 'immediate' | '1_3_months' | '3_6_months' | '6_12_months' | '1_plus_year'
@@ -75,6 +85,8 @@ export interface CareerPlannerInput {
   timeline?: string
   education?: string
   incomeTarget?: string
+  userPostingText?: string
+  useMarketEvidence?: boolean
 }
 
 export interface MatchBreakdown {
@@ -153,7 +165,11 @@ export interface CareerPlannerAnalysis {
       skillName: string
       weight: number
       difficulty: 'easy' | 'medium' | 'hard'
+      gapLevel: 'met' | 'partial' | 'missing'
+      frequency: number
       howToClose: string[]
+      evidence: RequirementEvidence[]
+      evidenceLabel: string
     }>
     roadmap: Array<{
       id: string
@@ -175,6 +191,81 @@ export interface CareerPlannerAnalysis {
       examRequired: boolean | null
       regulated: boolean
       sources: Array<{ label: string; url: string }>
+    }
+    transitionSections: {
+      mandatoryGateRequirements: Array<{
+        id: string
+        label: string
+        status: 'met' | 'missing'
+        gapLevel: 'met' | 'partial' | 'missing'
+        frequency: number
+        howToGet: string
+        estimatedTime: string
+        evidenceLabel: string
+        evidence: RequirementEvidence[]
+      }>
+      coreHardSkills: Array<{
+        id: string
+        label: string
+        gapLevel: 'met' | 'partial' | 'missing'
+        frequency: number
+        howToLearn: string
+        evidenceLabel: string
+        evidence: RequirementEvidence[]
+      }>
+      toolsPlatforms: Array<{
+        id: string
+        label: string
+        gapLevel: 'met' | 'partial' | 'missing'
+        frequency: number
+        quickProject: string
+        evidenceLabel: string
+        evidence: RequirementEvidence[]
+      }>
+      experienceSignals: Array<{
+        id: string
+        label: string
+        gapLevel: 'met' | 'partial' | 'missing'
+        frequency: number
+        howToBuild: string
+        evidenceLabel: string
+        evidence: RequirementEvidence[]
+      }>
+      transferableStrengths: Array<{
+        id: string
+        label: string
+        requirement: string
+        source: 'experience_text' | 'skills'
+      }>
+      roadmapPlan: {
+        zeroToTwoWeeks: Array<{
+          id: string
+          action: string
+          tiedRequirement: string
+        }>
+        oneToThreeMonths: Array<{
+          id: string
+          action: string
+          tiedRequirement: string
+        }>
+        threeToTwelveMonths: Array<{
+          id: string
+          action: string
+          tiedRequirement: string
+        }>
+        fastestPathToApply: string[]
+        strongCandidatePath: string[]
+      }
+    }
+    marketEvidence: {
+      enabled: boolean
+      used: boolean
+      baselineOnly: boolean
+      usedCache: boolean
+      postingsCount: number
+      fetchedAt: string | null
+      query: { role: string; location: string; country: string } | null
+      sourcePriority: Array<'user_posting' | 'adzuna' | 'onet'>
     }
     bottleneck: {
       title: string
@@ -241,7 +332,7 @@ const MIN_DISCOVERY_SKILL_OVERLAP = 0.06
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')
     .toLowerCase()
-    .replace(/[’']/g, "'")
+    .replace(/[\u2019']/g, "'")
     .replace(/\bc\+\+\b/g, ' c plus plus ')
     .replace(/\bc#\b/g, ' c sharp ')
     .replace(/\bf#\b/g, ' f sharp ')
@@ -415,18 +506,63 @@ function difficulty(score: number): 'easy' | 'moderate' | 'hard' {
   return 'hard'
 }
 
-function phaseRoadmap(bucket: TimelineBucket, roleTitle: string, primaryGap: string, secondaryGap: string) {
+function phaseRoadmap(options: {
+  bucket: TimelineBucket
+  roleTitle: string
+  primaryGap: string
+  secondaryGap: string
+  regulated: boolean
+  primaryCredential: string | null
+  apprenticeshipHours: number | null
+  examRequired: boolean | null
+  topEmployerSignal: string | null
+}) {
+  const {
+    bucket,
+    roleTitle,
+    primaryGap,
+    secondaryGap,
+    regulated,
+    primaryCredential,
+    apprenticeshipHours,
+    examRequired,
+    topEmployerSignal
+  } = options
   const items: CareerPlannerAnalysis['report']['roadmap'] = []
+  const isGatedPath = Boolean(
+    regulated || primaryCredential || apprenticeshipHours || examRequired
+  )
+
   if (bucket === 'immediate') {
-    items.push({
-      id: 'immediate-1',
-      phase: 'immediate',
-      title: 'Apply with a focused shortlist',
-      time_estimate_hours: 8,
-      difficulty: 'easy',
-      why_it_matters: `Early applications validate market response for ${roleTitle}.`,
-      action: 'Submit 10 role-specific applications and track callbacks in a simple tracker artifact.'
-    })
+    if (isGatedPath) {
+      const licensingTarget =
+        primaryCredential ??
+        (apprenticeshipHours
+          ? 'the apprenticeship registration path'
+          : examRequired
+            ? 'the required exam path'
+            : 'the required licensing path')
+      items.push({
+        id: 'immediate-1',
+        phase: 'immediate',
+        title: 'Confirm licensing and entry requirements',
+        time_estimate_hours: 6,
+        difficulty: 'medium',
+        why_it_matters: `${roleTitle} is gated by formal entry requirements in most regions.`,
+        action: `Confirm ${licensingTarget} requirements for your location, start registration, and save proof of progress in your transition tracker.`
+      })
+    } else {
+      items.push({
+        id: 'immediate-1',
+        phase: 'immediate',
+        title: 'Apply with a focused shortlist',
+        time_estimate_hours: 8,
+        difficulty: 'easy',
+        why_it_matters: `Early applications validate market response for ${roleTitle}.`,
+        action: 'Submit 10 role-specific applications and track callbacks in a simple tracker artifact.'
+      })
+    }
+
     items.push({
       id: 'immediate-2',
       phase: 'immediate',
@@ -434,10 +570,40 @@ function phaseRoadmap(bucket: TimelineBucket, roleTitle: string, primaryGap: str
       time_estimate_hours: 10,
       difficulty: 'medium',
       why_it_matters: `${primaryGap} appears in top-matched role requirements.`,
-      action: `Complete one practical task proving ${primaryGap}, then publish a shareable proof-of-work artifact.`
+      action: `Complete one practical task proving ${primaryGap} for ${roleTitle}, then publish a shareable proof-of-work artifact with measurable outcomes.`
     })
+
+    if (topEmployerSignal) {
+      items.push({
+        id: 'immediate-3',
+        phase: 'immediate',
+        title: 'Prove one hiring signal',
+        time_estimate_hours: 6,
+        difficulty: 'medium',
+        why_it_matters: 'Targeted evidence improves shortlist and interview conversion.',
+        action: `Create one project, case note, or work sample that directly demonstrates: ${topEmployerSignal}.`
+      })
+    }
+
     return items
   }
+
+  if (isGatedPath) {
+    const apprenticeshipNote = apprenticeshipHours
+      ? ` and log progress against ${apprenticeshipHours.toLocaleString()} apprenticeship hours`
+      : ''
+    const examNote = examRequired ? ' and schedule your required exam checkpoint' : ''
+    items.push({
+      id: 'phase-gate',
+      phase: bucket,
+      title: 'Complete credential checkpoint',
+      time_estimate_hours: bucket === '1_3_months' ? 14 : bucket === '3_6_months' ? 24 : 40,
+      difficulty: 'hard',
+      why_it_matters: 'Entry into this role depends on formal credential progress.',
+      action: `Advance ${primaryCredential ?? 'the required licensing/certification path'}${apprenticeshipNote}${examNote}.`
+    })
+  }
+
   items.push({
     id: 'phase-1',
     phase: bucket,
@@ -445,7 +611,7 @@ function phaseRoadmap(bucket: TimelineBucket, roleTitle: string, primaryGap: str
     time_estimate_hours: bucket === '1_3_months' ? 18 : bucket === '3_6_months' ? 30 : 60,
     difficulty: bucket === '1_3_months' ? 'medium' : 'hard',
     why_it_matters: 'Hiring confidence increases when artifacts prove skill transfer.',
-    action: `Create two portfolio artifacts demonstrating ${primaryGap} in real-world scenarios.`
+    action: `Create two portfolio artifacts demonstrating ${primaryGap} in real-world ${roleTitle} scenarios.`
   })
   items.push({
     id: 'phase-2',
@@ -578,6 +744,203 @@ function pickEmployerSignals(options: {
   )
 }
 
+function sourcePriority(source: RequirementEvidence['source']) {
+  if (source === 'user_posting') return 3
+  if (source === 'adzuna') return 2
+  return 1
+}
+
+function requirementEvidenceLabel(requirement: AggregatedRequirement) {
+  const hasUserPosting = requirement.evidence.some((item) => item.source === 'user_posting')
+  if (hasUserPosting) return 'User posting'
+  const hasMarket = requirement.evidence.some((item) => item.source === 'adzuna')
+  if (hasMarket) return `Employer evidence (Adzuna) • freq ${requirement.frequency}`
+  return 'Baseline (O*NET)'
+}
+
+function toBaselineRequirement(options: {
+  type: RequirementType
+  label: string
+  quote: string
+  frequency?: number
+}) {
+  const taskLabel = toTaskLevelLabel(options.label, options.type)
+  if (!taskLabel) return null
+  return {
+    type: options.type,
+    label: taskLabel,
+    normalizedKey: normalizeText(taskLabel),
+    frequency: Math.max(1, options.frequency ?? 1),
+    evidence: [
+      {
+        source: 'onet' as const,
+        quote: options.quote.trim().slice(0, 220),
+        confidence: 0.62
+      }
+    ]
+  } satisfies AggregatedRequirement
+}
+
+function mergeRequirementsWithPriority(groups: AggregatedRequirement[][]) {
+  const map = new Map<
+    string,
+    AggregatedRequirement & { bestSourcePriority: number; bestSourceLabel: string }
+  >()
+
+  for (const group of groups) {
+    for (const item of group) {
+      const key = `${item.type}:${item.normalizedKey}`
+      const itemBestSource = item.evidence
+        .map((evidence) => sourcePriority(evidence.source))
+        .sort((a, b) => b - a)[0] ?? 0
+      const existing = map.get(key)
+      if (!existing) {
+        map.set(key, {
+          ...item,
+          evidence: [...item.evidence],
+          bestSourcePriority: itemBestSource,
+          bestSourceLabel: item.label
+        })
+        continue
+      }
+
+      existing.frequency += item.frequency
+      if (itemBestSource > existing.bestSourcePriority) {
+        existing.label = item.label
+        existing.bestSourcePriority = itemBestSource
+        existing.bestSourceLabel = item.label
+      }
+
+      for (const evidence of item.evidence) {
+        const keyEvidence = `${evidence.source}:${evidence.quote}:${evidence.postingId ?? ''}`
+        const alreadyIncluded = existing.evidence.some(
+          (entry) =>
+            `${entry.source}:${entry.quote}:${entry.postingId ?? ''}` === keyEvidence
+        )
+        if (!alreadyIncluded && existing.evidence.length < 8) {
+          existing.evidence.push(evidence)
+        }
+      }
+    }
+  }
+
+  return [...map.values()]
+    .map((row) => ({
+      type: row.type,
+      label: row.label,
+      normalizedKey: row.normalizedKey,
+      frequency: row.frequency,
+      evidence: row.evidence
+    }))
+    .sort((left, right) => {
+      const rightPriority = Math.max(...right.evidence.map((item) => sourcePriority(item.source)))
+      const leftPriority = Math.max(...left.evidence.map((item) => sourcePriority(item.source)))
+      if (rightPriority !== leftPriority) return rightPriority - leftPriority
+      if (right.frequency !== left.frequency) return right.frequency - left.frequency
+      return left.label.localeCompare(right.label)
+    })
+}
+
+function inferRequirementGapLevel(options: {
+  requirement: AggregatedRequirement
+  experienceText: string
+  skills: string[]
+  currentRole: string
+}) {
+  const context = normalizeText(
+    `${options.experienceText} ${options.currentRole} ${options.skills.join(' ')}`
+  )
+  const tokens = tokenize(options.requirement.normalizedKey).filter((token) => token.length >= 3)
+  if (tokens.length === 0) return 'missing' as const
+
+  if (options.requirement.type === 'gate') {
+    const hasCredentialSignal =
+      /\b(certif|license|licence|registered|registration|red seal|journey|apprentice|cpr|bls|acls)\b/.test(
+        context
+      )
+    return hasCredentialSignal ? 'partial' : 'missing'
+  }
+
+  let hits = 0
+  for (const token of tokens) {
+    if (context.includes(token)) hits += 1
+  }
+
+  const ratio = hits / tokens.length
+  if (ratio >= 0.65) return 'met' as const
+  if (ratio >= 0.3) return 'partial' as const
+  return 'missing' as const
+}
+
+function requirementHowToGet(requirement: AggregatedRequirement) {
+  if (requirement.type === 'gate') {
+    return 'Review regional regulator requirements, start application, and keep proof of status updates.'
+  }
+  if (requirement.type === 'tool') {
+    return 'Practice with a scoped project that produces an artifact you can show in interviews.'
+  }
+  if (requirement.type === 'experience_signal') {
+    return 'Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.'
+  }
+  if (requirement.type === 'soft_signal') {
+    return 'Document concrete examples with outcomes instead of generic claims.'
+  }
+  return 'Complete one role-specific task and publish measurable proof of the result.'
+}
+
+function requirementEstimatedTime(requirement: AggregatedRequirement) {
+  if (requirement.type === 'gate') return '4-16 weeks (varies by region)'
+  if (requirement.type === 'experience_signal') return '4-12 weeks'
+  if (requirement.type === 'tool') return '1-4 weeks'
+  return '2-8 weeks'
+}
+
+function requirementQuickProject(requirement: AggregatedRequirement) {
+  if (requirement.type === 'tool') {
+    return `Build a mini project that uses ${requirement.label.replace(/^Use\s+/i, '')} and publish a one-page walkthrough.`
+  }
+  return `Create one artifact proving ${requirement.label} with measurable outcomes.`
+}
+
+function findTransferableEvidence(options: {
+  requirement: AggregatedRequirement
+  skills: string[]
+  experienceText: string
+}) {
+  const requirementTokens = tokenize(options.requirement.normalizedKey).filter(
+    (token) => token.length >= 3
+  )
+  if (requirementTokens.length === 0) return null
+
+  for (const skill of options.skills) {
+    const normalizedSkill = normalizeText(skill)
+    if (!normalizedSkill) continue
+    if (requirementTokens.some((token) => normalizedSkill.includes(token))) {
+      return {
+        source: 'skills' as const,
+        label: `Skill already listed: ${skill}`
+      }
+    }
+  }
+
+  const lines = options.experienceText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length >= 12)
+
+  for (const line of lines) {
+    const normalized = normalizeText(line)
+    if (requirementTokens.some((token) => normalized.includes(token))) {
+      return {
+        source: 'experience_text' as const,
+        label: line.length > 120 ? `${line.slice(0, 117)}...` : line
+      }
+    }
+  }
+
+  return null
+}
+
 function isBaselineSoftSkill(skillName: string) {
   return BASELINE_SOFT_SKILLS.has(normalizeText(skillName))
 }
@@ -708,6 +1071,30 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
           examRequired: null,
           regulated: false,
           sources: []
+        },
+        transitionSections: {
+          mandatoryGateRequirements: [],
+          coreHardSkills: [],
+          toolsPlatforms: [],
+          experienceSignals: [],
+          transferableStrengths: [],
+          roadmapPlan: {
+            zeroToTwoWeeks: [],
+            oneToThreeMonths: [],
+            threeToTwelveMonths: [],
+            fastestPathToApply: [],
+            strongCandidatePath: []
+          }
+        },
+        marketEvidence: {
+          enabled: isMarketEvidenceConfigured(),
+          used: false,
+          baselineOnly: true,
+          usedCache: false,
+          postingsCount: 0,
+          fetchedAt: null,
+          query: null,
+          sourcePriority: ['user_posting', 'adzuna', 'onet']
         },
         bottleneck: null,
         dataTransparency: { inputsUsed: ['currentRole', 'experienceText'], datasetsUsed: [], fxRateUsed: null }
@@ -921,9 +1308,114 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   const relevantRanked = ranked.filter((candidate) => isRelevantRecommendation(candidate, input.notSureMode))
   const top = (relevantRanked.length > 0 ? relevantRanked : ranked).slice(0, 6)
   const best = top[0] ?? null
-  const primaryGap = best?.missingSkills[0]?.skillName ?? 'role-specific execution'
-  const secondaryGap = best?.missingSkills[1]?.skillName ?? 'interview storytelling'
-  const roadmap = phaseRoadmap(timeline, best?.title ?? 'target role', primaryGap, secondaryGap)
+  const roleHardGates = pickHardGates({
+    certsLicenses: best?.certsLicenses ?? [],
+    notes: best?.requirementNotes ?? best?.tradeRequirement?.notes ?? null,
+    regulated: Boolean(best?.regulated),
+    tradeRequirement: best?.tradeRequirement ?? null
+  })
+  const roleEmployerSignals = pickEmployerSignals({
+    notes: best?.requirementNotes ?? best?.tradeRequirement?.notes ?? null,
+    topReasons: best?.topReasons ?? [],
+    matchedSkills: best?.matchedSkills ?? [],
+    missingSkills: (best?.missingSkills ?? []).map((item) => ({ skillName: item.skillName }))
+  })
+  const primaryCredential = uniqueStrings(best?.certsLicenses ?? [])[0] ?? null
+  const baselineRequirements = [
+    ...roleHardGates.map((gate) =>
+      toBaselineRequirement({
+        type: 'gate',
+        label: gate,
+        quote: gate,
+        frequency: 1
+      })
+    ),
+    ...(best?.certsLicenses ?? []).map((certification) =>
+      toBaselineRequirement({
+        type: 'gate',
+        label: certification,
+        quote: certification,
+        frequency: 1
+      })
+    ),
+    ...(best?.missingSkills ?? []).map((gap) =>
+      toBaselineRequirement({
+        type: 'hard_skill',
+        label: gap.skillName,
+        quote: `${best?.title ?? 'Target role'} baseline requirement: ${gap.skillName}`,
+        frequency: Math.max(1, Math.round(gap.weight * 10))
+      })
+    ),
+    ...roleEmployerSignals.map((signal) =>
+      toBaselineRequirement({
+        type: 'experience_signal',
+        label: signal,
+        quote: signal,
+        frequency: 1
+      })
+    )
+  ].filter(Boolean) as AggregatedRequirement[]
+
+  const evidenceRoleCandidate = (input.targetRole ?? '').trim()
+  const evidenceRole = evidenceRoleCandidate || (best?.title ?? '')
+  const evidenceLocation = input.location ?? ''
+  const evidenceResult = await ensureEvidenceRequirements({
+    role: evidenceRole,
+    location: evidenceLocation,
+    country: country.toLowerCase(),
+    useMarketEvidence: input.useMarketEvidence !== false,
+    userPostingText: input.userPostingText
+  })
+
+  const allRequirements = mergeRequirementsWithPriority([
+    evidenceResult.userPostingRequirements,
+    evidenceResult.marketRequirements,
+    baselineRequirements
+  ])
+
+  const gateRequirements = allRequirements.filter((item) => item.type === 'gate')
+  const hardSkillRequirements = allRequirements.filter((item) => item.type === 'hard_skill')
+  const toolRequirements = allRequirements.filter((item) => item.type === 'tool')
+  const experienceRequirements = allRequirements.filter(
+    (item) => item.type === 'experience_signal' || item.type === 'soft_signal'
+  )
+
+  const requirementGapRows = allRequirements.map((requirement) => ({
+    requirement,
+    gapLevel: inferRequirementGapLevel({
+      requirement,
+      experienceText: input.experienceText,
+      skills: explicitSkills,
+      currentRole: input.currentRole
+    })
+  }))
+  const missingRequirements = requirementGapRows
+    .filter((item) => item.gapLevel !== 'met')
+    .sort((left, right) => {
+      if (left.requirement.type === 'gate' && right.requirement.type !== 'gate') return -1
+      if (left.requirement.type !== 'gate' && right.requirement.type === 'gate') return 1
+      if (right.requirement.frequency !== left.requirement.frequency) {
+        return right.requirement.frequency - left.requirement.frequency
+      }
+      return left.requirement.label.localeCompare(right.requirement.label)
+    })
+
+  const primaryGap = missingRequirements[0]?.requirement.label ?? best?.missingSkills[0]?.skillName ?? 'role-specific execution'
+  const secondaryGap = missingRequirements[1]?.requirement.label ?? best?.missingSkills[1]?.skillName ?? 'interview storytelling'
+  const roadmap = phaseRoadmap({
+    bucket: timeline,
+    roleTitle: best?.title ?? 'target role',
+    primaryGap,
+    secondaryGap,
+    regulated: Boolean(best?.regulated),
+    primaryCredential,
+    apprenticeshipHours: best?.tradeRequirement?.hours ?? null,
+    examRequired:
+      typeof best?.tradeRequirement?.examRequired === 'boolean'
+        ? best.tradeRequirement.examRequired
+        : null,
+    topEmployerSignal: experienceRequirements[0]?.label ?? roleEmployerSignals[0] ?? null
+  })
   const rawBullets = input.experienceText.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length >= 20).slice(0, 4)
   const metric = extractMetric(input.experienceText)
   const resumeReframes = rawBullets.map((before, index) => ({
@@ -931,32 +1423,161 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     after: `${before.replace(/\.$/, '')}, with ${index === 0 && metric ? `quantified impact (${metric})` : 'clearer measurable outcomes'} aligned to ${best?.title ?? 'target role'}.`
   }))
 
-  const skillGaps = (best?.missingSkills ?? []).slice(0, 7).map((gap, index) => ({
-    skillId: gap.skillId,
-    skillName: gap.skillName,
-    weight: toRounded(gap.weight, 4),
-    difficulty: index <= 1 ? 'easy' : index <= 3 ? 'medium' : 'hard',
-    howToClose: [
-      `${best?.title ?? 'This role'} requires stronger ${gap.skillName}. Build one portfolio-ready example showing measurable results.`,
-      `Show hiring evidence for ${gap.skillName}: one resume bullet + one interview story with metrics.`
-    ]
-  })) as CareerPlannerAnalysis['report']['skillGaps']
+  const skillGaps = missingRequirements
+    .filter((item) => item.requirement.type === 'hard_skill' || item.requirement.type === 'tool')
+    .slice(0, 7)
+    .map((item, index) => ({
+      skillId: item.requirement.normalizedKey,
+      skillName: item.requirement.label,
+      weight: toRounded(Math.max(0.1, item.requirement.frequency / 10), 4),
+      difficulty:
+        item.requirement.type === 'tool'
+          ? 'easy'
+          : index <= 1
+            ? 'easy'
+            : index <= 3
+              ? 'medium'
+              : 'hard',
+      gapLevel: item.gapLevel,
+      frequency: item.requirement.frequency,
+      evidence: item.requirement.evidence,
+      evidenceLabel: requirementEvidenceLabel(item.requirement),
+      howToClose: [
+        `${best?.title ?? 'This role'} hiring evidence repeatedly expects: ${item.requirement.label}.`,
+        `${requirementHowToGet(item.requirement)}${primaryCredential ? ` Include progress on ${primaryCredential}.` : ''}`
+      ]
+    })) as CareerPlannerAnalysis['report']['skillGaps']
+
+  const mandatoryGateRequirements = gateRequirements.slice(0, 8).map((requirement) => {
+    const gap = inferRequirementGapLevel({
+      requirement,
+      experienceText: input.experienceText,
+      skills: explicitSkills,
+      currentRole: input.currentRole
+    })
+    return {
+      id: `gate-${requirement.normalizedKey}`,
+      label: requirement.label,
+      status: (gap === 'met' ? 'met' : 'missing') as 'met' | 'missing',
+      gapLevel: gap,
+      frequency: requirement.frequency,
+      howToGet: requirementHowToGet(requirement),
+      estimatedTime: requirementEstimatedTime(requirement),
+      evidenceLabel: requirementEvidenceLabel(requirement),
+      evidence: requirement.evidence
+    }
+  })
+
+  const coreHardSkills = hardSkillRequirements.slice(0, 10).map((requirement) => {
+    const gap = inferRequirementGapLevel({
+      requirement,
+      experienceText: input.experienceText,
+      skills: explicitSkills,
+      currentRole: input.currentRole
+    })
+    return {
+      id: `hard-${requirement.normalizedKey}`,
+      label: requirement.label,
+      gapLevel: gap,
+      frequency: requirement.frequency,
+      howToLearn: requirementHowToGet(requirement),
+      evidenceLabel: requirementEvidenceLabel(requirement),
+      evidence: requirement.evidence
+    }
+  })
+
+  const toolsPlatforms = toolRequirements.slice(0, 8).map((requirement) => {
+    const gap = inferRequirementGapLevel({
+      requirement,
+      experienceText: input.experienceText,
+      skills: explicitSkills,
+      currentRole: input.currentRole
+    })
+    return {
+      id: `tool-${requirement.normalizedKey}`,
+      label: requirement.label,
+      gapLevel: gap,
+      frequency: requirement.frequency,
+      quickProject: requirementQuickProject(requirement),
+      evidenceLabel: requirementEvidenceLabel(requirement),
+      evidence: requirement.evidence
+    }
+  })
+
+  const experienceSignals = experienceRequirements.slice(0, 8).map((requirement) => {
+    const gap = inferRequirementGapLevel({
+      requirement,
+      experienceText: input.experienceText,
+      skills: explicitSkills,
+      currentRole: input.currentRole
+    })
+    return {
+      id: `exp-${requirement.normalizedKey}`,
+      label: requirement.label,
+      gapLevel: gap,
+      frequency: requirement.frequency,
+      howToBuild: requirementHowToGet(requirement),
+      evidenceLabel: requirementEvidenceLabel(requirement),
+      evidence: requirement.evidence
+    }
+  })
+
+  const transferableStrengths = requirementGapRows
+    .filter((item) => item.gapLevel !== 'missing')
+    .slice(0, 8)
+    .map((item) => {
+      const evidence = findTransferableEvidence({
+        requirement: item.requirement,
+        skills: explicitSkills,
+        experienceText: input.experienceText
+      })
+      if (!evidence) return null
+      return {
+        id: `strength-${item.requirement.normalizedKey}`,
+        requirement: item.requirement.label,
+        label: evidence.label,
+        source: evidence.source
+      }
+    })
+    .filter(
+      (item): item is NonNullable<typeof item> =>
+        Boolean(item)
+    )
+
+  const roadmapMissing = missingRequirements.slice(0, 9)
+  const roadmapPlan = {
+    zeroToTwoWeeks: roadmapMissing.slice(0, 3).map((item, index) => ({
+      id: `r-0-2-${index + 1}`,
+      action: `Start ${item.requirement.label.toLowerCase()} and publish one verification artifact.`,
+      tiedRequirement: item.requirement.label
+    })),
+    oneToThreeMonths: roadmapMissing.slice(3, 6).map((item, index) => ({
+      id: `r-1-3-${index + 1}`,
+      action: `Build repeatable proof for ${item.requirement.label.toLowerCase()} with measurable outcomes.`,
+      tiedRequirement: item.requirement.label
+    })),
+    threeToTwelveMonths: roadmapMissing.slice(6, 9).map((item, index) => ({
+      id: `r-3-12-${index + 1}`,
+      action: `Turn ${item.requirement.label.toLowerCase()} into durable credential or portfolio depth.`,
+      tiedRequirement: item.requirement.label
+    })),
+    fastestPathToApply: roadmapMissing
+      .slice(0, 3)
+      .map((item) => `Close ${item.requirement.label.toLowerCase()} with one interview-ready artifact.`),
+    strongCandidatePath: roadmapMissing
+      .slice(0, 6)
+      .map((item) => `Build depth in ${item.requirement.label.toLowerCase()} and attach measurable proof.`)
+  }
 
   const targetRequirements: CareerPlannerAnalysis['report']['targetRequirements'] = {
     education: best?.requiredEducation ?? null,
-    certifications: uniqueStrings(best?.certsLicenses ?? []).slice(0, 8),
-    hardGates: pickHardGates({
-      certsLicenses: best?.certsLicenses ?? [],
-      notes: best?.requirementNotes ?? best?.tradeRequirement?.notes ?? null,
-      regulated: Boolean(best?.regulated),
-      tradeRequirement: best?.tradeRequirement ?? null
-    }),
-    employerSignals: pickEmployerSignals({
-      notes: best?.requirementNotes ?? best?.tradeRequirement?.notes ?? null,
-      topReasons: best?.topReasons ?? [],
-      matchedSkills: best?.matchedSkills ?? [],
-      missingSkills: (best?.missingSkills ?? []).map((item) => ({ skillName: item.skillName }))
-    }),
+    certifications: uniqueStrings(
+      mandatoryGateRequirements
+        .map((item) => item.label)
+        .filter((item) => /certif|license|licence|registration|clearance|red seal/i.test(item))
+    ).slice(0, 8),
+    hardGates: mandatoryGateRequirements.map((item) => item.label).slice(0, 8),
+    employerSignals: experienceSignals.map((item) => item.label).slice(0, 8),
     apprenticeshipHours: best?.tradeRequirement?.hours ?? null,
     examRequired:
       typeof best?.tradeRequirement?.examRequired === 'boolean'
@@ -978,12 +1599,20 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   }
 
   const bottleneck: CareerPlannerAnalysis['report']['bottleneck'] =
-    best?.missingSkills?.[0]
+    missingRequirements[0]
       ? {
-          title: best.missingSkills[0].skillName,
-          why: `${best.title} hiring requirements weight this skill heavily.`,
-          nextAction: `Complete one scoped project proving ${best.missingSkills[0].skillName} in 7-14 days and add the result to your resume.`,
-          estimatedEffort: best.transitionMonths <= 3 ? '1-3 months' : transitionTime(best.transitionMonths)
+          title: missingRequirements[0].requirement.label,
+          why: `${best?.title ?? 'Target role'} demand signals weight this requirement heavily.`,
+          nextAction: `${
+            primaryCredential
+              ? `Start or verify ${primaryCredential} requirements, then `
+              : ''
+          }complete one scoped project proving ${missingRequirements[0].requirement.label} in 7-14 days and add the result to your resume.`,
+          estimatedEffort: best
+            ? best.transitionMonths <= 3
+              ? '1-3 months'
+              : transitionTime(best.transitionMonths)
+            : transitionTime(timelineMonths(timeline))
         }
       : null
 
@@ -1043,10 +1672,41 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       ...(best?.wage?.source_url ? [{ label: `${best.wage.source} wage source`, url: best.wage.source_url, type: 'official' as const }] : [])
     ].slice(0, 8),
     targetRequirements,
+    transitionSections: {
+      mandatoryGateRequirements,
+      coreHardSkills,
+      toolsPlatforms,
+      experienceSignals,
+      transferableStrengths,
+      roadmapPlan
+    },
+    marketEvidence: {
+      enabled: isMarketEvidenceConfigured(),
+      used:
+        evidenceResult.userPostingRequirements.length > 0 ||
+        evidenceResult.marketRequirements.length > 0,
+      baselineOnly: evidenceResult.baselineOnly,
+      usedCache: evidenceResult.usedCache,
+      postingsCount: evidenceResult.postingsCount,
+      fetchedAt: evidenceResult.fetchedAt,
+      query: evidenceResult.queryId ? evidenceResult.query : null,
+      sourcePriority: ['user_posting', 'adzuna', 'onet']
+    },
     bottleneck,
     dataTransparency: {
       inputsUsed: ['currentRole', 'targetRole', 'experienceText', 'skills', 'location', 'timeline', 'education'],
-      datasetsUsed: ['occupations', 'occupation_skills', 'occupation_requirements', 'occupation_wages', 'trade_requirements'],
+      datasetsUsed: uniqueStrings([
+        'occupations',
+        'occupation_skills',
+        'occupation_requirements',
+        'occupation_wages',
+        'trade_requirements',
+        ...(evidenceResult.marketRequirements.length > 0
+          ? ['job_queries', 'job_postings', 'job_requirements']
+          : []),
+        ...(evidenceResult.userPostingRequirements.length > 0 ? ['user_posting'] : []),
+        ...(evidenceResult.baselineOnly ? ['onet_baseline'] : [])
+      ]),
       fxRateUsed: fxRate ? `USD/CAD ${fxRate.rate} (${fxRate.as_of_date})` : null
     }
   }
@@ -1069,3 +1729,4 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     }
   }
 }
+
