@@ -1,18 +1,23 @@
-const SUPABASE_PUBLIC_KEY_ENV_NAMES = [
-  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY'
-] as const
-
 export function getSupabasePublicUrl() {
-  const value = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? ''
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1).trim()
-  }
+  const value = normalizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL)
   return value
+}
+
+function getSupabasePublicKeyCandidates() {
+  return [
+    {
+      name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+      value: normalizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+    },
+    {
+      name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
+      value: normalizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY)
+    },
+    {
+      name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+      value: normalizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    }
+  ] as const
 }
 
 function normalizeEnvValue(value: string | undefined) {
@@ -28,8 +33,8 @@ function normalizeEnvValue(value: string | undefined) {
 }
 
 export function getSupabasePublicKey() {
-  for (const name of SUPABASE_PUBLIC_KEY_ENV_NAMES) {
-    const value = normalizeEnvValue(process.env[name])
+  for (const candidate of getSupabasePublicKeyCandidates()) {
+    const value = candidate.value
     if (value) {
       return value
     }
@@ -39,13 +44,13 @@ export function getSupabasePublicKey() {
 
 export function getSupabasePublicEnvStatus() {
   const url = getSupabasePublicUrl()
-  for (const name of SUPABASE_PUBLIC_KEY_ENV_NAMES) {
-    const value = normalizeEnvValue(process.env[name])
+  for (const candidate of getSupabasePublicKeyCandidates()) {
+    const value = candidate.value
     if (value) {
       return {
         hasUrl: Boolean(url),
         hasKey: true,
-        keySource: name
+        keySource: candidate.name
       }
     }
   }
