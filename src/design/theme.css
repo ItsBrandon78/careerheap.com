@@ -1,0 +1,22 @@
+:root {
+  --brand-primary: #245dff;
+  --brand-secondary: #0ea5a4;
+  --neutral-dark: #0a1324;
+  --neutral-mid: #41516b;
+  --neutral-light: #f8faff;
+  --background-light: #f8faff;
+  --background-dark: #0a1324;
+  --surface: #ffffff;
+  --button-primary: #245dff;
+  --button-primary-hover: #1e4ed9;
+  --border-default: #d9e2f0;
+  --focus-ring: #7ea0ff;
+}
+
+.theme-dark {
+  --neutral-light: #eaf0ff;
+  --background-light: #0a1324;
+  --surface: #111f39;
+  --border-default: #1a2a48;
+}
+

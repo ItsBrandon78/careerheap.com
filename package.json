@@ -12,6 +12,7 @@
     "preflight:planner": "node scripts/planner-preflight.mjs",
     "seed:fx-rates": "node scripts/seed-fx-rates.mjs",
     "smoke:career-map": "node scripts/smoke-career-map.mjs",
+    "brand:icons": "node scripts/generate-brand-icons.mjs",
     "lighthouse:local": "node scripts/lighthouse-local.mjs",
     "studio": "node scripts/sanity-runner.mjs dev",
     "studio:deploy": "node scripts/sanity-runner.mjs deploy"

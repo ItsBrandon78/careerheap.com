@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { ToolGlyph } from './Icons'
+import BrandLogo from './BrandLogo'
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
@@ -10,12 +10,7 @@ export const Footer: React.FC = () => {
       <div className="mx-auto flex w-full max-w-wide flex-col gap-10">
         <div className="flex flex-col justify-between gap-10 lg:flex-row">
           <div className="max-w-[280px] space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-accent text-text-on-dark">
-                <ToolGlyph kind="resume" className="h-3.5 w-3.5" />
-              </span>
-              <p className="text-base font-bold text-text-on-dark">CareerHeap</p>
-            </div>
+            <BrandLogo variant="white" size="sm" />
             <p className="text-sm leading-[1.6] text-text-on-dark-muted">
               Smarter career tools and insights to help you land your next role.
             </p>
@@ -43,7 +38,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-3 border-t border-bg-dark-surface pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[13px] text-text-on-dark-muted">(c) {currentYear} CareerHeap. All rights reserved.</p>
+          <p className="text-[13px] text-text-on-dark-muted">© {currentYear} CareerHeap. All rights reserved.</p>
           <div className="flex items-center gap-4 text-sm text-text-on-dark-muted">
             <span aria-hidden="true">X</span>
             <span aria-hidden="true">in</span>

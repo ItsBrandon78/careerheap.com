@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Button from './Button'
 import Badge from './Badge'
 import { useAuth } from '@/lib/auth/context'
-import { ToolGlyph } from './Icons'
+import BrandLogo from './BrandLogo'
 
 function initialsFromEmail(email?: string | null) {
   if (!email) return 'CH'
@@ -160,14 +160,11 @@ export const Header: React.FC = () => {
   }, [isOpen])
 
   return (
-    <header className="w-full border-b border-border bg-surface">
+    <header className="w-full border-b border-border bg-surface/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-wide items-center justify-between px-4 py-4 md:px-6 lg:px-10">
         <div className="flex items-center gap-4 md:gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-text-on-dark">
-              <ToolGlyph kind="resume" className="h-4 w-4" />
-            </span>
-            <span className="text-lg font-bold text-text-primary">CareerHeap</span>
+          <Link href="/" className="flex items-center gap-2" aria-label="CareerHeap home">
+            <BrandLogo size="sm" />
           </Link>
 
           <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">

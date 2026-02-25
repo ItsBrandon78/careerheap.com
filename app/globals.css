@@ -10,6 +10,7 @@ body {
   @apply bg-bg-primary text-text-primary;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-image: radial-gradient(circle at 20% -10%, color-mix(in srgb, var(--brand-primary) 10%, transparent), transparent 55%);
 }
 
 .skip-link {
@@ -18,8 +19,8 @@ body {
   top: -48px;
   z-index: 100;
   border-radius: 8px;
-  background: #0f172a;
-  color: #ffffff;
+  background: var(--brand-neutral-dark);
+  color: var(--brand-neutral-light);
   padding: 8px 12px;
   font-size: 14px;
   font-weight: 600;
@@ -30,9 +31,26 @@ body {
 }
 
 :root {
+  --brand-primary: #245dff;
+  --brand-secondary: #0ea5a4;
+  --brand-neutral-dark: #0a1324;
+  --brand-neutral-mid: #41516b;
+  --brand-neutral-light: #f8faff;
+  --brand-background-light: #f8faff;
+  --brand-background-dark: #0a1324;
+  --brand-button-primary: #245dff;
+  --brand-button-primary-hover: #1e4ed9;
+  --brand-border: #d9e2f0;
+  --brand-focus-ring: #7ea0ff;
   --a11y-focus-width: 2px;
   --a11y-focus-offset: 2px;
-  --a11y-focus-color: #2563eb;
+  --a11y-focus-color: var(--brand-focus-ring);
+}
+
+html[data-theme='dark'] {
+  --brand-neutral-light: #eaf0ff;
+  --brand-background-light: #0a1324;
+  --brand-border: #1a2a48;
 }
 
 *:focus-visible {

@@ -21,17 +21,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60'
+      'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring/45 disabled:cursor-not-allowed disabled:opacity-60'
 
     const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
       primary:
-        'bg-accent text-text-on-dark shadow-button hover:bg-accent-hover',
+        'bg-accent text-text-on-dark shadow-button hover:bg-accent-hover active:translate-y-px',
       secondary:
-        'bg-primary text-text-on-dark hover:bg-primary-light',
+        'bg-primary text-text-on-dark shadow-card hover:bg-primary-light active:translate-y-px',
       ghost:
         'bg-transparent text-text-secondary hover:bg-bg-secondary hover:text-text-primary',
       outline:
-        'border border-border bg-surface text-text-secondary hover:border-accent hover:text-accent'
+        'border border-border bg-surface text-text-secondary hover:border-accent hover:bg-accent-light hover:text-accent'
     }
 
     const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {

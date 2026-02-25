@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
@@ -45,7 +45,20 @@ export const metadata: Metadata = {
       'Accelerate your career with AI-powered tools for resume analysis, cover letter writing, and interview preparation.',
     images: [`${getSiteBaseUrl()}/og-blog-default.svg`]
   },
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' }
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }]
+  },
+  manifest: '/manifest.webmanifest'
 };
+
+export const viewport: Viewport = {
+  themeColor: '#245DFF'
+}
 
 export default function RootLayout({
   children,
