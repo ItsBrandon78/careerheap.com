@@ -8,16 +8,12 @@ import Button from '@/components/Button'
 import Card from '@/components/Card'
 import ToolCard from '@/components/ToolCard'
 import {
-  BridgePlanPhases,
-  CompatibilityBreakdownAccordion,
   DetectedSectionsChips,
   DropzoneUpload,
   FAQAccordion,
   GapsList,
-  HaveNowCard,
   InputCard,
   LockedPanel,
-  NeedNextCard,
   ParseProgress,
   PrimaryButton,
   ReframeList,
@@ -31,7 +27,6 @@ import {
   SkillsChipsInput,
   SkillsChips,
   Toggle,
-  TransitionOverviewCard,
   ToolHero
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
 import {
@@ -371,9 +366,6 @@ const GAP_LABEL_OVERRIDES: Record<string, string> = {
   writing: 'Clear handoff and documentation notes'
 }
 
-const REQUIRED_GAP_PATTERN =
-  /\b(license|licence|cert|certificate|registration|apprentice|journey|red seal|coq|osha|whmis|csts|first aid|cpr|code|compliance|safety)\b/i
-
 function mapSkillGapLabel(value: string) {
   const key = value.trim().toLowerCase()
   return GAP_LABEL_OVERRIDES[key] ?? value
@@ -423,39 +415,6 @@ function toAutocompleteRegion(value: WorkRegionValue): 'US' | 'CA' | 'either' {
   return 'either'
 }
 
-function timelineLabel(value: TimelineBucketValue) {
-  if (value === 'immediate') return 'Immediate (0-30 days)'
-  if (value === '1-3 months') return '1-3 months'
-  if (value === '3-6 months') return '3-6 months'
-  return '6-12+ months'
-}
-
-function entryFeasibilityLabel(score: number) {
-  if (score >= 70) return 'Entry achievable'
-  if (score >= 45) return 'Possible with focused prep'
-  return 'Long-run transition'
-}
-
-function transitionSummary(options: {
-  currentRole: string
-  targetRole: string
-  matchedSkills: string[]
-  missingSkills: string[]
-}) {
-  const matched = options.matchedSkills.slice(0, 2).join(', ')
-  const missing = options.missingSkills.slice(0, 2).join(', ')
-  if (matched && missing) {
-    return `This is a bigger transition, but achievable with focused prep. Your strengths in ${matched} are transferable; close ${missing} next to move toward ${options.targetRole}.`
-  }
-  if (matched) {
-    return `This transition is realistic with focused execution. Build on ${matched} and follow the bridge plan to move from ${options.currentRole} toward ${options.targetRole}.`
-  }
-  if (missing) {
-    return `This is a stretch but achievable with focused prep. Prioritize ${missing} first, then follow the phased steps to build entry readiness for ${options.targetRole}.`
-  }
-  return `This is a bigger transition that needs structured prep. Use the bridge plan to build evidence and close priority gaps for ${options.targetRole}.`
-}
-
 function dedupeLinks(links: Array<{ label: string; url: string }>) {
   const seen = new Set<string>()
   const output: Array<{ label: string; url: string }> = []
@@ -466,66 +425,6 @@ function dedupeLinks(links: Array<{ label: string; url: string }>) {
     output.push(link)
   }
   return output
-}
-
-type BridgePhaseView = {
-  id: string
-  title: string
-  subtitle: string
-  steps: Array<{ id: string; action: string; estimate?: string; resource?: { label: string; url: string } | null }>
-}
-
-function buildBridgePhases(options: {
-  timeline: TimelineBucketValue
-  roadmap: Array<{
-    id: string
-    title: string
-    action: string
-    why_it_matters: string
-    time_estimate_hours: number
-  }>
-  resources: Array<{ label: string; url: string }>
-}) {
-  const baseByTimeline: Record<TimelineBucketValue, Array<{ id: string; title: string; subtitle: string }>> = {
-    immediate: [
-      { id: 'immediate', title: 'Immediate (0-30): Positioning + outreach + entry steps', subtitle: 'Start with entry actions and proof of readiness.' },
-      { id: 'one-to-three', title: '1-3 months: Foundations + applications + interviews', subtitle: 'Build interview readiness and practical evidence.' },
-      { id: 'three-to-six', title: '3-6 months: Credentialing + portfolio/proof + placement', subtitle: 'Close higher-weight gaps and convert to offers.' }
-    ],
-    '1-3 months': [
-      { id: 'one-to-three', title: '1-3 months: Foundations + applications + interviews', subtitle: 'Build core readiness and tighten positioning.' },
-      { id: 'three-to-six', title: '3-6 months: Credentialing + portfolio/proof + placement', subtitle: 'Turn skill closure into interview conversion.' },
-      { id: 'six-plus', title: '6-12+ months: Formal track + milestones', subtitle: 'Execute longer qualification milestones if needed.' }
-    ],
-    '3-6 months': [
-      { id: 'three-to-six', title: '3-6 months: Credentialing + portfolio/proof + placement', subtitle: 'Focus on high-impact gaps and formal requirements.' },
-      { id: 'six-plus', title: '6-12+ months: Formal track + milestones', subtitle: 'Track certification and placement milestones.' }
-    ],
-    '6-12+ months': [
-      { id: 'six-plus', title: '6-12+ months: Formal training/apprenticeship path + milestones', subtitle: 'Prioritize certification pathway and durable outcomes.' }
-    ]
-  }
-
-  const phaseTemplates = baseByTimeline[options.timeline]
-  const phases: BridgePhaseView[] = phaseTemplates.map((template) => ({
-    ...template,
-    steps: []
-  }))
-
-  options.roadmap.forEach((item, index) => {
-    const phaseIndex = Math.min(index, phases.length - 1)
-    const resource = options.resources[index] ?? null
-    phases[phaseIndex].steps.push({
-      id: item.id,
-      action: item.action || item.title || item.why_it_matters,
-      estimate: Number.isFinite(item.time_estimate_hours) && item.time_estimate_hours > 0
-        ? `${item.time_estimate_hours}h estimate`
-        : undefined,
-      resource
-    })
-  })
-
-  return phases
 }
 
 function usageLabel(
@@ -1131,71 +1030,12 @@ export default function CareerSwitchPlannerPage({
   }
 
   const primaryCareer = plannerReport?.suggestedCareers?.[0] ?? null
-  const transitionMatchedSkills = plannerResult?.strongestAreas ?? []
-  const transitionMissingSkills = (plannerReport?.skillGaps ?? []).map((gap) => gap.skillName)
-  const transitionSummaryText = transitionSummary({
-    currentRole: lastSubmittedSnapshot?.currentRole || currentRoleText || 'Current role',
-    targetRole: lastSubmittedSnapshot?.targetRole || targetRoleText || 'Target role',
-    matchedSkills: transitionMatchedSkills,
-    missingSkills: transitionMissingSkills
-  })
-  const transitionSalaryText = (() => {
-    if (!primaryCareer?.salary?.usd) return 'Salary: Not available for selected region'
-    const usd = primaryCareer.salary.usd
-    const format = (value: number | null) =>
-      typeof value === 'number' ? `$${Math.round(value).toLocaleString()}` : null
-    const low = format(usd.low)
-    const high = format(usd.high)
-    const median = format(usd.median)
-    if (low && high) return `Salary: ${low} - ${high} (USD)`
-    if (median) return `Salary: ~${median} (USD)`
-    return 'Salary: Not available for selected region'
-  })()
-  const transitionNativeSalary = (() => {
-    const native = primaryCareer?.salary?.native
-    if (!native) return null
-    const median =
-      typeof native.median === 'number' ? `$${Math.round(native.median).toLocaleString()}` : 'Not available'
-    return `Native (${native.currency}) median: ${median} | Source: ${native.sourceName} (${native.asOfDate})`
-  })()
-  const timelineForResults = timelineLabel(lastSubmittedSnapshot?.timelineBucket ?? timelineBucket)
-  const transitionNeedNextItems = (() => {
-    const hasCertificationPressure =
-      (plannerReport?.compatibilitySnapshot.breakdown.certification_gap ?? 15) < 10
-    const items = (plannerReport?.skillGaps ?? [])
-      .slice(0, 7)
-      .map((gap) => ({
-        title: mapSkillGapLabel(gap.skillName),
-        why: gap.howToClose[0] ?? 'This gap appears in high-weight requirements for the path.',
-        level: (REQUIRED_GAP_PATTERN.test(gap.skillName) ? 'Required' : 'Recommended') as 'Required' | 'Recommended'
-      }))
-    if (primaryCareer?.regulated) {
-      items.unshift({
-        title: 'Licensing or certification pathway',
-        why: 'Regulated roles require official registration or exam progress for entry and advancement.',
-        level: 'Required'
-      })
-    }
-    if (hasCertificationPressure && !items.some((item) => item.level === 'Required')) {
-      items.unshift({
-        title: 'Certification or licensing evidence',
-        why: 'This path expects certification or licensing signals; add one verified credential to improve feasibility.',
-        level: 'Required'
-      })
-    }
-    return items
-  })()
   const transitionResourceLinks = dedupeLinks([
     ...((primaryCareer?.officialLinks ?? []).filter((link) => link?.url && link?.label)),
     ...((plannerReport?.linksResources ?? [])
       .filter((link) => link.type === 'official' && link.url && link.label)
       .map((link) => ({ label: link.label, url: link.url })))
   ]).slice(0, 8)
-  const transitionBridgePhases = buildBridgePhases({
-    timeline: lastSubmittedSnapshot?.timelineBucket ?? timelineBucket,
-    roadmap: plannerReport?.roadmap ?? [],
-    resources: transitionResourceLinks
-  })
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
@@ -1850,7 +1690,7 @@ export default function CareerSwitchPlannerPage({
                   </div>
                 </Card>
               ) : null}
-              {plannerReport?.targetRequirements ? (
+              {plannerReport?.targetRequirements && !isTransitionMode ? (
                 <Card className="p-5">
                   <h3 className="text-base font-bold text-text-primary">What This Job Requires</h3>
                   {plannerReport.targetRequirements.education ? (
@@ -1915,7 +1755,7 @@ export default function CareerSwitchPlannerPage({
                   ) : null}
                 </Card>
               ) : null}
-              {plannerReport?.bottleneck ? (
+              {plannerReport?.bottleneck && !isTransitionMode ? (
                 <Card className="p-5">
                   <h3 className="text-base font-bold text-text-primary">#1 Bottleneck</h3>
                   <p className="mt-2 text-sm font-semibold text-warning">{plannerReport.bottleneck.title}</p>
@@ -1930,17 +1770,6 @@ export default function CareerSwitchPlannerPage({
               ) : null}
               {isTransitionMode ? (
                 <>
-                  <TransitionOverviewCard
-                    currentRole={lastSubmittedSnapshot?.currentRole || currentRoleText || 'Current role'}
-                    targetRole={lastSubmittedSnapshot?.targetRole || targetRoleText || 'Target role'}
-                    entryFeasibility={entryFeasibilityLabel(plannerReport?.compatibilitySnapshot.score ?? plannerResult.score)}
-                    difficulty={primaryCareer?.difficulty ?? 'moderate'}
-                    timeline={timelineForResults}
-                    salary={transitionSalaryText}
-                    nativeSalary={transitionNativeSalary}
-                    summary={transitionSummaryText}
-                  />
-
                   {skills.length < 3 && uploadState !== 'success' ? (
                     <Card className="p-5">
                       <p className="text-sm text-text-secondary">
@@ -1949,33 +1778,12 @@ export default function CareerSwitchPlannerPage({
                     </Card>
                   ) : null}
 
-                  <HaveNowCard
-                    certifications={resumeStructuredSnapshot.certifications}
-                    matchedSkills={transitionMatchedSkills}
-                  />
-
-                  <NeedNextCard items={transitionNeedNextItems} />
-
-                  <BridgePlanPhases
-                    phases={transitionBridgePhases}
-                    emptyMessage="Add skills or resume to generate a full plan."
-                  />
-
-                  <ResourcesCard
-                    links={transitionResourceLinks}
-                    regulated={Boolean(primaryCareer?.regulated)}
-                  />
-
-                  <CompatibilityBreakdownAccordion
-                    score={plannerReport?.compatibilitySnapshot.score ?? plannerResult.score}
-                    breakdown={plannerReport?.compatibilitySnapshot.breakdown ?? {
-                      skill_overlap: 0,
-                      experience_similarity: 0,
-                      education_alignment: 0,
-                      certification_gap: 0,
-                      timeline_feasibility: 0
-                    }}
-                  />
+                  {transitionResourceLinks.length > 0 ? (
+                    <ResourcesCard
+                      links={transitionResourceLinks}
+                      regulated={Boolean(primaryCareer?.regulated)}
+                    />
+                  ) : null}
 
                   <Card className="p-5">
                     <details>

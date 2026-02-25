@@ -41,7 +41,7 @@ function splitSegments(input: string) {
     .split(/\r?\n|[.;]\s+/)
     .map((segment) =>
       segment
-        .replace(/^[\s\-*•]+/, '')
+        .replace(/^[\s\-*\u2022]+/, '')
         .replace(/\s+/g, ' ')
         .trim()
     )
@@ -330,3 +330,4 @@ export function extractRequirementsFromPostings(
 
   return aggregateRequirements(extracted)
 }
+

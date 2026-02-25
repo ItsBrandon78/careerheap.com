@@ -2,6 +2,12 @@ import type { RequirementType } from '@/lib/requirements/types'
 
 const VAGUE_TERMS = new Set([
   'mechanical',
+  'mechanics',
+  'chemistry',
+  'physics',
+  'science',
+  'mathematics',
+  'math',
   'communication',
   'leadership',
   'teamwork',
@@ -64,14 +70,18 @@ function startsWithVerbPhrase(value: string) {
   )
 }
 
+function hasExperienceSignalPhrase(value: string) {
+  return /\b(\d+\+?\s*(years|yrs|year)|portfolio|project|ship(ped)?|clinical|rotation|managed|certif|license|apprentice)\b/i.test(
+    value
+  )
+}
+
 function expandSingleTokenLabel(token: string, type: RequirementType) {
   const normalized = normalizeRequirementKey(token)
   if (!normalized) return null
-  if (type === 'gate') return `Obtain ${token} certification or licensing proof`
+  if (type === 'gate') return `Obtain ${token}`
   if (type === 'tool') return `Use ${token} ${TOOL_CONTEXT_SUFFIX}`
-  if (type === 'experience_signal') return `Demonstrate measurable ${token} experience in prior work`
-  if (type === 'soft_signal') return `Demonstrate ${token} through documented collaboration outcomes`
-  return `Perform ${token} tasks ${HARD_SKILL_CONTEXT_SUFFIX}`
+  return null
 }
 
 function isSingleToken(value: string) {
@@ -102,11 +112,14 @@ export function toTaskLevelLabel(input: string, type: RequirementType) {
 
   if (startsWithVerbPhrase(stripped)) return stripped
 
+  if (type === 'hard_skill') return null
+  if (type === 'soft_signal') return null
+  if (type === 'experience_signal') {
+    if (!hasExperienceSignalPhrase(stripped)) return null
+    return `Demonstrate ${stripped} with measurable outcomes`
+  }
+
   if (type === 'gate') return `Obtain ${stripped}`
   if (type === 'tool') return `Use ${stripped} ${TOOL_CONTEXT_SUFFIX}`
-  if (type === 'experience_signal') return `Demonstrate ${stripped} with measurable outcomes`
-  if (type === 'soft_signal') {
-    return `Demonstrate ${stripped} during cross-functional execution`
-  }
   return `Perform ${stripped} ${HARD_SKILL_CONTEXT_SUFFIX}`
 }

@@ -754,7 +754,7 @@ function requirementEvidenceLabel(requirement: AggregatedRequirement) {
   const hasUserPosting = requirement.evidence.some((item) => item.source === 'user_posting')
   if (hasUserPosting) return 'User posting'
   const hasMarket = requirement.evidence.some((item) => item.source === 'adzuna')
-  if (hasMarket) return `Employer evidence (Adzuna) • freq ${requirement.frequency}`
+  if (hasMarket) return `Employer evidence (Adzuna) - freq ${requirement.frequency}`
   return 'Baseline (O*NET)'
 }
 
@@ -839,6 +839,86 @@ function mergeRequirementsWithPriority(groups: AggregatedRequirement[][]) {
       if (right.frequency !== left.frequency) return right.frequency - left.frequency
       return left.label.localeCompare(right.label)
     })
+}
+
+const GENERIC_REQUIREMENT_TERMS = new Set([
+  'mechanical',
+  'mechanics',
+  'chemistry',
+  'physics',
+  'science',
+  'math',
+  'mathematics',
+  'communication',
+  'leadership',
+  'teamwork',
+  'skills',
+  'knowledge',
+  'experience'
+])
+
+function hasActionVerb(value: string) {
+  return /\b(build|create|deliver|design|develop|diagnose|document|execute|inspect|install|lead|maintain|manage|operate|optimize|perform|plan|prepare|run|support|test|troubleshoot|use|verify|analyze|coordinate|ship)\b/i.test(
+    value
+  )
+}
+
+function isTemplateRequirementLabel(value: string) {
+  const normalized = normalizeText(value)
+  if (!normalized) return true
+  if (/^perform\s+.+\s+tasks\s+in\s+production\s+scenarios$/.test(normalized)) return true
+  if (/^demonstrate measurable\s+.+\s+experience\s+in\s+prior\s+work$/.test(normalized)) return true
+  if (/^demonstrate\s+.+\s+through\s+documented\s+collaboration\s+outcomes$/.test(normalized)) return true
+  return false
+}
+
+function isActionableRequirement(requirement: AggregatedRequirement) {
+  const normalized = normalizeText(requirement.label)
+  if (!normalized) return false
+  if (isTemplateRequirementLabel(normalized)) return false
+
+  const tokens = tokenize(normalized).filter((token) => token.length >= 2)
+  if (tokens.length < 2) return false
+
+  const genericTokenCount = tokens.filter((token) => GENERIC_REQUIREMENT_TERMS.has(token)).length
+
+  if (requirement.type === 'hard_skill') {
+    if (!hasActionVerb(normalized)) return false
+  }
+
+  if (requirement.type === 'soft_signal') {
+    if (!hasActionVerb(normalized)) return false
+  }
+
+  if (requirement.type === 'experience_signal') {
+    if (
+      !/\b(\d+\+?\s*(years|yrs|year)|portfolio|project|clinical|rotation|managed|shipped|production|outcomes?)\b/i.test(
+        normalized
+      ) &&
+      !hasActionVerb(normalized)
+    ) {
+      return false
+    }
+  }
+
+  if (genericTokenCount >= Math.min(2, tokens.length) && !hasActionVerb(normalized)) return false
+  return true
+}
+
+function filterActionableRequirements(requirements: AggregatedRequirement[]) {
+  return requirements.filter((requirement) => isActionableRequirement(requirement))
+}
+
+function hasNonBaselineEvidence(requirement: AggregatedRequirement) {
+  return requirement.evidence.some((item) => item.source !== 'onet')
+}
+
+function baselineFallbackByMissingType(options: {
+  evidenceRequirements: AggregatedRequirement[]
+  baselineRequirements: AggregatedRequirement[]
+}) {
+  const evidenceTypes = new Set(options.evidenceRequirements.map((item) => item.type))
+  return options.baselineRequirements.filter((item) => !evidenceTypes.has(item.type))
 }
 
 function inferRequirementGapLevel(options: {
@@ -1367,11 +1447,31 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     userPostingText: input.userPostingText
   })
 
+  const evidenceRequirements = filterActionableRequirements(
+    mergeRequirementsWithPriority([
+      evidenceResult.userPostingRequirements,
+      evidenceResult.marketRequirements
+    ])
+  )
+  const filteredBaselineRequirements = filterActionableRequirements(baselineRequirements)
+  const baselineFallbackRequirements = baselineFallbackByMissingType({
+    evidenceRequirements,
+    baselineRequirements: filteredBaselineRequirements
+  })
   const allRequirements = mergeRequirementsWithPriority([
-    evidenceResult.userPostingRequirements,
-    evidenceResult.marketRequirements,
-    baselineRequirements
+    evidenceRequirements,
+    baselineFallbackRequirements
   ])
+  const hasEffectiveAdzunaEvidence = allRequirements.some((item) =>
+    item.evidence.some((evidence) => evidence.source === 'adzuna')
+  )
+  const hasEffectiveUserPostingEvidence = allRequirements.some((item) =>
+    item.evidence.some((evidence) => evidence.source === 'user_posting')
+  )
+  const hasEffectiveNonBaselineEvidence = allRequirements.some((item) =>
+    hasNonBaselineEvidence(item)
+  )
+  const usesBaselineFallback = baselineFallbackRequirements.length > 0
 
   const gateRequirements = allRequirements.filter((item) => item.type === 'gate')
   const hardSkillRequirements = allRequirements.filter((item) => item.type === 'hard_skill')
@@ -1400,8 +1500,12 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       return left.requirement.label.localeCompare(right.requirement.label)
     })
 
-  const primaryGap = missingRequirements[0]?.requirement.label ?? best?.missingSkills[0]?.skillName ?? 'role-specific execution'
-  const secondaryGap = missingRequirements[1]?.requirement.label ?? best?.missingSkills[1]?.skillName ?? 'interview storytelling'
+  const primaryGap =
+    missingRequirements[0]?.requirement.label ??
+    (best?.regulated ? 'licensing requirements' : 'role-specific project evidence')
+  const secondaryGap =
+    missingRequirements[1]?.requirement.label ??
+    'interview-ready proof of measurable outcomes'
   const roadmap = phaseRoadmap({
     bucket: timeline,
     roleTitle: best?.title ?? 'target role',
@@ -1682,14 +1786,15 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     },
     marketEvidence: {
       enabled: isMarketEvidenceConfigured(),
-      used:
-        evidenceResult.userPostingRequirements.length > 0 ||
-        evidenceResult.marketRequirements.length > 0,
-      baselineOnly: evidenceResult.baselineOnly,
-      usedCache: evidenceResult.usedCache,
-      postingsCount: evidenceResult.postingsCount,
-      fetchedAt: evidenceResult.fetchedAt,
-      query: evidenceResult.queryId ? evidenceResult.query : null,
+      used: hasEffectiveNonBaselineEvidence,
+      baselineOnly: !hasEffectiveNonBaselineEvidence,
+      usedCache: hasEffectiveAdzunaEvidence ? evidenceResult.usedCache : false,
+      postingsCount: hasEffectiveAdzunaEvidence ? evidenceResult.postingsCount : 0,
+      fetchedAt: hasEffectiveAdzunaEvidence ? evidenceResult.fetchedAt : null,
+      query:
+        hasEffectiveAdzunaEvidence && evidenceResult.queryId
+          ? evidenceResult.query
+          : null,
       sourcePriority: ['user_posting', 'adzuna', 'onet']
     },
     bottleneck,
@@ -1701,11 +1806,11 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         'occupation_requirements',
         'occupation_wages',
         'trade_requirements',
-        ...(evidenceResult.marketRequirements.length > 0
+        ...(hasEffectiveAdzunaEvidence
           ? ['job_queries', 'job_postings', 'job_requirements']
           : []),
-        ...(evidenceResult.userPostingRequirements.length > 0 ? ['user_posting'] : []),
-        ...(evidenceResult.baselineOnly ? ['onet_baseline'] : [])
+        ...(hasEffectiveUserPostingEvidence ? ['user_posting'] : []),
+        ...(usesBaselineFallback ? ['onet_baseline'] : [])
       ]),
       fxRateUsed: fxRate ? `USD/CAD ${fxRate.rate} (${fxRate.as_of_date})` : null
     }
@@ -1729,4 +1834,5 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     }
   }
 }
+
 
