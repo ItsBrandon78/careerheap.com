@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
+import { getAuthCallbackUrl } from '@/lib/supabase/authRedirect'
 
 type AuthMode = 'magic-link' | 'password'
 
@@ -132,7 +133,7 @@ export default function LoginPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: getAuthCallbackUrl()
         }
       })
 
@@ -154,7 +155,7 @@ export default function LoginPage() {
       const { data, error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthCallbackUrl()
         }
       })
 

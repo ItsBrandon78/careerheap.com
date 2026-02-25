@@ -7,6 +7,7 @@ import Button from '@/components/Button'
 import Badge from '@/components/Badge'
 import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
+import { getAuthCallbackUrl } from '@/lib/supabase/authRedirect'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -26,7 +27,7 @@ export default function SignupPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: getAuthCallbackUrl()
         }
       })
 
@@ -59,7 +60,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthCallbackUrl()
         }
       })
 

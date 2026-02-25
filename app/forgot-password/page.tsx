@@ -7,6 +7,7 @@ import Button from '@/components/Button'
 import Card from '@/components/Card'
 import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
+import { getAuthCallbackUrl } from '@/lib/supabase/authRedirect'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -24,7 +25,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
+      const redirectTo = getAuthCallbackUrl({ next: '/reset-password' })
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo
       })
