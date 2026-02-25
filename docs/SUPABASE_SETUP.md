@@ -13,15 +13,15 @@
 
 Once project is ready, go to **Settings > API**:
 
-- Copy **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-- Copy **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Copy **service_role secret** → `SUPABASE_SERVICE_ROLE_KEY`
+- Copy **Project URL** -> `NEXT_PUBLIC_SUPABASE_URL`
+- Copy **publishable** key -> `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- Copy **secret** key -> `SUPABASE_SECRET_KEY`
 
 Add these to `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
 ## Step 3: Run SQL Migrations
@@ -102,3 +102,4 @@ GET /api/dev/planner-health
 
 **`PGRST205: Could not find the table 'public.dataset_sources' in the schema cache`**:
 Run migration `migrations/005_career_map_planner_core.sql` (after `001`-`004`) in Supabase SQL Editor, then rerun `npm run ingest:career-data -- --all --write`.
+

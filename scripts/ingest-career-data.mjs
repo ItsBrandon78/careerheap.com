@@ -1442,12 +1442,15 @@ async function assertCareerSchemaReady(supabase) {
 
 async function writeStoreToSupabase(store) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in environment.')
+  const supabaseAdminKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !supabaseAdminKey) {
+    throw new Error(
+      'Missing NEXT_PUBLIC_SUPABASE_URL or admin key env (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY) in environment.'
+    )
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  const supabase = createClient(supabaseUrl, supabaseAdminKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false

@@ -1,6 +1,5 @@
 const coreRequiredEnv = [
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY'
+  'NEXT_PUBLIC_SUPABASE_URL'
 ] as const
 
 const stripeCheckoutRequiredEnv = [
@@ -27,11 +26,18 @@ function missingVars(vars: readonly string[]) {
 
 export function getMissingCoreEnv() {
   const missing = missingVars(coreRequiredEnv)
+  const hasSupabaseAdminKey = Boolean(
+    process.env.SUPABASE_SECRET_KEY?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  )
   const hasPublicSupabaseKey = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?.trim()
   )
+
+  if (!hasSupabaseAdminKey) {
+    missing.push('SUPABASE_SECRET_KEY (legacy fallback: SUPABASE_SERVICE_ROLE_KEY)')
+  }
 
   if (!hasPublicSupabaseKey) {
     missing.push(

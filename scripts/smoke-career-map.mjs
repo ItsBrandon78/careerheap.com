@@ -157,18 +157,24 @@ async function main() {
 
   const baseUrl = parseBaseUrl()
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !serviceRole || !anonKey) {
-    fail('Missing NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, or SUPABASE_SERVICE_ROLE_KEY.')
+  const adminKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+  const publicKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+  if (!url || !adminKey || !publicKey) {
+    fail(
+      'Missing NEXT_PUBLIC_SUPABASE_URL, public key env (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY), or admin key env (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY).'
+    )
   }
 
   await assertServerReachable(baseUrl)
 
-  const admin = createClient(url, serviceRole, {
+  const admin = createClient(url, adminKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   })
-  const authClient = createClient(url, anonKey, {
+  const authClient = createClient(url, publicKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   })
 

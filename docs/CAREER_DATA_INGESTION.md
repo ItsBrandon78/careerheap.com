@@ -71,7 +71,7 @@ npm run ingest:career-data -- --sources=onet,oasis,jobbank --limit=50 --dry-run
 ## Required Environment Variables (write mode)
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SECRET_KEY` (legacy fallback: `SUPABASE_SERVICE_ROLE_KEY`)
 
 The script auto-loads `.env` and `.env.local` if present.
 

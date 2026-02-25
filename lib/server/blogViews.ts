@@ -6,7 +6,9 @@ interface BlogPostViewRow {
 }
 
 function hasSupabaseServiceEnv() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  const adminKey =
+    process.env.SUPABASE_SECRET_KEY?.trim() ?? process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && adminKey)
 }
 
 export async function incrementBlogPostView(slug: string) {

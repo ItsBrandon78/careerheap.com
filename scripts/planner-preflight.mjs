@@ -72,12 +72,15 @@ async function main() {
   loadEnv('.env.local')
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.')
+  const adminKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!supabaseUrl || !adminKey) {
+    throw new Error(
+      'Missing NEXT_PUBLIC_SUPABASE_URL or admin key env (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY).'
+    )
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  const supabase = createClient(supabaseUrl, adminKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
