@@ -28,6 +28,7 @@ export default function BlogCard({
   coverImageUrl = null
 }: BlogCardProps) {
   const dateMs = Date.parse(date)
+  const publishedAt = Number.isNaN(dateMs) ? date : new Date(dateMs).toISOString()
 
   const post: BlogPostSummary = {
     id: `card-${slug}`,
@@ -39,9 +40,7 @@ export default function BlogCard({
       slug: category.toLowerCase().replace(/\s+/g, '-')
     },
     authorName,
-    publishedAt: Number.isNaN(dateMs)
-      ? new Date().toISOString()
-      : new Date(dateMs).toISOString(),
+    publishedAt,
     readTimeMinutes: parseReadTimeMinutes(readTime),
     coverImage: coverImageUrl
       ? {
