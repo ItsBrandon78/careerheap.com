@@ -28,10 +28,27 @@ type OccupationWageRow = {
   last_updated: string
 }
 
+type SkillRow = {
+  id: string
+  name: string
+  aliases: unknown
+}
+
+type SkillSearchIndexRow = {
+  id: string
+  name: string
+  aliases: string[]
+}
+
 export interface SearchOccupationsOptions {
   query?: string
   region?: 'CA' | 'US'
   wageRegion?: string
+  limit?: number
+}
+
+export interface SearchSkillsOptions {
+  query?: string
   limit?: number
 }
 
@@ -89,8 +106,14 @@ type CachedIndex = {
   rows: OccupationSearchIndexRow[]
 }
 
+type CachedSkillIndex = {
+  createdAt: number
+  rows: SkillSearchIndexRow[]
+}
+
 const SEARCH_INDEX_TTL_MS = 5 * 60 * 1000
 const searchIndexCache = new Map<string, CachedIndex>()
+let skillIndexCache: CachedSkillIndex | null = null
 
 function clampLimit(limit?: number) {
   if (!Number.isFinite(limit)) return DEFAULT_LIMIT
@@ -133,6 +156,36 @@ function toAliases(codes: Record<string, unknown> | null) {
     .filter(Boolean)
 }
 
+function asStringArray(value: unknown) {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return []
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => (typeof item === 'string' ? item.trim() : ''))
+          .filter(Boolean)
+      }
+    } catch {
+      return [trimmed]
+    }
+  }
+
+  return []
+}
+
+function toSkillAliases(aliases: unknown) {
+  return asStringArray(aliases)
+}
+
 function diceCoefficient(left: string, right: string) {
   if (!left || !right) return 0
   if (left === right) return 1
@@ -167,9 +220,9 @@ function tokenOverlapRatio(queryTokens: string[], candidateTokens: string[]) {
   return shared / queryTokens.length
 }
 
-function pickBetterMatch(
-  current: { confidence: number; matchedBy: RoleMatchType } | null,
-  candidate: { confidence: number; matchedBy: RoleMatchType }
+function pickBetterMatch<T extends string>(
+  current: { confidence: number; matchedBy: T } | null,
+  candidate: { confidence: number; matchedBy: T }
 ) {
   if (!current) return candidate
   if (candidate.confidence > current.confidence) return candidate
@@ -442,4 +495,210 @@ export async function searchOccupationsWithWages(options: SearchOccupationsOptio
     bestMatch: resolution.bestMatch,
     items
   } satisfies OccupationSearchResult
+}
+
+export type SkillMatchType =
+  | 'name_exact'
+  | 'alias_exact'
+  | 'name_contains'
+  | 'alias_contains'
+  | 'token_overlap'
+  | 'fuzzy'
+  | 'fallback'
+
+export interface SkillSuggestion {
+  skillId: string
+  name: string
+  confidence: number
+  matchedBy: SkillMatchType
+}
+
+export interface SkillSearchResult {
+  query: {
+    q: string
+    limit: number
+  }
+  count: number
+  items: SkillSuggestion[]
+}
+
+function normalizeSkillText(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, ' and ')
+    .replace(/[\u2018\u2019']/g, '')
+    .replace(/\bc\+\+\b/g, ' c plus plus ')
+    .replace(/\bc#\b/g, ' c sharp ')
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+}
+
+function tokenizeSkillText(value: string) {
+  return normalizeSkillText(value)
+    .split(/\s+/)
+    .map((token) => {
+      if (token.length > 4 && token.endsWith('ies')) return `${token.slice(0, -3)}y`
+      if (token.length > 3 && token.endsWith('s')) return token.slice(0, -1)
+      return token
+    })
+    .filter(Boolean)
+}
+
+function compactSkillText(value: string) {
+  return normalizeSkillText(value).replace(/\s+/g, '')
+}
+
+function scoreSkillCandidate(query: string, row: SkillSearchIndexRow) {
+  const normalizedQuery = normalizeSkillText(query)
+  if (!normalizedQuery) {
+    return {
+      confidence: 0,
+      matchedBy: 'fallback' as const
+    }
+  }
+
+  const compactQuery = compactSkillText(query)
+  const queryTokens = tokenizeSkillText(query)
+  const nameNorm = normalizeSkillText(row.name)
+  const nameCompact = compactSkillText(row.name)
+  const nameTokens = tokenizeSkillText(row.name)
+  const aliasNorm = row.aliases.map((alias) => normalizeSkillText(alias))
+
+  let best: { confidence: number; matchedBy: SkillMatchType } | null = null
+
+  if (nameNorm === normalizedQuery) {
+    best = { confidence: 1, matchedBy: 'name_exact' }
+  }
+
+  for (const alias of aliasNorm) {
+    if (alias === normalizedQuery) {
+      best = pickBetterMatch(best, { confidence: 0.98, matchedBy: 'alias_exact' })
+    }
+  }
+
+  if (nameNorm.includes(normalizedQuery) || normalizedQuery.includes(nameNorm)) {
+    best = pickBetterMatch(best, { confidence: 0.9, matchedBy: 'name_contains' })
+  }
+
+  for (const alias of aliasNorm) {
+    if (alias.includes(normalizedQuery) || normalizedQuery.includes(alias)) {
+      best = pickBetterMatch(best, { confidence: 0.86, matchedBy: 'alias_contains' })
+    }
+  }
+
+  const nameTokenOverlap = tokenOverlapRatio(queryTokens, nameTokens)
+  if (nameTokenOverlap > 0) {
+    best = pickBetterMatch(best, {
+      confidence: Math.min(0.42 + nameTokenOverlap * 0.46, 0.84),
+      matchedBy: 'token_overlap'
+    })
+  }
+
+  for (const alias of row.aliases) {
+    const aliasTokenOverlap = tokenOverlapRatio(queryTokens, tokenizeSkillText(alias))
+    if (aliasTokenOverlap > 0) {
+      best = pickBetterMatch(best, {
+        confidence: Math.min(0.46 + aliasTokenOverlap * 0.44, 0.88),
+        matchedBy: 'token_overlap'
+      })
+    }
+  }
+
+  const nameFuzzy = diceCoefficient(compactQuery, nameCompact)
+  if (nameFuzzy > 0.35) {
+    best = pickBetterMatch(best, {
+      confidence: Math.min(0.2 + nameFuzzy * 0.58, 0.76),
+      matchedBy: 'fuzzy'
+    })
+  }
+
+  for (const alias of row.aliases) {
+    const aliasFuzzy = diceCoefficient(compactQuery, compactSkillText(alias))
+    if (aliasFuzzy > 0.35) {
+      best = pickBetterMatch(best, {
+        confidence: Math.min(0.22 + aliasFuzzy * 0.6, 0.8),
+        matchedBy: 'fuzzy'
+      })
+    }
+  }
+
+  if (!best) {
+    return {
+      confidence: 0,
+      matchedBy: 'fallback' as const
+    }
+  }
+
+  return best
+}
+
+async function getSkillSearchIndex() {
+  if (skillIndexCache && Date.now() - skillIndexCache.createdAt < SEARCH_INDEX_TTL_MS) {
+    return skillIndexCache.rows
+  }
+
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('skills')
+    .select('id,name,aliases')
+    .order('name', { ascending: true })
+    .limit(4_000)
+
+  if (error) {
+    throw error
+  }
+
+  const rows = ((data ?? []) as SkillRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    aliases: toSkillAliases(row.aliases)
+  }))
+
+  skillIndexCache = {
+    createdAt: Date.now(),
+    rows
+  }
+
+  return rows
+}
+
+export async function searchSkills(options: SearchSkillsOptions): Promise<SkillSearchResult> {
+  const query = (options.query ?? '').trim()
+  const limit = clampLimit(options.limit)
+  const index = await getSkillSearchIndex()
+
+  const scored = index
+    .map((row) => {
+      const match = scoreSkillCandidate(query, row)
+      return {
+        row,
+        confidence: Number(match.confidence.toFixed(3)),
+        matchedBy: match.matchedBy
+      }
+    })
+    .filter((row) => row.confidence > 0)
+    .sort((left, right) => {
+      if (right.confidence !== left.confidence) {
+        return right.confidence - left.confidence
+      }
+      return left.row.name.localeCompare(right.row.name)
+    })
+    .slice(0, limit)
+
+  const items: SkillSuggestion[] = scored.map((item) => ({
+    skillId: item.row.id,
+    name: item.row.name,
+    confidence: item.confidence,
+    matchedBy: item.matchedBy
+  }))
+
+  return {
+    query: {
+      q: query,
+      limit
+    },
+    count: items.length,
+    items
+  }
 }

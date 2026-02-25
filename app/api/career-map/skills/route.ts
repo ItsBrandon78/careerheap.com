@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchOccupationsWithWages } from '@/lib/server/careerData'
+import { searchSkills } from '@/lib/server/careerData'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 
 export const dynamic = 'force-dynamic'
-
-function parseRegion(value: string | null): 'CA' | 'US' | undefined {
-  if (!value) return undefined
-  const normalized = value.trim().toUpperCase()
-  if (normalized === 'CA' || normalized === 'US') {
-    return normalized
-  }
-  return undefined
-}
 
 function parseLimit(value: string | null) {
   if (!value) return undefined
@@ -23,16 +14,16 @@ function parseLimit(value: string | null) {
 export async function GET(request: NextRequest) {
   try {
     const rateLimit = consumeRateLimit({
-      namespace: 'occupations-search',
+      namespace: 'skills-search',
       identifier: getClientIp(request),
-      max: 90,
+      max: 120,
       windowMs: 60_000
     })
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
           error: 'RATE_LIMITED',
-          message: 'Too many occupation searches. Please wait and try again.'
+          message: 'Too many skill searches. Please wait and try again.'
         },
         {
           status: 429,
@@ -43,26 +34,21 @@ export async function GET(request: NextRequest) {
 
     const params = request.nextUrl.searchParams
     const q = params.get('q') ?? ''
-    const region = parseRegion(params.get('region'))
-    const wageRegion = params.get('wageRegion') ?? undefined
     const limit = parseLimit(params.get('limit'))
+    const result = await searchSkills({ query: q, limit })
 
-    const result = await searchOccupationsWithWages({
-      query: q,
-      region,
-      wageRegion,
-      limit
+    return NextResponse.json(result, {
+      headers: toRateLimitHeaders(rateLimit)
     })
-
-    return NextResponse.json(result)
   } catch (error) {
-    console.error('Career map occupations query failed:', error)
+    console.error('Career map skills query failed:', error)
     return NextResponse.json(
       {
         error: 'QUERY_FAILED',
-        message: 'Unable to query occupations right now.'
+        message: 'Unable to query skills right now.'
       },
       { status: 500 }
     )
   }
 }
+

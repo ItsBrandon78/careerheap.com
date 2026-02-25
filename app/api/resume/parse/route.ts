@@ -13,6 +13,7 @@ import {
   ResumeParseError
 } from '@/lib/server/resumeParseCore.mjs'
 import { hasDomMatrixAvailable, isBinaryAvailable } from '@/lib/server/ocrRuntime'
+import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import { extractStructuredResumeData } from '@/lib/server/resumeStructuredExtract'
 
 export const runtime = 'nodejs'
@@ -348,6 +349,34 @@ function logParseMeta(data: { source: 'docx' | 'pdf' | 'pdf-ocr'; textLength: nu
 
 export async function POST(req: Request) {
   try {
+    const rateLimit = consumeRateLimit({
+      namespace: 'resume-parse',
+      identifier: getClientIp(req),
+      max: 8,
+      windowMs: 60_000
+    })
+
+    if (!rateLimit.allowed) {
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((rateLimit.resetAt - Date.now()) / 1_000)
+      )
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'RATE_LIMITED',
+          message: 'Too many resume parse requests. Try again shortly.'
+        },
+        {
+          status: 429,
+          headers: {
+            ...toRateLimitHeaders(rateLimit),
+            'Retry-After': String(retryAfterSeconds)
+          }
+        }
+      )
+    }
+
     const user = await getAuthenticatedUserFromRequest(req)
     if (!user) {
       return NextResponse.json(
