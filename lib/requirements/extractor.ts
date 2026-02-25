@@ -35,6 +35,45 @@ const ACTION_VERB_PATTERN =
   /\b(build|create|deliver|design|develop|diagnose|document|execute|inspect|install|maintain|manage|operate|optimize|perform|plan|prepare|support|test|troubleshoot|verify|analyze|coordinate|lead)\b/i
 
 const YEARS_PATTERN = /\b(\d+\+?\s*(?:years|yrs?|year))\b/i
+const GATE_GENERIC_PATTERN =
+  /\b(?:valid|current|active|required|mandatory|must have|must hold|needs?|need to hold|ability to obtain|able to obtain|obtain|maintain|possess)?\s*([a-z0-9+.#/&'()\- ]{2,70}?)\s+(certification|certificate|licen[cs]e|registration|clearance)\b/gi
+const GENERIC_GATE_BASE_TOKENS = new Set([
+  'a',
+  'an',
+  'all',
+  'and',
+  'appropriate',
+  'applicable',
+  'industry',
+  'local',
+  'mandatory',
+  'minimum',
+  'provincial',
+  'relevant',
+  'required',
+  'role',
+  'state',
+  'the'
+])
+const NAMED_GATE_PATTERNS: Array<{ pattern: RegExp; name: (match: RegExpMatchArray) => string }> = [
+  { pattern: /\bred seal\b/gi, name: () => 'Red Seal certification' },
+  { pattern: /\bwhmis\b/gi, name: () => 'WHMIS certification' },
+  { pattern: /\bcsts\b/gi, name: () => 'CSTS certification' },
+  { pattern: /\bfirst aid\b/gi, name: () => 'First Aid certification' },
+  { pattern: /\b(?:cpr\/bls|cpr|bls|acls)\b/gi, name: (match) => `${match[0].toUpperCase()} certification` },
+  { pattern: /\bnclex(?:-rn)?\b/gi, name: (match) => `${match[0].toUpperCase()} pass status` },
+  { pattern: /\bsecurity clearance\b/gi, name: () => 'security clearance' },
+  { pattern: /\b(food handler|servsafe|haccp)\b/gi, name: (match) => `${match[1]} certification` },
+  {
+    pattern: /\b(class\s*[a-z0-9]+\s+driver(?:'s)?\s+licen[cs]e|driver(?:'s)?\s+licen[cs]e)\b/gi,
+    name: (match) =>
+      match[1]
+        .replace(/\blicen[cs]e\b/i, 'license')
+        .replace(/\bdriver(?:'s)?\b/i, "driver's")
+  },
+  { pattern: /\b(309a|442a)\b/gi, name: (match) => `${match[1].toUpperCase()} trade certification` },
+  { pattern: /\b(pmp|cissp|cisa|cism|ceh|itil)\b/gi, name: (match) => `${match[1].toUpperCase()} certification` }
+]
 
 function splitSegments(input: string) {
   return input
@@ -80,18 +119,89 @@ function yearsSignalLabel(segment: string) {
   return `Demonstrate ${match[1]} of role-relevant experience`
 }
 
-function gateLabel(segment: string) {
-  if (/red seal/i.test(segment)) return 'Obtain Red Seal certification before applying'
+function normalizeGateSuffix(rawSuffix: string) {
+  if (/certif|certificate/i.test(rawSuffix)) return 'certification'
+  if (/licen[cs]e/i.test(rawSuffix)) return 'license'
+  if (/registration/i.test(rawSuffix)) return 'registration'
+  if (/clearance/i.test(rawSuffix)) return 'clearance'
+  return rawSuffix.toLowerCase()
+}
+
+function gateDisplayName(raw: string) {
+  const normalized = normalizeWhitespace(
+    raw
+      .replace(/^(?:valid|current|active|required|mandatory|must have|must hold|needs?|need to hold|ability to obtain|able to obtain|obtain|maintain|possess)\s+/i, '')
+      .replace(/^[\s:;,.!?-]+|[\s:;,.!?-]+$/g, '')
+  )
+  if (!normalized) return null
+  const tokens = normalizeRequirementKey(normalized).split(' ').filter(Boolean)
+  if (tokens.length === 0 || tokens.length > 8) return null
+  const meaningful = tokens.filter((token) => !GENERIC_GATE_BASE_TOKENS.has(token))
+  if (meaningful.length === 0) return null
+  return normalized
+}
+
+function pushUniqueRequirementLabel(output: string[], label: string) {
+  const trimmed = normalizeWhitespace(label)
+  if (!trimmed) return
+  const key = normalizeRequirementKey(trimmed)
+  if (!key) return
+  const exists = output.some((item) => normalizeRequirementKey(item) === key)
+  if (!exists) output.push(trimmed)
+}
+
+function extractNamedGateRequirements(segment: string) {
+  const output: string[] = []
+
+  for (const entry of NAMED_GATE_PATTERNS) {
+    for (const match of segment.matchAll(entry.pattern)) {
+      const name = gateDisplayName(entry.name(match))
+      if (!name) continue
+      pushUniqueRequirementLabel(output, `Obtain ${name} before applying`)
+    }
+  }
+
+  for (const match of segment.matchAll(GATE_GENERIC_PATTERN)) {
+    const base = gateDisplayName(match[1] ?? '')
+    if (!base) continue
+    const suffix = normalizeGateSuffix(match[2] ?? '')
+    const combinedName = gateDisplayName(`${base} ${suffix}`)
+    if (!combinedName) continue
+    if (/registration/i.test(combinedName)) {
+      pushUniqueRequirementLabel(output, `Complete ${combinedName} before role entry`)
+      continue
+    }
+    if (/clearance/i.test(combinedName)) {
+      pushUniqueRequirementLabel(output, `Obtain ${combinedName} for role eligibility`)
+      continue
+    }
+    pushUniqueRequirementLabel(output, `Obtain ${combinedName} before applying`)
+  }
+
+  return output.slice(0, 3)
+}
+
+function gateLabels(segment: string) {
+  const named = extractNamedGateRequirements(segment)
+  if (named.length > 0) return named
+
   if (/security clearance/i.test(segment)) {
-    return 'Obtain required security clearance for role eligibility'
+    return ['Obtain required security clearance for role eligibility']
   }
-  if (/registration/i.test(segment)) return 'Complete required registration before role entry'
+  if (/registration/i.test(segment)) {
+    return ['Complete required registration before role entry']
+  }
   if (/apprenticeship/i.test(segment)) {
-    return 'Complete apprenticeship registration and hour tracking requirements'
+    return ['Complete apprenticeship registration and hour tracking requirements']
   }
-  if (/license|licence/i.test(segment)) return 'Obtain required license before independent work'
-  if (/certif/i.test(segment)) return 'Obtain required certification with active status'
-  return toTaskLevelLabel(segment, 'gate')
+  if (/license|licence/i.test(segment)) {
+    return ['Obtain required license before independent work']
+  }
+  if (/certif/i.test(segment)) {
+    return ['Obtain required certification with active status']
+  }
+  const fallback = toTaskLevelLabel(segment, 'gate')
+  return fallback ? [fallback] : []
 }
 
 function experienceSignalLabel(segment: string) {
@@ -183,17 +293,19 @@ export function extractRequirementsFromText(sourceText: RequirementSourceText) {
     const classified = classifyRequirement(segment)
 
     if (hasGateSignal(segment) || classified === 'gate') {
-      const requirement = buildRequirement({
-        type: 'gate',
-        rawLabel: gateLabel(segment),
-        source: sourceText.source,
-        quote: segment,
-        postingId: sourceText.postingId,
-        confidence: 0.9
-      })
-      if (requirement && !seen.has(`${requirement.type}:${requirement.normalizedKey}`)) {
-        seen.add(`${requirement.type}:${requirement.normalizedKey}`)
-        output.push(requirement)
+      for (const gate of gateLabels(segment)) {
+        const requirement = buildRequirement({
+          type: 'gate',
+          rawLabel: gate,
+          source: sourceText.source,
+          quote: segment,
+          postingId: sourceText.postingId,
+          confidence: 0.9
+        })
+        if (requirement && !seen.has(`${requirement.type}:${requirement.normalizedKey}`)) {
+          seen.add(`${requirement.type}:${requirement.normalizedKey}`)
+          output.push(requirement)
+        }
       }
     }
 
