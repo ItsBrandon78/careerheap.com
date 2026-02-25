@@ -5,6 +5,7 @@ import path from 'node:path'
 const PROCESS_CHECK_TIMEOUT_MS = 2_000
 const processAvailability = new Map<string, boolean>()
 let tesseractJsAvailable: boolean | null = null
+let nodeCanvasAvailable: boolean | null = null
 
 function runProcessCheck(command: string, args: string[], timeoutMs = PROCESS_CHECK_TIMEOUT_MS) {
   return new Promise<void>((resolve, reject) => {
@@ -96,13 +97,29 @@ export function hasDomMatrixAvailable() {
   return typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix === 'function'
 }
 
+export async function hasNodeCanvasAvailable() {
+  if (nodeCanvasAvailable !== null) {
+    return nodeCanvasAvailable
+  }
+
+  try {
+    await access(path.join(process.cwd(), 'node_modules', '@napi-rs', 'canvas', 'package.json'))
+    nodeCanvasAvailable = true
+  } catch {
+    nodeCanvasAvailable = false
+  }
+
+  return nodeCanvasAvailable
+}
+
 export async function getResumeOcrCapabilities() {
-  const [hasPdftoppm, hasTesseractCli, hasTesseractJs] = await Promise.all([
+  const [hasPdftoppm, hasTesseractCli, hasTesseractJs, hasCanvasModule] = await Promise.all([
     isBinaryAvailable('pdftoppm', ['-v']),
     isBinaryAvailable('tesseract', ['--version']),
-    hasTesseractJsAvailable()
+    hasTesseractJsAvailable(),
+    hasNodeCanvasAvailable()
   ])
-  const hasDomMatrix = hasDomMatrixAvailable()
+  const hasDomMatrix = hasDomMatrixAvailable() || hasCanvasModule
 
   const hasOcrEngine = hasTesseractCli || hasTesseractJs
   const canRenderScannedPdf = hasPdftoppm || hasDomMatrix

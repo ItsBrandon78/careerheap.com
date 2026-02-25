@@ -20,6 +20,7 @@ export const runtime = 'nodejs'
 const OCR_MAX_PAGES = 5
 const OCR_TIMEOUT_MS = 20_000
 let pdfParseWorkerConfigured = false
+let pdfScreenshotPolyfillsReady = false
 
 async function getPdfParseClass() {
   const { PDFParse } = await import('pdf-parse')
@@ -44,6 +45,45 @@ async function getPdfParseClass() {
   }
 
   return PDFParse
+}
+
+async function ensurePdfScreenshotPolyfills() {
+  if (pdfScreenshotPolyfillsReady) {
+    return true
+  }
+
+  if (hasDomMatrixAvailable()) {
+    pdfScreenshotPolyfillsReady = true
+    return true
+  }
+
+  try {
+    const canvasModule = (await import('@napi-rs/canvas')) as {
+      DOMMatrix?: unknown
+      ImageData?: unknown
+      Path2D?: unknown
+    }
+    const runtime = globalThis as {
+      DOMMatrix?: unknown
+      ImageData?: unknown
+      Path2D?: unknown
+    }
+
+    if (typeof runtime.DOMMatrix !== 'function' && typeof canvasModule.DOMMatrix === 'function') {
+      runtime.DOMMatrix = canvasModule.DOMMatrix
+    }
+    if (typeof runtime.ImageData === 'undefined' && canvasModule.ImageData) {
+      runtime.ImageData = canvasModule.ImageData
+    }
+    if (typeof runtime.Path2D === 'undefined' && canvasModule.Path2D) {
+      runtime.Path2D = canvasModule.Path2D
+    }
+  } catch {
+    // Optional runtime dependency may not be installed.
+  }
+
+  pdfScreenshotPolyfillsReady = hasDomMatrixAvailable()
+  return pdfScreenshotPolyfillsReady
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string) {
@@ -229,7 +269,7 @@ async function renderPdfPagesToImagesWithPdfParse(fileBuffer: Buffer, tempDir: s
 
 async function extractPdfOcrText(fileBuffer: Buffer) {
   const hasPdftoppm = await isBinaryAvailable('pdftoppm', ['-v'])
-  const hasDomMatrix = hasDomMatrixAvailable()
+  const hasDomMatrix = hasPdftoppm ? false : await ensurePdfScreenshotPolyfills()
 
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'careerheap-resume-'))
   const pdfPath = path.join(tempDir, 'input.pdf')
@@ -257,7 +297,7 @@ async function extractPdfOcrText(fileBuffer: Buffer) {
       if (!hasDomMatrix) {
         throw new ResumeParseError(
           'PDF_SCANNED_OCR_FAILED',
-          'Scanned PDF OCR is unavailable in this runtime. Upload DOCX or paste your experience.',
+          'Scanned PDF OCR is unavailable in this runtime (missing PDF renderer). Upload DOCX or paste your experience.',
           422
         )
       }

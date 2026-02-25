@@ -17,6 +17,7 @@
     "studio:deploy": "node scripts/sanity-runner.mjs deploy"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.95",
     "@portabletext/react": "^6.0.2",
     "@sanity/client": "^7.15.0",
     "@sanity/icons": "^3.7.4",
