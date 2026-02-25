@@ -5,7 +5,7 @@ import path from 'node:path'
 const PROCESS_CHECK_TIMEOUT_MS = 2_000
 const processAvailability = new Map<string, boolean>()
 let tesseractJsAvailable: boolean | null = null
-let nodeCanvasAvailable: boolean | null = null
+let nodeCanvasDomMatrixAvailable: boolean | null = null
 
 function runProcessCheck(command: string, args: string[], timeoutMs = PROCESS_CHECK_TIMEOUT_MS) {
   return new Promise<void>((resolve, reject) => {
@@ -97,29 +97,29 @@ export function hasDomMatrixAvailable() {
   return typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix === 'function'
 }
 
-export async function hasNodeCanvasAvailable() {
-  if (nodeCanvasAvailable !== null) {
-    return nodeCanvasAvailable
+export async function hasNodeCanvasDomMatrixAvailable() {
+  if (nodeCanvasDomMatrixAvailable !== null) {
+    return nodeCanvasDomMatrixAvailable
   }
 
   try {
-    await access(path.join(process.cwd(), 'node_modules', '@napi-rs', 'canvas', 'package.json'))
-    nodeCanvasAvailable = true
+    const canvasModule = (await import('@napi-rs/canvas')) as { DOMMatrix?: unknown }
+    nodeCanvasDomMatrixAvailable = typeof canvasModule.DOMMatrix === 'function'
   } catch {
-    nodeCanvasAvailable = false
+    nodeCanvasDomMatrixAvailable = false
   }
 
-  return nodeCanvasAvailable
+  return nodeCanvasDomMatrixAvailable
 }
 
 export async function getResumeOcrCapabilities() {
-  const [hasPdftoppm, hasTesseractCli, hasTesseractJs, hasCanvasModule] = await Promise.all([
+  const [hasPdftoppm, hasTesseractCli, hasTesseractJs, hasCanvasDomMatrix] = await Promise.all([
     isBinaryAvailable('pdftoppm', ['-v']),
     isBinaryAvailable('tesseract', ['--version']),
     hasTesseractJsAvailable(),
-    hasNodeCanvasAvailable()
+    hasNodeCanvasDomMatrixAvailable()
   ])
-  const hasDomMatrix = hasDomMatrixAvailable() || hasCanvasModule
+  const hasDomMatrix = hasDomMatrixAvailable() || hasCanvasDomMatrix
 
   const hasOcrEngine = hasTesseractCli || hasTesseractJs
   const canRenderScannedPdf = hasPdftoppm || hasDomMatrix

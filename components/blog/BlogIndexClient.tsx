@@ -94,6 +94,7 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
 
   const featuredPost = filteredPosts[0] || null
   const gridPosts = filteredPosts.slice(1)
+  const isDatasetEmpty = posts.length === 0
 
   return (
     <div className="space-y-10">
@@ -115,22 +116,28 @@ export default function BlogIndexClient({ posts, categories }: BlogIndexClientPr
 
       {filteredPosts.length === 0 ? (
         <div className="rounded-lg border border-border bg-bg-secondary px-6 py-10 text-center">
-          <h3 className="text-xl font-bold text-text-primary">No posts found</h3>
+          <h3 className="text-xl font-bold text-text-primary">
+            {isDatasetEmpty ? 'No posts yet - coming this week' : 'No posts found'}
+          </h3>
           <p className="mt-2 text-sm text-text-secondary">
-            Try another search query or clear your selected filters.
+            {isDatasetEmpty
+              ? "We're publishing practical career guides soon."
+              : 'Try another search query or clear your selected filters.'}
           </p>
-          <div className="mt-5">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm('')
-                setSelectedCategory('all')
-                setSortBy('newest')
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
+          {!isDatasetEmpty ? (
+            <div className="mt-5">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedCategory('all')
+                  setSortBy('newest')
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          ) : null}
           <div className="mt-3">
             <Link
               href="/tools/career-switch-planner"

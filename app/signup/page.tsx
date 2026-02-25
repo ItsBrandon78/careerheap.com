@@ -94,8 +94,8 @@ export default function SignupPage() {
             Save tool history, unlock billing controls, and continue with Google in one click.
           </p>
           <div className="space-y-2 text-sm text-text-secondary">
-            <p>• 3 free lifetime uses are tracked to your account.</p>
-            <p>• Google sign in, magic link, and password login stay in one account.</p>
+            <p>- 3 free lifetime uses are tracked to your account.</p>
+            <p>- Google sign in, magic link, and password login stay in one account.</p>
           </div>
         </div>
 
@@ -206,3 +206,4 @@ export default function SignupPage() {
     </section>
   )
 }
+

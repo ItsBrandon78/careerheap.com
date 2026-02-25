@@ -92,8 +92,8 @@ export default function CheckoutPage() {
 
   if (!user) {
     return (
-      <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-42.5">
-        <div className="mx-auto max-w-140 rounded-lg border border-border bg-surface p-8 text-center shadow-panel">
+      <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-[170px]">
+        <div className="mx-auto max-w-[560px] rounded-lg border border-border bg-surface p-8 text-center shadow-panel">
           <h1 className="text-3xl font-bold text-text-primary">Sign In Required</h1>
           <p className="mt-3 text-text-secondary">You need to sign in before starting checkout.</p>
           <Link href="/login" className="mt-6 inline-block">
@@ -106,8 +106,8 @@ export default function CheckoutPage() {
 
   if (plan === 'pro' || plan === 'lifetime') {
     return (
-      <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-42.5">
-        <div className="mx-auto max-w-140 rounded-lg border border-border bg-surface p-8 text-center shadow-panel">
+      <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-[170px]">
+        <div className="mx-auto max-w-[560px] rounded-lg border border-border bg-surface p-8 text-center shadow-panel">
           <h1 className="text-3xl font-bold text-text-primary">Your plan is already active</h1>
           <p className="mt-3 text-text-secondary">
             {plan === 'pro'
@@ -125,23 +125,23 @@ export default function CheckoutPage() {
   const proPrice = cadenceLabel(proCadence)
 
   return (
-    <section className="bg-bg-secondary px-4 py-16 lg:px-42.5">
+    <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
       <div className="mx-auto max-w-content">
         <div className="text-center">
           <p className="text-xs font-semibold tracking-[1.5px] text-accent">CHECKOUT</p>
           <h1 className="mt-3 text-[40px] font-bold text-text-primary">Choose Your Plan</h1>
-          <p className="mx-auto mt-3 max-w-140 text-lg text-text-secondary">
+          <p className="mx-auto mt-3 max-w-[560px] text-lg text-text-secondary">
             Unlock premium guidance with unlimited reports and resume upload.
           </p>
         </div>
 
         {error && (
-          <div className="mx-auto mt-8 max-w-190 rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error">
+          <div className="mx-auto mt-8 max-w-tool rounded-md border border-error/20 bg-error-light px-4 py-3 text-sm text-error">
             {error}
           </div>
         )}
 
-        <div className="mx-auto mt-10 grid max-w-215 gap-6 md:grid-cols-2">
+        <div className="mx-auto mt-10 grid max-w-content gap-6 md:grid-cols-2">
           {products.map((product) => (
             <article
               key={product.id}

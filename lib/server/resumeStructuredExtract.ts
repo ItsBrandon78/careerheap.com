@@ -15,7 +15,7 @@ interface OccupationRow {
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')
     .toLowerCase()
-    .replace(/[’']/g, "'")
+    .replace(/[\u2019']/g, "'")
     .replace(/\bc\+\+\b/g, ' c plus plus ')
     .replace(/\bc#\b/g, ' c sharp ')
     .replace(/\bf#\b/g, ' f sharp ')
@@ -137,7 +137,7 @@ function extractCertifications(lines: string[], text: string) {
   const fromLines = lines.flatMap((line) => {
     if (!CERTIFICATION_LINE_PATTERN.test(line)) return []
     const cleaned = line
-      .replace(/^[-*•]\s*/, '')
+      .replace(/^[-*\u2022]\s*/, '')
       .replace(/^(certifications?|licenses?|licences?)\s*:\s*/i, '')
       .replace(/\b(certified in|certification in|licensed in)\b/gi, '')
       .trim()
@@ -222,11 +222,11 @@ export async function extractStructuredResumeData(input: {
     .filter((line) => line.length > 0)
 
   const bullets = lines
-    .filter((line) => /^[-*•]/.test(line) || (line.length >= 35 && /\b(improved|led|built|managed|reduced|increased)\b/i.test(line)))
-    .map((line) => line.replace(/^[-*•]\s*/, '').trim())
+    .filter((line) => /^[-*\u2022]/.test(line) || (line.length >= 35 && /\b(improved|led|built|managed|reduced|increased)\b/i.test(line)))
+    .map((line) => line.replace(/^[-*\u2022]\s*/, '').trim())
     .slice(0, 12)
 
-  const dateRangePattern = /\b(?:19|20)\d{2}\s*(?:-|to|–)\s*(?:present|current|(?:19|20)\d{2})\b/gi
+  const dateRangePattern = /\b(?:19|20)\d{2}\s*(?:-|to|\u2013)\s*(?:present|current|(?:19|20)\d{2})\b/gi
   const dateRanges = Array.from(new Set((input.text.match(dateRangePattern) ?? []).map((item) => item.trim()))).slice(0, 10)
 
   const titleCandidates = lines
@@ -292,3 +292,4 @@ export async function extractStructuredResumeData(input: {
     }
   }
 }
+

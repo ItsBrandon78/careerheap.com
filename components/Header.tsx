@@ -29,7 +29,7 @@ function PlanBadge() {
   const used = usage?.used ?? 0
   const limit = usage?.limit ?? 3
   const remaining = usage?.usesRemaining ?? Math.max(limit - used, 0)
-  return <Badge>{`Free • ${remaining}/${limit} uses left`}</Badge>
+  return <Badge>{`Free - ${remaining}/${limit} uses left`}</Badge>
 }
 
 function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
@@ -326,3 +326,4 @@ export const Header: React.FC = () => {
 }
 
 export default Header
+

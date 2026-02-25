@@ -40,7 +40,7 @@ function calculateScore(text: string): number {
   }
 
   // Check for bullet points or proper formatting
-  if (text.includes('•') || text.includes('-') || text.match(/^\s*-/m)) {
+  if (text.includes('\u2022') || text.includes('-') || text.match(/^\s*-/m)) {
     score += 5;
   }
 
@@ -177,3 +177,4 @@ export async function analyzeResume(resumeText: string): Promise<ResumeAnalysis>
           ],
   };
 }
+

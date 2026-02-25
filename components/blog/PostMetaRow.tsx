@@ -21,12 +21,13 @@ export default function PostMetaRow({
       {showAuthor ? (
         <>
           <span className="font-medium text-text-secondary">{authorName}</span>
-          <span aria-hidden="true">•</span>
+          <span aria-hidden="true">&bull;</span>
         </>
       ) : null}
       <time dateTime={publishedAt}>{formatPublishedDate(publishedAt)}</time>
-      <span aria-hidden="true">•</span>
+      <span aria-hidden="true">&bull;</span>
       <span>{toReadTimeLabel(readTimeMinutes)}</span>
     </div>
   )
 }
+

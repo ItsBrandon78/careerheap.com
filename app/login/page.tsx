@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
@@ -119,9 +119,31 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [safeNextPath, setSafeNextPath] = useState('/tools')
   const [authMode, setAuthMode] = useState<AuthMode>('magic-link')
   const router = useRouter()
   const statusMessageId = 'login-status-message'
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const nextParam = params.get('next')
+    if (nextParam && nextParam.startsWith('/')) {
+      setSafeNextPath(nextParam)
+    }
+
+    const authError = params.get('auth_error')
+    if (!authError) return
+
+    if (authError === 'oauth_cancelled') {
+      setError('Google sign-in was cancelled. Try again or use magic link/password.')
+      return
+    }
+    if (authError === 'callback_exchange_failed') {
+      setError('Google sign-in could not be completed. Please try again.')
+      return
+    }
+    setError('Sign-in could not be completed. Please try again.')
+  }, [])
 
   const handleGoogleSignIn = async () => {
     setError('')
@@ -133,7 +155,7 @@ export default function LoginPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: getAuthCallbackUrl()
+          redirectTo: getAuthCallbackUrl({ next: safeNextPath })
         }
       })
 
@@ -155,14 +177,14 @@ export default function LoginPage() {
       const { data, error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: getAuthCallbackUrl()
+          emailRedirectTo: getAuthCallbackUrl({ next: safeNextPath })
         }
       })
 
       if (signInError) throw signInError
 
       if (data?.session) {
-        router.push('/')
+        router.push(safeNextPath)
         return
       }
 
@@ -204,7 +226,7 @@ export default function LoginPage() {
       }
 
       clearFailedPasswordAttempts(email)
-      router.push('/')
+      router.push(safeNextPath)
     } catch {
       setError('Invalid email or password.')
     } finally {

@@ -242,6 +242,8 @@ interface SkillsChipsInputProps {
   suggestions: string[]
   placeholder: string
   helperText?: string
+  suggestionEndpoint?: string
+  remoteLimit?: number
   onChange: (skills: string[]) => void
 }
 
@@ -252,16 +254,21 @@ export function SkillsChipsInput({
   suggestions,
   placeholder,
   helperText,
+  suggestionEndpoint,
+  remoteLimit = 8,
   onChange
 }: SkillsChipsInputProps) {
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+  const [remoteSuggestions, setRemoteSuggestions] = useState<string[]>([])
+  const [isRemoteLoading, setIsRemoteLoading] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const normalizedSkills = useMemo(() => new Set(skills.map((skill) => skill.toLowerCase())), [skills])
   const normalizedQuery = query.trim().toLowerCase()
+  const shouldSearchRemote = Boolean(suggestionEndpoint && normalizedQuery.length >= 2)
 
-  const filteredSuggestions = useMemo(
+  const localSuggestions = useMemo(
     () =>
       suggestions
         .filter((skill) => {
@@ -272,6 +279,75 @@ export function SkillsChipsInput({
         .slice(0, 6),
     [normalizedQuery, normalizedSkills, suggestions]
   )
+
+  useEffect(() => {
+    if (!shouldSearchRemote || !suggestionEndpoint) {
+      return
+    }
+
+    const controller = new AbortController()
+    const searchParams = new URLSearchParams({
+      q: normalizedQuery,
+      limit: String(remoteLimit)
+    })
+
+    void fetch(`${suggestionEndpoint}?${searchParams.toString()}`, {
+      signal: controller.signal,
+      cache: 'no-store'
+    })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as
+          | {
+              items?: Array<{
+                name?: string
+              }>
+            }
+          | null
+
+        if (!response.ok || !Array.isArray(data?.items)) {
+          setRemoteSuggestions([])
+          return
+        }
+
+        const next = data.items
+          .map((item) => (typeof item.name === 'string' ? item.name.trim() : ''))
+          .filter((item) => item.length > 0)
+
+        setRemoteSuggestions(next)
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setRemoteSuggestions([])
+      })
+      .finally(() => {
+        setIsRemoteLoading(false)
+      })
+
+    return () => {
+      controller.abort()
+    }
+  }, [normalizedQuery, remoteLimit, shouldSearchRemote, suggestionEndpoint])
+
+  const filteredSuggestions = useMemo(() => {
+    const merged = shouldSearchRemote
+      ? [...localSuggestions, ...remoteSuggestions]
+      : [...localSuggestions]
+    const seen = new Set<string>()
+    const output: string[] = []
+
+    for (const value of merged) {
+      const trimmed = value.trim()
+      if (!trimmed) continue
+      const key = trimmed.toLowerCase()
+      if (normalizedSkills.has(key) || seen.has(key)) continue
+      if (!key.includes(normalizedQuery)) continue
+      seen.add(key)
+      output.push(trimmed)
+      if (output.length >= 8) break
+    }
+
+    return output
+  }, [localSuggestions, remoteSuggestions, normalizedQuery, normalizedSkills, shouldSearchRemote])
 
   const canUseCustom =
     normalizedQuery.length > 1 &&
@@ -336,7 +412,12 @@ export function SkillsChipsInput({
               closeTimerRef.current = setTimeout(() => setIsOpen(false), 120)
             }}
             onChange={(event) => {
-              setQuery(event.target.value)
+              const nextValue = event.target.value
+              setQuery(nextValue)
+              const shouldLoadRemote = Boolean(
+                suggestionEndpoint && nextValue.trim().toLowerCase().length >= 2
+              )
+              setIsRemoteLoading(shouldLoadRemote)
               if (!isOpen) setIsOpen(true)
             }}
             onKeyDown={(event) => {
@@ -367,6 +448,9 @@ export function SkillsChipsInput({
                     </button>
                   </li>
                 ))}
+                {shouldSearchRemote && isRemoteLoading && filteredSuggestions.length === 0 ? (
+                  <li className="px-3 py-2 text-xs text-text-secondary">Searching skills...</li>
+                ) : null}
                 {canUseCustom ? (
                   <li>
                     <button
