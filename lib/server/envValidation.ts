@@ -1,6 +1,5 @@
 const coreRequiredEnv = [
   'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY'
 ] as const
 
@@ -27,7 +26,20 @@ function missingVars(vars: readonly string[]) {
 }
 
 export function getMissingCoreEnv() {
-  return missingVars(coreRequiredEnv)
+  const missing = missingVars(coreRequiredEnv)
+  const hasPublicSupabaseKey = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?.trim()
+  )
+
+  if (!hasPublicSupabaseKey) {
+    missing.push(
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY (or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)'
+    )
+  }
+
+  return missing
 }
 
 export function getMissingStripeEnv() {

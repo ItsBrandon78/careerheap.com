@@ -1,22 +1,18 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { getSupabasePublicKey, getSupabasePublicUrl, isSupabasePublicEnvConfigured } from '@/lib/supabase/publicEnv'
 
 export function isSupabaseConfigured() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-
-  return Boolean(url && anonKey)
+  return isSupabasePublicEnvConfigured()
 }
 
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+  const url = getSupabasePublicUrl()
+  const anonKey = getSupabasePublicKey()
 
   if (!url || !anonKey) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    throw new Error(
+      'Missing NEXT_PUBLIC_SUPABASE_URL and/or public key env (NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)'
+    )
   }
 
   return createBrowserClient(url, anonKey)

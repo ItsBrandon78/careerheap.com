@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { resolveEntitledPlan } from '@/lib/server/billingEntitlements'
+import { isSupabasePublicEnvConfigured } from '@/lib/supabase/publicEnv'
 
 export type PlanType = 'free' | 'pro' | 'lifetime'
 
@@ -38,11 +39,7 @@ function normalizePlan(value: unknown): PlanType {
 }
 
 function hasSupabaseEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-  return Boolean(url && anonKey)
+  return isSupabasePublicEnvConfigured()
 }
 
 export function parsePlanOverride(value: string | null): PlanType | null {
