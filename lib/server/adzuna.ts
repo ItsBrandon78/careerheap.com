@@ -106,7 +106,7 @@ export async function fetchJobs(options: AdzunaFetchOptions): Promise<AdzunaSear
     what: options.role.trim(),
     where: options.location.trim(),
     results_per_page: String(resultsPerPage),
-    content_type: 'application/json'
+    'content-type': 'application/json'
   })
 
   const url = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?${params.toString()}`
@@ -114,7 +114,8 @@ export async function fetchJobs(options: AdzunaFetchOptions): Promise<AdzunaSear
     method: 'GET',
     cache: 'no-store',
     headers: {
-      Accept: 'application/json'
+      Accept: 'application/json',
+      'User-Agent': 'careerheap/1.0 (+https://www.careerheap.com)'
     }
   })
 
