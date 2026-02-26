@@ -64,9 +64,69 @@ export interface EnsureRequirementResult {
 }
 
 const DEFAULT_TTL_HOURS = 72
+const COUNTRY_ALIAS_MAP: Record<string, string> = {
+  ca: 'ca',
+  canada: 'ca',
+  us: 'us',
+  usa: 'us',
+  unitedstates: 'us',
+  gb: 'gb',
+  uk: 'gb',
+  unitedkingdom: 'gb',
+  greatbritain: 'gb',
+  england: 'gb'
+}
+const CANADA_LOCATION_SIGNALS = [
+  'canada',
+  'ontario',
+  'quebec',
+  'british columbia',
+  'alberta',
+  'saskatchewan',
+  'manitoba',
+  'new brunswick',
+  'nova scotia',
+  'newfoundland',
+  'prince edward',
+  'pei',
+  'yukon',
+  'nunavut',
+  'northwest territories',
+  'toronto',
+  'ottawa',
+  'montreal',
+  'vancouver',
+  'calgary',
+  'edmonton',
+  'winnipeg',
+  'hamilton',
+  'kitchener',
+  'waterloo',
+  'mississauga',
+  'brampton',
+  'surrey',
+  'halifax',
+  'regina',
+  'saskatoon',
+  'victoria'
+]
 
 function normalizeLookup(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function normalizeCountryCode(value: string) {
+  const normalized = normalizeLookup(value).replace(/[^a-z]/g, '')
+  if (!normalized) return 'ca'
+  const mapped = COUNTRY_ALIAS_MAP[normalized] ?? normalized.slice(0, 2)
+  return mapped.length === 2 ? mapped : 'ca'
+}
+
+function shouldForceCanadaCountry(location: string, country: string) {
+  if (country === 'ca') return false
+  const normalizedLocation = normalizeLookup(location)
+  if (!normalizedLocation) return false
+  return CANADA_LOCATION_SIGNALS.some((signal) => normalizedLocation.includes(signal))
 }
 
 function ttlMs() {
@@ -254,12 +314,28 @@ async function writeRunRecord(options: {
   })
 }
 
+async function clearRecoveredQueryError(query: JobQueryRow) {
+  if (query.fetch_status === 'success' && !query.error) return query.last_fetched_at
+  const recoveredAt = query.last_fetched_at ?? new Date().toISOString()
+  const admin = createAdminClient()
+  await admin
+    .from('job_queries')
+    .update({
+      fetch_status: 'success',
+      error: null,
+      last_fetched_at: recoveredAt
+    })
+    .eq('id', query.id)
+  return recoveredAt
+}
+
 export async function ensureEvidenceRequirements(
   options: EnsureRequirementOptions
 ): Promise<EnsureRequirementResult> {
   const role = options.role.trim()
   const location = options.location.trim()
-  const country = (options.country ?? process.env.ADZUNA_COUNTRY ?? 'ca').trim().toLowerCase()
+  const requestedCountry = normalizeCountryCode(options.country ?? process.env.ADZUNA_COUNTRY ?? 'ca')
+  const country = shouldForceCanadaCountry(location, requestedCountry) ? 'ca' : requestedCountry
   const useMarketEvidence = options.useMarketEvidence !== false
   const userPostingText = options.userPostingText?.trim() ?? ''
   const userPostingRequirements =
@@ -295,6 +371,8 @@ export async function ensureEvidenceRequirements(
     currentRequirements.length > 0 && (canUseCache || !marketConfigured || !useMarketEvidence)
 
   if (shouldUseStored) {
+    const recoveredFetchedAt =
+      query.fetch_status !== 'success' || query.error ? await clearRecoveredQueryError(query) : null
     return {
       queryId: query.id,
       query: { role: query.role, location: query.location, country: query.country },
@@ -305,7 +383,7 @@ export async function ensureEvidenceRequirements(
       postingsCount: 0,
       llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
-      fetchedAt: query.last_fetched_at
+      fetchedAt: recoveredFetchedAt ?? query.last_fetched_at
     }
   }
 

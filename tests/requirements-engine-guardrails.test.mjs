@@ -107,6 +107,10 @@ test('job requirements cache logic includes TTL freshness and reuse path', () =>
   assert.match(cachingSource, /const canUseCache/)
   assert.match(cachingSource, /usedCache:\s*canUseCache/)
   assert.match(cachingSource, /REQUIREMENTS_TTL_HOURS/)
+  assert.match(cachingSource, /function normalizeCountryCode/)
+  assert.match(cachingSource, /shouldForceCanadaCountry/)
+  assert.match(cachingSource, /clearRecoveredQueryError/)
+  assert.match(cachingSource, /query\.fetch_status !== 'success' \|\| query\.error/)
 })
 
 test('llm normalizer enforces strict schema and fail-closed fallback', () => {
