@@ -86,6 +86,7 @@ export async function POST(request: Request) {
         marketConfigured: isMarketEvidenceConfigured(),
         usedCache: result.usedCache,
         postingsCount: result.postingsCount,
+        llmNormalizedCount: result.llmNormalizedCount,
         fetchedAt: result.fetchedAt,
         baselineOnly: result.baselineOnly,
         counts: {

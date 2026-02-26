@@ -38,9 +38,11 @@ const normalizePath = path.resolve(__dirname, '../lib/requirements/normalize.ts'
 const classifyPath = path.resolve(__dirname, '../lib/requirements/classify.ts')
 const extractorPath = path.resolve(__dirname, '../lib/requirements/extractor.ts')
 const cachingPath = path.resolve(__dirname, '../lib/server/jobRequirements.ts')
+const llmNormalizerPath = path.resolve(__dirname, '../lib/server/requirementsLlmNormalizer.ts')
 
 const extractorSource = readFileSync(extractorPath, 'utf8')
 const cachingSource = readFileSync(cachingPath, 'utf8')
+const llmNormalizerSource = readFileSync(llmNormalizerPath, 'utf8')
 
 test('normalize module rejects vague single-word requirements and expands tool labels', () => {
   const normalizeModule = loadTranspiledTsModule(normalizePath)
@@ -105,4 +107,14 @@ test('job requirements cache logic includes TTL freshness and reuse path', () =>
   assert.match(cachingSource, /const canUseCache/)
   assert.match(cachingSource, /usedCache:\s*canUseCache/)
   assert.match(cachingSource, /REQUIREMENTS_TTL_HOURS/)
+})
+
+test('llm normalizer enforces strict schema and fail-closed fallback', () => {
+  assert.match(llmNormalizerSource, /response_format/)
+  assert.match(llmNormalizerSource, /json_schema/)
+  assert.match(llmNormalizerSource, /strict:\s*true/)
+  assert.match(llmNormalizerSource, /toTaskLevelLabel/)
+  assert.match(llmNormalizerSource, /includesComparableQuote/)
+  assert.match(llmNormalizerSource, /if \(!llmResponse\) return \[\]/)
+  assert.match(cachingSource, /enrichLowConfidenceRequirementsWithLlm/)
 })

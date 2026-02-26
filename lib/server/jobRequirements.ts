@@ -2,15 +2,16 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchJobsPaged, isAdzunaConfigured } from '@/lib/server/adzuna'
 import {
   aggregateRequirements,
-  extractRequirementsFromPostings,
   extractRequirementsFromText
 } from '@/lib/requirements/extractor'
 import type {
   AggregatedRequirement,
+  ExtractedRequirement,
   RequirementEvidence,
   RequirementEvidenceSource,
   RequirementType
 } from '@/lib/requirements/types'
+import { enrichLowConfidenceRequirementsWithLlm } from '@/lib/server/requirementsLlmNormalizer'
 
 interface JobQueryRow {
   id: string
@@ -57,6 +58,7 @@ export interface EnsureRequirementResult {
   usedAdzuna: boolean
   usedCache: boolean
   postingsCount: number
+  llmNormalizedCount: number
   baselineOnly: boolean
   fetchedAt: string | null
 }
@@ -235,6 +237,7 @@ async function writeRunRecord(options: {
   startedAt: string
   postingsCount: number
   requirementsCount: number
+  model: string
   status: 'success' | 'error'
   error?: string
 }) {
@@ -245,7 +248,7 @@ async function writeRunRecord(options: {
     finished_at: new Date().toISOString(),
     postings_count: options.postingsCount,
     requirements_count: options.requirementsCount,
-    model: 'heuristic-v1',
+    model: options.model,
     status: options.status,
     error: options.error ?? null
   })
@@ -278,6 +281,7 @@ export async function ensureEvidenceRequirements(
       usedAdzuna: false,
       usedCache: false,
       postingsCount: 0,
+      llmNormalizedCount: 0,
       baselineOnly: userPostingRequirements.length === 0,
       fetchedAt: null
     }
@@ -299,6 +303,7 @@ export async function ensureEvidenceRequirements(
       usedAdzuna: false,
       usedCache: canUseCache,
       postingsCount: 0,
+      llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
       fetchedAt: query.last_fetched_at
     }
@@ -313,6 +318,7 @@ export async function ensureEvidenceRequirements(
       usedAdzuna: false,
       usedCache: false,
       postingsCount: 0,
+      llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
       fetchedAt: query.last_fetched_at
     }
@@ -358,15 +364,30 @@ export async function ensureEvidenceRequirements(
     }
 
     const postingRows = await getPostingRows(query.id)
-    const extractedMarket = extractRequirementsFromPostings(
-      postingRows
-        .filter((row) => typeof row.description === 'string' && row.description.trim().length > 0)
-        .map((row) => ({
-          postingId: `${row.provider}:${row.provider_job_id}`,
-          description: row.description as string
-        })),
-      'adzuna'
+    const postingInputs = postingRows
+      .filter((row) => typeof row.description === 'string' && row.description.trim().length > 0)
+      .map((row) => ({
+        postingId: `${row.provider}:${row.provider_job_id}`,
+        description: row.description as string
+      }))
+
+    const heuristicExtracted = postingInputs.flatMap((posting) =>
+      extractRequirementsFromText({
+        source: 'adzuna',
+        text: posting.description,
+        postingId: posting.postingId
+      })
     )
+    let llmExtracted: ExtractedRequirement[] = []
+    try {
+      llmExtracted = await enrichLowConfidenceRequirementsWithLlm({
+        postings: postingInputs,
+        heuristicExtracted
+      })
+    } catch {
+      llmExtracted = []
+    }
+    const extractedMarket = aggregateRequirements([...heuristicExtracted, ...llmExtracted])
     const mergedMarket = mergeAggregatedRequirements(extractedMarket)
 
     if (mergedMarket.length > 0) {
@@ -388,6 +409,7 @@ export async function ensureEvidenceRequirements(
       startedAt,
       postingsCount: postingRows.length,
       requirementsCount: mergedMarket.length,
+      model: llmExtracted.length > 0 ? 'heuristic+gpt-v1' : 'heuristic-v1',
       status: 'success'
     })
 
@@ -399,6 +421,7 @@ export async function ensureEvidenceRequirements(
       usedAdzuna: true,
       usedCache: false,
       postingsCount: postingRows.length,
+      llmNormalizedCount: llmExtracted.length,
       baselineOnly:
         mergedMarket.length === 0 &&
         currentRequirements.length === 0 &&
@@ -417,6 +440,7 @@ export async function ensureEvidenceRequirements(
       startedAt,
       postingsCount: 0,
       requirementsCount: 0,
+      model: 'heuristic-v1',
       status: 'error',
       error: message
     })
@@ -429,6 +453,7 @@ export async function ensureEvidenceRequirements(
       usedAdzuna: false,
       usedCache: false,
       postingsCount: 0,
+      llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
       fetchedAt: query.last_fetched_at
     }

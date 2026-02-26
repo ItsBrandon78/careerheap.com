@@ -254,6 +254,7 @@ type PlannerReportPayload = {
     baselineOnly: boolean
     usedCache: boolean
     postingsCount: number
+    llmNormalizedCount: number
     fetchedAt: string | null
     query: { role: string; location: string; country: string } | null
     sourcePriority: Array<'user_posting' | 'adzuna' | 'onet'>
@@ -385,6 +386,22 @@ function gapLevelLabel(level: 'met' | 'partial' | 'missing') {
   if (level === 'met') return 'Met'
   if (level === 'partial') return 'Partial'
   return 'Missing'
+}
+
+function evidenceSourceCount(
+  evidence: Array<{ source: 'adzuna' | 'user_posting' | 'onet'; quote: string; postingId?: string; confidence: number }>
+) {
+  return new Set(evidence.map((item) => item.source)).size
+}
+
+function evidenceConfidenceLabel(
+  evidence: Array<{ source: 'adzuna' | 'user_posting' | 'onet'; quote: string; postingId?: string; confidence: number }>
+) {
+  if (!evidence.length) return null
+  const average =
+    evidence.reduce((sum, item) => sum + (Number.isFinite(item.confidence) ? item.confidence : 0), 0) /
+    evidence.length
+  return `${Math.round(Math.max(0, Math.min(1, average)) * 100)}% confidence`
 }
 
 function mergeUniqueCaseInsensitive(base: string[], incoming: string[]) {
@@ -1036,6 +1053,7 @@ export default function CareerSwitchPlannerPage({
       .filter((link) => link.type === 'official' && link.url && link.label)
       .map((link) => ({ label: link.label, url: link.url })))
   ]).slice(0, 8)
+  const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 3)
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
@@ -1484,6 +1502,22 @@ export default function CareerSwitchPlannerPage({
                     ) : null}
                   </div>
 
+                  {weeklyPriorities.length > 0 ? (
+                    <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        This week (top priorities)
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                        {weeklyPriorities.map((step) => (
+                          <li key={step.id}>
+                            <p>- {step.action}</p>
+                            <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
                   <div className="space-y-3">
                     <h4 className="text-sm font-semibold text-text-primary">
                       1) Mandatory Gate Requirements
@@ -1491,8 +1525,11 @@ export default function CareerSwitchPlannerPage({
                     {plannerReport.transitionSections.mandatoryGateRequirements.length > 0 ? (
                       <div className="space-y-2">
                         {plannerReport.transitionSections.mandatoryGateRequirements
-                          .slice(0, 6)
-                          .map((item) => (
+                          .slice(0, 4)
+                          .map((item) => {
+                            const sourceCount = evidenceSourceCount(item.evidence)
+                            const confidenceLabel = evidenceConfidenceLabel(item.evidence)
+                            return (
                             <div
                               key={item.id}
                               className="rounded-md border border-border-light bg-bg-secondary p-3"
@@ -1507,12 +1544,21 @@ export default function CareerSwitchPlannerPage({
                                 >
                                   {item.evidenceLabel}
                                 </span>
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                                </span>
+                                {confidenceLabel ? (
+                                  <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                    {confidenceLabel}
+                                  </span>
+                                ) : null}
                               </div>
                               <p className="mt-1 text-xs text-text-secondary">
                                 {item.howToGet} Estimated time: {item.estimatedTime}.
                               </p>
                             </div>
-                          ))}
+                            )
+                          })}
                       </div>
                     ) : (
                       <p className="text-sm text-text-secondary">No gate requirements identified.</p>
@@ -1523,7 +1569,10 @@ export default function CareerSwitchPlannerPage({
                     <h4 className="text-sm font-semibold text-text-primary">2) Core Hard Skills</h4>
                     {plannerReport.transitionSections.coreHardSkills.length > 0 ? (
                       <div className="space-y-2">
-                        {plannerReport.transitionSections.coreHardSkills.slice(0, 8).map((item) => (
+                        {plannerReport.transitionSections.coreHardSkills.slice(0, 5).map((item) => {
+                          const sourceCount = evidenceSourceCount(item.evidence)
+                          const confidenceLabel = evidenceConfidenceLabel(item.evidence)
+                          return (
                           <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-semibold text-text-primary">{item.label}</p>
@@ -1535,10 +1584,18 @@ export default function CareerSwitchPlannerPage({
                               >
                                 {item.evidenceLabel}
                               </span>
+                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                              </span>
+                              {confidenceLabel ? (
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {confidenceLabel}
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-1 text-xs text-text-secondary">{item.howToLearn}</p>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     ) : (
                       <p className="text-sm text-text-secondary">No hard-skill signals found.</p>
@@ -1551,7 +1608,10 @@ export default function CareerSwitchPlannerPage({
                     </h4>
                     {plannerReport.transitionSections.toolsPlatforms.length > 0 ? (
                       <div className="space-y-2">
-                        {plannerReport.transitionSections.toolsPlatforms.slice(0, 6).map((item) => (
+                        {plannerReport.transitionSections.toolsPlatforms.slice(0, 4).map((item) => {
+                          const sourceCount = evidenceSourceCount(item.evidence)
+                          const confidenceLabel = evidenceConfidenceLabel(item.evidence)
+                          return (
                           <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-semibold text-text-primary">{item.label}</p>
@@ -1563,10 +1623,18 @@ export default function CareerSwitchPlannerPage({
                               >
                                 {item.evidenceLabel}
                               </span>
+                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                              </span>
+                              {confidenceLabel ? (
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {confidenceLabel}
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-1 text-xs text-text-secondary">{item.quickProject}</p>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     ) : (
                       <p className="text-sm text-text-secondary">No tool signals found.</p>
@@ -1577,7 +1645,10 @@ export default function CareerSwitchPlannerPage({
                     <h4 className="text-sm font-semibold text-text-primary">4) Experience Signals</h4>
                     {plannerReport.transitionSections.experienceSignals.length > 0 ? (
                       <div className="space-y-2">
-                        {plannerReport.transitionSections.experienceSignals.slice(0, 6).map((item) => (
+                        {plannerReport.transitionSections.experienceSignals.slice(0, 4).map((item) => {
+                          const sourceCount = evidenceSourceCount(item.evidence)
+                          const confidenceLabel = evidenceConfidenceLabel(item.evidence)
+                          return (
                           <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="text-sm font-semibold text-text-primary">{item.label}</p>
@@ -1589,10 +1660,18 @@ export default function CareerSwitchPlannerPage({
                               >
                                 {item.evidenceLabel}
                               </span>
+                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                              </span>
+                              {confidenceLabel ? (
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {confidenceLabel}
+                                </span>
+                              ) : null}
                             </div>
                             <p className="mt-1 text-xs text-text-secondary">{item.howToBuild}</p>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     ) : (
                       <p className="text-sm text-text-secondary">No experience signals found.</p>
@@ -1605,7 +1684,7 @@ export default function CareerSwitchPlannerPage({
                     </h4>
                     {plannerReport.transitionSections.transferableStrengths.length > 0 ? (
                       <ul className="space-y-2">
-                        {plannerReport.transitionSections.transferableStrengths.map((item) => (
+                        {plannerReport.transitionSections.transferableStrengths.slice(0, 4).map((item) => (
                           <li
                             key={item.id}
                             className="rounded-md border border-border-light bg-bg-secondary p-3 text-sm text-text-secondary"
@@ -1624,69 +1703,61 @@ export default function CareerSwitchPlannerPage({
 
                   <div className="space-y-3">
                     <h4 className="text-sm font-semibold text-text-primary">6) Roadmap Plan</h4>
-                    <div className="grid gap-3 md:grid-cols-3">
-                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          0-2 weeks
-                        </p>
-                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
-                          {plannerReport.transitionSections.roadmapPlan.zeroToTwoWeeks.map((step) => (
-                            <li key={step.id}>
-                              - {step.action}
-                              <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          1-3 months
-                        </p>
-                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
-                          {plannerReport.transitionSections.roadmapPlan.oneToThreeMonths.map((step) => (
-                            <li key={step.id}>
-                              - {step.action}
-                              <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          3-12 months
-                        </p>
-                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
-                          {plannerReport.transitionSections.roadmapPlan.threeToTwelveMonths.map((step) => (
-                            <li key={step.id}>
-                              - {step.action}
-                              <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Next 1-3 months
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                        {plannerReport.transitionSections.roadmapPlan.oneToThreeMonths.slice(0, 3).map((step) => (
+                          <li key={step.id}>
+                            - {step.action}
+                            <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          Fastest path to apply
-                        </p>
-                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
-                          {plannerReport.transitionSections.roadmapPlan.fastestPathToApply.map((item) => (
-                            <li key={item}>- {item}</li>
-                          ))}
-                        </ul>
+                    <details className="rounded-md border border-border-light bg-bg-secondary p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        View longer-horizon plan
+                      </summary>
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            3-12 months
+                          </p>
+                          <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                            {plannerReport.transitionSections.roadmapPlan.threeToTwelveMonths.slice(0, 3).map((step) => (
+                              <li key={step.id}>
+                                - {step.action}
+                                <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Fastest path to apply
+                            </p>
+                            <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                              {plannerReport.transitionSections.roadmapPlan.fastestPathToApply.slice(0, 4).map((item) => (
+                                <li key={item}>- {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Strong candidate path
+                            </p>
+                            <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                              {plannerReport.transitionSections.roadmapPlan.strongCandidatePath.slice(0, 4).map((item) => (
+                                <li key={item}>- {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
-                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          Strong candidate path
-                        </p>
-                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
-                          {plannerReport.transitionSections.roadmapPlan.strongCandidatePath.map((item) => (
-                            <li key={item}>- {item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                    </details>
                   </div>
                 </Card>
               ) : null}
@@ -1932,7 +2003,7 @@ export default function CareerSwitchPlannerPage({
                       Market evidence:{' '}
                       {plannerReport.marketEvidence.baselineOnly
                         ? 'Baseline only'
-                        : `${plannerReport.marketEvidence.postingsCount} postings analyzed${plannerReport.marketEvidence.usedCache ? ' (cached)' : ''}`}
+                        : `${plannerReport.marketEvidence.postingsCount} postings analyzed${plannerReport.marketEvidence.usedCache ? ' (cached)' : ''}${(plannerReport.marketEvidence.llmNormalizedCount ?? 0) > 0 ? `, ${plannerReport.marketEvidence.llmNormalizedCount} GPT-normalized` : ''}`}
                     </p>
                   ) : null}
                   {wageSourceDateSummary.length > 0 ? (

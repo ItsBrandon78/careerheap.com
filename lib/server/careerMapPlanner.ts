@@ -263,6 +263,7 @@ export interface CareerPlannerAnalysis {
       baselineOnly: boolean
       usedCache: boolean
       postingsCount: number
+      llmNormalizedCount: number
       fetchedAt: string | null
       query: { role: string; location: string; country: string } | null
       sourcePriority: Array<'user_posting' | 'adzuna' | 'onet'>
@@ -1172,6 +1173,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
           baselineOnly: true,
           usedCache: false,
           postingsCount: 0,
+          llmNormalizedCount: 0,
           fetchedAt: null,
           query: null,
           sourcePriority: ['user_posting', 'adzuna', 'onet']
@@ -1790,6 +1792,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       baselineOnly: !hasEffectiveNonBaselineEvidence,
       usedCache: hasEffectiveAdzunaEvidence ? evidenceResult.usedCache : false,
       postingsCount: hasEffectiveAdzunaEvidence ? evidenceResult.postingsCount : 0,
+      llmNormalizedCount: hasEffectiveAdzunaEvidence ? evidenceResult.llmNormalizedCount : 0,
       fetchedAt: hasEffectiveAdzunaEvidence ? evidenceResult.fetchedAt : null,
       query:
         hasEffectiveAdzunaEvidence && evidenceResult.queryId
