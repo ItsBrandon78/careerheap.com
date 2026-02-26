@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import Badge from '@/components/Badge'
@@ -402,6 +402,30 @@ function evidenceConfidenceLabel(
     evidence.reduce((sum, item) => sum + (Number.isFinite(item.confidence) ? item.confidence : 0), 0) /
     evidence.length
   return `${Math.round(Math.max(0, Math.min(1, average)) * 100)}% confidence`
+}
+
+function ReportSection({
+  title,
+  count,
+  defaultOpen = false,
+  children
+}: {
+  title: string
+  count: number
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  return (
+    <details open={defaultOpen} className="rounded-md border border-border-light bg-bg-secondary p-3">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-text-primary">
+        <span>{title}</span>
+        <span className="text-xs font-medium text-text-tertiary">
+          {count} item{count === 1 ? '' : 's'}
+        </span>
+      </summary>
+      <div className="mt-3 space-y-2">{children}</div>
+    </details>
+  )
 }
 
 function mergeUniqueCaseInsensitive(base: string[], incoming: string[]) {
@@ -1053,9 +1077,10 @@ export default function CareerSwitchPlannerPage({
       .filter((link) => link.type === 'official' && link.url && link.label)
       .map((link) => ({ label: link.label, url: link.url })))
   ]).slice(0, 8)
-  const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 3)
+  const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
+  const hasPlannerResults = plannerState === 'results' && Boolean(plannerResult)
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
     .map((dataset) => FRIENDLY_DATASET_NAMES[dataset] ?? dataset.replaceAll('_', ' '))
   const wageSourceDateSummary = Array.from(
@@ -1518,22 +1543,65 @@ export default function CareerSwitchPlannerPage({
                     </div>
                   ) : null}
 
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-text-primary">
-                      1) Mandatory Gate Requirements
-                    </h4>
+                  <ReportSection
+                    title="1) Mandatory Gate Requirements"
+                    count={Math.min(plannerReport.transitionSections.mandatoryGateRequirements.length, 3)}
+                    defaultOpen
+                  >
                     {plannerReport.transitionSections.mandatoryGateRequirements.length > 0 ? (
-                      <div className="space-y-2">
+                      <>
                         {plannerReport.transitionSections.mandatoryGateRequirements
-                          .slice(0, 4)
+                          .slice(0, 3)
                           .map((item) => {
                             const sourceCount = evidenceSourceCount(item.evidence)
                             const confidenceLabel = evidenceConfidenceLabel(item.evidence)
                             return (
-                            <div
-                              key={item.id}
-                              className="rounded-md border border-border-light bg-bg-secondary p-3"
-                            >
+                              <div
+                                key={item.id}
+                                className="rounded-md border border-border-light bg-surface p-3"
+                              >
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-semibold text-text-primary">{item.label}</p>
+                                  <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                    {gapLevelLabel(item.gapLevel)}
+                                  </span>
+                                  <span
+                                    className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                                  >
+                                    {item.evidenceLabel}
+                                  </span>
+                                  <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                    {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                                  </span>
+                                  {confidenceLabel ? (
+                                    <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                      {confidenceLabel}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <p className="mt-1 text-xs text-text-secondary">
+                                  {item.howToGet} Estimated time: {item.estimatedTime}.
+                                </p>
+                              </div>
+                            )
+                          })}
+                      </>
+                    ) : (
+                      <p className="text-sm text-text-secondary">No gate requirements identified.</p>
+                    )}
+                  </ReportSection>
+
+                  <ReportSection
+                    title="2) Core Hard Skills"
+                    count={Math.min(plannerReport.transitionSections.coreHardSkills.length, 3)}
+                  >
+                    {plannerReport.transitionSections.coreHardSkills.length > 0 ? (
+                      <>
+                        {plannerReport.transitionSections.coreHardSkills.slice(0, 3).map((item) => {
+                          const sourceCount = evidenceSourceCount(item.evidence)
+                          const confidenceLabel = evidenceConfidenceLabel(item.evidence)
+                          return (
+                            <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
                               <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-sm font-semibold text-text-primary">{item.label}</p>
                                 <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
@@ -1553,141 +1621,106 @@ export default function CareerSwitchPlannerPage({
                                   </span>
                                 ) : null}
                               </div>
-                              <p className="mt-1 text-xs text-text-secondary">
-                                {item.howToGet} Estimated time: {item.estimatedTime}.
-                              </p>
+                              <p className="mt-1 text-xs text-text-secondary">{item.howToLearn}</p>
                             </div>
-                            )
-                          })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-text-secondary">No gate requirements identified.</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-text-primary">2) Core Hard Skills</h4>
-                    {plannerReport.transitionSections.coreHardSkills.length > 0 ? (
-                      <div className="space-y-2">
-                        {plannerReport.transitionSections.coreHardSkills.slice(0, 5).map((item) => {
-                          const sourceCount = evidenceSourceCount(item.evidence)
-                          const confidenceLabel = evidenceConfidenceLabel(item.evidence)
-                          return (
-                          <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-semibold text-text-primary">{item.label}</p>
-                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                {gapLevelLabel(item.gapLevel)}
-                              </span>
-                              <span
-                                className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
-                              >
-                                {item.evidenceLabel}
-                              </span>
-                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                {sourceCount} source{sourceCount === 1 ? '' : 's'}
-                              </span>
-                              {confidenceLabel ? (
-                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                  {confidenceLabel}
-                                </span>
-                              ) : null}
-                            </div>
-                            <p className="mt-1 text-xs text-text-secondary">{item.howToLearn}</p>
-                          </div>
-                        )})}
-                      </div>
+                          )
+                        })}
+                      </>
                     ) : (
                       <p className="text-sm text-text-secondary">No hard-skill signals found.</p>
                     )}
-                  </div>
+                  </ReportSection>
 
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-text-primary">
-                      3) Tools / Platforms / Equipment
-                    </h4>
+                  <ReportSection
+                    title="3) Tools / Platforms / Equipment"
+                    count={Math.min(plannerReport.transitionSections.toolsPlatforms.length, 3)}
+                  >
                     {plannerReport.transitionSections.toolsPlatforms.length > 0 ? (
-                      <div className="space-y-2">
-                        {plannerReport.transitionSections.toolsPlatforms.slice(0, 4).map((item) => {
+                      <>
+                        {plannerReport.transitionSections.toolsPlatforms.slice(0, 3).map((item) => {
                           const sourceCount = evidenceSourceCount(item.evidence)
                           const confidenceLabel = evidenceConfidenceLabel(item.evidence)
                           return (
-                          <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-semibold text-text-primary">{item.label}</p>
-                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                {gapLevelLabel(item.gapLevel)}
-                              </span>
-                              <span
-                                className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
-                              >
-                                {item.evidenceLabel}
-                              </span>
-                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                {sourceCount} source{sourceCount === 1 ? '' : 's'}
-                              </span>
-                              {confidenceLabel ? (
+                            <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm font-semibold text-text-primary">{item.label}</p>
                                 <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                  {confidenceLabel}
+                                  {gapLevelLabel(item.gapLevel)}
                                 </span>
-                              ) : null}
+                                <span
+                                  className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                                >
+                                  {item.evidenceLabel}
+                                </span>
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                                </span>
+                                {confidenceLabel ? (
+                                  <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                    {confidenceLabel}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="mt-1 text-xs text-text-secondary">{item.quickProject}</p>
                             </div>
-                            <p className="mt-1 text-xs text-text-secondary">{item.quickProject}</p>
-                          </div>
-                        )})}
-                      </div>
+                          )
+                        })}
+                      </>
                     ) : (
                       <p className="text-sm text-text-secondary">No tool signals found.</p>
                     )}
-                  </div>
+                  </ReportSection>
 
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-text-primary">4) Experience Signals</h4>
+                  <ReportSection
+                    title="4) Experience Signals"
+                    count={Math.min(plannerReport.transitionSections.experienceSignals.length, 3)}
+                  >
                     {plannerReport.transitionSections.experienceSignals.length > 0 ? (
-                      <div className="space-y-2">
-                        {plannerReport.transitionSections.experienceSignals.slice(0, 4).map((item) => {
+                      <>
+                        {plannerReport.transitionSections.experienceSignals.slice(0, 3).map((item) => {
                           const sourceCount = evidenceSourceCount(item.evidence)
                           const confidenceLabel = evidenceConfidenceLabel(item.evidence)
                           return (
-                          <div key={item.id} className="rounded-md border border-border-light bg-bg-secondary p-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-semibold text-text-primary">{item.label}</p>
-                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                {gapLevelLabel(item.gapLevel)}
-                              </span>
-                              <span
-                                className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
-                              >
-                                {item.evidenceLabel}
-                              </span>
-                              <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                {sourceCount} source{sourceCount === 1 ? '' : 's'}
-                              </span>
-                              {confidenceLabel ? (
+                            <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm font-semibold text-text-primary">{item.label}</p>
                                 <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                                  {confidenceLabel}
+                                  {gapLevelLabel(item.gapLevel)}
                                 </span>
-                              ) : null}
+                                <span
+                                  className={`rounded-pill border px-2 py-0.5 text-[11px] ${evidenceChipClass(item.evidenceLabel)}`}
+                                >
+                                  {item.evidenceLabel}
+                                </span>
+                                <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                  {sourceCount} source{sourceCount === 1 ? '' : 's'}
+                                </span>
+                                {confidenceLabel ? (
+                                  <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                                    {confidenceLabel}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="mt-1 text-xs text-text-secondary">{item.howToBuild}</p>
                             </div>
-                            <p className="mt-1 text-xs text-text-secondary">{item.howToBuild}</p>
-                          </div>
-                        )})}
-                      </div>
+                          )
+                        })}
+                      </>
                     ) : (
                       <p className="text-sm text-text-secondary">No experience signals found.</p>
                     )}
-                  </div>
+                  </ReportSection>
 
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-text-primary">
-                      5) Transferable Strengths (from your inputs)
-                    </h4>
+                  <ReportSection
+                    title="5) Transferable Strengths (from your inputs)"
+                    count={Math.min(plannerReport.transitionSections.transferableStrengths.length, 3)}
+                  >
                     {plannerReport.transitionSections.transferableStrengths.length > 0 ? (
                       <ul className="space-y-2">
-                        {plannerReport.transitionSections.transferableStrengths.slice(0, 4).map((item) => (
+                        {plannerReport.transitionSections.transferableStrengths.slice(0, 3).map((item) => (
                           <li
                             key={item.id}
-                            className="rounded-md border border-border-light bg-bg-secondary p-3 text-sm text-text-secondary"
+                            className="rounded-md border border-border-light bg-surface p-3 text-sm text-text-secondary"
                           >
                             <p className="font-semibold text-text-primary">{item.requirement}</p>
                             <p className="mt-1">{item.label}</p>
@@ -1699,7 +1732,7 @@ export default function CareerSwitchPlannerPage({
                         Add more measurable experience to increase mapped transferable strengths.
                       </p>
                     )}
-                  </div>
+                  </ReportSection>
 
                   <div className="space-y-3">
                     <h4 className="text-sm font-semibold text-text-primary">6) Roadmap Plan</h4>
@@ -1708,7 +1741,7 @@ export default function CareerSwitchPlannerPage({
                         Next 1-3 months
                       </p>
                       <ul className="mt-2 space-y-2 text-sm text-text-secondary">
-                        {plannerReport.transitionSections.roadmapPlan.oneToThreeMonths.slice(0, 3).map((step) => (
+                        {plannerReport.transitionSections.roadmapPlan.oneToThreeMonths.slice(0, 2).map((step) => (
                           <li key={step.id}>
                             - {step.action}
                             <p className="text-xs text-text-tertiary">Tied to: {step.tiedRequirement}</p>
@@ -1740,7 +1773,7 @@ export default function CareerSwitchPlannerPage({
                               Fastest path to apply
                             </p>
                             <ul className="mt-2 space-y-1 text-sm text-text-secondary">
-                              {plannerReport.transitionSections.roadmapPlan.fastestPathToApply.slice(0, 4).map((item) => (
+                              {plannerReport.transitionSections.roadmapPlan.fastestPathToApply.slice(0, 3).map((item) => (
                                 <li key={item}>- {item}</li>
                               ))}
                             </ul>
@@ -1750,7 +1783,7 @@ export default function CareerSwitchPlannerPage({
                               Strong candidate path
                             </p>
                             <ul className="mt-2 space-y-1 text-sm text-text-secondary">
-                              {plannerReport.transitionSections.roadmapPlan.strongCandidatePath.slice(0, 4).map((item) => (
+                              {plannerReport.transitionSections.roadmapPlan.strongCandidatePath.slice(0, 3).map((item) => (
                                 <li key={item}>- {item}</li>
                               ))}
                             </ul>
@@ -1985,37 +2018,43 @@ export default function CareerSwitchPlannerPage({
 
               {plannerReport ? (
                 <Card className="p-5">
-                  <h3 className="text-base font-bold text-text-primary">Data Transparency</h3>
-                  <p className="mt-2 text-sm text-text-secondary">
-                    Inputs used:{' '}
-                    {plannerReport.dataTransparency.inputsUsed.length > 0
-                      ? plannerReport.dataTransparency.inputsUsed.join(', ')
-                      : 'Not available'}
-                  </p>
-                  <p className="mt-1 text-sm text-text-secondary">
-                    Datasets used:{' '}
-                    {friendlyDatasetNames.length > 0
-                      ? friendlyDatasetNames.join(', ')
-                      : 'Not available'}
-                  </p>
-                  {plannerReport.marketEvidence ? (
-                    <p className="mt-1 text-sm text-text-secondary">
-                      Market evidence:{' '}
-                      {plannerReport.marketEvidence.baselineOnly
-                        ? 'Baseline only'
-                        : `${plannerReport.marketEvidence.postingsCount} postings analyzed${plannerReport.marketEvidence.usedCache ? ' (cached)' : ''}${(plannerReport.marketEvidence.llmNormalizedCount ?? 0) > 0 ? `, ${plannerReport.marketEvidence.llmNormalizedCount} GPT-normalized` : ''}`}
-                    </p>
-                  ) : null}
-                  {wageSourceDateSummary.length > 0 ? (
-                    <p className="mt-1 text-sm text-text-secondary">
-                      Wage sources: {wageSourceDateSummary.join(', ')}
-                    </p>
-                  ) : null}
-                  {plannerReport.dataTransparency.fxRateUsed ? (
-                    <p className="mt-1 text-sm text-text-secondary">
-                      FX rate: {plannerReport.dataTransparency.fxRateUsed}
-                    </p>
-                  ) : null}
+                  <details>
+                    <summary className="cursor-pointer text-base font-bold text-text-primary">
+                      Data Transparency
+                    </summary>
+                    <div className="mt-2">
+                      <p className="text-sm text-text-secondary">
+                        Inputs used:{' '}
+                        {plannerReport.dataTransparency.inputsUsed.length > 0
+                          ? plannerReport.dataTransparency.inputsUsed.join(', ')
+                          : 'Not available'}
+                      </p>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        Datasets used:{' '}
+                        {friendlyDatasetNames.length > 0
+                          ? friendlyDatasetNames.join(', ')
+                          : 'Not available'}
+                      </p>
+                      {plannerReport.marketEvidence ? (
+                        <p className="mt-1 text-sm text-text-secondary">
+                          Market evidence:{' '}
+                          {plannerReport.marketEvidence.baselineOnly
+                            ? 'Baseline only'
+                            : `${plannerReport.marketEvidence.postingsCount} postings analyzed${plannerReport.marketEvidence.usedCache ? ' (cached)' : ''}${(plannerReport.marketEvidence.llmNormalizedCount ?? 0) > 0 ? `, ${plannerReport.marketEvidence.llmNormalizedCount} GPT-normalized` : ''}`}
+                        </p>
+                      ) : null}
+                      {wageSourceDateSummary.length > 0 ? (
+                        <p className="mt-1 text-sm text-text-secondary">
+                          Wage sources: {wageSourceDateSummary.join(', ')}
+                        </p>
+                      ) : null}
+                      {plannerReport.dataTransparency.fxRateUsed ? (
+                        <p className="mt-1 text-sm text-text-secondary">
+                          FX rate: {plannerReport.dataTransparency.fxRateUsed}
+                        </p>
+                      ) : null}
+                    </div>
+                  </details>
                 </Card>
               ) : null}
 
@@ -2037,35 +2076,59 @@ export default function CareerSwitchPlannerPage({
         </div>
       </section>
 
-      <section className="px-4 py-16 lg:px-[340px]">
-        <div className="mx-auto w-full max-w-tool">
-          <h2 className="text-center text-2xl font-bold text-text-primary">Frequently Asked Questions</h2>
-          <FAQAccordion items={careerSwitchFaqs} className="mt-8" />
-        </div>
-      </section>
+      {!hasPlannerResults ? (
+        <>
+          <section className="px-4 py-16 lg:px-[340px]">
+            <div className="mx-auto w-full max-w-tool">
+              <h2 className="text-center text-2xl font-bold text-text-primary">
+                Frequently Asked Questions
+              </h2>
+              <FAQAccordion items={careerSwitchFaqs} className="mt-8" />
+            </div>
+          </section>
 
-      <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
-        <div className="mx-auto w-full max-w-content">
-          <h2 className="text-center text-2xl font-bold text-text-primary">More Career Tools</h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {careerSwitchMoreTools.map((tool) => (
-              <ToolCard
-                key={tool.slug}
-                slug={tool.slug}
-                title={tool.title}
-                description={tool.description}
-                icon={tool.icon}
-                isActive={tool.isActive}
-              />
-            ))}
+          <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
+            <div className="mx-auto w-full max-w-content">
+              <h2 className="text-center text-2xl font-bold text-text-primary">More Career Tools</h2>
+              <div className="mt-8 grid gap-6 md:grid-cols-3">
+                {careerSwitchMoreTools.map((tool) => (
+                  <ToolCard
+                    key={tool.slug}
+                    slug={tool.slug}
+                    title={tool.title}
+                    description={tool.description}
+                    icon={tool.icon}
+                    isActive={tool.isActive}
+                  />
+                ))}
+              </div>
+              <div className="mt-8 text-center">
+                <Link href="/tools" className="text-sm font-medium text-accent hover:text-accent-hover">
+                  View all tools
+                </Link>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="px-4 py-8 lg:px-[340px]">
+          <div className="mx-auto w-full max-w-tool">
+            <Card className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-text-secondary">Need help or want to try another tool?</p>
+                <div className="flex items-center gap-3">
+                  <Link href="/tools" className="text-sm font-medium text-accent hover:text-accent-hover">
+                    More tools
+                  </Link>
+                  <Link href="/pricing" className="text-sm font-medium text-accent hover:text-accent-hover">
+                    Pricing
+                  </Link>
+                </div>
+              </div>
+            </Card>
           </div>
-          <div className="mt-8 text-center">
-            <Link href="/tools" className="text-sm font-medium text-accent hover:text-accent-hover">
-              View all tools
-            </Link>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   )
 }
