@@ -38,6 +38,12 @@ import {
   toPlannerResultView,
   type PlannerResultView
 } from '@/lib/planner/types'
+import {
+  scoreToLabel,
+  shouldShowSimilarRoles,
+  taxonomySourceLabel,
+  type RoleConfidenceLabel
+} from '@/lib/planner/roleNormalization'
 import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
 import { useAuth } from '@/lib/auth/context'
 import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
@@ -82,6 +88,8 @@ type RoleResolutionMatch = {
     occupationId: string
     title: string
     region: 'CA' | 'US'
+    source?: string | null
+    lastUpdated?: string | null
     confidence: number
     matchedBy: string
   } | null
@@ -89,6 +97,8 @@ type RoleResolutionMatch = {
     occupationId: string
     title: string
     region: 'CA' | 'US'
+    source?: string | null
+    lastUpdated?: string | null
     confidence: number
     matchedBy: string
   }>
@@ -568,6 +578,69 @@ function evidenceConfidenceLabel(
 function frequencyPercentLabel(value: number | null | undefined) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'N/A'
   return `${Math.round(value)}%`
+}
+
+function roleConfidenceClass(label: RoleConfidenceLabel) {
+  if (label === 'Exact') return 'border-success/30 bg-success/10 text-success'
+  if (label === 'Close') return 'border-accent/30 bg-accent/10 text-accent'
+  if (label === 'Broad') return 'border-warning/30 bg-warning-light text-warning'
+  return 'border-warning/40 bg-warning-light text-warning'
+}
+
+function RoleNormalizationCard({
+  heading,
+  resolution
+}: {
+  heading: string
+  resolution: RoleResolutionMatch
+}) {
+  const matched = resolution.matched
+  const confidenceLabel = scoreToLabel(matched?.confidence ?? 0)
+  const showSimilar = shouldShowSimilarRoles(confidenceLabel)
+  const similarRoles = showSimilar
+    ? resolution.suggestions
+        .filter((item) => item.occupationId !== matched?.occupationId)
+        .slice(0, 3)
+    : []
+  const sourceLabel = taxonomySourceLabel({
+    source: matched?.source ?? null,
+    region: matched?.region ?? null
+  })
+
+  return (
+    <div className="rounded-md border border-border-light p-3">
+      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">{heading}</p>
+      <div className="mt-2 space-y-2">
+        <p className="text-sm text-text-secondary">You entered: {resolution.input || 'Not provided'}</p>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-text-primary">
+          <span>
+            Standardized as:{' '}
+            <span className="font-semibold text-text-primary">
+              {matched?.title || 'Not resolved'}
+            </span>
+          </span>
+          <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+            {sourceLabel}
+          </span>
+          <span
+            className={`rounded-pill border px-2 py-0.5 text-[11px] font-medium ${roleConfidenceClass(confidenceLabel)}`}
+          >
+            {confidenceLabel}
+          </span>
+        </div>
+        {showSimilar && similarRoles.length > 0 ? (
+          <p className="text-xs text-text-tertiary">
+            Similar roles: {similarRoles.map((item) => item.title).join(' | ')}
+          </p>
+        ) : null}
+        {confidenceLabel === 'Unclear' ? (
+          <p className="text-xs text-text-secondary">
+            Want to be more specific? Try adding specialization (e.g., &#34;Residential electrician apprentice&#34;).
+          </p>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
 function ReportSection({
@@ -1621,55 +1694,14 @@ export default function CareerSwitchPlannerPage({
               {(currentRoleResolution || targetRoleResolution) ? (
                 <Card className="p-5">
                   <h3 className="text-base font-bold text-text-primary">Role Match</h3>
-                  {currentRoleResolution ? (
-                    <div className="mt-3 rounded-md border border-border-light bg-bg-secondary p-3">
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        Current role
-                      </p>
-                      <p className="mt-1 text-sm text-text-secondary">
-                        You entered: {currentRoleResolution.input || 'Not provided'}
-                      </p>
-                      {currentRoleResolution.matched ? (
-                        <p className="mt-1 text-sm text-text-primary">
-                          Matched to: {currentRoleResolution.matched.title}{' '}
-                          <span className="text-text-tertiary">
-                            ({Math.round(currentRoleResolution.matched.confidence * 100)}%)
-                          </span>
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-sm text-warning">
-                          No exact match. We used the closest role context from your input.
-                        </p>
-                      )}
-                    </div>
-                  ) : null}
-                  {targetRoleResolution ? (
-                    <div className="mt-3 rounded-md border border-border-light bg-bg-secondary p-3">
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        Target role
-                      </p>
-                      <p className="mt-1 text-sm text-text-secondary">
-                        You entered: {targetRoleResolution.input || 'Not provided'}
-                      </p>
-                      {targetRoleResolution.matched ? (
-                        <p className="mt-1 text-sm text-text-primary">
-                          Matched to: {targetRoleResolution.matched.title}{' '}
-                          <span className="text-text-tertiary">
-                            ({Math.round(targetRoleResolution.matched.confidence * 100)}%)
-                          </span>
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-sm text-warning">
-                          No exact match. Select one of the closest options and regenerate.
-                        </p>
-                      )}
-                      {targetRoleResolution.suggestions.length > 0 ? (
-                        <p className="mt-2 text-xs text-text-tertiary">
-                          Closest: {targetRoleResolution.suggestions.slice(0, 3).map((item) => item.title).join(' | ')}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    {currentRoleResolution ? (
+                      <RoleNormalizationCard heading="Current role" resolution={currentRoleResolution} />
+                    ) : null}
+                    {targetRoleResolution ? (
+                      <RoleNormalizationCard heading="Target role" resolution={targetRoleResolution} />
+                    ) : null}
+                  </div>
                 </Card>
               ) : null}
               {plannerReport?.marketEvidence?.baselineOnly ? (

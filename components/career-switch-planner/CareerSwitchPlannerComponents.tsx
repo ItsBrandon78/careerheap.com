@@ -21,6 +21,7 @@ import type {
   PlannerResultView,
   PlannerResumeReframe
 } from '@/lib/planner/types'
+import { scoreToLabel } from '@/lib/planner/roleNormalization'
 
 type ToolTab = 'paste' | 'upload'
 
@@ -218,7 +219,7 @@ export function RoleAutocomplete({
                         <span>{suggestion.title}</span>
                         {typeof suggestion.confidence === 'number' ? (
                           <span className="text-xs text-text-tertiary">
-                            {Math.round(suggestion.confidence * 100)}%
+                            {scoreToLabel(suggestion.confidence)}
                           </span>
                         ) : null}
                       </button>
