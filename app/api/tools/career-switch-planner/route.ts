@@ -96,12 +96,68 @@ function regionFromWorkRegion(workRegion: string): 'CA' | 'US' | undefined {
   return undefined
 }
 
-function applyFreeTierOutputLimits<T extends { roadmap: unknown[]; resumeReframe: unknown[] }>(report: T) {
-  return {
+function applyFreeTierOutputLimits<
+  T extends {
+    roadmap: unknown[]
+    resumeReframe: unknown[]
+    executionStrategy?: {
+      plan90Day?: {
+        month1?: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> }
+        month2?: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> }
+        month3?: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> }
+      }
+    }
+  }
+>(report: T) {
+  const limitedReport: T = {
     ...report,
     roadmap: report.roadmap.slice(0, 1),
     resumeReframe: []
   }
+
+  const strategy = report.executionStrategy
+  const monthPlan = strategy?.plan90Day
+  if (!strategy || !monthPlan?.month2 || !monthPlan?.month3) {
+    return limitedReport
+  }
+
+  const firstLinkedFromMonth = (month: { actions: Array<Record<string, unknown>> }) => {
+    const firstAction = month.actions[0]
+    const linked = Array.isArray(firstAction?.linkedRequirements)
+      ? (firstAction.linkedRequirements as string[])
+      : []
+    return linked.length > 0 ? linked.slice(0, 2) : []
+  }
+
+  const condensedMonth = (
+    month: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> },
+    monthId: 'month2' | 'month3'
+  ) => ({
+    ...month,
+    actions: [
+      {
+        id: `${monthId}-free-summary`,
+        task: 'Upgrade to Pro to unlock the full weekly action sequence for this month.',
+        volumeTarget: 'Locked on Free plan',
+        learningTarget: 'Full sequencing available on Pro',
+        proofTarget: 'Full proof checklist available on Pro',
+        weeklyTime: month.weeklyTimeInvestment,
+        linkedRequirements: firstLinkedFromMonth(month)
+      }
+    ]
+  })
+
+  limitedReport.executionStrategy = {
+    ...strategy,
+    plan90Day: {
+      ...monthPlan,
+      month1: monthPlan.month1,
+      month2: condensedMonth(monthPlan.month2, 'month2'),
+      month3: condensedMonth(monthPlan.month3, 'month3')
+    }
+  }
+
+  return limitedReport
 }
 
 async function persistReport(userId: string, payload: {

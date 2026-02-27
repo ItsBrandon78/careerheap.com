@@ -4,12 +4,25 @@ import {
   ensureEvidenceRequirements,
   isMarketEvidenceConfigured
 } from '@/lib/server/jobRequirements'
+import {
+  buildEmptyExecutionStrategy,
+  generateExecutionStrategyFromContext
+} from '@/lib/server/plannerExecutionCoach'
 import { toTaskLevelLabel } from '@/lib/requirements/normalize'
 import type {
   AggregatedRequirement,
   RequirementEvidence,
   RequirementType
 } from '@/lib/requirements/types'
+import type {
+  ExecutionCoachingContext,
+  ExecutionContextRequirement,
+  ExecutionRoleFamily,
+  ExecutionStandGap,
+  ExecutionStandStrength,
+  ExecutionStrategy,
+  ExecutionTransferCandidate
+} from '@/lib/server/plannerExecutionCoach'
 
 type CountryCode = 'US' | 'CA'
 type TimelineBucket = 'immediate' | '1_3_months' | '3_6_months' | '6_12_months' | '1_plus_year'
@@ -344,6 +357,7 @@ export interface CareerPlannerAnalysis {
         baselineOnlyWarning: string | null
       }
     }
+    executionStrategy: ExecutionStrategy
     marketEvidence: {
       enabled: boolean
       used: boolean
@@ -758,6 +772,38 @@ function splitRequirementSentences(text: string | null | undefined) {
     .filter((segment) => segment.length >= 24)
 }
 
+function normalizeGateSignalLabel(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const normalized = normalizeText(trimmed)
+  if (!normalized) return null
+
+  if (/\bred seal\b|\binterprovincial\b/.test(normalized)) {
+    return 'Obtain Red Seal certification before applying'
+  }
+
+  const tradeCertificationMatch = trimmed.match(
+    /\btrade certification for ([a-z0-9 ()'/-]{3,80}?)(?:\s+is|\s+required|\s+may|\s+in\s+)/i
+  )
+  if (tradeCertificationMatch?.[1]) {
+    const tradeLabel = tradeCertificationMatch[1].trim().replace(/\s+/g, ' ')
+    return `Obtain ${tradeLabel} trade certification before applying`
+  }
+
+  if (/\bapprenticeship\b/.test(normalized) && /\bhours?\b/.test(normalized)) {
+    return 'Register apprenticeship hours and sponsor checkpoints'
+  }
+
+  if (
+    trimmed.length > 160 ||
+    /\b(compulsory|required|available but voluntary)\b/.test(normalized)
+  ) {
+    return 'Confirm regional licensing and certification requirements before applying'
+  }
+
+  return trimmed
+}
+
 function pickHardGates(options: {
   certsLicenses: string[]
   notes: string | null
@@ -772,8 +818,9 @@ function pickHardGates(options: {
       /compulsory|required|licen|certif|red seal|interprovincial|exam|apprenticeship/.test(
         normalized
       )
-    ) {
-      gates.push(segment)
+      ) {
+      const normalizedGate = normalizeGateSignalLabel(segment)
+      if (normalizedGate) gates.push(normalizedGate)
     }
   }
 
@@ -783,7 +830,8 @@ function pickHardGates(options: {
         normalizeText(cert)
       )
     ) {
-      gates.push(cert)
+      const normalizedGate = normalizeGateSignalLabel(cert)
+      if (normalizedGate) gates.push(normalizedGate)
     }
   }
 
@@ -1208,7 +1256,7 @@ function findTransferableEvidence(options: {
   const lines = options.experienceText
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) => line.length >= 12)
+    .filter((line) => line.length >= 12 && isResumeSignalLine(line))
 
   for (const line of lines) {
     const normalized = normalizeText(line)
@@ -1221,6 +1269,106 @@ function findTransferableEvidence(options: {
   }
 
   return null
+}
+
+function inferExecutionRoleFamily(roleTitle: string, currentRole: string) {
+  const text = normalizeText(`${roleTitle} ${currentRole}`)
+  if (
+    /\b(electrician|plumber|welder|hvac|mechanic|carpenter|apprentice|journey|millwright|trades?)\b/.test(
+      text
+    )
+  ) {
+    return 'trades' as const
+  }
+  if (/\b(nurse|rn|clinical|medical|health|therap|pharmacy|caregiver)\b/.test(text)) {
+    return 'healthcare' as const
+  }
+  if (
+    /\b(engineer|developer|software|data|devops|cloud|cyber|it|frontend|backend|full stack|qa)\b/.test(
+      text
+    )
+  ) {
+    return 'tech' as const
+  }
+  if (/\b(designer|creative|writer|editor|illustrator|animator|photographer|video)\b/.test(text)) {
+    return 'creative' as const
+  }
+  if (/\b(founder|entrepreneur|owner|startup|business owner)\b/.test(text)) {
+    return 'entrepreneurship' as const
+  }
+  if (/\b(manager|analyst|consultant|operations|finance|sales|marketing|coordinator|account)\b/.test(text)) {
+    return 'business' as const
+  }
+  return 'general' as const
+}
+
+function isContactInfoLine(value: string) {
+  return /@|https?:\/\/|linkedin|www\.|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b|\+\d{1,2}\s?\d{3}/i.test(value)
+}
+
+function isPolicyOrJurisdictionLine(value: string) {
+  const normalized = normalizeText(value)
+  if (!normalized) return false
+  if (normalized.length > 210) return true
+  if (
+    /\b(compulsory|required|available but voluntary|newfoundland|nova scotia|prince edward|new brunswick|quebec|ontario|manitoba|saskatchewan|alberta|british columbia|yukon|northwest territories|nunavut)\b/.test(
+      normalized
+    ) &&
+    /,/.test(value)
+  ) {
+    return true
+  }
+  return false
+}
+
+function isResumeSignalLine(value: string) {
+  const trimmed = value.trim()
+  if (trimmed.length < 14) return false
+  if (isContactInfoLine(trimmed)) return false
+  if (isPolicyOrJurisdictionLine(trimmed)) return false
+  return true
+}
+
+function extractResumeSignalLines(experienceText: string) {
+  return uniqueStrings(
+    experienceText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => isResumeSignalLine(line))
+  ).slice(0, 16)
+}
+
+function overlapRatio(source: string, target: string) {
+  const sourceTokens = new Set(tokenize(source).filter((token) => token.length >= 4))
+  const targetTokens = new Set(tokenize(target).filter((token) => token.length >= 4))
+  if (sourceTokens.size === 0 || targetTokens.size === 0) return 0
+  let shared = 0
+  for (const token of sourceTokens) {
+    if (targetTokens.has(token)) shared += 1
+  }
+  return shared / Math.max(sourceTokens.size, targetTokens.size)
+}
+
+function isLongHorizonCredentialRequirement(requirement: AggregatedRequirement) {
+  const text = normalizeText(
+    `${requirement.label} ${requirement.evidence_quotes.map((item) => item.quote).join(' ')}`
+  )
+  return /\b(red seal|interprovincial|journeyperson|certificate of qualification|coq|four to five year|4 to 5 year|apprenticeship program|apprenticeship completion|\d{3,5}\s*hours|hour tracking)\b/.test(
+    text
+  )
+}
+
+function isImmediateEntryGate(requirement: AggregatedRequirement) {
+  const text = normalizeText(requirement.label)
+  return /\b(whmis|working at heights|first aid|cpr|bls|acls|class [a-z0-9] driver|driver license|csts|osha|h2s|safety awareness)\b/.test(
+    text
+  )
+}
+
+function blockerClassFromRequirement(requirement: AggregatedRequirement) {
+  if (requirement.type === 'gate') return 'legal_certification' as const
+  if (requirement.type === 'experience_signal') return 'experience' as const
+  return 'skill' as const
 }
 
 function isBaselineSoftSkill(skillName: string) {
@@ -1405,6 +1553,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
             baselineOnlyWarning: 'No employer evidence found; showing baseline only.'
           }
         },
+        executionStrategy: buildEmptyExecutionStrategy(input.location ?? ''),
         marketEvidence: {
           enabled: isMarketEvidenceConfigured(),
           used: false,
@@ -2116,6 +2265,192 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     })
   )
 
+  const resumeSignalLines = extractResumeSignalLines(input.experienceText)
+  if (resumeSignalLines.length < 3) {
+    for (const skill of explicitSkills) {
+      if (resumeSignalLines.length >= 8) break
+      const skillSignal = `Applied skill evidence: ${skill}`
+      if (!isResumeSignalLine(skillSignal)) continue
+      resumeSignalLines.push(skillSignal)
+    }
+  }
+
+  const requiredToApplyKeys = uniqueStrings(
+    transitionMustHaves
+      .filter((item) => item.status === 'missing')
+      .map((item) => item.normalized_key)
+  )
+  const requiredToApplySet = new Set(requiredToApplyKeys)
+  const requiredToCompeteKeys = uniqueStrings(
+    missingRequirementRegistry
+      .map((item) => item.normalized_key)
+      .filter((key) => !requiredToApplySet.has(key))
+  ).slice(0, 14)
+
+  const priorityForRequirement = (requirement: AggregatedRequirement) => {
+    if (requirement.type === 'gate') {
+      if (isImmediateEntryGate(requirement)) return 0
+      if (isLongHorizonCredentialRequirement(requirement)) return 4
+      return 1
+    }
+    if (requirement.type === 'tool') return 2
+    if (requirement.type === 'hard_skill') return 2
+    if (requirement.type === 'experience_signal') return 3
+    return 3
+  }
+
+  const prioritizedMissingRequirements = [...missingRequirementRegistry].sort((left, right) => {
+    const leftPriority = priorityForRequirement(left)
+    const rightPriority = priorityForRequirement(right)
+    if (leftPriority !== rightPriority) return leftPriority - rightPriority
+    return sortByFrequency(left, right)
+  })
+
+  const month1RequirementKeys = uniqueStrings(
+    prioritizedMissingRequirements
+      .filter((item) => !isLongHorizonCredentialRequirement(item))
+      .slice(0, 5)
+      .map((item) => item.normalized_key)
+  )
+  if (month1RequirementKeys.length < 3) {
+    for (const requirement of prioritizedMissingRequirements) {
+      if (month1RequirementKeys.length >= 5) break
+      if (month1RequirementKeys.includes(requirement.normalized_key)) continue
+      month1RequirementKeys.push(requirement.normalized_key)
+    }
+  }
+  const remainingAfterMonth1 = uniqueStrings(
+    prioritizedMissingRequirements
+      .map((item) => item.normalized_key)
+      .filter((key) => !month1RequirementKeys.includes(key))
+  )
+  const month2RequirementKeys = remainingAfterMonth1.slice(0, 5)
+  const month3RequirementKeys = remainingAfterMonth1.slice(5, 10)
+
+  const contextualRequirements = uniqueStrings(
+    [...requiredToApplyKeys, ...requiredToCompeteKeys]
+  )
+    .map((key) => requirementByKey.get(key))
+    .filter((item): item is AggregatedRequirement => Boolean(item))
+
+  const metOrPartialRequirements = requirementGapRows
+    .filter((item) => item.gapLevel !== 'missing')
+    .map((item) => item.requirement)
+  const standStrengths: ExecutionStandStrength[] = []
+  for (const line of resumeSignalLines) {
+    if (standStrengths.length >= 8) break
+    const matches = metOrPartialRequirements
+      .map((requirement) => ({
+        requirement,
+        score: overlapRatio(line, requirement.label)
+      }))
+      .filter((item) => item.score >= 0.22)
+      .sort((left, right) => {
+        if (right.score !== left.score) return right.score - left.score
+        return sortByFrequency(left.requirement, right.requirement)
+      })
+      .slice(0, 2)
+    if (matches.length === 0) continue
+    standStrengths.push({
+      summary: `Your background already supports ${matches[0].requirement.label.toLowerCase()}.`,
+      resumeSignal: line,
+      countsToward: matches.map((item) => item.requirement.label)
+    })
+  }
+
+  const transferCandidates: ExecutionTransferCandidate[] = []
+  const mappingRequirements = dedupeRequirements([
+    ...mustHaveRequirements,
+    ...niceToHaveRequirements,
+    ...coreTaskRequirements,
+    ...toolRequirementsForReport
+  ])
+  for (const line of resumeSignalLines) {
+    if (transferCandidates.length >= 10) break
+    const matches = mappingRequirements
+      .map((requirement) => ({
+        requirement,
+        score: overlapRatio(line, requirement.label)
+      }))
+      .filter((item) => item.score >= 0.2)
+      .sort((left, right) => {
+        if (right.score !== left.score) return right.score - left.score
+        return sortByFrequency(left.requirement, right.requirement)
+      })
+      .slice(0, 3)
+    if (matches.length === 0) continue
+    transferCandidates.push({
+      resumeSignal: line,
+      countsToward: matches.map((item) => item.requirement.label)
+    })
+  }
+
+  const missingMandatory: ExecutionStandGap[] = requiredToApplyKeys
+    .map((key) => requirementByKey.get(key))
+    .filter((item): item is AggregatedRequirement => Boolean(item))
+    .slice(0, 8)
+    .map((requirement) => ({
+      normalized_key: requirement.normalized_key,
+      label: requirement.label,
+      blockerClass: blockerClassFromRequirement(requirement),
+      reason:
+        requirement.type === 'gate'
+          ? 'No verified credential signal yet for this apply gate.'
+          : 'No direct resume evidence yet for this required apply item.'
+    }))
+  const competitiveDisadvantages: ExecutionStandGap[] = requiredToCompeteKeys
+    .map((key) => requirementByKey.get(key))
+    .filter((item): item is AggregatedRequirement => Boolean(item))
+    .slice(0, 10)
+    .map((requirement) => ({
+      normalized_key: requirement.normalized_key,
+      label: requirement.label,
+      blockerClass: blockerClassFromRequirement(requirement),
+      reason: 'Current profile does not yet show consistent proof for this hiring signal.'
+    }))
+
+  const executionRequirements: ExecutionContextRequirement[] = contextualRequirements.map((requirement) => ({
+    normalized_key: requirement.normalized_key,
+    label: requirement.label,
+    type: requirement.type,
+    blockerClass: blockerClassFromRequirement(requirement),
+    requiredFor: requiredToApplySet.has(requirement.normalized_key) ? 'apply' : 'compete',
+    urgency:
+      requirement.type === 'gate'
+        ? isLongHorizonCredentialRequirement(requirement)
+          ? 'long_horizon'
+          : isImmediateEntryGate(requirement)
+            ? 'immediate'
+            : 'near_term'
+        : requiredToApplySet.has(requirement.normalized_key)
+          ? 'immediate'
+          : 'near_term',
+    howToGet: requirementHowToGet(requirement),
+    timeEstimate: requirementEstimatedTime(requirement),
+    evidenceQuote: requirement.evidence_quotes.map((item) => item.quote).slice(0, 2)
+  }))
+
+  const executionContext: ExecutionCoachingContext = {
+    roleTitle: best?.title ?? evidenceRole ?? input.targetRole ?? 'target role',
+    location: evidenceResult.query?.location ?? evidenceLocation ?? input.location ?? '',
+    roleFamily: inferExecutionRoleFamily(best?.title ?? evidenceRole, input.currentRole) as ExecutionRoleFamily,
+    baselineOnly: !hasEffectiveNonBaselineEvidence,
+    resumeSignals: resumeSignalLines,
+    strengths: standStrengths,
+    missingMandatory,
+    competitiveDisadvantages,
+    requirements: executionRequirements,
+    requiredToApplyKeys,
+    requiredToCompeteKeys,
+    monthRequirementKeys: {
+      month1: month1RequirementKeys,
+      month2: month2RequirementKeys,
+      month3: month3RequirementKeys
+    },
+    transferCandidates
+  }
+  const executionStrategy = await generateExecutionStrategyFromContext(executionContext)
+
   const transitionReport: CareerPlannerAnalysis['report']['transitionReport'] = {
     marketSnapshot: {
       role: evidenceResult.query?.role ?? evidenceRole,
@@ -2277,6 +2612,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       roadmapPlan
     },
     transitionReport,
+    executionStrategy,
     marketEvidence: {
       enabled: isMarketEvidenceConfigured(),
       used: hasEffectiveNonBaselineEvidence,

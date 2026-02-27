@@ -105,6 +105,41 @@ test('extractor returns concrete named gates and tool mentions from listing text
   assert.ok(!labels.some((label) => /^mechanical$/i.test(label)))
 })
 
+test('extractor sanitizes long jurisdiction-heavy gate policy text', () => {
+  const normalizeModule = loadTranspiledTsModule(normalizePath)
+  const classifyModule = loadTranspiledTsModule(classifyPath, {
+    '@/lib/requirements/normalize': normalizeModule
+  })
+  const extractorModule = loadTranspiledTsModule(extractorPath, {
+    '@/lib/requirements/classify': classifyModule,
+    '@/lib/requirements/normalize': normalizeModule
+  })
+
+  const { extractRequirementsFromText } = extractorModule
+  const extracted = extractRequirementsFromText({
+    source: 'adzuna',
+    text: [
+      'Trade certification for construction electricians is compulsory in Ontario, Manitoba, Saskatchewan and Alberta and available, but voluntary, in British Columbia and Yukon.',
+      'Red Seal endorsement is also available to qualified construction electricians upon successful completion of the interprovincial Red Seal examination.'
+    ].join(' ')
+  })
+
+  const gateLabels = extracted.filter((item) => item.type === 'gate').map((item) => item.label)
+  assert.ok(
+    gateLabels.some((label) => /trade certification|regional trade certification/i.test(label)),
+    'Expected canonicalized trade certification gate label'
+  )
+  assert.ok(
+    gateLabels.some((label) => /Red Seal certification/i.test(label)),
+    'Expected canonicalized Red Seal gate label'
+  )
+  assert.ok(
+    !gateLabels.some((label) => /newfoundland|nova scotia|northwest territories|nunavut/i.test(label)),
+    'Gate labels should not leak raw jurisdiction list policy text'
+  )
+  assert.ok(!gateLabels.some((label) => label.length > 120))
+})
+
 test('job requirements cache logic includes TTL freshness and reuse path', () => {
   assert.match(cachingSource, /function isFresh/)
   assert.match(cachingSource, /const canUseCache/)

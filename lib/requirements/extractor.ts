@@ -230,9 +230,51 @@ function extractNamedGateRequirements(segment: string) {
   return output.slice(0, 3)
 }
 
+function jurisdictionSignalCount(segment: string) {
+  const matches =
+    segment.match(
+      /\b(newfoundland|nova scotia|prince edward|new brunswick|quebec|ontario|manitoba|saskatchewan|alberta|british columbia|yukon|northwest territories|nunavut)\b/gi
+    ) ?? []
+  return matches.length
+}
+
+function canonicalizePolicyGateLabel(segment: string) {
+  const normalized = normalizeWhitespace(segment)
+  const key = normalizeRequirementKey(normalized)
+  if (!key) return null
+
+  if (/\bred seal\b|\binterprovincial\b/i.test(key)) {
+    return 'Obtain Red Seal certification before applying'
+  }
+
+  const tradeMatch = normalized.match(
+    /\btrade certification for ([a-z0-9 ()'/-]{3,80}?)(?:\s+is|\s+required|\s+may|\s+in\s+)/i
+  )
+  if (tradeMatch?.[1]) {
+    const tradeLabel = normalizeWhitespace(tradeMatch[1])
+    return `Obtain ${tradeLabel} trade certification before applying`
+  }
+
+  if (
+    /\b(compulsory|required|available but voluntary)\b/i.test(key) &&
+    jurisdictionSignalCount(normalized) >= 2
+  ) {
+    return 'Confirm regional trade certification requirements before applying'
+  }
+
+  if (normalized.length > 180 && /\b(certif|license|registration|clearance)\b/i.test(key)) {
+    return 'Confirm regional licensing and certification requirements before applying'
+  }
+
+  return null
+}
+
 function gateLabels(segment: string) {
   const named = extractNamedGateRequirements(segment)
   if (named.length > 0) return named
+
+  const policy = canonicalizePolicyGateLabel(segment)
+  if (policy) return [policy]
 
   if (/security clearance/i.test(segment)) {
     return ['Obtain required security clearance for role eligibility']
@@ -250,7 +292,11 @@ function gateLabels(segment: string) {
     return ['Obtain required certification with active status']
   }
   const fallback = toTaskLevelLabel(segment, 'gate')
-  return fallback ? [fallback] : []
+  if (!fallback) return []
+  if (fallback.length > 120) {
+    return ['Confirm regional licensing and certification requirements before applying']
+  }
+  return [fallback]
 }
 
 function experienceSignalLabel(segment: string) {

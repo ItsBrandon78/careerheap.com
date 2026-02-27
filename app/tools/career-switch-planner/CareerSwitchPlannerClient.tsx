@@ -419,6 +419,105 @@ type PlannerReportPayload = {
       baselineOnlyWarning: string | null
     }
   }
+  executionStrategy?: {
+    whereYouStandNow: {
+      strengths: Array<{
+        summary: string
+        resumeSignal: string
+        countsToward: string[]
+      }>
+      missingMandatoryRequirements: Array<{
+        normalized_key: string
+        label: string
+        blockerClass: 'legal_certification' | 'skill' | 'experience'
+        reason: string
+      }>
+      competitiveDisadvantages: Array<{
+        normalized_key: string
+        label: string
+        blockerClass: 'legal_certification' | 'skill' | 'experience'
+        reason: string
+      }>
+    }
+    realBlockers: {
+      requiredToApply: Array<{
+        normalized_key: string
+        label: string
+        blockerClass: 'legal_certification' | 'skill' | 'experience'
+        whyItMatters: string
+        howToClose: string
+        timeEstimate: string
+        evidenceQuote: string[]
+      }>
+      requiredToCompete: Array<{
+        normalized_key: string
+        label: string
+        blockerClass: 'legal_certification' | 'skill' | 'experience'
+        whyItMatters: string
+        howToClose: string
+        timeEstimate: string
+        evidenceQuote: string[]
+      }>
+    }
+    transferableEdge: {
+      translations: Array<{
+        fromResume: string
+        toTargetRole: string
+        countsToward: string[]
+      }>
+    }
+    plan90Day: {
+      month1: {
+        label: string
+        weeklyTimeInvestment: string
+        actions: Array<{
+          id: string
+          task: string
+          volumeTarget: string
+          learningTarget: string
+          proofTarget: string
+          weeklyTime: string
+          linkedRequirements: string[]
+        }>
+      }
+      month2: {
+        label: string
+        weeklyTimeInvestment: string
+        actions: Array<{
+          id: string
+          task: string
+          volumeTarget: string
+          learningTarget: string
+          proofTarget: string
+          weeklyTime: string
+          linkedRequirements: string[]
+        }>
+      }
+      month3: {
+        label: string
+        weeklyTimeInvestment: string
+        actions: Array<{
+          id: string
+          task: string
+          volumeTarget: string
+          learningTarget: string
+          proofTarget: string
+          weeklyTime: string
+          linkedRequirements: string[]
+        }>
+      }
+    }
+    probabilityRealityCheck: {
+      difficulty: string
+      whatIncreasesOdds: string[]
+      commonFailureModes: string[]
+    }
+    behavioralExecution: {
+      minimumWeeklyEffort: string
+      consistencyLooksLike: string[]
+      whatNotToDo: string[]
+    }
+  }
   marketEvidence?: {
     enabled: boolean
     used: boolean
@@ -1317,6 +1416,7 @@ export default function CareerSwitchPlannerPage({
       .map((link) => ({ label: link.label, url: link.url })))
   ]).slice(0, 8)
   const transitionReport = plannerReport?.transitionReport ?? null
+  const executionStrategy = plannerReport?.executionStrategy ?? null
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
@@ -1715,7 +1815,202 @@ export default function CareerSwitchPlannerPage({
                   </p>
                 </Card>
               ) : null}
-              {transitionReport ? (
+              {executionStrategy ? (
+                <Card className="space-y-4 p-5">
+                  <h3 className="text-base font-bold text-text-primary">Personalized execution strategy</h3>
+
+                  <ReportSection title="1) Where You Stand Right Now" count={executionStrategy.whereYouStandNow.strengths.length} defaultOpen>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Relevant strengths from your background</p>
+                      <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                        {executionStrategy.whereYouStandNow.strengths.map((item, index) => (
+                          <li key={`stand-strength-${index}`} className="rounded-md border border-border-light bg-surface p-3">
+                            <p className="font-medium text-text-primary">{item.summary}</p>
+                            <p className="mt-1 text-xs text-text-tertiary">Signal: {item.resumeSignal}</p>
+                            <p className="mt-1 text-xs text-text-tertiary">
+                              Counts toward: {item.countsToward.join(' | ') || 'General transition readiness'}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Missing mandatory requirements</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {executionStrategy.whereYouStandNow.missingMandatoryRequirements.map((item) => (
+                            <li key={`stand-missing-${item.normalized_key}`} className="rounded-md border border-border-light bg-surface p-3">
+                              <p className="font-medium text-text-primary">{item.label}</p>
+                              <p className="mt-1 text-xs text-text-tertiary">{item.reason}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Competitive disadvantages</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {executionStrategy.whereYouStandNow.competitiveDisadvantages.map((item) => (
+                            <li key={`stand-competitive-${item.normalized_key}`} className="rounded-md border border-border-light bg-surface p-3">
+                              <p className="font-medium text-text-primary">{item.label}</p>
+                              <p className="mt-1 text-xs text-text-tertiary">{item.reason}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </ReportSection>
+
+                  <ReportSection
+                    title="2) Real Blockers (Entry Requirements)"
+                    count={
+                      executionStrategy.realBlockers.requiredToApply.length +
+                      executionStrategy.realBlockers.requiredToCompete.length
+                    }
+                  >
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Required to apply</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {executionStrategy.realBlockers.requiredToApply.map((item) => (
+                            <li key={`apply-blocker-${item.normalized_key}`} className="rounded-md border border-border-light bg-surface p-3">
+                              <p className="font-medium text-text-primary">{item.label}</p>
+                              <p className="mt-1 text-xs text-text-tertiary">{item.whyItMatters}</p>
+                              <p className="mt-1 text-xs text-text-secondary">
+                                {item.howToClose} Time: {item.timeEstimate}.
+                              </p>
+                              {item.evidenceQuote.length > 0 ? (
+                                <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
+                                  {item.evidenceQuote.map((quote) => (
+                                    <li key={`apply-quote-${item.normalized_key}-${quote}`}>&quot;{quote}&quot;</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Required to be competitive</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {executionStrategy.realBlockers.requiredToCompete.map((item) => (
+                            <li key={`compete-blocker-${item.normalized_key}`} className="rounded-md border border-border-light bg-surface p-3">
+                              <p className="font-medium text-text-primary">{item.label}</p>
+                              <p className="mt-1 text-xs text-text-tertiary">{item.whyItMatters}</p>
+                              <p className="mt-1 text-xs text-text-secondary">
+                                {item.howToClose} Time: {item.timeEstimate}.
+                              </p>
+                              {item.evidenceQuote.length > 0 ? (
+                                <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
+                                  {item.evidenceQuote.map((quote) => (
+                                    <li key={`compete-quote-${item.normalized_key}-${quote}`}>&quot;{quote}&quot;</li>
+                                  ))}
+                                </ul>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </ReportSection>
+
+                  <ReportSection title="3) Your Transferable Edge" count={executionStrategy.transferableEdge.translations.length}>
+                    <ul className="space-y-2 text-sm text-text-secondary">
+                      {executionStrategy.transferableEdge.translations.map((item, index) => (
+                        <li key={`translation-${index}`} className="rounded-md border border-border-light bg-surface p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">From your resume</p>
+                          <p className="mt-1">{item.fromResume}</p>
+                          <p className="mt-2 text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Target-role framing</p>
+                          <p className="mt-1 font-medium text-text-primary">{item.toTargetRole}</p>
+                          <p className="mt-2 text-xs text-text-tertiary">
+                            Counts toward: {item.countsToward.join(' | ') || 'General transition readiness'}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </ReportSection>
+
+                  <ReportSection
+                    title="4) 90-Day Execution Plan"
+                    count={
+                      executionStrategy.plan90Day.month1.actions.length +
+                      executionStrategy.plan90Day.month2.actions.length +
+                      executionStrategy.plan90Day.month3.actions.length
+                    }
+                  >
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {[executionStrategy.plan90Day.month1, executionStrategy.plan90Day.month2, executionStrategy.plan90Day.month3].map((month) => (
+                        <div key={month.label} className="rounded-md border border-border-light bg-surface p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">{month.label}</p>
+                          <p className="mt-1 text-xs text-text-tertiary">Weekly time: {month.weeklyTimeInvestment}</p>
+                          <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                            {month.actions.map((action) => (
+                              <li key={action.id} className="rounded-md border border-border-light bg-bg-secondary p-2">
+                                <p className="font-medium text-text-primary">{action.task}</p>
+                                <p className="mt-1 text-xs text-text-tertiary">
+                                  Target: {action.volumeTarget} | Learning: {action.learningTarget}
+                                </p>
+                                <p className="text-xs text-text-tertiary">
+                                  Proof: {action.proofTarget} | Time: {action.weeklyTime}
+                                </p>
+                                <p className="mt-1 text-xs text-text-tertiary">
+                                  Linked requirements: {action.linkedRequirements.join(', ')}
+                                </p>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </ReportSection>
+
+                  <ReportSection title="5) Probability & Reality Check" count={executionStrategy.probabilityRealityCheck.whatIncreasesOdds.length}>
+                    <p className="text-sm text-text-secondary">{executionStrategy.probabilityRealityCheck.difficulty}</p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">What increases your odds</p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {executionStrategy.probabilityRealityCheck.whatIncreasesOdds.map((item, index) => (
+                            <li key={`odds-${index}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Common failure modes</p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {executionStrategy.probabilityRealityCheck.commonFailureModes.map((item, index) => (
+                            <li key={`failure-${index}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </ReportSection>
+
+                  <ReportSection title="6) Behavioral Execution" count={executionStrategy.behavioralExecution.consistencyLooksLike.length}>
+                    <p className="text-sm text-text-secondary">
+                      <span className="font-semibold text-text-primary">Minimum weekly effort:</span>{' '}
+                      {executionStrategy.behavioralExecution.minimumWeeklyEffort}
+                    </p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">What consistency looks like</p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {executionStrategy.behavioralExecution.consistencyLooksLike.map((item, index) => (
+                            <li key={`consistency-${index}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">What not to do</p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {executionStrategy.behavioralExecution.whatNotToDo.map((item, index) => (
+                            <li key={`dont-${index}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </ReportSection>
+                </Card>
+              ) : transitionReport ? (
                 <Card className="space-y-5 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-base font-bold text-text-primary">
