@@ -49,6 +49,9 @@ test('normalize module rejects vague single-word requirements and expands tool l
   const { toTaskLevelLabel, normalizeRequirementKey } = normalizeModule
 
   assert.equal(toTaskLevelLabel('mechanical', 'hard_skill'), null)
+  assert.equal(toTaskLevelLabel('communication', 'hard_skill'), null)
+  assert.equal(toTaskLevelLabel('leadership', 'hard_skill'), null)
+  assert.equal(toTaskLevelLabel('teamwork', 'hard_skill'), null)
   assert.equal(
     toTaskLevelLabel('Excel', 'tool'),
     'Use Excel in role-relevant workflows'

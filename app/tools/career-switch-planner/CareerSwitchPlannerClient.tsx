@@ -248,6 +248,167 @@ type PlannerReportPayload = {
       strongCandidatePath: string[]
     }
   }
+  transitionReport?: {
+    marketSnapshot: {
+      role: string
+      location: string
+      summaryLine: string
+      topRequirements: Array<{
+        id: string
+        normalized_key: string
+        label: string
+        frequency_count: number
+        frequency_percent: number | null
+        evidenceQuote: Array<{
+          source: 'adzuna' | 'user_posting' | 'onet'
+          quote: string
+          postingId?: string
+          confidence: number
+        }>
+      }>
+      topTools: Array<{
+        id: string
+        normalized_key: string
+        label: string
+        frequency_count: number
+        frequency_percent: number | null
+        evidenceQuote: Array<{
+          source: 'adzuna' | 'user_posting' | 'onet'
+          quote: string
+          postingId?: string
+          confidence: number
+        }>
+      }>
+      gateBlockers: Array<{
+        id: string
+        normalized_key: string
+        label: string
+        frequency_count: number
+        frequency_percent: number | null
+        evidenceQuote: Array<{
+          source: 'adzuna' | 'user_posting' | 'onet'
+          quote: string
+          postingId?: string
+          confidence: number
+        }>
+      }>
+    }
+    mustHaves: Array<{
+      id: string
+      normalized_key: string
+      label: string
+      frequency_count: number
+      frequency_percent: number | null
+      evidenceQuote: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+      status: 'met' | 'missing'
+      howToGet: string
+      timeEstimate: string
+    }>
+    niceToHaves: Array<{
+      id: string
+      normalized_key: string
+      label: string
+      frequency_count: number
+      frequency_percent: number | null
+      evidenceQuote: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+      gapLevel: 'met' | 'partial' | 'missing'
+      howToLearn: string
+    }>
+    coreTasks: Array<{
+      id: string
+      normalized_key: string
+      label: string
+      task: string
+      frequency_count: number
+      frequency_percent: number | null
+      evidenceQuote: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+      gapLevel: 'met' | 'partial' | 'missing'
+    }>
+    toolsPlatformsEquipment: Array<{
+      id: string
+      normalized_key: string
+      label: string
+      tool: string
+      frequency_count: number
+      frequency_percent: number | null
+      evidenceQuote: Array<{
+        source: 'adzuna' | 'user_posting' | 'onet'
+        quote: string
+        postingId?: string
+        confidence: number
+      }>
+      gapLevel: 'met' | 'partial' | 'missing'
+      quickPractice: string
+    }>
+    transferableStrengths: Array<{
+      id: string
+      strength: string
+      source: 'experience_text' | 'skills'
+      countsToward: Array<{ normalized_key: string; label: string }>
+    }>
+    plan30_60_90: {
+      days30: Array<{
+        id: string
+        goal: string
+        actions: string[]
+        linkedRequirements: string[]
+      }>
+      days60: Array<{
+        id: string
+        goal: string
+        actions: string[]
+        linkedRequirements: string[]
+      }>
+      days90: Array<{
+        id: string
+        goal: string
+        actions: string[]
+        linkedRequirements: string[]
+      }>
+      fastestPathToApply: Array<{
+        id: string
+        goal: string
+        actions: string[]
+        linkedRequirements: string[]
+      }>
+      strongCandidatePath: Array<{
+        id: string
+        goal: string
+        actions: string[]
+        linkedRequirements: string[]
+      }>
+    }
+    evidenceTransparency: {
+      employerPostings: {
+        source: 'adzuna_cached'
+        count: number
+        lastUpdated: string | null
+        usedCache: boolean
+      }
+      userProvidedPosting: {
+        included: boolean
+      }
+      baselineOnet: {
+        included: boolean
+      }
+      baselineOnlyWarning: string | null
+    }
+  }
   marketEvidence?: {
     enabled: boolean
     used: boolean
@@ -402,6 +563,11 @@ function evidenceConfidenceLabel(
     evidence.reduce((sum, item) => sum + (Number.isFinite(item.confidence) ? item.confidence : 0), 0) /
     evidence.length
   return `${Math.round(Math.max(0, Math.min(1, average)) * 100)}% confidence`
+}
+
+function frequencyPercentLabel(value: number | null | undefined) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 'N/A'
+  return `${Math.round(value)}%`
 }
 
 function ReportSection({
@@ -1077,6 +1243,7 @@ export default function CareerSwitchPlannerPage({
       .filter((link) => link.type === 'official' && link.url && link.label)
       .map((link) => ({ label: link.label, url: link.url })))
   ]).slice(0, 8)
+  const transitionReport = plannerReport?.transitionReport ?? null
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
@@ -1508,7 +1675,7 @@ export default function CareerSwitchPlannerPage({
               {plannerReport?.marketEvidence?.baselineOnly ? (
                 <Card className="p-5">
                   <p className="text-sm font-semibold text-warning">
-                    No employer evidence available right now - showing baseline requirements.
+                    No employer evidence found; showing baseline only.
                   </p>
                   <p className="mt-2 text-sm text-text-secondary">
                     Add a pasted posting or enable market evidence to get live demand signals for
@@ -1516,11 +1683,253 @@ export default function CareerSwitchPlannerPage({
                   </p>
                 </Card>
               ) : null}
-              {plannerReport?.transitionSections ? (
+              {transitionReport ? (
                 <Card className="space-y-5 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-base font-bold text-text-primary">
-                      Evidence-Driven Transition Map
+                      What employers in {transitionReport.marketSnapshot.location || 'your region'} commonly ask for
+                    </h3>
+                    {transitionReport.evidenceTransparency.employerPostings.usedCache ? (
+                      <Badge variant="default">Using cached market fingerprint</Badge>
+                    ) : null}
+                  </div>
+
+                  <ReportSection
+                    title="A) Market Snapshot"
+                    count={transitionReport.marketSnapshot.topRequirements.length}
+                    defaultOpen
+                  >
+                    <p className="text-sm text-text-secondary">{transitionReport.marketSnapshot.summaryLine}</p>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Top requirements
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                        {transitionReport.marketSnapshot.topRequirements.map((item) => (
+                          <li key={item.id}>
+                            <p className="font-medium text-text-primary">
+                              {item.label} ({frequencyPercentLabel(item.frequency_percent)})
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Top tools
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                        {transitionReport.marketSnapshot.topTools.map((item) => (
+                          <li key={item.id}>
+                            {item.label} ({frequencyPercentLabel(item.frequency_percent)})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    {transitionReport.marketSnapshot.gateBlockers.length > 0 ? (
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Common credential/gate blockers
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                          {transitionReport.marketSnapshot.gateBlockers.map((item) => (
+                            <li key={item.id}>
+                              {item.label} ({frequencyPercentLabel(item.frequency_percent)})
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </ReportSection>
+
+                  <ReportSection title="B) Must-Haves (Apply Gate)" count={transitionReport.mustHaves.length}>
+                    {transitionReport.mustHaves.map((item) => (
+                      <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          {item.label} ({frequencyPercentLabel(item.frequency_percent)}) • {item.status}
+                        </p>
+                        <p className="mt-1 text-xs text-text-secondary">
+                          {item.howToGet} Estimated time: {item.timeEstimate}.
+                        </p>
+                        {item.evidenceQuote.length > 0 ? (
+                          <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
+                            {item.evidenceQuote.map((quote) => (
+                              <li key={`${item.id}-${quote.source}-${quote.quote}`}>
+                                &quot;{quote.quote}&quot;
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </ReportSection>
+
+                  <ReportSection title="C) Nice-to-Haves (Competitiveness Boosters)" count={transitionReport.niceToHaves.length}>
+                    {transitionReport.niceToHaves.map((item) => (
+                      <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          {item.label} ({frequencyPercentLabel(item.frequency_percent)}) • {gapLevelLabel(item.gapLevel)}
+                        </p>
+                        <p className="mt-1 text-xs text-text-secondary">{item.howToLearn}</p>
+                        {item.evidenceQuote.length > 0 ? (
+                          <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
+                            {item.evidenceQuote.map((quote) => (
+                              <li key={`${item.id}-${quote.source}-${quote.quote}`}>
+                                &quot;{quote.quote}&quot;
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </ReportSection>
+
+                  <ReportSection title="D) Core Tasks You’ll Be Expected To Do" count={transitionReport.coreTasks.length}>
+                    {transitionReport.coreTasks.map((item) => (
+                      <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          {item.task} ({frequencyPercentLabel(item.frequency_percent)}) • {gapLevelLabel(item.gapLevel)}
+                        </p>
+                        {item.evidenceQuote.length > 0 ? (
+                          <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
+                            {item.evidenceQuote.map((quote) => (
+                              <li key={`${item.id}-${quote.source}-${quote.quote}`}>
+                                &quot;{quote.quote}&quot;
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </ReportSection>
+
+                  <ReportSection title="E) Tools / Platforms / Equipment" count={transitionReport.toolsPlatformsEquipment.length}>
+                    {transitionReport.toolsPlatformsEquipment.map((item) => (
+                      <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
+                        <p className="text-sm font-semibold text-text-primary">
+                          {item.tool} ({frequencyPercentLabel(item.frequency_percent)}) • {gapLevelLabel(item.gapLevel)}
+                        </p>
+                        <p className="mt-1 text-xs text-text-secondary">{item.quickPractice}</p>
+                        {item.evidenceQuote.length > 0 ? (
+                          <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
+                            {item.evidenceQuote.map((quote) => (
+                              <li key={`${item.id}-${quote.source}-${quote.quote}`}>
+                                &quot;{quote.quote}&quot;
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </ReportSection>
+
+                  <ReportSection title="F) Transferable Strengths (from your resume/background)" count={transitionReport.transferableStrengths.length}>
+                    {transitionReport.transferableStrengths.map((item) => (
+                      <div key={item.id} className="rounded-md border border-border-light bg-surface p-3 text-sm text-text-secondary">
+                        <p className="font-semibold text-text-primary">{item.strength}</p>
+                        <p className="mt-1 text-xs text-text-tertiary">
+                          Counts toward:{' '}
+                          {item.countsToward.length > 0
+                            ? item.countsToward.map((target) => `${target.label} (${target.normalized_key})`).join(' | ')
+                            : 'No direct mapping available'}
+                        </p>
+                      </div>
+                    ))}
+                  </ReportSection>
+
+                  <ReportSection title="G) 30/60/90 Day Plan (roadmap)" count={transitionReport.plan30_60_90.days30.length + transitionReport.plan30_60_90.days60.length + transitionReport.plan30_60_90.days90.length}>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">30 days</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {transitionReport.plan30_60_90.days30.map((step) => (
+                            <li key={step.id}>
+                              <p className="font-medium text-text-primary">{step.goal}</p>
+                              <p className="text-xs text-text-tertiary">
+                                Linked: {step.linkedRequirements.join(', ')}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">60 days</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {transitionReport.plan30_60_90.days60.map((step) => (
+                            <li key={step.id}>
+                              <p className="font-medium text-text-primary">{step.goal}</p>
+                              <p className="text-xs text-text-tertiary">
+                                Linked: {step.linkedRequirements.join(', ')}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">90 days</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {transitionReport.plan30_60_90.days90.map((step) => (
+                            <li key={step.id}>
+                              <p className="font-medium text-text-primary">{step.goal}</p>
+                              <p className="text-xs text-text-tertiary">
+                                Linked: {step.linkedRequirements.join(', ')}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Fastest path to apply</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {transitionReport.plan30_60_90.fastestPathToApply.map((step) => (
+                            <li key={step.id}>
+                              <p className="font-medium text-text-primary">{step.goal}</p>
+                              <p className="text-xs text-text-tertiary">Linked: {step.linkedRequirements.join(', ')}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-md border border-border-light bg-bg-secondary p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Strong candidate path</p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {transitionReport.plan30_60_90.strongCandidatePath.map((step) => (
+                            <li key={step.id}>
+                              <p className="font-medium text-text-primary">{step.goal}</p>
+                              <p className="text-xs text-text-tertiary">Linked: {step.linkedRequirements.join(', ')}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </ReportSection>
+
+                  <ReportSection title="H) Evidence & Transparency Footer" count={3}>
+                    <p className="text-sm text-text-secondary">
+                      Employer postings (Adzuna cached): {transitionReport.evidenceTransparency.employerPostings.count} | Last updated:{' '}
+                      {transitionReport.evidenceTransparency.employerPostings.lastUpdated ?? 'Not available'}
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      User-provided posting included:{' '}
+                      {transitionReport.evidenceTransparency.userProvidedPosting.included ? 'Yes' : 'No'}
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      Baseline (O*NET) used:{' '}
+                      {transitionReport.evidenceTransparency.baselineOnet.included ? 'Yes' : 'No'}
+                    </p>
+                    {transitionReport.evidenceTransparency.baselineOnlyWarning ? (
+                      <p className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm font-semibold text-warning">
+                        {transitionReport.evidenceTransparency.baselineOnlyWarning}
+                      </p>
+                    ) : null}
+                  </ReportSection>
+                </Card>
+              ) : plannerReport?.transitionSections ? (
+                <Card className="space-y-5 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-base font-bold text-text-primary">
+                      What employers in {(plannerReport.marketEvidence?.query?.location ?? locationText) || 'your region'} commonly ask for
                     </h3>
                     {plannerReport.marketEvidence?.usedCache ? (
                       <Badge variant="default">Using cached market fingerprint</Badge>

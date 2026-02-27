@@ -26,6 +26,10 @@ export interface AggregatedRequirement {
   type: RequirementType
   label: string
   normalizedKey: string
+  normalized_key: string
   frequency: number
+  frequency_count: number
+  frequency_percent: number | null
   evidence: RequirementEvidence[]
+  evidence_quotes: RequirementEvidence[]
 }

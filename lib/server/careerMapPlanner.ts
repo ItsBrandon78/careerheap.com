@@ -127,6 +127,29 @@ interface RankedMatch {
   contextKeywordHits: number
 }
 
+interface TransitionEvidenceItem {
+  source: RequirementEvidence['source']
+  quote: string
+  postingId?: string
+  confidence: number
+}
+
+interface TransitionRequirementSummary {
+  id: string
+  normalized_key: string
+  label: string
+  frequency_count: number
+  frequency_percent: number | null
+  evidenceQuote: TransitionEvidenceItem[]
+}
+
+interface TransitionRoadmapStep {
+  id: string
+  goal: string
+  actions: string[]
+  linkedRequirements: string[]
+}
+
 export interface CareerPlannerAnalysis {
   report: {
     compatibilitySnapshot: {
@@ -257,6 +280,70 @@ export interface CareerPlannerAnalysis {
         strongCandidatePath: string[]
       }
     }
+    transitionReport: {
+      marketSnapshot: {
+        role: string
+        location: string
+        summaryLine: string
+        topRequirements: TransitionRequirementSummary[]
+        topTools: TransitionRequirementSummary[]
+        gateBlockers: TransitionRequirementSummary[]
+      }
+      mustHaves: Array<
+        TransitionRequirementSummary & {
+          status: 'met' | 'missing'
+          howToGet: string
+          timeEstimate: string
+        }
+      >
+      niceToHaves: Array<
+        TransitionRequirementSummary & {
+          gapLevel: 'met' | 'partial' | 'missing'
+          howToLearn: string
+        }
+      >
+      coreTasks: Array<
+        TransitionRequirementSummary & {
+          task: string
+          gapLevel: 'met' | 'partial' | 'missing'
+        }
+      >
+      toolsPlatformsEquipment: Array<
+        TransitionRequirementSummary & {
+          tool: string
+          gapLevel: 'met' | 'partial' | 'missing'
+          quickPractice: string
+        }
+      >
+      transferableStrengths: Array<{
+        id: string
+        strength: string
+        source: 'experience_text' | 'skills'
+        countsToward: Array<{ normalized_key: string; label: string }>
+      }>
+      plan30_60_90: {
+        days30: TransitionRoadmapStep[]
+        days60: TransitionRoadmapStep[]
+        days90: TransitionRoadmapStep[]
+        fastestPathToApply: TransitionRoadmapStep[]
+        strongCandidatePath: TransitionRoadmapStep[]
+      }
+      evidenceTransparency: {
+        employerPostings: {
+          source: 'adzuna_cached'
+          count: number
+          lastUpdated: string | null
+          usedCache: boolean
+        }
+        userProvidedPosting: {
+          included: boolean
+        }
+        baselineOnet: {
+          included: boolean
+        }
+        baselineOnlyWarning: string | null
+      }
+    }
     marketEvidence: {
       enabled: boolean
       used: boolean
@@ -329,6 +416,7 @@ const MIN_TARGETED_ROLE_PROXIMITY = 0.16
 const MIN_TARGETED_SKILL_OVERLAP = 0.08
 const MIN_DISCOVERY_ROLE_PROXIMITY = 0.11
 const MIN_DISCOVERY_SKILL_OVERLAP = 0.06
+const MUST_HAVE_PERCENT_THRESHOLD = 35
 
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')
@@ -751,11 +839,53 @@ function sourcePriority(source: RequirementEvidence['source']) {
   return 1
 }
 
+function pickEvidenceQuotes(evidence: RequirementEvidence[]) {
+  const seen = new Set<string>()
+  return [...evidence]
+    .sort((left, right) => {
+      const sourceDelta = sourcePriority(right.source) - sourcePriority(left.source)
+      if (sourceDelta !== 0) return sourceDelta
+      if (right.confidence !== left.confidence) return right.confidence - left.confidence
+      if (left.quote !== right.quote) return left.quote.localeCompare(right.quote)
+      return (left.postingId ?? '').localeCompare(right.postingId ?? '')
+    })
+    .filter((item) => {
+      const key = `${item.source}:${item.quote}:${item.postingId ?? ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, 2)
+}
+
+function withAggregatedRequirementCompatibility(options: {
+  type: RequirementType
+  label: string
+  normalizedKey: string
+  frequencyCount: number
+  frequencyPercent?: number | null
+  evidence: RequirementEvidence[]
+}) {
+  const frequencyCount = Math.max(1, options.frequencyCount)
+  const normalizedKey = options.normalizedKey
+  return {
+    type: options.type,
+    label: options.label,
+    normalizedKey,
+    normalized_key: normalizedKey,
+    frequency: frequencyCount,
+    frequency_count: frequencyCount,
+    frequency_percent: options.frequencyPercent ?? null,
+    evidence: options.evidence,
+    evidence_quotes: pickEvidenceQuotes(options.evidence)
+  } satisfies AggregatedRequirement
+}
+
 function requirementEvidenceLabel(requirement: AggregatedRequirement) {
   const hasUserPosting = requirement.evidence.some((item) => item.source === 'user_posting')
   if (hasUserPosting) return 'User posting'
   const hasMarket = requirement.evidence.some((item) => item.source === 'adzuna')
-  if (hasMarket) return `Employer evidence (Adzuna) - freq ${requirement.frequency}`
+  if (hasMarket) return `Employer evidence (Adzuna) - freq ${requirement.frequency_count}`
   return 'Baseline (O*NET)'
 }
 
@@ -767,19 +897,21 @@ function toBaselineRequirement(options: {
 }) {
   const taskLabel = toTaskLevelLabel(options.label, options.type)
   if (!taskLabel) return null
-  return {
+  const evidence = [
+    {
+      source: 'onet' as const,
+      quote: options.quote.trim().slice(0, 220),
+      confidence: 0.62
+    }
+  ]
+  return withAggregatedRequirementCompatibility({
     type: options.type,
     label: taskLabel,
     normalizedKey: normalizeText(taskLabel),
-    frequency: Math.max(1, options.frequency ?? 1),
-    evidence: [
-      {
-        source: 'onet' as const,
-        quote: options.quote.trim().slice(0, 220),
-        confidence: 0.62
-      }
-    ]
-  } satisfies AggregatedRequirement
+    frequencyCount: Math.max(1, options.frequency ?? 1),
+    frequencyPercent: null,
+    evidence
+  })
 }
 
 function mergeRequirementsWithPriority(groups: AggregatedRequirement[][]) {
@@ -797,15 +929,24 @@ function mergeRequirementsWithPriority(groups: AggregatedRequirement[][]) {
       const existing = map.get(key)
       if (!existing) {
         map.set(key, {
-          ...item,
+          ...withAggregatedRequirementCompatibility({
+            type: item.type,
+            label: item.label,
+            normalizedKey: item.normalizedKey,
+            frequencyCount: item.frequency_count,
+            frequencyPercent: item.frequency_percent,
+            evidence: [...item.evidence]
+          }),
           evidence: [...item.evidence],
+          evidence_quotes: [...item.evidence_quotes],
           bestSourcePriority: itemBestSource,
           bestSourceLabel: item.label
         })
         continue
       }
 
-      existing.frequency += item.frequency
+      existing.frequency += item.frequency_count
+      existing.frequency_count += item.frequency_count
       if (itemBestSource > existing.bestSourcePriority) {
         existing.label = item.label
         existing.bestSourcePriority = itemBestSource
@@ -822,22 +963,28 @@ function mergeRequirementsWithPriority(groups: AggregatedRequirement[][]) {
           existing.evidence.push(evidence)
         }
       }
+      existing.evidence_quotes = pickEvidenceQuotes(existing.evidence)
     }
   }
 
   return [...map.values()]
-    .map((row) => ({
-      type: row.type,
-      label: row.label,
-      normalizedKey: row.normalizedKey,
-      frequency: row.frequency,
-      evidence: row.evidence
-    }))
+    .map((row) =>
+      withAggregatedRequirementCompatibility({
+        type: row.type,
+        label: row.label,
+        normalizedKey: row.normalizedKey,
+        frequencyCount: row.frequency_count,
+        frequencyPercent: row.frequency_percent,
+        evidence: row.evidence
+      })
+    )
     .sort((left, right) => {
       const rightPriority = Math.max(...right.evidence.map((item) => sourcePriority(item.source)))
       const leftPriority = Math.max(...left.evidence.map((item) => sourcePriority(item.source)))
       if (rightPriority !== leftPriority) return rightPriority - leftPriority
-      if (right.frequency !== left.frequency) return right.frequency - left.frequency
+      if (right.frequency_count !== left.frequency_count) {
+        return right.frequency_count - left.frequency_count
+      }
       return left.label.localeCompare(right.label)
     })
 }
@@ -981,6 +1128,60 @@ function requirementQuickProject(requirement: AggregatedRequirement) {
     return `Build a mini project that uses ${requirement.label.replace(/^Use\s+/i, '')} and publish a one-page walkthrough.`
   }
   return `Create one artifact proving ${requirement.label} with measurable outcomes.`
+}
+
+function roundedFrequencyPercent(value: number | null) {
+  if (!Number.isFinite(value ?? NaN)) return null
+  return Math.max(0, Math.min(100, Math.round(value ?? 0)))
+}
+
+function hasEvidencePattern(requirement: AggregatedRequirement, pattern: RegExp) {
+  const evidence = requirement.evidence_quotes.length > 0 ? requirement.evidence_quotes : requirement.evidence
+  return evidence.some((item) => pattern.test(item.quote))
+}
+
+function isExplicitMustHave(requirement: AggregatedRequirement) {
+  return hasEvidencePattern(
+    requirement,
+    /\b(required|must|mandatory|need to|needs to|ability to obtain|licensed|license required|certification required)\b/i
+  )
+}
+
+function isExplicitNiceToHave(requirement: AggregatedRequirement) {
+  return hasEvidencePattern(requirement, /\b(preferred|nice to have|bonus|asset|plus)\b/i)
+}
+
+function toTransitionSummary(idPrefix: string, requirement: AggregatedRequirement): TransitionRequirementSummary {
+  return {
+    id: `${idPrefix}-${requirement.normalizedKey}`,
+    normalized_key: requirement.normalized_key,
+    label: requirement.label,
+    frequency_count: requirement.frequency_count,
+    frequency_percent: roundedFrequencyPercent(requirement.frequency_percent),
+    evidenceQuote: requirement.evidence_quotes
+  }
+}
+
+function buildTransitionRoadmapStep(options: {
+  id: string
+  requirements: AggregatedRequirement[]
+  fallbackGoal: string
+}) {
+  const linkedRequirements = uniqueStrings(
+    options.requirements.map((item) => item.normalized_key)
+  ).slice(0, 3)
+  const requirementLabels = options.requirements.map((item) => item.label).slice(0, 2)
+  const labelSummary = requirementLabels.join(' + ')
+  const goal = labelSummary || options.fallbackGoal
+  return {
+    id: options.id,
+    goal,
+    actions: [
+      `Close ${goal.toLowerCase()} with one measurable proof artifact.`,
+      'Add the result to your resume bullets and interview story bank.'
+    ],
+    linkedRequirements
+  } satisfies TransitionRoadmapStep
 }
 
 function findTransferableEvidence(options: {
@@ -1165,6 +1366,43 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
             threeToTwelveMonths: [],
             fastestPathToApply: [],
             strongCandidatePath: []
+          }
+        },
+        transitionReport: {
+          marketSnapshot: {
+            role: '',
+            location: input.location ?? '',
+            summaryLine: `Based on 0 recent postings in ${input.location ?? 'your region'}.`,
+            topRequirements: [],
+            topTools: [],
+            gateBlockers: []
+          },
+          mustHaves: [],
+          niceToHaves: [],
+          coreTasks: [],
+          toolsPlatformsEquipment: [],
+          transferableStrengths: [],
+          plan30_60_90: {
+            days30: [],
+            days60: [],
+            days90: [],
+            fastestPathToApply: [],
+            strongCandidatePath: []
+          },
+          evidenceTransparency: {
+            employerPostings: {
+              source: 'adzuna_cached',
+              count: 0,
+              lastUpdated: null,
+              usedCache: false
+            },
+            userProvidedPosting: {
+              included: Boolean(input.userPostingText?.trim())
+            },
+            baselineOnet: {
+              included: true
+            },
+            baselineOnlyWarning: 'No employer evidence found; showing baseline only.'
           }
         },
         marketEvidence: {
@@ -1496,8 +1734,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     .sort((left, right) => {
       if (left.requirement.type === 'gate' && right.requirement.type !== 'gate') return -1
       if (left.requirement.type !== 'gate' && right.requirement.type === 'gate') return 1
-      if (right.requirement.frequency !== left.requirement.frequency) {
-        return right.requirement.frequency - left.requirement.frequency
+      if (right.requirement.frequency_count !== left.requirement.frequency_count) {
+        return right.requirement.frequency_count - left.requirement.frequency_count
       }
       return left.requirement.label.localeCompare(right.requirement.label)
     })
@@ -1535,7 +1773,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     .map((item, index) => ({
       skillId: item.requirement.normalizedKey,
       skillName: item.requirement.label,
-      weight: toRounded(Math.max(0.1, item.requirement.frequency / 10), 4),
+      weight: toRounded(Math.max(0.1, item.requirement.frequency_count / 10), 4),
       difficulty:
         item.requirement.type === 'tool'
           ? 'easy'
@@ -1545,7 +1783,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
               ? 'medium'
               : 'hard',
       gapLevel: item.gapLevel,
-      frequency: item.requirement.frequency,
+      frequency: item.requirement.frequency_count,
       evidence: item.requirement.evidence,
       evidenceLabel: requirementEvidenceLabel(item.requirement),
       howToClose: [
@@ -1566,7 +1804,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       label: requirement.label,
       status: (gap === 'met' ? 'met' : 'missing') as 'met' | 'missing',
       gapLevel: gap,
-      frequency: requirement.frequency,
+      frequency: requirement.frequency_count,
       howToGet: requirementHowToGet(requirement),
       estimatedTime: requirementEstimatedTime(requirement),
       evidenceLabel: requirementEvidenceLabel(requirement),
@@ -1585,7 +1823,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       id: `hard-${requirement.normalizedKey}`,
       label: requirement.label,
       gapLevel: gap,
-      frequency: requirement.frequency,
+      frequency: requirement.frequency_count,
       howToLearn: requirementHowToGet(requirement),
       evidenceLabel: requirementEvidenceLabel(requirement),
       evidence: requirement.evidence
@@ -1603,7 +1841,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       id: `tool-${requirement.normalizedKey}`,
       label: requirement.label,
       gapLevel: gap,
-      frequency: requirement.frequency,
+      frequency: requirement.frequency_count,
       quickProject: requirementQuickProject(requirement),
       evidenceLabel: requirementEvidenceLabel(requirement),
       evidence: requirement.evidence
@@ -1621,7 +1859,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       id: `exp-${requirement.normalizedKey}`,
       label: requirement.label,
       gapLevel: gap,
-      frequency: requirement.frequency,
+      frequency: requirement.frequency_count,
       howToBuild: requirementHowToGet(requirement),
       evidenceLabel: requirementEvidenceLabel(requirement),
       evidence: requirement.evidence
@@ -1673,6 +1911,258 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     strongCandidatePath: roadmapMissing
       .slice(0, 6)
       .map((item) => `Build depth in ${item.requirement.label.toLowerCase()} and attach measurable proof.`)
+  }
+
+  const dedupeRequirements = (items: AggregatedRequirement[]) => {
+    const seen = new Set<string>()
+    const output: AggregatedRequirement[] = []
+    for (const item of items) {
+      if (seen.has(item.normalized_key)) continue
+      seen.add(item.normalized_key)
+      output.push(item)
+    }
+    return output
+  }
+  const sortByFrequency = (left: AggregatedRequirement, right: AggregatedRequirement) => {
+    if (right.frequency_count !== left.frequency_count) {
+      return right.frequency_count - left.frequency_count
+    }
+    return left.label.localeCompare(right.label)
+  }
+  const gapLevelByKey = new Map(
+    requirementGapRows.map((item) => [item.requirement.normalized_key, item.gapLevel] as const)
+  )
+
+  const nonGateRequirements = allRequirements
+    .filter((item) => item.type !== 'gate')
+    .sort(sortByFrequency)
+  const mustHaveSeeds = dedupeRequirements([
+    ...gateRequirements,
+    ...nonGateRequirements.filter(
+      (item) =>
+        isExplicitMustHave(item) || (item.frequency_percent ?? 0) >= MUST_HAVE_PERCENT_THRESHOLD
+    )
+  ])
+  const mustHaveRequirements = [...mustHaveSeeds]
+  if (hasEffectiveNonBaselineEvidence && mustHaveRequirements.length < 6) {
+    for (const candidate of nonGateRequirements) {
+      if (mustHaveRequirements.some((item) => item.normalized_key === candidate.normalized_key)) {
+        continue
+      }
+      mustHaveRequirements.push(candidate)
+      if (mustHaveRequirements.length >= 6) break
+    }
+  }
+  const mustHaveKeySet = new Set(mustHaveRequirements.map((item) => item.normalized_key))
+  const preferredNiceRequirements = nonGateRequirements.filter(
+    (item) => !mustHaveKeySet.has(item.normalized_key) && isExplicitNiceToHave(item)
+  )
+  const residualNiceRequirements = nonGateRequirements.filter(
+    (item) => !mustHaveKeySet.has(item.normalized_key) && !isExplicitNiceToHave(item)
+  )
+  const niceToHaveRequirements = dedupeRequirements([
+    ...preferredNiceRequirements,
+    ...residualNiceRequirements
+  ]).slice(0, 12)
+
+  const coreTaskRequirements = dedupeRequirements(
+    [...hardSkillRequirements, ...experienceRequirements].sort(sortByFrequency)
+  ).slice(0, 12)
+  if (coreTaskRequirements.length < 8) {
+    for (const candidate of nonGateRequirements) {
+      if (coreTaskRequirements.some((item) => item.normalized_key === candidate.normalized_key)) {
+        continue
+      }
+      coreTaskRequirements.push(candidate)
+      if (coreTaskRequirements.length >= 8) break
+    }
+  }
+
+  const toolRequirementsForReport = dedupeRequirements([...toolRequirements].sort(sortByFrequency))
+  if (toolRequirementsForReport.length < 5) {
+    for (const candidate of nonGateRequirements) {
+      if (candidate.type === 'gate') continue
+      if (!/^use\s+/i.test(candidate.label) && candidate.type !== 'tool') continue
+      if (
+        toolRequirementsForReport.some((item) => item.normalized_key === candidate.normalized_key)
+      ) {
+        continue
+      }
+      toolRequirementsForReport.push(candidate)
+      if (toolRequirementsForReport.length >= 5) break
+    }
+  }
+
+  const requirementByKey = new Map(allRequirements.map((item) => [item.normalized_key, item]))
+  const transitionMustHaves = mustHaveRequirements
+    .slice(0, 12)
+    .map((requirement) => {
+      const gap = gapLevelByKey.get(requirement.normalized_key) ?? 'missing'
+      return {
+        ...toTransitionSummary('must', requirement),
+        status: (gap === 'met' ? 'met' : 'missing') as 'met' | 'missing',
+        howToGet: requirementHowToGet(requirement),
+        timeEstimate: requirementEstimatedTime(requirement)
+      }
+    })
+  const transitionNiceToHaves = niceToHaveRequirements.slice(0, 12).map((requirement) => ({
+    ...toTransitionSummary('nice', requirement),
+    gapLevel: (gapLevelByKey.get(requirement.normalized_key) ?? 'missing') as
+      | 'met'
+      | 'partial'
+      | 'missing',
+    howToLearn: requirementHowToGet(requirement)
+  }))
+  const transitionCoreTasks = coreTaskRequirements.slice(0, 12).map((requirement) => ({
+    ...toTransitionSummary('task', requirement),
+    task: requirement.label,
+    gapLevel: (gapLevelByKey.get(requirement.normalized_key) ?? 'missing') as
+      | 'met'
+      | 'partial'
+      | 'missing'
+  }))
+  const transitionTools = toolRequirementsForReport.slice(0, 10).map((requirement) => ({
+    ...toTransitionSummary('tool', requirement),
+    tool: requirement.label,
+    gapLevel: (gapLevelByKey.get(requirement.normalized_key) ?? 'missing') as
+      | 'met'
+      | 'partial'
+      | 'missing',
+    quickPractice: requirementQuickProject(requirement)
+  }))
+
+  const transitionTransferableStrengths = transferableStrengths.slice(0, 10).map((item) => {
+    const requirement = requirementByKey.get(normalizeText(item.requirement))
+    return {
+      id: item.id,
+      strength: item.label,
+      source: item.source,
+      countsToward: requirement
+        ? [{ normalized_key: requirement.normalized_key, label: requirement.label }]
+        : []
+    }
+  })
+
+  const missingRequirementRegistry = dedupeRequirements(
+    [
+      ...transitionMustHaves
+        .filter((item) => item.status === 'missing')
+        .map((item) => requirementByKey.get(item.normalized_key))
+        .filter((item): item is AggregatedRequirement => Boolean(item)),
+      ...transitionNiceToHaves
+        .filter((item) => item.gapLevel !== 'met')
+        .map((item) => requirementByKey.get(item.normalized_key))
+        .filter((item): item is AggregatedRequirement => Boolean(item)),
+      ...transitionCoreTasks
+        .filter((item) => item.gapLevel !== 'met')
+        .map((item) => requirementByKey.get(item.normalized_key))
+        .filter((item): item is AggregatedRequirement => Boolean(item)),
+      ...transitionTools
+        .filter((item) => item.gapLevel !== 'met')
+        .map((item) => requirementByKey.get(item.normalized_key))
+        .filter((item): item is AggregatedRequirement => Boolean(item))
+    ].sort((left, right) => {
+      if (left.type === 'gate' && right.type !== 'gate') return -1
+      if (left.type !== 'gate' && right.type === 'gate') return 1
+      return sortByFrequency(left, right)
+    })
+  )
+
+  const days30 = missingRequirementRegistry
+    .slice(0, 3)
+    .map((requirement, index) =>
+      buildTransitionRoadmapStep({
+        id: `d30-${index + 1}`,
+        requirements: [requirement],
+        fallbackGoal: 'Close top application blockers'
+      })
+    )
+  const days60 = missingRequirementRegistry
+    .slice(3, 6)
+    .map((requirement, index) =>
+      buildTransitionRoadmapStep({
+        id: `d60-${index + 1}`,
+        requirements: [requirement],
+        fallbackGoal: 'Build repeatable role evidence'
+      })
+    )
+  const days90 = missingRequirementRegistry
+    .slice(6, 9)
+    .map((requirement, index) =>
+      buildTransitionRoadmapStep({
+        id: `d90-${index + 1}`,
+        requirements: [requirement],
+        fallbackGoal: 'Convert proof into durable interview signal'
+      })
+    )
+
+  const fastestPathSource = dedupeRequirements([
+    ...missingRequirementRegistry.filter((item) => item.type === 'gate'),
+    ...missingRequirementRegistry
+  ]).slice(0, 3)
+  const strongestPathSource = missingRequirementRegistry.slice(0, 6)
+  const fastestPathToApply = fastestPathSource.map((requirement, index) =>
+    buildTransitionRoadmapStep({
+      id: `fast-${index + 1}`,
+      requirements: [requirement],
+      fallbackGoal: 'Reach minimum apply-ready state'
+    })
+  )
+  const strongCandidatePath = strongestPathSource.map((requirement, index) =>
+    buildTransitionRoadmapStep({
+      id: `strong-${index + 1}`,
+      requirements: [requirement],
+      fallbackGoal: 'Increase competitiveness with stronger proof'
+    })
+  )
+
+  const transitionReport: CareerPlannerAnalysis['report']['transitionReport'] = {
+    marketSnapshot: {
+      role: evidenceResult.query?.role ?? evidenceRole,
+      location: evidenceResult.query?.location ?? evidenceLocation,
+      summaryLine: `Based on ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`,
+      topRequirements: allRequirements
+        .filter((item) => item.type !== 'tool')
+        .sort(sortByFrequency)
+        .slice(0, 5)
+        .map((item) => toTransitionSummary('snapshot', item)),
+      topTools: toolRequirementsForReport
+        .slice(0, 3)
+        .map((item) => toTransitionSummary('snapshot-tool', item)),
+      gateBlockers: gateRequirements
+        .sort(sortByFrequency)
+        .slice(0, 3)
+        .map((item) => toTransitionSummary('blocker', item))
+    },
+    mustHaves: transitionMustHaves,
+    niceToHaves: transitionNiceToHaves,
+    coreTasks: transitionCoreTasks,
+    toolsPlatformsEquipment: transitionTools,
+    transferableStrengths: transitionTransferableStrengths,
+    plan30_60_90: {
+      days30,
+      days60,
+      days90,
+      fastestPathToApply,
+      strongCandidatePath
+    },
+    evidenceTransparency: {
+      employerPostings: {
+        source: 'adzuna_cached',
+        count: evidenceResult.postingsCount,
+        lastUpdated: evidenceResult.fetchedAt,
+        usedCache: evidenceResult.usedCache
+      },
+      userProvidedPosting: {
+        included: Boolean(input.userPostingText?.trim())
+      },
+      baselineOnet: {
+        included: usesBaselineFallback || !hasEffectiveNonBaselineEvidence
+      },
+      baselineOnlyWarning: hasEffectiveNonBaselineEvidence
+        ? null
+        : 'No employer evidence found; showing baseline only.'
+    }
   }
 
   const targetRequirements: CareerPlannerAnalysis['report']['targetRequirements'] = {
@@ -1786,6 +2276,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       transferableStrengths,
       roadmapPlan
     },
+    transitionReport,
     marketEvidence: {
       enabled: isMarketEvidenceConfigured(),
       used: hasEffectiveNonBaselineEvidence,

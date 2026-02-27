@@ -111,6 +111,12 @@ const CANADA_LOCATION_SIGNALS = [
   'victoria'
 ]
 
+function evidenceSourcePriority(source: RequirementEvidenceSource) {
+  if (source === 'user_posting') return 3
+  if (source === 'adzuna') return 2
+  return 1
+}
+
 function normalizeLookup(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
@@ -156,6 +162,66 @@ function toEvidenceArray(value: unknown): RequirementEvidence[] {
   return output
 }
 
+function pickEvidenceQuotes(evidence: RequirementEvidence[]) {
+  const seen = new Set<string>()
+  return [...evidence]
+    .sort((left, right) => {
+      const sourceDelta = evidenceSourcePriority(right.source) - evidenceSourcePriority(left.source)
+      if (sourceDelta !== 0) return sourceDelta
+      if (right.confidence !== left.confidence) return right.confidence - left.confidence
+      if (left.quote !== right.quote) return left.quote.localeCompare(right.quote)
+      return (left.postingId ?? '').localeCompare(right.postingId ?? '')
+    })
+    .filter((item) => {
+      const key = `${item.source}:${item.quote}:${item.postingId ?? ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .slice(0, 2)
+}
+
+function withAggregatedCompatibility(
+  row: Pick<AggregatedRequirement, 'type' | 'label' | 'normalizedKey' | 'frequency' | 'evidence'> & {
+    frequencyPercent?: number | null
+  }
+) {
+  const frequency = Math.max(1, Number(row.frequency) || 1)
+  const normalizedKey = String(row.normalizedKey ?? '').trim()
+  return {
+    type: row.type,
+    label: row.label,
+    normalizedKey,
+    normalized_key: normalizedKey,
+    frequency,
+    frequency_count: frequency,
+    frequency_percent: row.frequencyPercent ?? null,
+    evidence: row.evidence,
+    evidence_quotes: pickEvidenceQuotes(row.evidence)
+  } satisfies AggregatedRequirement
+}
+
+function withFrequencyPercent(requirements: AggregatedRequirement[], postingsCount: number) {
+  return requirements.map((item) => {
+    const hasAdzuna = item.evidence.some((entry) => entry.source === 'adzuna')
+    const hasUserPosting = item.evidence.some((entry) => entry.source === 'user_posting')
+    let frequencyPercent: number | null = null
+    if (hasAdzuna && postingsCount > 0) {
+      frequencyPercent = Math.min(100, Math.max(0, (item.frequency_count / postingsCount) * 100))
+    } else if (!hasAdzuna && hasUserPosting) {
+      frequencyPercent = 100
+    }
+    return withAggregatedCompatibility({
+      type: item.type,
+      label: item.label,
+      normalizedKey: item.normalizedKey,
+      frequency: item.frequency_count,
+      evidence: item.evidence,
+      frequencyPercent
+    })
+  })
+}
+
 function mergeAggregatedRequirements(rows: AggregatedRequirement[]) {
   const map = new Map<string, AggregatedRequirement>()
   for (const row of rows) {
@@ -163,13 +229,22 @@ function mergeAggregatedRequirements(rows: AggregatedRequirement[]) {
     const existing = map.get(key)
     if (!existing) {
       map.set(key, {
-        ...row,
-        evidence: [...row.evidence]
+        ...withAggregatedCompatibility({
+          type: row.type,
+          label: row.label,
+          normalizedKey: row.normalizedKey,
+          frequency: row.frequency_count,
+          evidence: [...row.evidence],
+          frequencyPercent: row.frequency_percent
+        }),
+        evidence: [...row.evidence],
+        evidence_quotes: [...row.evidence_quotes]
       })
       continue
     }
 
-    existing.frequency += row.frequency
+    existing.frequency += row.frequency_count
+    existing.frequency_count += row.frequency_count
     for (const evidence of row.evidence) {
       const composite = `${evidence.source}:${evidence.quote}:${evidence.postingId ?? ''}`
       const alreadyIncluded = existing.evidence.some(
@@ -187,10 +262,14 @@ function mergeAggregatedRequirements(rows: AggregatedRequirement[]) {
     if (incomingBestConfidence > existingBestConfidence) {
       existing.label = row.label
     }
+
+    existing.evidence_quotes = pickEvidenceQuotes(existing.evidence)
   }
 
   return [...map.values()].sort((left, right) => {
-    if (right.frequency !== left.frequency) return right.frequency - left.frequency
+    if (right.frequency_count !== left.frequency_count) {
+      return right.frequency_count - left.frequency_count
+    }
     if (left.type !== right.type) return left.type.localeCompare(right.type)
     return left.label.localeCompare(right.label)
   })
@@ -238,15 +317,14 @@ async function getStoredRequirements(queryId: string) {
   if (error) throw error
 
   return ((data ?? []) as JobRequirementRow[])
-    .map(
-      (row) =>
-        ({
-          type: row.type,
-          label: row.label,
-          normalizedKey: row.normalized_key,
-          frequency: Math.max(1, Number(row.frequency) || 1),
-          evidence: toEvidenceArray(row.evidence)
-        }) satisfies AggregatedRequirement
+    .map((row) =>
+      withAggregatedCompatibility({
+        type: row.type,
+        label: row.label,
+        normalizedKey: row.normalized_key,
+        frequency: Math.max(1, Number(row.frequency) || 1),
+        evidence: toEvidenceArray(row.evidence)
+      })
     )
     .filter((row) => row.evidence.length > 0)
 }
@@ -260,6 +338,16 @@ async function getPostingRows(queryId: string) {
 
   if (error) throw error
   return (data ?? []) as JobPostingRow[]
+}
+
+async function getPostingCount(queryId: string) {
+  const admin = createAdminClient()
+  const { count, error } = await admin
+    .from('job_postings')
+    .select('id', { count: 'exact', head: true })
+    .eq('query_id', queryId)
+  if (error) throw error
+  return Math.max(0, Number(count) || 0)
 }
 
 export function isMarketEvidenceConfigured() {
@@ -278,7 +366,7 @@ async function persistExtractedRequirements(queryId: string, requirements: Aggre
       label: item.label,
       normalized_key: item.normalizedKey,
       evidence: item.evidence,
-      frequency: Math.max(1, item.frequency)
+      frequency: Math.max(1, item.frequency_count)
     }))
   )
 
@@ -338,7 +426,7 @@ export async function ensureEvidenceRequirements(
   const country = shouldForceCanadaCountry(location, requestedCountry) ? 'ca' : requestedCountry
   const useMarketEvidence = options.useMarketEvidence !== false
   const userPostingText = options.userPostingText?.trim() ?? ''
-  const userPostingRequirements =
+  const rawUserPostingRequirements =
     userPostingText.length > 20
       ? aggregateRequirements(
           extractRequirementsFromText({
@@ -347,6 +435,7 @@ export async function ensureEvidenceRequirements(
           })
         )
       : []
+  const userPostingRequirements = withFrequencyPercent(rawUserPostingRequirements, 0)
 
   if (!role || !location) {
     return {
@@ -364,7 +453,11 @@ export async function ensureEvidenceRequirements(
   }
 
   const query = await findOrCreateQuery({ role, location, country })
-  const currentRequirements = await getStoredRequirements(query.id)
+  const storedPostingsCount = await getPostingCount(query.id)
+  const currentRequirements = withFrequencyPercent(
+    await getStoredRequirements(query.id),
+    storedPostingsCount
+  )
   const canUseCache = !options.forceRefresh && isFresh(query.last_fetched_at)
   const marketConfigured = useMarketEvidence && isAdzunaConfigured()
   const shouldUseStored =
@@ -380,7 +473,7 @@ export async function ensureEvidenceRequirements(
       userPostingRequirements,
       usedAdzuna: false,
       usedCache: canUseCache,
-      postingsCount: 0,
+      postingsCount: storedPostingsCount,
       llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
       fetchedAt: recoveredFetchedAt ?? query.last_fetched_at
@@ -395,7 +488,7 @@ export async function ensureEvidenceRequirements(
       userPostingRequirements,
       usedAdzuna: false,
       usedCache: false,
-      postingsCount: 0,
+      postingsCount: storedPostingsCount,
       llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
       fetchedAt: query.last_fetched_at
@@ -467,6 +560,7 @@ export async function ensureEvidenceRequirements(
     }
     const extractedMarket = aggregateRequirements([...heuristicExtracted, ...llmExtracted])
     const mergedMarket = mergeAggregatedRequirements(extractedMarket)
+    const mergedMarketWithPercent = withFrequencyPercent(mergedMarket, postingRows.length)
 
     if (mergedMarket.length > 0) {
       await persistExtractedRequirements(query.id, mergedMarket)
@@ -494,14 +588,15 @@ export async function ensureEvidenceRequirements(
     return {
       queryId: query.id,
       query: { role: query.role, location: query.location, country: query.country },
-      marketRequirements: mergedMarket.length > 0 ? mergedMarket : currentRequirements,
+      marketRequirements:
+        mergedMarketWithPercent.length > 0 ? mergedMarketWithPercent : currentRequirements,
       userPostingRequirements,
       usedAdzuna: true,
       usedCache: false,
       postingsCount: postingRows.length,
       llmNormalizedCount: llmExtracted.length,
       baselineOnly:
-        mergedMarket.length === 0 &&
+        mergedMarketWithPercent.length === 0 &&
         currentRequirements.length === 0 &&
         userPostingRequirements.length === 0,
       fetchedAt: finishedAt
@@ -530,7 +625,7 @@ export async function ensureEvidenceRequirements(
       userPostingRequirements,
       usedAdzuna: false,
       usedCache: false,
-      postingsCount: 0,
+      postingsCount: storedPostingsCount,
       llmNormalizedCount: 0,
       baselineOnly: currentRequirements.length === 0 && userPostingRequirements.length === 0,
       fetchedAt: query.last_fetched_at

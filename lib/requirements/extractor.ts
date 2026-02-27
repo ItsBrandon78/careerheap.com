@@ -29,6 +29,7 @@ export interface PostingRequirementInput {
 }
 
 const MAX_EVIDENCE_QUOTES = 5
+const MAX_EVIDENCE_QUOTES_SUMMARY = 2
 const MAX_SEGMENTS_PER_TEXT = 120
 
 const ACTION_VERB_PATTERN =
@@ -74,6 +75,54 @@ const NAMED_GATE_PATTERNS: Array<{ pattern: RegExp; name: (match: RegExpMatchArr
   { pattern: /\b(309a|442a)\b/gi, name: (match) => `${match[1].toUpperCase()} trade certification` },
   { pattern: /\b(pmp|cissp|cisa|cism|ceh|itil)\b/gi, name: (match) => `${match[1].toUpperCase()} certification` }
 ]
+
+function evidenceSourcePriority(source: RequirementEvidenceSource) {
+  if (source === 'user_posting') return 3
+  if (source === 'adzuna') return 2
+  return 1
+}
+
+function pickEvidenceQuotes(evidence: RequirementEvidence[]) {
+  const seen = new Set<string>()
+  const sorted = [...evidence]
+    .sort((left, right) => {
+      const sourceDelta = evidenceSourcePriority(right.source) - evidenceSourcePriority(left.source)
+      if (sourceDelta !== 0) return sourceDelta
+      if (right.confidence !== left.confidence) return right.confidence - left.confidence
+      if (left.quote !== right.quote) return left.quote.localeCompare(right.quote)
+      return (left.postingId ?? '').localeCompare(right.postingId ?? '')
+    })
+    .filter((item) => {
+      const key = `${item.source}:${item.quote}:${item.postingId ?? ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  return sorted.slice(0, MAX_EVIDENCE_QUOTES_SUMMARY)
+}
+
+function toAggregatedRequirement(row: {
+  type: RequirementType
+  label: string
+  normalizedKey: string
+  frequency: number
+  evidence: RequirementEvidence[]
+  frequencyPercent?: number | null
+}) {
+  const normalizedKey = row.normalizedKey
+  const frequency = Math.max(1, row.frequency)
+  return {
+    type: row.type,
+    label: row.label,
+    normalizedKey,
+    normalized_key: normalizedKey,
+    frequency,
+    frequency_count: frequency,
+    frequency_percent: row.frequencyPercent ?? null,
+    evidence: row.evidence,
+    evidence_quotes: pickEvidenceQuotes(row.evidence)
+  } satisfies AggregatedRequirement
+}
 
 function splitSegments(input: string) {
   return input
@@ -413,13 +462,13 @@ export function aggregateRequirements(items: ExtractedRequirement[]) {
   return [...map.values()]
     .map(
       (row) =>
-        ({
+        toAggregatedRequirement({
           type: row.type,
           label: row.label,
           normalizedKey: row.normalizedKey,
           frequency: row.frequency,
           evidence: row.evidence
-        }) satisfies AggregatedRequirement
+        })
     )
     .sort((left, right) => {
       if (right.frequency !== left.frequency) return right.frequency - left.frequency
