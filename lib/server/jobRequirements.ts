@@ -141,6 +141,21 @@ function ttlMs() {
   return hours * 60 * 60 * 1000
 }
 
+function roleQueryVariants(role: string) {
+  const cleaned = role.trim()
+  if (!cleaned) return []
+  const variants = [
+    cleaned,
+    cleaned.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim(),
+    cleaned
+      .replace(/\bexcept\b.*$/i, ' ')
+      .replace(/\([^)]*\)/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  ]
+  return [...new Set(variants.filter((item) => item.length >= 3))]
+}
+
 function toEvidenceArray(value: unknown): RequirementEvidence[] {
   if (!Array.isArray(value)) return []
   const output: RequirementEvidence[] = []
@@ -504,12 +519,16 @@ export async function ensureEvidenceRequirements(
     .eq('id', query.id)
 
   try {
-    const postings = await fetchJobsPaged({
-      role,
-      location,
-      country,
-      maxPages: 2
-    })
+    let postings = [] as Awaited<ReturnType<typeof fetchJobsPaged>>
+    for (const roleVariant of roleQueryVariants(role)) {
+      postings = await fetchJobsPaged({
+        role: roleVariant,
+        location,
+        country,
+        maxPages: 2
+      })
+      if (postings.length > 0) break
+    }
 
     if (postings.length > 0) {
       const { error: postingsError } = await admin.from('job_postings').upsert(

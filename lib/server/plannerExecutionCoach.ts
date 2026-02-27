@@ -252,9 +252,16 @@ function actionFromRequirement(
         linkedRequirements: [requirement.normalized_key]
       }
     }
+    const confirmStyle = /^(confirm|verify|review)\b/i.test(cleanedLabel)
+    const registerStyle = /^(register|registration)\b/i.test(cleanedLabel)
+    const immediateTask = confirmStyle
+      ? `Confirm and complete ${cleanedLabel.replace(/^(confirm|verify|review)\s+/i, '')}, then keep proof ready.`
+      : registerStyle
+        ? `Start and complete ${cleanedLabel}, then keep proof ready.`
+        : `Book and complete ${cleanedLabel}, then keep active proof ready.`
     return {
       id,
-      task: `Book and complete ${cleanedLabel}, then keep active proof ready.`,
+      task: immediateTask,
       volumeTarget: '1 completion milestone/week',
       learningTarget: 'Review pass criteria and compliance rules',
       proofTarget: 'Save certificate or registration confirmation',
@@ -277,7 +284,9 @@ function actionFromRequirement(
 
   return {
     id,
-    task: `Practice ${cleanedLabel} in role-like workflows and record measurable outputs.`,
+    task: /^(use)\b/i.test(cleanedLabel)
+      ? `Practice with ${cleanedLabel.replace(/^use\s+/i, '')} in role-like workflows and record measurable outputs.`
+      : `Practice ${cleanedLabel} in role-like workflows and record measurable outputs.`,
     volumeTarget: '3 focused practice sessions/week',
     learningTarget: 'Close one clearly defined sub-skill each week',
     proofTarget: 'Publish one artifact showing before/after quality',

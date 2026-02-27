@@ -778,6 +778,15 @@ function normalizeGateSignalLabel(value: string) {
   const normalized = normalizeText(trimmed)
   if (!normalized) return null
 
+  if (
+    /\b(compulsory|required|available but voluntary)\b/.test(normalized) &&
+    /\b(newfoundland|nova scotia|prince edward|new brunswick|quebec|ontario|manitoba|saskatchewan|alberta|british columbia|yukon|northwest territories|nunavut)\b/.test(
+      normalized
+    )
+  ) {
+    return 'Confirm regional trade certification requirements before applying'
+  }
+
   if (/\bred seal\b|\binterprovincial\b/.test(normalized)) {
     return 'Obtain Red Seal certification before applying'
   }
@@ -802,6 +811,67 @@ function normalizeGateSignalLabel(value: string) {
   }
 
   return trimmed
+}
+
+function baselineStarterRequirements(options: {
+  roleFamily: ExecutionRoleFamily
+  roleTitle: string
+}) {
+  const quotePrefix = `${options.roleTitle} baseline task`
+
+  if (options.roleFamily === 'trades') {
+    return [
+      toBaselineRequirement({
+        type: 'hard_skill',
+        label: 'Install basic branch-circuit wiring using conduit, boxes, and breakers',
+        quote: `${quotePrefix}: install branch-circuit wiring and verify safe connections`,
+        frequency: 1
+      }),
+      toBaselineRequirement({
+        type: 'hard_skill',
+        label: 'Read jobsite blueprints and map circuits to code-compliant work areas',
+        quote: `${quotePrefix}: read drawings and map wire runs to the installation plan`,
+        frequency: 1
+      }),
+      toBaselineRequirement({
+        type: 'tool',
+        label: 'Use a multimeter to test voltage, continuity, and grounding',
+        quote: `${quotePrefix}: test circuits with a multimeter before energizing`,
+        frequency: 1
+      }),
+      toBaselineRequirement({
+        type: 'experience_signal',
+        label: 'Document daily safety checks and handover notes for active tasks',
+        quote: `${quotePrefix}: complete safety and shift handover documentation`,
+        frequency: 1
+      })
+    ] as AggregatedRequirement[]
+  }
+
+  if (options.roleFamily === 'tech') {
+    return [
+      toBaselineRequirement({
+        type: 'hard_skill',
+        label: 'Build and debug a production-style feature with tests and logging',
+        quote: `${quotePrefix}: ship one feature with validation and observability`,
+        frequency: 1
+      }),
+      toBaselineRequirement({
+        type: 'tool',
+        label: 'Use Git and pull requests to ship reviewed code changes',
+        quote: `${quotePrefix}: deliver work through version control and code review`,
+        frequency: 1
+      }),
+      toBaselineRequirement({
+        type: 'experience_signal',
+        label: 'Document technical tradeoffs and rollout outcomes for shipped work',
+        quote: `${quotePrefix}: explain implementation decisions with measurable results`,
+        frequency: 1
+      })
+    ] as AggregatedRequirement[]
+  }
+
+  return []
 }
 
 function pickHardGates(options: {
@@ -943,7 +1013,11 @@ function toBaselineRequirement(options: {
   quote: string
   frequency?: number
 }) {
-  const taskLabel = toTaskLevelLabel(options.label, options.type)
+  const gateLabel = options.label.trim().replace(/\s+/g, ' ')
+  const taskLabel =
+    options.type === 'gate' && /^(obtain|confirm|complete|register|maintain)\b/i.test(gateLabel)
+      ? gateLabel
+      : toTaskLevelLabel(options.label, options.type)
   if (!taskLabel) return null
   const evidence = [
     {
@@ -1150,6 +1224,9 @@ function inferRequirementGapLevel(options: {
 
 function requirementHowToGet(requirement: AggregatedRequirement) {
   if (requirement.type === 'gate') {
+    if (isLongHorizonCredentialRequirement(requirement)) {
+      return 'Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.'
+    }
     return 'Review regional regulator requirements, start application, and keep proof of status updates.'
   }
   if (requirement.type === 'tool') {
@@ -1165,7 +1242,12 @@ function requirementHowToGet(requirement: AggregatedRequirement) {
 }
 
 function requirementEstimatedTime(requirement: AggregatedRequirement) {
-  if (requirement.type === 'gate') return '4-16 weeks (varies by region)'
+  if (requirement.type === 'gate') {
+    if (isLongHorizonCredentialRequirement(requirement)) {
+      return '3-12+ months (depends on sponsorship, hours, and exams)'
+    }
+    return '1-8 weeks (varies by region)'
+  }
   if (requirement.type === 'experience_signal') return '4-12 weeks'
   if (requirement.type === 'tool') return '1-4 weeks'
   return '2-8 weeks'
@@ -1353,7 +1435,7 @@ function isLongHorizonCredentialRequirement(requirement: AggregatedRequirement) 
   const text = normalizeText(
     `${requirement.label} ${requirement.evidence_quotes.map((item) => item.quote).join(' ')}`
   )
-  return /\b(red seal|interprovincial|journeyperson|certificate of qualification|coq|four to five year|4 to 5 year|apprenticeship program|apprenticeship completion|\d{3,5}\s*hours|hour tracking)\b/.test(
+  return /\b(red seal|interprovincial|journeyperson|certificate of qualification|coq|trade certification|certification exam|four to five year|4 to 5 year|apprenticeship program|apprenticeship completion|\d{3,5}\s*hours|hour tracking)\b/.test(
     text
   )
 }
@@ -1789,6 +1871,17 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     matchedSkills: best?.matchedSkills ?? [],
     missingSkills: (best?.missingSkills ?? []).map((item) => ({ skillName: item.skillName }))
   })
+  const roleFamilyBaseline = inferExecutionRoleFamily(
+    best?.title ?? input.targetRole ?? '',
+    input.currentRole
+  ) as ExecutionRoleFamily
+  const normalizedCertGateLabels = uniqueStrings(
+    (best?.certsLicenses ?? [])
+      .map((certification) => normalizeGateSignalLabel(certification) ?? certification)
+      .map((certification) => certification.trim())
+      .filter(Boolean)
+      .filter((certification) => !isPolicyOrJurisdictionLine(certification))
+  ).slice(0, 6)
   const primaryCredential = uniqueStrings(best?.certsLicenses ?? [])[0] ?? null
   const baselineRequirements = [
     ...roleHardGates.map((gate) =>
@@ -1799,7 +1892,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         frequency: 1
       })
     ),
-    ...(best?.certsLicenses ?? []).map((certification) =>
+    ...normalizedCertGateLabels.map((certification) =>
       toBaselineRequirement({
         type: 'gate',
         label: certification,
@@ -1822,7 +1915,11 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         quote: signal,
         frequency: 1
       })
-    )
+    ),
+    ...baselineStarterRequirements({
+      roleFamily: roleFamilyBaseline,
+      roleTitle: best?.title ?? input.targetRole ?? 'Target role'
+    })
   ].filter(Boolean) as AggregatedRequirement[]
 
   const evidenceRoleCandidate = (input.targetRole ?? '').trim()
@@ -2278,6 +2375,11 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   const requiredToApplyKeys = uniqueStrings(
     transitionMustHaves
       .filter((item) => item.status === 'missing')
+      .filter((item) => {
+        const requirement = requirementByKey.get(item.normalized_key)
+        if (!requirement) return true
+        return !isLongHorizonCredentialRequirement(requirement)
+      })
       .map((item) => item.normalized_key)
   )
   const requiredToApplySet = new Set(requiredToApplyKeys)
@@ -2312,13 +2414,6 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       .slice(0, 5)
       .map((item) => item.normalized_key)
   )
-  if (month1RequirementKeys.length < 3) {
-    for (const requirement of prioritizedMissingRequirements) {
-      if (month1RequirementKeys.length >= 5) break
-      if (month1RequirementKeys.includes(requirement.normalized_key)) continue
-      month1RequirementKeys.push(requirement.normalized_key)
-    }
-  }
   const remainingAfterMonth1 = uniqueStrings(
     prioritizedMissingRequirements
       .map((item) => item.normalized_key)
