@@ -62,7 +62,23 @@ export default function AccessibilityMenu({ placement = 'floating' }: Accessibil
   const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
-    applyAccessibilityPreferences(document, preferences)
+    applyAccessibilityPreferences(document, preferences, window)
+  }, [preferences])
+
+  useEffect(() => {
+    if (preferences.theme !== 'system') return
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleThemeChange = () => {
+      applyAccessibilityPreferences(document, preferences, window)
+    }
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleThemeChange)
+      return () => mediaQuery.removeEventListener('change', handleThemeChange)
+    }
+
+    mediaQuery.addListener(handleThemeChange)
+    return () => mediaQuery.removeListener(handleThemeChange)
   }, [preferences])
 
   useEffect(() => {
@@ -127,14 +143,14 @@ export default function AccessibilityMenu({ placement = 'floating' }: Accessibil
       [key]: value
     }
     setPreferences(nextPreferences)
-    applyAccessibilityPreferences(document, nextPreferences)
+    applyAccessibilityPreferences(document, nextPreferences, window)
     persistAccessibilityPreferences(window, nextPreferences)
   }
 
   const resetPreferences = () => {
     const defaults = getSystemAccessibilityDefaults(window)
     setPreferences(defaults)
-    applyAccessibilityPreferences(document, defaults)
+    applyAccessibilityPreferences(document, defaults, window)
     persistAccessibilityPreferences(window, defaults)
   }
 
@@ -186,6 +202,18 @@ export default function AccessibilityMenu({ placement = 'floating' }: Accessibil
           </p>
 
           <div className="mt-3 space-y-3">
+            <Fieldset
+              label="Theme"
+              value={preferences.theme}
+              onChange={(value) =>
+                updatePreference('theme', value as AccessibilityPreferences['theme'])
+              }
+              options={[
+                { value: 'system', label: 'System default' },
+                { value: 'light', label: 'Light' },
+                { value: 'dark', label: 'Dark' }
+              ]}
+            />
             <Fieldset
               label="Text size"
               value={preferences.textSize}

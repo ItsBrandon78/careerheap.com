@@ -13,14 +13,15 @@ function normalizeBaseUrl(value: string | undefined) {
 }
 
 function resolveBaseUrl() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin
+  }
+
   const configured =
     normalizeBaseUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
     normalizeBaseUrl(process.env.NEXT_PUBLIC_APP_URL)
 
   if (configured) return configured
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return window.location.origin
-  }
   return DEFAULT_PRODUCTION_SITE_URL
 }
 
@@ -31,4 +32,3 @@ export function getAuthCallbackUrl(options?: { next?: string }) {
   }
   return url.toString()
 }
-

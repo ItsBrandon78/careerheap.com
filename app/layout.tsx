@@ -7,6 +7,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AccessibilityMenu from '@/components/AccessibilityMenu';
+import AuthRecoveryHandler from '@/components/AuthRecoveryHandler';
 import { AuthProvider } from '@/lib/auth/context';
 import { accessibilityInitScript } from '@/lib/accessibility/preferences';
 import { getSiteBaseUrl } from '@/lib/blog/utils';
@@ -82,6 +83,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <AuthProvider>
+          <AuthRecoveryHandler />
           <Header />
           <main id="main-content" className="flex-1" tabIndex={-1}>
             {children}

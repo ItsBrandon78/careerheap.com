@@ -43,3 +43,15 @@ test('blog post images keep meaningful fallback alt text', () => {
   assert.match(blogPostPage, /cover illustration/)
   assert.match(sanityPostPage, /cover illustration/)
 })
+
+test('accessibility preferences support theme toggling and initialize data-theme', () => {
+  const preferences = read('lib/accessibility/preferences.ts')
+  const menu = read('components/AccessibilityMenu.tsx')
+  const globals = read('app/globals.css')
+
+  assert.match(preferences, /AccessibilityTheme = 'system' \| 'light' \| 'dark'/)
+  assert.match(preferences, /root\.dataset\.theme = resolvedTheme/)
+  assert.match(menu, /label="Theme"/)
+  assert.match(menu, /value: 'dark', label: 'Dark'/)
+  assert.match(globals, /html\[data-theme='dark'\]/)
+})

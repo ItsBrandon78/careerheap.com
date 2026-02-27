@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const tokens = require('./src/design/tokens.json')
 
+const semanticColorVars = Object.fromEntries(
+  Object.keys(tokens.colors).map((name) => [name, `var(--color-${name})`])
+)
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -22,7 +26,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        ...tokens.colors
+        ...semanticColorVars
       },
       spacing: {
         ...tokens.spacing
