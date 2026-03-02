@@ -14,6 +14,7 @@ import {
   hashToolInput,
   recordToolRun
 } from '@/lib/server/toolUsage'
+import { buildTransitionModeReport } from '@/lib/server/transitionMode'
 
 export const dynamic = 'force-dynamic'
 
@@ -313,8 +314,16 @@ export async function POST(request: Request) {
     const finalReport = summary.plan === 'free'
       ? applyFreeTierOutputLimits(analysis.report)
       : analysis.report
+    const transitionMode = buildTransitionModeReport({
+      currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText,
+      targetRole: resolvedTargetRoleTitle || input.targetRole || input.targetRoleText,
+      education: input.education || input.educationLevel,
+      incomeTarget: input.incomeTarget,
+      report: finalReport
+    })
     const reportWithResolution = {
       ...finalReport,
+      transitionMode,
       roleResolution: {
         current: {
           input: input.currentRoleText || input.currentRole,

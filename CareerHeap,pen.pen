@@ -17309,6 +17309,254 @@
           "name": "foot"
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "mvCdY",
+      "x": 19429,
+      "y": -888,
+      "name": "Transition Mode Iteration A",
+      "width": 1440,
+      "height": 1180,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "VMiPX",
+          "name": "Hero + Command Bar",
+          "width": "fill_container",
+          "height": 260,
+          "fill": "$bg-secondary",
+          "gap": 24,
+          "padding": [
+            40,
+            48
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "8IYTO",
+              "name": "Dominant Difficulty Metrics",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 28
+            },
+            {
+              "type": "frame",
+              "id": "z5V7I",
+              "name": "Quick Wins + CTA Rail",
+              "width": 360,
+              "height": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 28
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HVIrd",
+          "name": "Main Strategy Split",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "6p8lt",
+              "name": "Strategy + 90 Day Plan Stack",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 28
+            },
+            {
+              "type": "frame",
+              "id": "8BwZE",
+              "name": "Gaps + Reality + Data Rail",
+              "width": 360,
+              "height": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "QAlLQ",
+      "x": 20989,
+      "y": -888,
+      "name": "Transition Mode Iteration B",
+      "width": 1440,
+      "height": 1180,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "Ye6CM",
+          "name": "Centered Metric Hero",
+          "width": "fill_container",
+          "height": 220,
+          "fill": "$bg-secondary",
+          "cornerRadius": 20,
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            36,
+            44
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Ejzsn",
+          "name": "Difficulty Timeline Route Strip",
+          "width": "fill_container",
+          "height": 140,
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "gap": 18,
+          "padding": 24
+        },
+        {
+          "type": "frame",
+          "id": "SRQbA",
+          "name": "Three Route Decision Cards",
+          "width": "fill_container",
+          "height": 200,
+          "gap": 18
+        },
+        {
+          "type": "frame",
+          "id": "7vTdU",
+          "name": "Accordion Plan Board",
+          "width": "fill_container",
+          "height": 320,
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 28
+        },
+        {
+          "type": "frame",
+          "id": "8Ky4V",
+          "name": "Execution + Earnings Split",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 24
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "AF3QL",
+      "x": 22549,
+      "y": -888,
+      "name": "Transition Mode Iteration C",
+      "width": 1440,
+      "height": 1180,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "ZCvTW",
+          "name": "Split Hero with Sticky Summary",
+          "width": "fill_container",
+          "height": 260,
+          "fill": "$bg-secondary",
+          "cornerRadius": 20,
+          "gap": 24,
+          "padding": [
+            36,
+            44
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UKWyl",
+          "name": "Stacked Narrative Cards",
+          "width": "fill_container",
+          "height": 220,
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 28
+        },
+        {
+          "type": "frame",
+          "id": "SrEO8",
+          "name": "Quick Wins / Primary Gaps / Route Pulse",
+          "width": "fill_container",
+          "height": 160,
+          "gap": 18
+        },
+        {
+          "type": "frame",
+          "id": "aNHl3",
+          "name": "Plan + Outreach Workspace",
+          "width": "fill_container",
+          "height": 320,
+          "gap": 24
+        },
+        {
+          "type": "frame",
+          "id": "8lI1H",
+          "name": "Earnings + Reality + Resources",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 24
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "2OsG9",
+      "x": 22549,
+      "y": 446,
+      "name": "Transparency Footer",
+      "width": "fill_container(1376)",
+      "height": 140,
+      "fill": "$surface",
+      "cornerRadius": 18,
+      "gap": 18,
+      "padding": 24
+    },
+    {
+      "type": "frame",
+      "id": "NS9xW",
+      "x": 21053,
+      "y": 436,
+      "name": "Reality Check + Data Footer",
+      "width": "fill_container(1376)",
+      "height": 160,
+      "fill": "$surface",
+      "cornerRadius": 18,
+      "gap": 18,
+      "padding": 24
     }
   ],
   "themes": {

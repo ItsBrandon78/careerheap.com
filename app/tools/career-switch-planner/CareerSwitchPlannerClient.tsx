@@ -518,6 +518,58 @@ type PlannerReportPayload = {
       whatNotToDo: string[]
     }
   }
+  transitionMode?: {
+    difficulty: {
+      score: number
+      label: 'Easy' | 'Moderate' | 'Hard' | 'Very Hard'
+      why: string[]
+    }
+    timeline: {
+      minMonths: number
+      maxMonths: number
+      assumptions: string[]
+    }
+    routes: {
+      primary: { title: string; reason: string; firstStep: string }
+      secondary: { title: string; reason: string; firstStep: string }
+      contingency: { title: string; reason: string; firstStep: string }
+    }
+    plan90: Array<{
+      phase: string
+      weeks: string
+      tasks: string[]
+      weeklyTargets: string[]
+      timePerWeekHours: number
+    }>
+    execution: {
+      dailyRoutine: string[]
+      weeklyCadence: string[]
+      outreachTemplates: {
+        call: string
+        email: string
+      }
+    }
+    gaps: {
+      strengths: string[]
+      missing: string[]
+      first3Steps: string[]
+    }
+    earnings: Array<{
+      stage: string
+      rangeLow: number
+      rangeHigh: number
+      unit: string
+    }>
+    reality: {
+      barriers: string[]
+      mitigations: string[]
+    }
+    resources: {
+      local: Array<{ label: string; url: string }>
+      online: Array<{ label: string; url: string }>
+      internal: Array<{ label: string; url: string }>
+    }
+  }
   marketEvidence?: {
     enabled: boolean
     used: boolean
@@ -764,6 +816,34 @@ function ReportSection({
       <div className="mt-3 space-y-2">{children}</div>
     </details>
   )
+}
+
+function difficultyToneClasses(label: 'Easy' | 'Moderate' | 'Hard' | 'Very Hard') {
+  if (label === 'Easy') return 'border-success/30 bg-success/10 text-success'
+  if (label === 'Moderate') return 'border-accent/30 bg-accent/10 text-accent'
+  if (label === 'Hard') return 'border-warning/30 bg-warning-light text-warning'
+  return 'border-error/30 bg-error-light text-error'
+}
+
+function routeToneClasses(kind: 'primary' | 'secondary' | 'contingency') {
+  if (kind === 'primary') return 'border-success/30 bg-success/10'
+  if (kind === 'secondary') return 'border-warning/30 bg-warning-light'
+  return 'border-error/25 bg-error-light'
+}
+
+function formatMoneyRange(low: number, high: number, unit: string) {
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: unit.startsWith('CAD') ? 'CAD' : 'USD',
+    maximumFractionDigits: 0
+  })
+  return `${formatter.format(low)} - ${formatter.format(high)}`
+}
+
+function scrollToSection(id: string) {
+  const node = document.getElementById(id)
+  if (!node) return
+  node.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function mergeUniqueCaseInsensitive(base: string[], incoming: string[]) {
@@ -1417,6 +1497,7 @@ export default function CareerSwitchPlannerPage({
   ]).slice(0, 8)
   const transitionReport = plannerReport?.transitionReport ?? null
   const executionStrategy = plannerReport?.executionStrategy ?? null
+  const transitionModeReport = plannerReport?.transitionMode ?? null
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
@@ -1446,7 +1527,7 @@ export default function CareerSwitchPlannerPage({
           Career Switch Planner
         </h1>
         <p className="max-w-[680px] text-base leading-[1.6] text-text-secondary md:text-lg">
-          Structured inputs, deterministic scoring, and real wage data for US and Canada.
+          Transition mode turns your background into a decisive execution plan with timelines, routes, and weekly outputs.
         </p>
         <p className="text-[13px] text-text-tertiary">
           Free includes 3 lifetime analyses total.
@@ -1777,7 +1858,7 @@ export default function CareerSwitchPlannerPage({
           ) : plannerState === 'idle' ? (
             <Card className="mt-5 p-5">
               <p className="text-base font-semibold text-text-primary">
-                Add your role details and experience to generate a compatibility report.
+                Add your role details and experience to generate your transition plan.
               </p>
               <p className="mt-2 text-sm text-text-secondary">
                 Use Paste Experience for a quick run, or Upload Resume (Pro) to auto-extract text.
@@ -1788,6 +1869,429 @@ export default function CareerSwitchPlannerPage({
               {[0, 1, 2, 3, 4].map((index) => (
                 <div key={index} className="h-24 animate-pulse rounded-lg border border-border bg-bg-secondary" />
               ))}
+            </div>
+          ) : plannerResult && transitionModeReport ? (
+            <div className="mt-5 space-y-5">
+              {(currentRoleResolution || targetRoleResolution) ? (
+                <Card className="p-5">
+                  <h3 className="text-base font-bold text-text-primary">Role Match</h3>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    {currentRoleResolution ? (
+                      <RoleNormalizationCard heading="Current role" resolution={currentRoleResolution} />
+                    ) : null}
+                    {targetRoleResolution ? (
+                      <RoleNormalizationCard heading="Target role" resolution={targetRoleResolution} />
+                    ) : null}
+                  </div>
+                </Card>
+              ) : null}
+
+              {plannerReport?.marketEvidence?.baselineOnly ? (
+                <Card className="p-5">
+                  <p className="text-sm font-semibold text-warning">
+                    Market data is thin right now, so this plan is leaning on baseline occupation data.
+                  </p>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    Use the outreach and agency route early so you validate local demand before you overinvest in the wrong lane.
+                  </p>
+                </Card>
+              ) : null}
+
+              <Card className="overflow-hidden p-0">
+                <div className="bg-bg-secondary p-5 md:p-6">
+                  <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_300px]">
+                    <div className="space-y-5">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Badge className="gap-1.5">Your Transition Plan</Badge>
+                        <span
+                          className={`rounded-pill border px-3 py-1 text-xs font-semibold ${difficultyToneClasses(transitionModeReport.difficulty.label)}`}
+                        >
+                          {transitionModeReport.difficulty.label}
+                        </span>
+                        <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
+                          {transitionModeReport.timeline.minMonths}-{transitionModeReport.timeline.maxMonths} months
+                        </span>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+                        <div className="rounded-lg border border-border bg-surface p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Transition difficulty
+                          </p>
+                          <div className="mt-3 flex items-end gap-3">
+                            <span className="text-5xl font-bold leading-none text-text-primary">
+                              {transitionModeReport.difficulty.score.toFixed(1)}
+                            </span>
+                            <span className="pb-1 text-sm font-semibold text-text-secondary">/ 10</span>
+                          </div>
+                          <p className="mt-3 text-sm text-text-secondary">
+                            Likely {transitionModeReport.timeline.minMonths}-{transitionModeReport.timeline.maxMonths} months if you execute weekly.
+                          </p>
+                          <p className="mt-3 text-sm font-semibold text-text-primary">
+                            Primary entry strategy: {transitionModeReport.routes.primary.title}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg border border-border bg-surface p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            CTA
+                          </p>
+                          <div className="mt-3 flex flex-col gap-2">
+                            <Button variant="outline" size="sm" onClick={() => window.print()}>
+                              Download PDF
+                            </Button>
+                            <Button size="sm" onClick={() => scrollToSection('transition-plan-phase-1')}>
+                              Start Week 1
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => scrollToSection('transition-execution')}
+                            >
+                              Generate Outreach Script
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="rounded-lg border border-success/20 bg-success/10 p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                            Quick wins
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                            {transitionModeReport.gaps.strengths.slice(0, 3).map((item) => (
+                              <li key={`quick-win-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="rounded-lg border border-error/20 bg-error-light p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
+                            Primary gaps
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                            {transitionModeReport.gaps.missing.slice(0, 3).map((item) => (
+                              <li key={`primary-gap-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg border border-border bg-surface p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Why this is the score
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                        {transitionModeReport.difficulty.why.map((item) => (
+                          <li key={`difficulty-why-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                      <p className="mt-4 text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Timeline assumptions
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                        {transitionModeReport.timeline.assumptions.map((item) => (
+                          <li key={`timeline-assumption-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="space-y-4 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg font-bold text-text-primary">Recommended Entry Strategy</h3>
+                  <Badge variant="default">Decisive route selection</Badge>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {([
+                    ['primary', transitionModeReport.routes.primary],
+                    ['secondary', transitionModeReport.routes.secondary],
+                    ['contingency', transitionModeReport.routes.contingency]
+                  ] as const).map(([kind, route]) => (
+                    <div
+                      key={kind}
+                      className={`rounded-lg border p-4 ${routeToneClasses(kind)}`}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        {kind === 'primary' ? 'Primary route' : kind === 'secondary' ? 'Secondary route' : 'If rejected'}
+                      </p>
+                      <p className="mt-2 text-base font-semibold text-text-primary">{route.title}</p>
+                      <p className="mt-2 text-sm text-text-secondary">{route.reason}</p>
+                      <p className="mt-3 text-xs font-semibold text-text-primary">First step: {route.firstStep}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="space-y-4 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg font-bold text-text-primary">90-Day Plan</h3>
+                  <Badge variant="default">Weekly outputs included</Badge>
+                </div>
+                {transitionModeReport.plan90.map((phase, index) => (
+                  <div key={phase.phase} id={index === 0 ? 'transition-plan-phase-1' : undefined}>
+                    <ReportSection
+                      title={`${phase.phase} (${phase.weeks})`}
+                      count={phase.tasks.length}
+                      defaultOpen={index === 0}
+                    >
+                      <div className="rounded-md border border-border-light bg-surface p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Tasks
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {phase.tasks.map((task) => (
+                            <li key={`${phase.phase}-task-${task}`}>- {task}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-md border border-border-light bg-surface p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Weekly output targets
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                          {phase.weeklyTargets.map((target) => (
+                            <li key={`${phase.phase}-target-${target}`}>- {target}</li>
+                          ))}
+                        </ul>
+                        <p className="mt-3 text-xs text-text-tertiary">
+                          Time per week: {phase.timePerWeekHours} hours
+                        </p>
+                      </div>
+                    </ReportSection>
+                  </div>
+                ))}
+              </Card>
+
+              <div id="transition-execution">
+                <Card className="space-y-4 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-lg font-bold text-text-primary">Job Search Execution Engine</h3>
+                    <Badge variant="default">Daily 45-minute routine</Badge>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                    <div className="space-y-4">
+                      <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Daily routine
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          {transitionModeReport.execution.dailyRoutine.map((item) => (
+                            <li key={`daily-routine-${item}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Weekly cadence
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          {transitionModeReport.execution.weeklyCadence.map((item) => (
+                            <li key={`weekly-cadence-${item}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-border-light bg-surface p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Channel priorities
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          <li>- Cold call strategy: reach employers and ask for the hiring contact instead of waiting on portal status.</li>
+                          <li>- Online applications: keep them targeted and paired with proof of work, not generic volume.</li>
+                          <li>- Union / licensing route: use it early if the route has a formal gate or sponsorship path.</li>
+                          <li>- Temp agencies: use them as a deliberate bridge, not as an afterthought after momentum drops.</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="rounded-lg border border-border-light bg-surface p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Call script
+                        </p>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.6] text-text-secondary">
+                          {transitionModeReport.execution.outreachTemplates.call}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border-light bg-surface p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Email template
+                        </p>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.6] text-text-secondary">
+                          {transitionModeReport.execution.outreachTemplates.email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_300px]">
+                <div className="space-y-5">
+                  <Card className="space-y-4 p-5">
+                    <h3 className="text-lg font-bold text-text-primary">Skill Gap Map</h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-lg border border-success/20 bg-success/10 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                          Transferable strengths
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          {transitionModeReport.gaps.strengths.map((item) => (
+                            <li key={`gap-strength-${item}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-error/20 bg-error-light p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
+                          Missing credentials / proof
+                        </p>
+                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          {transitionModeReport.gaps.missing.map((item) => (
+                            <li key={`gap-missing-${item}`}>- {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        First 3 required actions
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                        {transitionModeReport.gaps.first3Steps.map((item) => (
+                          <li key={`first-step-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Card>
+
+                  <Card className="space-y-4 p-5">
+                    <h3 className="text-lg font-bold text-text-primary">Earnings Path</h3>
+                    <div className="overflow-hidden rounded-lg border border-border-light">
+                      <div className="grid grid-cols-[140px_minmax(0,1fr)] bg-bg-secondary px-4 py-3 text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        <span>Stage</span>
+                        <span>Range</span>
+                      </div>
+                      {transitionModeReport.earnings.map((stage) => (
+                        <div
+                          key={stage.stage}
+                          className="grid grid-cols-[140px_minmax(0,1fr)] border-t border-border-light px-4 py-3 text-sm text-text-secondary"
+                        >
+                          <span className="font-semibold text-text-primary">{stage.stage}</span>
+                          <span>{formatMoneyRange(stage.rangeLow, stage.rangeHigh, stage.unit)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+
+                <div className="space-y-5">
+                  <Card className="space-y-4 p-5">
+                    <h3 className="text-lg font-bold text-text-primary">Reality Check</h3>
+                    <div className="rounded-lg border border-warning/25 bg-warning-light p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-warning">
+                        Realistic barriers
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                        {transitionModeReport.reality.barriers.map((item) => (
+                          <li key={`barrier-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-success/20 bg-success/10 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                        Mitigation strategy
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                        {transitionModeReport.reality.mitigations.map((item) => (
+                          <li key={`mitigation-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </Card>
+
+                  <Card className="space-y-4 p-5">
+                    <h3 className="text-lg font-bold text-text-primary">Resources</h3>
+                    <div className="space-y-4">
+                      {([
+                        ['Local', transitionModeReport.resources.local],
+                        ['Online', transitionModeReport.resources.online],
+                        ['Internal', transitionModeReport.resources.internal]
+                      ] as const).map(([label, links]) => (
+                        <div key={label} className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            {label}
+                          </p>
+                          {links.length > 0 ? (
+                            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                              {links.map((link) => (
+                                <li key={`${label}-${link.label}-${link.url}`}>
+                                  <Link href={link.url} className="text-accent hover:text-accent-hover">
+                                    {link.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="mt-3 text-sm text-text-secondary">No resources added yet.</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+
+              <Card className="space-y-4 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg font-bold text-text-primary">Data Transparency</h3>
+                  <Button variant="ghost" size="sm" onClick={() => void handleGeneratePlan()}>
+                    Regenerate plan
+                  </Button>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Inputs used
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      {(plannerReport?.dataTransparency.inputsUsed ?? []).map((item) => (
+                        <li key={`input-used-${item}`}>- {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Assumptions
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      {transitionModeReport.timeline.assumptions.map((item) => (
+                        <li key={`assumption-${item}`}>- {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Datasets used
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      {(plannerReport?.dataTransparency.datasetsUsed ?? []).map((item) => (
+                        <li key={`dataset-used-${item}`}>
+                          - {FRIENDLY_DATASET_NAMES[item] ?? item.replaceAll('_', ' ')}
+                        </li>
+                      ))}
+                    </ul>
+                    {plannerReport?.dataTransparency.fxRateUsed ? (
+                      <p className="mt-3 text-xs text-text-tertiary">
+                        FX rate: {plannerReport.dataTransparency.fxRateUsed}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </Card>
             </div>
           ) : plannerResult ? (
             <div className="mt-5 space-y-3">
