@@ -4,7 +4,11 @@ import {
   generateCareerMapPlannerAnalysis,
   type CareerPlannerAnalysis
 } from '@/lib/server/careerMapPlanner'
-import { resolveOccupationInput } from '@/lib/server/careerData'
+import {
+  resolveOccupation,
+  ROLE_MATCH_THRESHOLD,
+  type ResolvedOccupation
+} from '@/lib/server/careerData'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import type { CareerSwitchPlannerInput } from '@/lib/planner/types'
 import {
@@ -20,6 +24,11 @@ export const dynamic = 'force-dynamic'
 
 function asString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+function asNullableString(value: unknown) {
+  const normalized = asString(value)
+  return normalized || null
 }
 
 function asStringArray(value: unknown) {
@@ -71,6 +80,8 @@ function normalizeInput(input: Partial<CareerSwitchPlannerInput> & Record<string
     incomeTarget,
     userPostingText,
     useMarketEvidence,
+    currentRoleOccupationId: asNullableString(input.currentRoleOccupationId),
+    targetRoleOccupationId: recommendMode ? null : asNullableString(input.targetRoleOccupationId),
     currentRoleText,
     targetRoleText: recommendMode ? '' : targetRoleText,
     recommendMode,
@@ -98,6 +109,54 @@ function regionFromWorkRegion(workRegion: string): 'CA' | 'US' | undefined {
   if (workRegion === 'ca' || workRegion === 'remote-ca') return 'CA'
   if (workRegion === 'us' || workRegion === 'remote-us') return 'US'
   return undefined
+}
+
+function buildRoleResolutionPayload(inputValue: string, resolution: ResolvedOccupation) {
+  return {
+    input: inputValue,
+    matched:
+      resolution.resolved && resolution.occupationId && resolution.region
+        ? {
+            occupationId: resolution.occupationId,
+            title: resolution.title,
+            region: resolution.region,
+            source: resolution.source,
+            lastUpdated: resolution.lastUpdated ?? null,
+            confidence: resolution.confidence,
+            matchedBy: resolution.matchedBy
+          }
+        : null,
+    suggestions: resolution.alternatives.map((item) => ({
+      occupationId: item.occupationId,
+      title: item.title,
+      region: item.region,
+      source: item.source,
+      lastUpdated: item.lastUpdated,
+      confidence: item.confidence,
+      matchedBy: item.matchedBy
+    }))
+  }
+}
+
+function buildRoleSelectionPayload(
+  role: 'current' | 'target',
+  inputValue: string,
+  resolution: ResolvedOccupation
+) {
+  return {
+    error: 'ROLE_SELECTION_REQUIRED',
+    role,
+    input: inputValue,
+    message: `Choose the closest ${role} role match before generating your transition plan.`,
+    threshold: ROLE_MATCH_THRESHOLD,
+    alternatives: resolution.alternatives.map((item) => ({
+      occupationId: item.occupationId,
+      title: item.title,
+      confidence: item.confidence,
+      source: item.source,
+      stage: resolution.stage ?? null
+    }))
+  }
 }
 
 function applyFreeTierOutputLimits(report: CareerPlannerAnalysis['report']) {
@@ -224,7 +283,7 @@ export async function POST(request: Request) {
     }
     userIdForFailure = user.id
 
-    const payload = (await request.json()) as Partial<CareerSwitchPlannerInput>
+    const payload = (await request.json()) as Partial<CareerSwitchPlannerInput> & Record<string, unknown>
     const input = normalizeInput(payload)
     inputHashForFailure = hashToolInput(input)
     const validationError = validateInput(input)
@@ -258,31 +317,63 @@ export async function POST(request: Request) {
     }
 
     const roleRegion = regionFromWorkRegion(input.workRegion)
-    const currentRoleResolution = await resolveOccupationInput({
-      input: input.currentRoleText || input.currentRole,
+    const currentRoleInput = input.currentRoleText || input.currentRole
+    const targetRoleInput = input.targetRoleText || input.targetRole
+    const currentRoleResolution = await resolveOccupation({
+      input: currentRoleInput,
       region: roleRegion,
-      limit: 6
+      limit: 6,
+      occupationId: input.currentRoleOccupationId
     })
     const targetRoleResolution =
       input.recommendMode || !input.targetRoleText
         ? null
-        : await resolveOccupationInput({
+        : await resolveOccupation({
             input: input.targetRoleText,
             region: roleRegion,
-            limit: 6
+            limit: 6,
+            occupationId: input.targetRoleOccupationId
           })
 
+    if (
+      currentRoleInput &&
+      !input.currentRoleOccupationId &&
+      (!currentRoleResolution.resolved || currentRoleResolution.confidence < ROLE_MATCH_THRESHOLD) &&
+      currentRoleResolution.alternatives.length > 0
+    ) {
+      return NextResponse.json(
+        buildRoleSelectionPayload('current', currentRoleInput, currentRoleResolution),
+        { status: 409 }
+      )
+    }
+
+    if (
+      !input.recommendMode &&
+      targetRoleInput &&
+      !input.targetRoleOccupationId &&
+      targetRoleResolution &&
+      (!targetRoleResolution.resolved || targetRoleResolution.confidence < ROLE_MATCH_THRESHOLD) &&
+      targetRoleResolution.alternatives.length > 0
+    ) {
+      return NextResponse.json(
+        buildRoleSelectionPayload('target', targetRoleInput, targetRoleResolution),
+        { status: 409 }
+      )
+    }
+
     const resolvedCurrentRoleTitle =
-      currentRoleResolution.bestMatch?.title || input.currentRole || input.currentRoleText
+      currentRoleResolution.title || input.currentRole || input.currentRoleText
     const resolvedTargetRoleTitle =
       input.recommendMode
         ? ''
-        : targetRoleResolution?.bestMatch?.title || input.targetRole || input.targetRoleText
+        : targetRoleResolution?.title || input.targetRole || input.targetRoleText
 
     const analysis = await generateCareerMapPlannerAnalysis({
       userId: user.id,
       currentRole: resolvedCurrentRoleTitle || 'Career transition',
       targetRole: resolvedTargetRoleTitle,
+      currentOccupationId: currentRoleResolution.occupationId,
+      targetOccupationId: targetRoleResolution?.occupationId ?? null,
       notSureMode: input.notSureMode,
       skills: input.skills,
       experienceText: input.experienceText,
@@ -317,6 +408,8 @@ export async function POST(request: Request) {
     const transitionMode = buildTransitionModeReport({
       currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText,
       targetRole: resolvedTargetRoleTitle || input.targetRole || input.targetRoleText,
+      experienceText: input.experienceText,
+      location: input.location,
       education: input.education || input.educationLevel,
       incomeTarget: input.incomeTarget,
       report: finalReport
@@ -325,18 +418,10 @@ export async function POST(request: Request) {
       ...finalReport,
       transitionMode,
       roleResolution: {
-        current: {
-          input: input.currentRoleText || input.currentRole,
-          matched: currentRoleResolution.bestMatch ?? null,
-          suggestions: currentRoleResolution.suggestions
-        },
+        current: buildRoleResolutionPayload(currentRoleInput, currentRoleResolution),
         target: input.recommendMode
           ? null
-          : {
-              input: input.targetRoleText || input.targetRole,
-              matched: targetRoleResolution?.bestMatch ?? null,
-              suggestions: targetRoleResolution?.suggestions ?? []
-            }
+          : buildRoleResolutionPayload(targetRoleInput, targetRoleResolution!)
       }
     }
     const finalLegacy = summary.plan === 'free'

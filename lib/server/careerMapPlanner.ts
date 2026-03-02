@@ -91,6 +91,8 @@ export interface CareerPlannerInput {
   userId: string
   currentRole: string
   targetRole?: string
+  currentOccupationId?: string | null
+  targetOccupationId?: string | null
   notSureMode: boolean
   skills?: string[]
   experienceText: string
@@ -1508,6 +1510,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   const supabase = createAdminClient()
   const country = inferCountry(input.location)
   const timeline = parseTimeline(input.timeline)
+  const selectedCurrentOccupationId = input.currentOccupationId?.trim() || null
+  const selectedTargetOccupationId = input.targetOccupationId?.trim() || null
   const explicitSkills = Array.isArray(input.skills)
     ? input.skills.map((skill) => String(skill ?? '').trim()).filter(Boolean)
     : []
@@ -1551,9 +1555,16 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     .map((occupation) => {
       const currentRoleScore = similarity(input.currentRole, occupation.title)
       const targetRoleScore = similarity(input.targetRole ?? '', occupation.title)
-      const seedScore = input.notSureMode
+      let seedScore = input.notSureMode
         ? currentRoleScore
         : clamp(targetRoleScore * 0.65 + currentRoleScore * 0.35, 0, 1)
+
+      if (selectedTargetOccupationId && occupation.id === selectedTargetOccupationId) {
+        seedScore = 1.25
+      } else if (selectedCurrentOccupationId && occupation.id === selectedCurrentOccupationId) {
+        seedScore = Math.max(seedScore, 0.98)
+      }
+
       return { occupation, seedScore }
     })
     .sort((a, b) => (b.seedScore - a.seedScore) || a.occupation.title.localeCompare(b.occupation.title))
@@ -1857,7 +1868,19 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     ranked = rankedLoose
   }
   const relevantRanked = ranked.filter((candidate) => isRelevantRecommendation(candidate, input.notSureMode))
-  const top = (relevantRanked.length > 0 ? relevantRanked : ranked).slice(0, 6)
+  const baseRanked = relevantRanked.length > 0 ? relevantRanked : ranked
+  const explicitTargetCandidate = selectedTargetOccupationId
+    ? baseRanked.find((candidate) => candidate.occupationId === selectedTargetOccupationId) ??
+      ranked.find((candidate) => candidate.occupationId === selectedTargetOccupationId) ??
+      null
+    : null
+  const orderedRanked = explicitTargetCandidate
+    ? [
+        explicitTargetCandidate,
+        ...baseRanked.filter((candidate) => candidate.occupationId !== explicitTargetCandidate.occupationId)
+      ]
+    : baseRanked
+  const top = orderedRanked.slice(0, 6)
   const best = top[0] ?? null
   const roleHardGates = pickHardGates({
     certsLicenses: best?.certsLicenses ?? [],

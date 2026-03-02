@@ -2,7 +2,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 const DEFAULT_LIMIT = 6
 const MAX_LIMIT = 20
-const ROLE_MATCH_THRESHOLD = 0.72
+export const ROLE_MATCH_THRESHOLD = 0.72
+const MIN_ROLE_SUGGESTION_CONFIDENCE = 0.18
+const ROLE_STOP_TOKENS = new Set(['and', 'or', 'of', 'the', 'except', 'system'])
 
 type OccupationRow = {
   id: string
@@ -76,6 +78,33 @@ export interface OccupationRoleMatch extends OccupationRoleSuggestion {
   input: string
 }
 
+type ResolverSource = 'O*NET' | 'NOC' | 'internal'
+
+export interface ResolvedOccupationAlternative {
+  occupationId: string
+  title: string
+  code: string
+  region: 'CA' | 'US'
+  source: ResolverSource
+  confidence: number
+  matchedBy: RoleMatchType
+  lastUpdated: string | null
+}
+
+export interface ResolvedOccupation {
+  resolved: boolean
+  occupationId: string | null
+  title: string
+  code: string
+  region: 'CA' | 'US' | null
+  source: ResolverSource
+  confidence: number
+  matchedBy: RoleMatchType
+  alternatives: ResolvedOccupationAlternative[]
+  stage?: 'helper' | 'apprentice' | 'licensed' | null
+  lastUpdated?: string | null
+}
+
 interface OccupationSearchResult {
   query: {
     q: string
@@ -118,6 +147,10 @@ let skillIndexCache: CachedSkillIndex | null = null
 function clampLimit(limit?: number) {
   if (!Number.isFinite(limit)) return DEFAULT_LIMIT
   return Math.max(1, Math.min(MAX_LIMIT, Math.trunc(limit as number)))
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }
 
 function normalizeRoleText(value: string) {
@@ -220,6 +253,34 @@ function tokenOverlapRatio(queryTokens: string[], candidateTokens: string[]) {
   return shared / queryTokens.length
 }
 
+function countMeaningfulExtraTokens(queryTokens: string[], candidateTokens: string[]) {
+  const querySet = new Set(queryTokens)
+  return candidateTokens.filter(
+    (token) => !ROLE_STOP_TOKENS.has(token) && !querySet.has(token)
+  ).length
+}
+
+function qualifierMismatchPenalty(queryTokens: string[], candidateTokens: string[]) {
+  const querySet = new Set(queryTokens)
+  const candidateSet = new Set(candidateTokens)
+
+  let penalty = 0
+  if (candidateSet.has('helper') && !querySet.has('helper')) penalty += 0.22
+  if (candidateSet.has('apprentice') && !querySet.has('apprentice')) penalty += 0.14
+  if (candidateSet.has('installer') && !querySet.has('installer')) penalty += 0.12
+  if (candidateSet.has('repairer') && !querySet.has('repairer')) penalty += 0.08
+  if (candidateSet.has('line') && !querySet.has('line')) penalty += 0.14
+  if (
+    candidateSet.has('power') &&
+    candidateSet.has('line') &&
+    !(querySet.has('power') && querySet.has('line'))
+  ) {
+    penalty += 0.12
+  }
+
+  return penalty
+}
+
 function pickBetterMatch<T extends string>(
   current: { confidence: number; matchedBy: T } | null,
   candidate: { confidence: number; matchedBy: T }
@@ -258,12 +319,35 @@ function scoreRoleCandidate(query: string, row: OccupationSearchIndexRow) {
   }
 
   if (titleNorm.includes(normalizedQuery) || normalizedQuery.includes(titleNorm)) {
-    best = pickBetterMatch(best, { confidence: 0.9, matchedBy: 'title_contains' })
+    const titleOverlap = tokenOverlapRatio(queryTokens, titleTokens)
+    const extraTokens = countMeaningfulExtraTokens(queryTokens, titleTokens)
+    const qualifierPenalty = qualifierMismatchPenalty(queryTokens, titleTokens)
+    const baseScore = normalizedQuery.includes(titleNorm) ? 0.9 : 0.76
+    best = pickBetterMatch(best, {
+      confidence: clamp(
+        baseScore + titleOverlap * 0.08 - extraTokens * 0.07 - qualifierPenalty,
+        0.35,
+        0.93
+      ),
+      matchedBy: 'title_contains'
+    })
   }
 
   for (const alias of aliasNorm) {
     if (alias.includes(normalizedQuery) || normalizedQuery.includes(alias)) {
-      best = pickBetterMatch(best, { confidence: 0.87, matchedBy: 'alias_contains' })
+      const aliasTokens = tokenizeRoleText(alias)
+      const aliasOverlap = tokenOverlapRatio(queryTokens, aliasTokens)
+      const extraTokens = countMeaningfulExtraTokens(queryTokens, aliasTokens)
+      const qualifierPenalty = qualifierMismatchPenalty(queryTokens, aliasTokens)
+      const baseScore = normalizedQuery.includes(alias) ? 0.88 : 0.74
+      best = pickBetterMatch(best, {
+        confidence: clamp(
+          baseScore + aliasOverlap * 0.08 - extraTokens * 0.06 - qualifierPenalty,
+          0.34,
+          0.9
+        ),
+        matchedBy: 'alias_contains'
+      })
     }
   }
 
@@ -324,7 +408,8 @@ async function getOccupationSearchIndex(region?: 'CA' | 'US') {
   let query = supabase
     .from('occupations')
     .select('id,title,region,codes,source,last_updated')
-    .limit(2500)
+    .order('title', { ascending: true })
+    .limit(5000)
 
   if (region) {
     query = query.eq('region', region)
@@ -357,34 +442,24 @@ export async function resolveOccupationInput(options: {
   const normalizedInput = options.input.trim()
   const limit = clampLimit(options.limit)
   const index = await getOccupationSearchIndex(options.region)
-
-  const scored = index
-    .map((row) => {
-      const match = scoreRoleCandidate(normalizedInput, row)
-      return {
-        row,
-        confidence: Number(match.confidence.toFixed(3)),
-        matchedBy: match.matchedBy
-      }
-    })
-    .sort((left, right) => {
-      if (right.confidence !== left.confidence) {
-        return right.confidence - left.confidence
-      }
-      return left.row.title.localeCompare(right.row.title)
-    })
-
-  const limited = scored.slice(0, limit)
-  const suggestions: OccupationRoleSuggestion[] = limited.map(({ row, confidence, matchedBy }) => ({
-    occupationId: row.id,
-    title: row.title,
-    region: row.region,
-    codes: row.codes ?? {},
-    source: row.source,
-    lastUpdated: row.last_updated,
-    confidence,
-    matchedBy
-  }))
+  const special = pickSpecialOccupation(normalizedInput, index)
+  const ranked = filterRankedAlternativesForInput(
+    normalizedInput,
+    rankOccupationCandidates(normalizedInput, index)
+  )
+  const limited = special
+    ? [
+        {
+          row: special.row,
+          confidence: special.confidence,
+          matchedBy: special.matchedBy
+        },
+        ...ranked.filter((item) => item.row.id !== special.row.id)
+      ].slice(0, limit)
+    : ranked.slice(0, limit)
+  const suggestions: OccupationRoleSuggestion[] = limited.map(({ row, confidence, matchedBy }) =>
+    buildOccupationSuggestion(row, confidence, matchedBy)
+  )
 
   const top = suggestions[0] ?? null
   const bestMatch =
@@ -399,6 +474,110 @@ export async function resolveOccupationInput(options: {
     input: normalizedInput,
     bestMatch,
     suggestions
+  }
+}
+
+export async function getOccupationById(occupationId: string) {
+  const normalizedId = occupationId.trim()
+  if (!normalizedId) return null
+
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('occupations')
+    .select('id,title,region,codes,source,last_updated')
+    .eq('id', normalizedId)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  if (!data) {
+    return null
+  }
+
+  const row = data as OccupationRow
+  return {
+    ...row,
+    aliases: toAliases(row.codes)
+  } satisfies OccupationSearchIndexRow
+}
+
+export async function resolveOccupation(options: {
+  input: string
+  region?: 'CA' | 'US'
+  limit?: number
+  occupationId?: string | null
+}): Promise<ResolvedOccupation> {
+  const normalizedInput = options.input.trim()
+  const limit = clampLimit(options.limit)
+  const index = await getOccupationSearchIndex(options.region)
+  const explicit = options.occupationId ? await getOccupationById(options.occupationId) : null
+  const special = explicit ? null : pickSpecialOccupation(normalizedInput, index)
+  const ranked = normalizedInput
+    ? filterRankedAlternativesForInput(normalizedInput, rankOccupationCandidates(normalizedInput, index))
+    : []
+
+  const chosen = explicit
+    ? {
+        row: explicit,
+        confidence: 1,
+        matchedBy: 'title_exact' as const
+      }
+    : special
+      ? {
+          row: special.row,
+          confidence: special.confidence,
+          matchedBy: special.matchedBy
+        }
+      : ranked[0] ?? null
+
+  const alternatives = (explicit && normalizedInput
+    ? ranked
+    : chosen
+      ? ranked.filter((item) => item.row.id !== chosen.row.id)
+      : ranked
+  )
+    .slice(0, 5)
+    .map(({ row, confidence, matchedBy }) => ({
+      occupationId: row.id,
+      title: row.title,
+      code: extractOccupationCode(row),
+      region: row.region,
+      source: normalizeResolverSource(row),
+      confidence,
+      matchedBy,
+      lastUpdated: row.last_updated
+    }))
+
+  if (!chosen) {
+    return {
+      resolved: false,
+      occupationId: null,
+      title: normalizedInput,
+      code: '',
+      region: null,
+      source: 'internal',
+      confidence: 0,
+      matchedBy: 'fallback',
+      alternatives,
+      stage: inferRequestedStage(normalizedInput),
+      lastUpdated: null
+    }
+  }
+
+  return {
+    resolved: chosen.confidence >= ROLE_MATCH_THRESHOLD,
+    occupationId: chosen.row.id,
+    title: chosen.row.title,
+    code: extractOccupationCode(chosen.row),
+    region: chosen.row.region,
+    source: normalizeResolverSource(chosen.row),
+    confidence: Number(chosen.confidence.toFixed(3)),
+    matchedBy: chosen.matchedBy,
+    alternatives,
+    stage: explicit ? inferRequestedStage(normalizedInput) : special?.stage ?? inferRequestedStage(normalizedInput),
+    lastUpdated: chosen.row.last_updated
   }
 }
 
@@ -661,6 +840,188 @@ async function getSkillSearchIndex() {
   }
 
   return rows
+}
+
+function normalizeResolverSource(row: OccupationRow): ResolverSource {
+  const sourceText = String(row.source ?? '').toLowerCase()
+  if (sourceText.includes('onet') || row.region === 'US') return 'O*NET'
+  if (sourceText.includes('noc') || row.region === 'CA') return 'NOC'
+  return 'internal'
+}
+
+function extractOccupationCode(row: OccupationRow) {
+  const codes: Record<string, unknown> = row.codes ?? {}
+  const candidates = [
+    codes['soc'],
+    codes['soc_code'],
+    codes['onet_code'],
+    codes['onet_soc'],
+    codes['noc'],
+    codes['noc_code'],
+    codes['code']
+  ]
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim()
+    }
+  }
+
+  return row.id
+}
+
+function buildOccupationSuggestion(
+  row: OccupationSearchIndexRow,
+  confidence: number,
+  matchedBy: RoleMatchType
+): OccupationRoleSuggestion {
+  return {
+    occupationId: row.id,
+    title: row.title,
+    region: row.region,
+    codes: row.codes ?? {},
+    source: row.source,
+    lastUpdated: row.last_updated,
+    confidence,
+    matchedBy
+  }
+}
+
+function rankOccupationCandidates(input: string, index: OccupationSearchIndexRow[]) {
+  const normalizedInput = input.trim()
+
+  return index
+    .map((row) => {
+      const match = scoreRoleCandidate(normalizedInput, row)
+      return {
+        row,
+        confidence: Number(match.confidence.toFixed(3)),
+        matchedBy: match.matchedBy
+      }
+    })
+    .filter((item) => item.confidence >= MIN_ROLE_SUGGESTION_CONFIDENCE)
+    .sort((left, right) => {
+      if (right.confidence !== left.confidence) {
+        return right.confidence - left.confidence
+      }
+      return left.row.title.localeCompare(right.row.title)
+    })
+}
+
+function inferRequestedStage(input: string): 'helper' | 'apprentice' | 'licensed' | null {
+  const normalized = normalizeRoleText(input)
+  if (/\bhelper\b/.test(normalized)) return 'helper'
+  if (/\bapprentice\b/.test(normalized)) return 'apprentice'
+  if (/\blicensed\b|\bjourneyman\b|\bjourneyperson\b/.test(normalized)) return 'licensed'
+  return null
+}
+
+function isElectricianPathwayTitle(row: OccupationSearchIndexRow) {
+  const title = normalizeRoleText(row.title)
+  if (!/\belectricians?\b/.test(title)) return false
+  if (/\bhelpers?\b/.test(title)) return false
+  if (/\bpower\s+line\b/.test(title) || /\bpower-line\b/.test(title)) return false
+  return true
+}
+
+function preferElectricianPathway(input: string, index: OccupationSearchIndexRow[]) {
+  const normalized = normalizeRoleText(input)
+  if (
+    !/\belectrician\b/.test(normalized) ||
+    /\bpower\s+line\b|\bpower-line\b|\blineman\b/.test(normalized)
+  ) {
+    return null
+  }
+
+  const stage = inferRequestedStage(normalized)
+  const explicitlyAnchored =
+    stage !== null || normalized === 'electrician' || /\belectric apprentice\b/.test(normalized)
+  if (!explicitlyAnchored) {
+    return null
+  }
+
+  const exact = index.find((row) => normalizeRoleText(row.title) === 'electrician')
+  const target = exact ?? index
+    .filter((row) => isElectricianPathwayTitle(row))
+    .sort((left, right) => {
+      const leftNorm = normalizeRoleText(left.title)
+      const rightNorm = normalizeRoleText(right.title)
+      const leftExact = leftNorm === 'electrician' ? 0 : 1
+      const rightExact = rightNorm === 'electrician' ? 0 : 1
+      if (leftExact !== rightExact) return leftExact - rightExact
+      return left.title.localeCompare(right.title)
+    })[0]
+
+  if (!target) {
+    return null
+  }
+
+  return {
+    row: target,
+    confidence: stage === 'helper' ? 0.96 : stage === 'apprentice' ? 0.98 : 0.99,
+    matchedBy: 'alias_exact' as const,
+    stage
+  }
+}
+
+function preferSousChefPathway(input: string, index: OccupationSearchIndexRow[]) {
+  const normalized = normalizeRoleText(input)
+  if (!/\bsous chef\b/.test(normalized)) {
+    return null
+  }
+
+  const target = index
+    .filter((row) => {
+      const title = normalizeRoleText(row.title)
+      return /\bchef\b/.test(title) && (/\bhead\b/.test(title) || /\bcook\b/.test(title))
+    })
+    .sort((left, right) => left.title.localeCompare(right.title))[0]
+
+  if (!target) {
+    return null
+  }
+
+  return {
+    row: target,
+    confidence: 0.91,
+    matchedBy: 'alias_exact' as const,
+    stage: null
+  }
+}
+
+function pickSpecialOccupation(input: string, index: OccupationSearchIndexRow[]) {
+  return preferElectricianPathway(input, index) ?? preferSousChefPathway(input, index)
+}
+
+function filterRankedAlternativesForInput(
+  input: string,
+  ranked: Array<{
+    row: OccupationSearchIndexRow
+    confidence: number
+    matchedBy: RoleMatchType
+  }>
+) {
+  const normalized = normalizeRoleText(input)
+  if (/\belectrician\b/.test(normalized)) {
+    const electricianOnly = ranked.filter((item) =>
+      /\belectric/.test(normalizeRoleText(item.row.title))
+    )
+    if (electricianOnly.length > 0) {
+      return electricianOnly
+    }
+  }
+
+  if (/\bsous chef\b/.test(normalized)) {
+    const chefOnly = ranked.filter((item) => {
+      const title = normalizeRoleText(item.row.title)
+      return /\bchef\b/.test(title) || /\bcook\b/.test(title)
+    })
+    if (chefOnly.length > 0) {
+      return chefOnly
+    }
+  }
+
+  return ranked
 }
 
 export async function searchSkills(options: SearchSkillsOptions): Promise<SkillSearchResult> {

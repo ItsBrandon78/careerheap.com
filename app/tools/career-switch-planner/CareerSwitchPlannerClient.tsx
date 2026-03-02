@@ -104,6 +104,18 @@ type RoleResolutionMatch = {
   }>
 }
 
+type RoleSelectionPrompt = {
+  role: 'current' | 'target'
+  input: string
+  alternatives: Array<{
+    occupationId: string
+    title: string
+    confidence: number
+    source?: string | null
+    stage?: 'helper' | 'apprentice' | 'licensed' | null
+  }>
+}
+
 type PlannerReportPayload = {
   compatibilitySnapshot: {
     score: number
@@ -831,13 +843,18 @@ function routeToneClasses(kind: 'primary' | 'secondary' | 'contingency') {
   return 'border-error/25 bg-error-light'
 }
 
-function formatMoneyRange(low: number, high: number, unit: string) {
+function formatMoneyRange(low: number, high: number, unit: string, annualize = false) {
+  const isHourly = unit.toLowerCase().includes('/hour')
+  const showAnnualized = annualize && isHourly
+  const displayLow = showAnnualized ? low * 2080 : low
+  const displayHigh = showAnnualized ? high * 2080 : high
   const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: unit.startsWith('CAD') ? 'CAD' : 'USD',
     maximumFractionDigits: 0
   })
-  return `${formatter.format(low)} - ${formatter.format(high)}`
+  const suffix = showAnnualized ? ' / year est.' : isHourly ? ' / hr' : unit.toLowerCase().includes('/year') ? ' / yr' : ''
+  return `${formatter.format(displayLow)} - ${formatter.format(displayHigh)}${suffix}`
 }
 
 function scrollToSection(id: string) {
@@ -931,6 +948,7 @@ export default function CareerSwitchPlannerPage({
   const [inputError, setInputError] = useState('')
   const [plannerResult, setPlannerResult] = useState<PlannerResultView | null>(null)
   const [plannerReport, setPlannerReport] = useState<PlannerReportPayload | null>(null)
+  const [roleSelectionPrompt, setRoleSelectionPrompt] = useState<RoleSelectionPrompt | null>(null)
   const [lastSubmittedSnapshot, setLastSubmittedSnapshot] = useState<SubmittedPlannerSnapshot | null>(null)
   const [resumeStructuredSnapshot, setResumeStructuredSnapshot] = useState<ResumeStructuredSnapshot>({
     certifications: []
@@ -960,6 +978,7 @@ export default function CareerSwitchPlannerPage({
   })
   const [usage, setUsage] = useState<ToolUsageResult | null>(null)
   const [isUsageLoading, setIsUsageLoading] = useState(true)
+  const [earningsView, setEarningsView] = useState<'base' | 'annual'>('base')
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const previewLocked = searchParams.get('locked') === '1'
@@ -1290,6 +1309,7 @@ export default function CareerSwitchPlannerPage({
 
   const handleCurrentRoleInputChange = (value: string) => {
     setCurrentRoleText(value)
+    setRoleSelectionPrompt((previous) => (previous?.role === 'current' ? null : previous))
     if (currentRoleSelectedMatch && value.trim() !== currentRoleSelectedMatch.title) {
       setCurrentRoleSelectedMatch(null)
     }
@@ -1297,6 +1317,7 @@ export default function CareerSwitchPlannerPage({
 
   const handleTargetRoleInputChange = (value: string) => {
     setTargetRoleText(value)
+    setRoleSelectionPrompt((previous) => (previous?.role === 'target' ? null : previous))
     if (targetRoleSelectedMatch && value.trim() !== targetRoleSelectedMatch.title) {
       setTargetRoleSelectedMatch(null)
     }
@@ -1394,6 +1415,15 @@ export default function CareerSwitchPlannerPage({
             report?: PlannerReportPayload
             usage?: ToolUsageResult
             error?: string
+            role?: 'current' | 'target'
+            input?: string
+            alternatives?: Array<{
+              occupationId?: string
+              title?: string
+              confidence?: number
+              source?: string | null
+              stage?: 'helper' | 'apprentice' | 'licensed' | null
+            }>
             message?: string
           }
         | null
@@ -1408,6 +1438,36 @@ export default function CareerSwitchPlannerPage({
 
       if (response.status === 401 && data?.error === 'AUTH_REQUIRED') {
         setInputError(data.message || 'Sign in required before generating a plan.')
+        setPlannerState('idle')
+        return
+      }
+
+      if (
+        response.status === 409 &&
+        data?.error === 'ROLE_SELECTION_REQUIRED' &&
+        (data.role === 'current' || data.role === 'target') &&
+        Array.isArray(data.alternatives)
+      ) {
+        const alternatives = data.alternatives
+          .map((item) => ({
+            occupationId: typeof item.occupationId === 'string' ? item.occupationId : '',
+            title: typeof item.title === 'string' ? item.title.trim() : '',
+            confidence: typeof item.confidence === 'number' ? item.confidence : 0,
+            source: typeof item.source === 'string' ? item.source : null,
+            stage: item.stage ?? null
+          }))
+          .filter((item) => item.occupationId && item.title)
+
+        if (alternatives.length > 0) {
+          setRoleSelectionPrompt({
+            role: data.role,
+            input: typeof data.input === 'string' ? data.input : '',
+            alternatives
+          })
+          setInputError(data.message || 'Choose the closest role match before continuing.')
+        } else {
+          setInputError(data.message || 'Choose the closest role match before continuing.')
+        }
         setPlannerState('idle')
         return
       }
@@ -1438,6 +1498,8 @@ export default function CareerSwitchPlannerPage({
 
       setPlannerResult(toPlannerResultView(plannerResultPayload))
       setPlannerReport(data?.report ?? null)
+      setRoleSelectionPrompt(null)
+      setEarningsView('base')
       const resolvedCurrentRole =
         data?.report?.roleResolution?.current?.matched?.title ??
         (currentRoleText.trim() || currentRoleFallback)
@@ -1465,26 +1527,25 @@ export default function CareerSwitchPlannerPage({
   }
 
   const handleUseExample = () => {
-    setCurrentRoleText('Customer Success Specialist')
-    setTargetRoleText('Product Operations Manager')
+    setCurrentRoleText('Sous Chef')
+    setTargetRoleText('Apprentice Electrician')
     setCurrentRoleSelectedMatch(null)
     setTargetRoleSelectedMatch(null)
     setExperienceText(
-      '5 years in customer operations. Led onboarding for 12 new teammates, improved retention by 14%, and built KPI dashboards for cross-functional teams.'
+      '8 years in kitchen operations. Led prep and line teams, maintained food-safety SOPs, worked long standing shifts, and kept service moving during high-volume rushes.'
     )
-    setSkills(['Stakeholder management', 'Process improvement', 'SQL'])
+    setSkills(['Team leadership', 'Safety compliance', 'Fast-paced operations'])
     setRecommendMode(false)
     setWorkRegion('ca')
     setLocationText('Toronto, Ontario, Canada')
     setLocationTouched(true)
-    setTimelineBucket('1-3 months')
-    setEducationLevel("Bachelor's")
-    setIncomeTarget('$75-100k')
-    setUserPostingText(
-      'Requirements: 3+ years coordinating cross-functional operations, proficiency with SQL and dashboard tooling, ability to define process KPIs, and experience shipping process improvements with measurable outcomes.'
-    )
+    setTimelineBucket('3-6 months')
+    setEducationLevel('High school')
+    setIncomeTarget('$50-75k')
+    setUserPostingText('')
     setUseMarketEvidence(marketEvidenceAvailable)
     dismissDetectedResumeData()
+    setRoleSelectionPrompt(null)
     setInputError('')
   }
 
@@ -1498,6 +1559,9 @@ export default function CareerSwitchPlannerPage({
   const transitionReport = plannerReport?.transitionReport ?? null
   const executionStrategy = plannerReport?.executionStrategy ?? null
   const transitionModeReport = plannerReport?.transitionMode ?? null
+  const canAnnualizeEarnings = transitionModeReport?.earnings.some((stage) =>
+    stage.unit.toLowerCase().includes('/hour')
+  ) ?? false
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
@@ -1551,6 +1615,7 @@ export default function CareerSwitchPlannerPage({
                   region={roleAutocompleteRegion}
                   onChange={handleCurrentRoleInputChange}
                   onSuggestionSelect={(suggestion) => {
+                    setRoleSelectionPrompt(null)
                     setCurrentRoleSelectedMatch({
                       occupationId: suggestion.occupationId,
                       title: suggestion.title,
@@ -1575,6 +1640,7 @@ export default function CareerSwitchPlannerPage({
                   }
                   onChange={handleTargetRoleInputChange}
                   onSuggestionSelect={(suggestion) => {
+                    setRoleSelectionPrompt(null)
                     setTargetRoleSelectedMatch({
                       occupationId: suggestion.occupationId,
                       title: suggestion.title,
@@ -1588,6 +1654,7 @@ export default function CareerSwitchPlannerPage({
                 checked={recommendMode}
                 onChange={(next) => {
                   setRecommendMode(next)
+                  setRoleSelectionPrompt(null)
                   if (next) {
                     setTargetRoleText('')
                     setTargetRoleSelectedMatch(null)
@@ -1799,6 +1866,50 @@ export default function CareerSwitchPlannerPage({
               {inputError}
             </p>
           )}
+          {roleSelectionPrompt ? (
+            <Card className="mt-4 p-4">
+              <p className="text-sm font-semibold text-text-primary">
+                Choose your closest match for the {roleSelectionPrompt.role} role
+              </p>
+              <p className="mt-1 text-xs text-text-secondary">
+                We could not confidently place &quot;{roleSelectionPrompt.input || 'your entry'}&quot;.
+                Pick the closest occupation so the plan stays on the right pathway.
+              </p>
+              <div className="mt-3 grid gap-2">
+                {roleSelectionPrompt.alternatives.map((option) => (
+                  <button
+                    key={`${roleSelectionPrompt.role}-${option.occupationId}`}
+                    type="button"
+                    className="flex items-center justify-between rounded-md border border-border bg-bg-secondary px-3 py-2 text-left text-sm text-text-primary hover:border-accent hover:bg-surface"
+                    onClick={() => {
+                      if (roleSelectionPrompt.role === 'current') {
+                        setCurrentRoleText(option.title)
+                        setCurrentRoleSelectedMatch({
+                          occupationId: option.occupationId,
+                          title: option.title,
+                          confidence: option.confidence,
+                          matchedBy: 'manual_selection'
+                        })
+                      } else {
+                        setTargetRoleText(option.title)
+                        setTargetRoleSelectedMatch({
+                          occupationId: option.occupationId,
+                          title: option.title,
+                          confidence: option.confidence,
+                          matchedBy: 'manual_selection'
+                        })
+                      }
+                      setRoleSelectionPrompt(null)
+                      setInputError('')
+                    }}
+                  >
+                    <span>{option.title}</span>
+                    <span className="text-xs text-text-tertiary">{scoreToLabel(option.confidence)}</span>
+                  </button>
+                ))}
+              </div>
+            </Card>
+          ) : null}
 
           <div className="mt-5 flex flex-col gap-3 md:flex-row">
             <PrimaryButton
@@ -1809,6 +1920,7 @@ export default function CareerSwitchPlannerPage({
                 isUsageLoading ||
                 plannerState === 'loading' ||
                 !user ||
+                Boolean(roleSelectionPrompt) ||
                 !hasMinimumRequiredInput ||
                 !locationText.trim() ||
                 (!recommendMode && !targetRoleText.trim())
@@ -1960,7 +2072,7 @@ export default function CareerSwitchPlannerPage({
                             Quick wins
                           </p>
                           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                            {transitionModeReport.gaps.strengths.slice(0, 3).map((item) => (
+                            {transitionModeReport.gaps.strengths.slice(0, 4).map((item) => (
                               <li key={`quick-win-${item}`}>- {item}</li>
                             ))}
                           </ul>
@@ -1971,7 +2083,7 @@ export default function CareerSwitchPlannerPage({
                             Primary gaps
                           </p>
                           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                            {transitionModeReport.gaps.missing.slice(0, 3).map((item) => (
+                            {transitionModeReport.gaps.missing.slice(0, 4).map((item) => (
                               <li key={`primary-gap-${item}`}>- {item}</li>
                             ))}
                           </ul>
@@ -2169,7 +2281,27 @@ export default function CareerSwitchPlannerPage({
                   </Card>
 
                   <Card className="space-y-4 p-5">
-                    <h3 className="text-lg font-bold text-text-primary">Earnings Path</h3>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-lg font-bold text-text-primary">Earnings Path</h3>
+                      {canAnnualizeEarnings ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant={earningsView === 'base' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setEarningsView('base')}
+                          >
+                            Hourly
+                          </Button>
+                          <Button
+                            variant={earningsView === 'annual' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setEarningsView('annual')}
+                          >
+                            Yearly est.
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
                     <div className="overflow-hidden rounded-lg border border-border-light">
                       <div className="grid grid-cols-[140px_minmax(0,1fr)] bg-bg-secondary px-4 py-3 text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                         <span>Stage</span>
@@ -2181,10 +2313,20 @@ export default function CareerSwitchPlannerPage({
                           className="grid grid-cols-[140px_minmax(0,1fr)] border-t border-border-light px-4 py-3 text-sm text-text-secondary"
                         >
                           <span className="font-semibold text-text-primary">{stage.stage}</span>
-                          <span>{formatMoneyRange(stage.rangeLow, stage.rangeHigh, stage.unit)}</span>
+                          <span>
+                            {formatMoneyRange(
+                              stage.rangeLow,
+                              stage.rangeHigh,
+                              stage.unit,
+                              earningsView === 'annual'
+                            )}
+                          </span>
                         </div>
                       ))}
                     </div>
+                    <p className="text-xs text-text-tertiary">
+                      Ranges vary by region and union vs. non-union employers.
+                    </p>
                   </Card>
                 </div>
 
@@ -2229,9 +2371,13 @@ export default function CareerSwitchPlannerPage({
                             <ul className="mt-3 space-y-2 text-sm text-text-secondary">
                               {links.map((link) => (
                                 <li key={`${label}-${link.label}-${link.url}`}>
-                                  <Link href={link.url} className="text-accent hover:text-accent-hover">
-                                    {link.label}
-                                  </Link>
+                                  {link.url ? (
+                                    <Link href={link.url} className="text-accent hover:text-accent-hover">
+                                      {link.label}
+                                    </Link>
+                                  ) : (
+                                    <span>{link.label}</span>
+                                  )}
                                 </li>
                               ))}
                             </ul>
@@ -2247,7 +2393,7 @@ export default function CareerSwitchPlannerPage({
 
               <Card className="space-y-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-lg font-bold text-text-primary">Data Transparency</h3>
+                  <h3 className="text-lg font-bold text-text-primary">How This Plan Was Built</h3>
                   <Button variant="ghost" size="sm" onClick={() => void handleGeneratePlan()}>
                     Regenerate plan
                   </Button>
@@ -2255,27 +2401,32 @@ export default function CareerSwitchPlannerPage({
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                      Inputs used
+                      Simple breakdown
                     </p>
                     <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                      {(plannerReport?.dataTransparency.inputsUsed ?? []).map((item) => (
-                        <li key={`input-used-${item}`}>- {item}</li>
-                      ))}
+                      <li>- We matched your current and target roles to the closest occupation pathway.</li>
+                      <li>- We combined your background with occupation requirements, wages, and transition blockers.</li>
+                      <li>- We turned that into a 90-day plan with measurable weekly outputs and outreach scripts.</li>
+                    </ul>
+                  </div>
+                  <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Assumptions you can change
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      <li>
+                        - Location:{' '}
+                        {plannerReport?.transitionReport?.marketSnapshot.location ||
+                          locationText.trim() ||
+                          'Not provided'}
+                      </li>
+                      <li>- Timeline target: {lastSubmittedSnapshot?.timelineBucket || timelineBucket}</li>
+                      <li>- Market evidence: {useMarketEvidence ? 'On' : 'Off'}</li>
                     </ul>
                   </div>
                   <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                      Assumptions
-                    </p>
-                    <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                      {transitionModeReport.timeline.assumptions.map((item) => (
-                        <li key={`assumption-${item}`}>- {item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                      Datasets used
+                      Data used
                     </p>
                     <ul className="mt-3 space-y-2 text-sm text-text-secondary">
                       {(plannerReport?.dataTransparency.datasetsUsed ?? []).map((item) => (
@@ -2291,6 +2442,33 @@ export default function CareerSwitchPlannerPage({
                     ) : null}
                   </div>
                 </div>
+                <details className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                  <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+                    Technical details
+                  </summary>
+                  <div className="mt-3 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Input keys
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                        {(plannerReport?.dataTransparency.inputsUsed ?? []).map((item) => (
+                          <li key={`input-used-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Timeline assumptions
+                      </p>
+                      <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                        {transitionModeReport.timeline.assumptions.map((item) => (
+                          <li key={`assumption-${item}`}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </details>
               </Card>
             </div>
           ) : plannerResult ? (
