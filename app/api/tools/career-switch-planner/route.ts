@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { generateCareerMapPlannerAnalysis } from '@/lib/server/careerMapPlanner'
+import {
+  generateCareerMapPlannerAnalysis,
+  type CareerPlannerAnalysis
+} from '@/lib/server/careerMapPlanner'
 import { resolveOccupationInput } from '@/lib/server/careerData'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import type { CareerSwitchPlannerInput } from '@/lib/planner/types'
@@ -96,32 +99,17 @@ function regionFromWorkRegion(workRegion: string): 'CA' | 'US' | undefined {
   return undefined
 }
 
-function applyFreeTierOutputLimits<
-  T extends {
-    roadmap: unknown[]
-    resumeReframe: unknown[]
-    executionStrategy?: {
-      plan90Day?: {
-        month1?: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> }
-        month2?: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> }
-        month3?: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> }
-      }
-    }
-  }
->(report: T) {
-  const limitedReport: T = {
+function applyFreeTierOutputLimits(report: CareerPlannerAnalysis['report']) {
+  const limitedReport: CareerPlannerAnalysis['report'] = {
     ...report,
     roadmap: report.roadmap.slice(0, 1),
     resumeReframe: []
   }
 
   const strategy = report.executionStrategy
-  const monthPlan = strategy?.plan90Day
-  if (!strategy || !monthPlan?.month2 || !monthPlan?.month3) {
-    return limitedReport
-  }
+  const monthPlan = strategy.plan90Day
 
-  const firstLinkedFromMonth = (month: { actions: Array<Record<string, unknown>> }) => {
+  const firstLinkedFromMonth = (month: typeof monthPlan.month2) => {
     const firstAction = month.actions[0]
     const linked = Array.isArray(firstAction?.linkedRequirements)
       ? (firstAction.linkedRequirements as string[])
@@ -130,7 +118,7 @@ function applyFreeTierOutputLimits<
   }
 
   const condensedMonth = (
-    month: { label: string; weeklyTimeInvestment: string; actions: Array<Record<string, unknown>> },
+    month: typeof monthPlan.month2,
     monthId: 'month2' | 'month3'
   ) => ({
     ...month,
