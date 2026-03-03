@@ -1,3 +1,4 @@
+import './loadEnvLocal'
 import process from 'node:process'
 import {
   generateCareerMapPlannerAnalysis,
@@ -775,26 +776,32 @@ function extractIssues(result: {
   const family = targetFamilyForJob(scenario.targetJob)
   const fullText = planText(transitionPlan)
   const firstPhase = transitionPlan.plan90[0]
+  const roadmapGuide = transitionPlan.roadmapGuide
+  const firstGuideStep = roadmapGuide?.phases?.[0]?.steps?.[0]
 
-  issues.push({
-    severity: 'Critical',
-    message: 'The roadmap schema has no cost estimate fields, so the user cannot judge budget fit.',
-    rootCause: 'logic',
-    proposedFix:
-      'Add additive per-step metadata for costRange and a section-level budget summary; keep old UI rendering as fallback.',
-    acceptanceCriteria:
-      'Each roadmap step includes a labeled cost range (or "varies by province/employer"), and the UI renders it without breaking current sections.'
-  })
+  if (!roadmapGuide?.phases?.length || !firstGuideStep?.costRange) {
+    issues.push({
+      severity: 'Critical',
+      message: 'The roadmap schema has no cost estimate fields, so the user cannot judge budget fit.',
+      rootCause: 'logic',
+      proposedFix:
+        'Add additive per-step metadata for costRange and a section-level budget summary; keep old UI rendering as fallback.',
+      acceptanceCriteria:
+        'Each roadmap step includes a labeled cost range (or "varies by province/employer"), and the UI renders it without breaking current sections.'
+    })
+  }
 
-  issues.push({
-    severity: 'High',
-    message: 'The roadmap schema has no explicit prerequisites field, so required gates are implied instead of listed cleanly.',
-    rootCause: 'logic',
-    proposedFix:
-      'Add additive prereqs arrays to each roadmap step and map existing hard gates / must-haves into them.',
-    acceptanceCriteria:
-      'Every rendered roadmap step lists zero or more prerequisites in plain language.'
-  })
+  if (!roadmapGuide?.phases?.length || !firstGuideStep || !Array.isArray(firstGuideStep.prereqs)) {
+    issues.push({
+      severity: 'High',
+      message: 'The roadmap schema has no explicit prerequisites field, so required gates are implied instead of listed cleanly.',
+      rootCause: 'logic',
+      proposedFix:
+        'Add additive prereqs arrays to each roadmap step and map existing hard gates / must-haves into them.',
+      acceptanceCriteria:
+        'Every rendered roadmap step lists zero or more prerequisites in plain language.'
+    })
+  }
 
   if (family === 'regulated_healthcare') {
     const hasProvinceDisclaimer = includesAny(fullText, [

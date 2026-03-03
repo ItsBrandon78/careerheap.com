@@ -1,3 +1,4 @@
+import './loadEnvLocal'
 import process from 'node:process'
 import {
   PLANNER_EXAMPLE_SCENARIOS,

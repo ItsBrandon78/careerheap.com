@@ -20,6 +20,15 @@ const PROFESSION_KEYWORDS = [
   'pharmac',
   'social worker',
   'physician',
+  'doctor',
+  'medical',
+  'clinical',
+  'dentist',
+  'orthodont',
+  'anesthesi',
+  'psychiat',
+  'surgeon',
+  'cardiolog',
   'counselor',
   'midwife',
   'dental hygienist'
@@ -79,16 +88,24 @@ function hasTradeSignals(profile: OccupationTemplateProfile) {
 
 function hasRegulatedProfessionSignals(profile: OccupationTemplateProfile) {
   const combined = normalizeText(
-    [profile.title, ...profile.certifications, ...profile.hardGates].join(' ')
+    [profile.title, ...profile.certifications, ...profile.hardGates, ...profile.employerSignals].join(' ')
   )
   const education = normalizeText(profile.education)
   return (
-    profile.regulated &&
     !hasTradeSignals(profile) &&
-    (profile.examRequired === true ||
+    (
+      profile.regulated ||
+      profile.examRequired === true ||
       includesAny(combined, PROFESSION_KEYWORDS) ||
-      /\bboard\b|\blicense\b|\blicensure\b|\bregistration\b/.test(combined) ||
-      /\bbachelor\b|\bmaster\b|\bdegree\b/.test(education))
+      /\bboard\b|\blicense\b|\blicensure\b|\bregistration\b|\bregulated profession\b|\bcredential recognition\b/.test(
+        combined
+      )
+    ) && (
+      /\bbachelor\b|\bmaster\b|\bdegree\b|\bdoctorate\b|\bmedical degree\b/.test(education) ||
+      profile.certifications.length > 0 ||
+      profile.hardGates.length > 0 ||
+      includesAny(combined, PROFESSION_KEYWORDS)
+    )
   )
 }
 

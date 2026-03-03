@@ -26,6 +26,25 @@ export const TransitionPlanPhaseSchema = z
   })
   .strict()
 
+export const TransitionRoadmapGuideStepSchema = z
+  .object({
+    title: z.string().min(1),
+    whyItMatters: z.string().min(1),
+    timeRange: z.string().min(1),
+    costRange: z.string().min(1),
+    prereqs: z.array(z.string().min(1)),
+    proofChecklist: z.array(z.string().min(1)).min(1)
+  })
+  .strict()
+
+export const TransitionRoadmapGuidePhaseSchema = z
+  .object({
+    label: z.string().min(1),
+    focus: z.string().min(1),
+    steps: z.array(TransitionRoadmapGuideStepSchema).min(1)
+  })
+  .strict()
+
 export const TransitionEarningStageSchema = z
   .object({
     stage: z.string().min(1),
@@ -68,6 +87,13 @@ export const TransitionModeSchema = z
         contingency: TransitionRouteSchema
       })
       .strict(),
+    roadmapGuide: z
+      .object({
+        phases: z.array(TransitionRoadmapGuidePhaseSchema).length(3),
+        next7Days: z.array(z.string().min(1)).min(3).max(7)
+      })
+      .strict()
+      .optional(),
     plan90: z.array(TransitionPlanPhaseSchema).length(3),
     execution: z
       .object({
@@ -109,6 +135,8 @@ export type TransitionModeReport = z.infer<typeof TransitionModeSchema>
 
 export type TransitionRoute = z.infer<typeof TransitionRouteSchema>
 export type TransitionPlanPhase = z.infer<typeof TransitionPlanPhaseSchema>
+export type TransitionRoadmapGuideStep = z.infer<typeof TransitionRoadmapGuideStepSchema>
+export type TransitionRoadmapGuidePhase = z.infer<typeof TransitionRoadmapGuidePhaseSchema>
 export type TransitionEarningStage = z.infer<typeof TransitionEarningStageSchema>
 export type TransitionResource = z.infer<typeof TransitionResourceSchema>
 

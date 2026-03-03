@@ -9,6 +9,7 @@ import { buildCredentialedRoleTemplate } from '@/lib/transition/templates/creden
 import { buildExperienceLadderRoleTemplate } from '@/lib/transition/templates/experienceLadderRole'
 import { buildGeneralRoleTemplate } from '@/lib/transition/templates/generalRole'
 import { buildPortfolioRoleTemplate } from '@/lib/transition/templates/portfolioRole'
+import { roleLabel } from '@/lib/transition/templates/common'
 import { buildRegulatedProfessionTemplate } from '@/lib/transition/templates/regulatedProfession'
 import { buildRegulatedTradeTemplate } from '@/lib/transition/templates/regulatedTrade'
 import type {
@@ -306,7 +307,17 @@ function toSentence(value: string) {
 }
 
 function cleanPublicFacingBullet(value: string) {
-  const formatted = toSentence(value)
+  const normalized = value
+    .replace(/^learn the basics of (confirm|list|verify|compare|start|speak with)\b/i, (_, verb: string) => {
+      const cleanedVerb = verb.charAt(0).toUpperCase() + verb.slice(1).toLowerCase()
+      return cleanedVerb
+    })
+    .replace(/^start the first formal step for (confirm|verify)\b/i, (_, verb: string) => {
+      const cleanedVerb = verb.charAt(0).toUpperCase() + verb.slice(1).toLowerCase()
+      return cleanedVerb
+    })
+    .trim()
+  const formatted = toSentence(normalized)
   if (!formatted || isPersonalIdentifier(formatted)) return ''
   return formatted
 }
@@ -635,16 +646,32 @@ function buildOccupationProfile(
   const targetResolution = input.targetResolution ?? null
   const requirements = input.report.targetRequirements
   const suggested = input.report.suggestedCareers[0] ?? null
+  const displayTitle =
+    targetResolution?.rawInputTitle ||
+    targetResolution?.title ||
+    suggested?.title ||
+    input.report.transitionReport?.marketSnapshot.role ||
+    input.targetRole ||
+    'Target role'
+  const regulatedTitleSignal = normalizeText(
+    [
+      displayTitle,
+      targetResolution?.title ?? '',
+      ...(requirements?.certifications ?? []),
+      ...(requirements?.hardGates ?? [])
+    ].join(' ')
+  )
+  const inferredRegulated =
+    Boolean(requirements?.regulated || suggested?.regulated) ||
+    /\b(orthodont|dentist|anesthesi|psychiat|surgeon|cardiolog|physician|doctor|pharmac|nurs|therap|midwife|clinical)\b/.test(
+      regulatedTitleSignal
+    ) ||
+    Boolean(requirements?.examRequired)
 
   return {
-    title:
-      targetResolution?.title ||
-      suggested?.title ||
-      input.report.transitionReport?.marketSnapshot.role ||
-      input.targetRole ||
-      'Target role',
+    title: displayTitle,
     code: targetResolution?.code || suggested?.occupationId || input.targetRole || 'target-role',
-    regulated: Boolean(requirements?.regulated || suggested?.regulated),
+    regulated: inferredRegulated,
     education: requirements?.education ?? '',
     certifications: requirements?.certifications ?? [],
     hardGates: requirements?.hardGates ?? [],
@@ -1073,6 +1100,159 @@ function buildTimeline(
   return { minMonths, maxMonths, assumptions }
 }
 
+function costPrefix(context: TransitionPlanContext) {
+  return context.targetProfile.region === 'CA' || /canada|ontario|alberta|british columbia|quebec/i.test(context.location)
+    ? 'CA$'
+    : '$'
+}
+
+function estimateRoadmapCostRange(
+  task: string,
+  phaseIndex: number,
+  context: TransitionPlanContext
+) {
+  const normalized = normalizeText(task)
+  const prefix = costPrefix(context)
+
+  if (context.templateKey === 'regulated_profession') {
+    if (/\b(confirm|verify|compare|speak with|list|map)\b/.test(normalized)) {
+      return `${prefix}0-${prefix}250 now (document requests or consults can vary by province/regulator)`
+    }
+    if (/\b(transcript|application|registration|exam|licens|prerequisite)\b/.test(normalized)) {
+      return `${prefix}150-${prefix}2,500+ (varies by province, school, and regulator)`
+    }
+    return `${prefix}50-${prefix}750+ (varies by province/employer)`
+  }
+
+  if (context.templateKey === 'regulated_trade') {
+    if (/\b(confirm|verify|list|speak with|map)\b/.test(normalized)) {
+      return `${prefix}0-${prefix}150 now (tickets and registration can vary by employer/province)`
+    }
+    if (/\b(ticket|training|registration|school|exam|certif)\b/.test(normalized)) {
+      return `${prefix}50-${prefix}900+ (varies by province/employer)`
+    }
+    return `${prefix}0-${prefix}300`
+  }
+
+  if (/\b(outreach|apply|network|follow up|interview)\b/.test(normalized)) {
+    return `${prefix}0-${prefix}50`
+  }
+
+  if (/\b(course|certif|training|lab|project)\b/.test(normalized)) {
+    return phaseIndex === 0 ? `${prefix}0-${prefix}250` : `${prefix}50-${prefix}750`
+  }
+
+  return `${prefix}0-${prefix}200`
+}
+
+function buildRoadmapPrereqs(
+  context: TransitionPlanContext,
+  phaseIndex: number
+) {
+  const prereqs = [
+    phaseIndex === 0 && context.targetProfile.education
+      ? `Baseline education: ${formatLabel(context.targetProfile.education)}`
+      : '',
+    ...context.targetProfile.hardGates.slice(0, phaseIndex === 0 ? 2 : 1).map((item) => formatLabel(item)),
+    ...context.targetProfile.certifications
+      .slice(0, phaseIndex === 0 ? 2 : 1)
+      .map((item) => formatLabel(item))
+  ].filter(Boolean)
+
+  return dedupeBullets(prereqs, 3)
+}
+
+function buildRoadmapProofChecklist(
+  context: TransitionPlanContext,
+  phase: TransitionModeReport['plan90'][number],
+  task: string,
+  phaseIndex: number,
+  taskIndex: number
+) {
+  const weeklyTarget = phase.weeklyTargets[taskIndex] ?? phase.weeklyTargets[0] ?? 'One visible checkpoint completed'
+  const targetLabel = roleLabel(context)
+
+  return fillToLength(
+    dedupeBullets(
+      [
+        weeklyTarget,
+        phaseIndex === 0
+          ? 'Save one dated note, email, or checklist that proves this step moved.'
+          : 'Save one artifact that proves this step moved this week.',
+        phaseIndex === 0 && context.templateKey === 'regulated_profession'
+          ? 'Write down the province-specific rule, regulator, or admission requirement you confirmed.'
+          : '',
+        /\b(outreach|speak with|apply|network)\b/i.test(task)
+          ? `Log who you contacted, what you asked, and the next follow-up for ${targetLabel}.`
+          : ''
+      ],
+      3
+    ),
+    2,
+    ['One visible checkpoint completed this week.', 'One saved note showing what changed.']
+  ).slice(0, 3)
+}
+
+function buildRoadmapGuide(
+  context: TransitionPlanContext,
+  plan90: TransitionModeReport['plan90'],
+  safeFirst3Steps: string[]
+) {
+  const phaseLabels = ['0-30 Days', '30-90 Days', '3-12 Months'] as const
+  const phaseFocusFallbacks = [
+    context.templateKey === 'regulated_profession'
+      ? 'Confirm the legal and education sequence before you invest heavily.'
+      : 'Confirm the first real gates before you invest heavily.',
+    'Build the proof and repetition that makes the path credible.',
+    'Turn early momentum into durable eligibility and stronger options.'
+  ] as const
+
+  const phases = plan90.map((phase, phaseIndex) => ({
+    label: phaseLabels[phaseIndex] ?? phase.phase,
+    focus: phase.weeklyTargets[0] ?? phaseFocusFallbacks[phaseIndex] ?? 'Keep momentum visible every week.',
+    steps: phase.tasks.map((task, taskIndex) => ({
+      title:
+        cleanPublicFacingBullet(task) ||
+        toSentence(formatLabel(task)) ||
+        `Step ${taskIndex + 1}`,
+      whyItMatters:
+        phaseIndex === 0
+          ? context.templateKey === 'regulated_profession'
+            ? 'This keeps you from wasting time or money on the wrong province, program, or regulator path.'
+            : 'This clarifies the real gate before you apply or spend money.'
+          : phaseIndex === 1
+            ? 'This turns the plan into proof employers or regulators can actually trust.'
+            : 'This keeps momentum moving toward stronger eligibility, better interviews, and better pay.',
+      timeRange:
+        phaseIndex === 0
+          ? '1-2 weeks'
+          : phaseIndex === 1
+            ? '2-6 weeks'
+            : '1-3 months',
+      costRange: estimateRoadmapCostRange(task, phaseIndex, context),
+      prereqs: buildRoadmapPrereqs(context, phaseIndex),
+      proofChecklist: buildRoadmapProofChecklist(context, phase, task, phaseIndex, taskIndex)
+    }))
+  }))
+
+  return {
+    phases,
+    next7Days: fillToLength(
+      dedupeBullets(
+        [
+          ...safeFirst3Steps,
+          context.templateKey === 'regulated_profession'
+            ? 'Ask one regulator, school, or licensing contact to confirm the right first checkpoint for your province.'
+            : ''
+        ],
+        5
+      ),
+      3,
+      safeFirst3Steps
+    ).slice(0, 5)
+  } satisfies NonNullable<TransitionModeReport['roadmapGuide']>
+}
+
 function buildTemplateOutput(context: TransitionPlanContext) {
   const builders: Record<PlanTemplateKey, (value: TransitionPlanContext) => TemplateOutput> = {
     regulated_trade: buildRegulatedTradeTemplate,
@@ -1156,7 +1336,8 @@ function buildEarnings(
 function buildReality(
   templateKey: PlanTemplateKey,
   report: PlannerReportSource,
-  signals: DerivedSignals
+  signals: DerivedSignals,
+  targetProfile: OccupationTemplateProfile
 ) {
   const templateBarrier =
     templateKey === 'regulated_trade'
@@ -1175,6 +1356,11 @@ function buildReality(
     compressSimilarBullets(
       [
         templateBarrier,
+        templateKey === 'regulated_profession'
+          ? targetProfile.region === 'CA'
+            ? 'This is a regulated profession. Licensing, credential recognition, and timelines can vary by province in Canada.'
+            : 'This is a regulated profession. Licensing, credential recognition, and timelines can vary by state or province.'
+          : '',
         ...signals.missingSignals.map((item) => item.label),
         report.marketEvidence?.baselineOnly
           ? 'Local demand is thin or unclear, so you need live feedback from outreach early.'
@@ -1193,6 +1379,11 @@ function buildReality(
   const mitigations = fillToLength(
     compressSimilarBullets(
       [
+        templateKey === 'regulated_profession'
+          ? targetProfile.region === 'CA'
+            ? 'Confirm the province-specific regulator, credential-recognition rules, and first application checkpoint before you spend money.'
+            : 'Confirm the local regulator, credential-recognition rules, and first application checkpoint before you spend money.'
+          : '',
         ...signals.priorityActions,
         'Track applications, outreach, and follow-ups every week so low-yield activity gets cut fast.',
         report.marketEvidence?.baselineOnly
@@ -1250,8 +1441,8 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
   const first3Steps = fillToLength(
     compressSimilarBullets(
       [
-        ...signals.priorityActions,
         templateOutput.routes.primary.firstStep,
+        ...signals.priorityActions,
         templateOutput.routes.secondary.firstStep
       ],
       3
@@ -1307,12 +1498,14 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
       'Tie the next action to one visible output you can finish.'
     ]
   ).slice(0, 3)
+  const roadmapGuide = buildRoadmapGuide(context, templateOutput.plan90, safeFirst3Steps)
 
   return TransitionModeSchema.parse({
     definitions: templateOutput.definitions,
     difficulty,
     timeline,
     routes: templateOutput.routes,
+    roadmapGuide,
     plan90: templateOutput.plan90,
     execution: templateOutput.execution,
     gaps: {
@@ -1321,7 +1514,7 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
       first3Steps: safeFirst3Steps
     },
     earnings: buildEarnings(input.report, templateKey, input.incomeTarget ?? ''),
-    reality: buildReality(templateKey, input.report, signals),
+    reality: buildReality(templateKey, input.report, signals, targetProfile),
     resources: {
       local: templateOutput.resources?.local ?? [],
       online: templateOutput.resources?.online ?? [],

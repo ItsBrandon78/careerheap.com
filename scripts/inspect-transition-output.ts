@@ -1,4 +1,5 @@
 import { extractProfileSignals } from '@/lib/planner/profileSignals'
+import './loadEnvLocal'
 import { generateTransitionPlan } from '@/lib/transition/generatePlan'
 
 const experienceText = [

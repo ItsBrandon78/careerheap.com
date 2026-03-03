@@ -608,6 +608,21 @@ type PlannerReportPayload = {
       secondary: { title: string; reason: string; firstStep: string }
       contingency: { title: string; reason: string; firstStep: string }
     }
+    roadmapGuide?: {
+      phases: Array<{
+        label: string
+        focus: string
+        steps: Array<{
+          title: string
+          whyItMatters: string
+          timeRange: string
+          costRange: string
+          prereqs: string[]
+          proofChecklist: string[]
+        }>
+      }>
+      next7Days: string[]
+    }
     plan90: Array<{
       phase: string
       weeks: string
@@ -1073,6 +1088,24 @@ function buildDashboardRoadmapTabs(input: {
 }) {
   const { plannerReport, transitionModeReport, targetRole, location } = input
   if (!plannerReport || !transitionModeReport) return [] as DashboardRoadmapTab[]
+
+  if (transitionModeReport.roadmapGuide?.phases?.length === 3) {
+    return transitionModeReport.roadmapGuide.phases.map((phase, index) => ({
+      key: ROADMAP_TABS[index]?.key ?? '0-30',
+      label: phase.label,
+      summary: phase.focus,
+      items: phase.steps.map((step) => ({
+        title: step.title,
+        detail: step.whyItMatters,
+        bullets: normalizeRoadmapBullets([
+          `Time: ${step.timeRange}.`,
+          `Cost: ${step.costRange}.`,
+          step.prereqs.length > 0 ? `Prereqs: ${joinReadableList(step.prereqs.slice(0, 3))}.` : '',
+          ...step.proofChecklist.slice(0, 2)
+        ], 5)
+      }))
+    }))
+  }
 
   const targetLabel =
     targetRole.trim() || plannerReport.transitionReport?.marketSnapshot.role || 'this role'

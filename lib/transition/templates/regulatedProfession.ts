@@ -5,14 +5,21 @@ export function buildRegulatedProfessionTemplate(
   context: TransitionPlanContext
 ): TemplateOutput {
   const target = roleLabel(context)
+  const regionLabel =
+    context.location.trim() ||
+    (context.targetProfile.region === 'CA' ? 'your province in Canada' : 'your state or province')
+  const regulatorWarning =
+    context.targetProfile.region === 'CA' || /canada/i.test(regionLabel)
+      ? 'Requirements vary by province, regulator, and credential-recognition path if you trained outside Canada.'
+      : 'Requirements vary by state, regulator, and employer.'
 
   return buildBaseTemplateOutput(context, {
     routes: {
       primary: {
         title: 'Primary route: education plus licensure sequence',
         reason:
-          'This move is gated by formal education, supervised practice, and a licensing body. The fastest path is the one that clears those gates in the correct order.',
-        firstStep: 'List the exact education, licensing, and supervised-practice requirements in your region before you spend money.'
+          `This move is gated by formal education, supervised practice, and a licensing body. ${regulatorWarning} The fastest path is the one that clears those gates in the correct order.`,
+        firstStep: `Verify the exact education, licensing, and supervised-practice sequence for ${regionLabel} before you spend money.`
       },
       secondary: {
         title: 'Secondary route: adjacent support role first',
@@ -32,11 +39,12 @@ export function buildRegulatedProfessionTemplate(
         'Weeks 1-2',
         '1-2',
         [
-          'Confirm the required degree, licensing body, exam path, and supervised-practice sequence.',
+          `Confirm the required degree, licensing body, exam path, and supervised-practice sequence for ${regionLabel}.`,
+          `Confirm whether credential recognition, bridging, or province-specific registration applies in ${regionLabel}.`,
           'Compare programs or routes by cost, admissions timeline, and time to licensure.',
           'Speak with 3 people already in the field so you understand the real training path.'
         ],
-        ['1 licensing checklist', '3 information interviews', '3 route options compared', '1 cost-and-time estimate'],
+        ['1 province-specific licensing checklist', '3 information interviews', '3 route options compared', '1 cost-and-time estimate'],
         8
       ),
       makePhase(
@@ -95,4 +103,3 @@ export function buildRegulatedProfessionTemplate(
     fallbackOnline: [{ label: 'Licensure and exam overview resources', url: '' }]
   })
 }
-

@@ -1,3 +1,4 @@
+import './loadEnvLocal'
 import process from 'node:process'
 import {
   OCCUPATION_RESOLUTION_THRESHOLD,
