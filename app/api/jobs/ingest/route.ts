@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import {
   ensureEvidenceRequirements,
-  isMarketEvidenceConfigured
+  isMarketEvidenceConfigured,
+  listRecommendedJobPostings
 } from '@/lib/server/jobRequirements'
 import { getAuthenticatedUserFromRequest } from '@/lib/server/toolUsage'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
       userPostingText,
       forceRefresh
     })
+    const jobs = result.queryId ? await listRecommendedJobPostings(result.queryId, 6) : []
 
     return NextResponse.json(
       {
@@ -89,6 +91,7 @@ export async function POST(request: Request) {
         llmNormalizedCount: result.llmNormalizedCount,
         fetchedAt: result.fetchedAt,
         baselineOnly: result.baselineOnly,
+        jobs,
         counts: {
           marketRequirements: result.marketRequirements.length,
           userPostingRequirements: result.userPostingRequirements.length

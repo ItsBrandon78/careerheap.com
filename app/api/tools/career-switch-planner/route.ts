@@ -5,10 +5,11 @@ import {
   type CareerPlannerAnalysis
 } from '@/lib/server/careerMapPlanner'
 import {
+  OCCUPATION_RESOLUTION_THRESHOLD,
+  isWithinCareerProgression,
   resolveOccupation,
-  ROLE_MATCH_THRESHOLD,
   type ResolvedOccupation
-} from '@/lib/server/careerData'
+} from '@/lib/occupations/resolveOccupation'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import type { CareerSwitchPlannerInput } from '@/lib/planner/types'
 import {
@@ -18,7 +19,7 @@ import {
   hashToolInput,
   recordToolRun
 } from '@/lib/server/toolUsage'
-import { buildTransitionModeReport } from '@/lib/server/transitionMode'
+import { generateTransitionPlan } from '@/lib/transition/generatePlan'
 
 export const dynamic = 'force-dynamic'
 
@@ -115,25 +116,27 @@ function buildRoleResolutionPayload(inputValue: string, resolution: ResolvedOccu
   return {
     input: inputValue,
     matched:
-      resolution.resolved && resolution.occupationId && resolution.region
+      resolution.occupationId && resolution.region
         ? {
             occupationId: resolution.occupationId,
             title: resolution.title,
+            code: resolution.code,
             region: resolution.region,
             source: resolution.source,
             lastUpdated: resolution.lastUpdated ?? null,
             confidence: resolution.confidence,
-            matchedBy: resolution.matchedBy
+            stage: resolution.stage ?? null,
+            specialization: resolution.specialization ?? null,
+            rawInputTitle: resolution.rawInputTitle
           }
         : null,
     suggestions: resolution.alternatives.map((item) => ({
       occupationId: item.occupationId,
       title: item.title,
+      code: item.code,
       region: item.region,
       source: item.source,
-      lastUpdated: item.lastUpdated,
-      confidence: item.confidence,
-      matchedBy: item.matchedBy
+      confidence: item.confidence
     }))
   }
 }
@@ -143,19 +146,41 @@ function buildRoleSelectionPayload(
   inputValue: string,
   resolution: ResolvedOccupation
 ) {
+  const alternatives = [
+    resolution.occupationId
+      ? {
+          occupationId: resolution.occupationId,
+          title: resolution.title,
+          code: resolution.code,
+          confidence: resolution.confidence,
+          source: resolution.source,
+          stage: resolution.stage ?? null,
+          specialization: resolution.specialization ?? null
+        }
+      : null,
+    ...resolution.alternatives.map((item) => ({
+      occupationId: item.occupationId,
+      title: item.title,
+      code: item.code,
+      confidence: item.confidence,
+      source: item.source,
+      stage: resolution.stage ?? null,
+      specialization: resolution.specialization ?? null
+    }))
+  ]
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item, index, collection) =>
+      collection.findIndex((candidate) => candidate.occupationId === item.occupationId) === index
+    )
+    .slice(0, 5)
+
   return {
     error: 'ROLE_SELECTION_REQUIRED',
     role,
     input: inputValue,
-    message: `Choose the closest ${role} role match before generating your transition plan.`,
-    threshold: ROLE_MATCH_THRESHOLD,
-    alternatives: resolution.alternatives.map((item) => ({
-      occupationId: item.occupationId,
-      title: item.title,
-      confidence: item.confidence,
-      source: item.source,
-      stage: resolution.stage ?? null
-    }))
+    message: `Resolved to ${resolution.title || 'the closest match'} (${resolution.confidence.toFixed(2)} confidence). Choose a different match if wrong.`,
+    threshold: OCCUPATION_RESOLUTION_THRESHOLD,
+    alternatives
   }
 }
 
@@ -319,26 +344,30 @@ export async function POST(request: Request) {
     const roleRegion = regionFromWorkRegion(input.workRegion)
     const currentRoleInput = input.currentRoleText || input.currentRole
     const targetRoleInput = input.targetRoleText || input.targetRole
-    const currentRoleResolution = await resolveOccupation({
-      input: currentRoleInput,
-      region: roleRegion,
-      limit: 6,
-      occupationId: input.currentRoleOccupationId
-    })
+    const currentRoleResolution = await resolveOccupation(
+      currentRoleInput,
+      input.location,
+      {
+        region: roleRegion,
+        preferredOccupationId: input.currentRoleOccupationId
+      }
+    )
     const targetRoleResolution =
-      input.recommendMode || !input.targetRoleText
+      input.recommendMode || !targetRoleInput
         ? null
-        : await resolveOccupation({
-            input: input.targetRoleText,
-            region: roleRegion,
-            limit: 6,
-            occupationId: input.targetRoleOccupationId
-          })
+        : await resolveOccupation(
+            targetRoleInput,
+            input.location,
+            {
+              region: roleRegion,
+              preferredOccupationId: input.targetRoleOccupationId
+            }
+          )
 
     if (
       currentRoleInput &&
       !input.currentRoleOccupationId &&
-      (!currentRoleResolution.resolved || currentRoleResolution.confidence < ROLE_MATCH_THRESHOLD) &&
+      (!currentRoleResolution.resolved || currentRoleResolution.confidence < OCCUPATION_RESOLUTION_THRESHOLD) &&
       currentRoleResolution.alternatives.length > 0
     ) {
       return NextResponse.json(
@@ -352,7 +381,7 @@ export async function POST(request: Request) {
       targetRoleInput &&
       !input.targetRoleOccupationId &&
       targetRoleResolution &&
-      (!targetRoleResolution.resolved || targetRoleResolution.confidence < ROLE_MATCH_THRESHOLD) &&
+      (!targetRoleResolution.resolved || targetRoleResolution.confidence < OCCUPATION_RESOLUTION_THRESHOLD) &&
       targetRoleResolution.alternatives.length > 0
     ) {
       return NextResponse.json(
@@ -361,12 +390,19 @@ export async function POST(request: Request) {
       )
     }
 
-    const resolvedCurrentRoleTitle =
-      currentRoleResolution.title || input.currentRole || input.currentRoleText
+    const withinCareerProgression = isWithinCareerProgression(
+      currentRoleResolution,
+      targetRoleResolution
+    )
+    const resolvedCurrentRoleTitle = withinCareerProgression
+      ? currentRoleInput || currentRoleResolution.title || input.currentRole || input.currentRoleText
+      : currentRoleResolution.title || input.currentRole || input.currentRoleText
     const resolvedTargetRoleTitle =
       input.recommendMode
         ? ''
-        : targetRoleResolution?.title || input.targetRole || input.targetRoleText
+        : withinCareerProgression
+          ? targetRoleInput || targetRoleResolution?.title || input.targetRole || input.targetRoleText
+          : targetRoleResolution?.title || input.targetRole || input.targetRoleText
 
     const analysis = await generateCareerMapPlannerAnalysis({
       userId: user.id,
@@ -405,14 +441,38 @@ export async function POST(request: Request) {
     const finalReport = summary.plan === 'free'
       ? applyFreeTierOutputLimits(analysis.report)
       : analysis.report
-    const transitionMode = buildTransitionModeReport({
+    const transitionMode = generateTransitionPlan({
       currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText,
       targetRole: resolvedTargetRoleTitle || input.targetRole || input.targetRoleText,
       experienceText: input.experienceText,
       location: input.location,
       education: input.education || input.educationLevel,
       incomeTarget: input.incomeTarget,
-      report: finalReport
+      report: finalReport,
+      currentResolution: currentRoleResolution.occupationId
+        ? {
+            title: currentRoleResolution.title,
+            code: currentRoleResolution.code,
+            source: currentRoleResolution.source,
+            confidence: currentRoleResolution.confidence,
+            stage: currentRoleResolution.stage ?? null,
+            specialization: currentRoleResolution.specialization ?? null,
+            rawInputTitle: currentRoleResolution.rawInputTitle,
+            region: currentRoleResolution.region ?? null
+          }
+        : null,
+      targetResolution: targetRoleResolution?.occupationId
+        ? {
+            title: targetRoleResolution.title,
+            code: targetRoleResolution.code,
+            source: targetRoleResolution.source,
+            confidence: targetRoleResolution.confidence,
+            stage: targetRoleResolution.stage ?? null,
+            specialization: targetRoleResolution.specialization ?? null,
+            rawInputTitle: targetRoleResolution.rawInputTitle,
+            region: targetRoleResolution.region ?? null
+          }
+        : null
     })
     const reportWithResolution = {
       ...finalReport,

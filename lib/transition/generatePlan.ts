@@ -1,0 +1,971 @@
+import { selectPlanTemplate } from '@/lib/transition/selectTemplate'
+import {
+  compressSimilarBullets as sharedCompressSimilarBullets,
+  dedupeBullets as sharedDedupeBullets,
+  normalizeBulletKey as sharedNormalizeBulletKey
+} from '@/lib/transition/dedupe'
+import { buildCredentialedRoleTemplate } from '@/lib/transition/templates/credentialedRole'
+import { buildExperienceLadderRoleTemplate } from '@/lib/transition/templates/experienceLadderRole'
+import { buildGeneralRoleTemplate } from '@/lib/transition/templates/generalRole'
+import { buildPortfolioRoleTemplate } from '@/lib/transition/templates/portfolioRole'
+import { buildRegulatedProfessionTemplate } from '@/lib/transition/templates/regulatedProfession'
+import { buildRegulatedTradeTemplate } from '@/lib/transition/templates/regulatedTrade'
+import type {
+  DerivedSignal,
+  DerivedSignals,
+  OccupationResolutionSummary,
+  OccupationTemplateProfile,
+  PlannerReportSource,
+  PlanTemplateKey,
+  TemplateOutput,
+  TransitionModeReport,
+  TransitionPlanContext,
+  TransitionRelationship
+} from '@/lib/transition/types'
+import { TransitionModeSchema } from '@/lib/transition/types'
+
+export type GenerateTransitionPlanInput = {
+  currentRole: string
+  targetRole: string
+  experienceText?: string
+  location?: string
+  education?: string
+  incomeTarget?: string
+  report: PlannerReportSource
+  currentResolution?: OccupationResolutionSummary | null
+  targetResolution?: OccupationResolutionSummary | null
+}
+
+type RequirementDescriptor = {
+  label: string
+  weight: number
+  action: string
+}
+
+type SignalRule = {
+  key: string
+  label: string
+  sourcePatterns: RegExp[]
+  targetPatterns: RegExp[]
+  overlapText: string
+  missingAction: string
+}
+
+const EDUCATION_RANK: Record<string, number> = {
+  'no formal degree': 0,
+  'high school': 1,
+  apprenticeship: 2,
+  'trade certification': 2,
+  "associate's": 3,
+  'associate degree': 3,
+  "bachelor's": 4,
+  'bachelor degree': 4,
+  "master's": 5,
+  'master degree': 5,
+  doctorate: 6
+}
+
+const TEMPLATE_ASSUMPTIONS: Record<PlanTemplateKey, string[]> = {
+  regulated_trade: [
+    'You start direct employer and pathway outreach in week 1.',
+    'You follow the training sequence in the right order instead of applying blindly.',
+    'You keep weekly output consistent while the first sponsor or entry point is still forming.'
+  ],
+  regulated_profession: [
+    'You verify education and licensure steps before spending money.',
+    'You move one admissions, exam, or paperwork task forward every week.',
+    'You keep a realistic timeline for supervised practice and first employable milestones.'
+  ],
+  credentialed_role: [
+    'You keep one focused learning path moving every week.',
+    'You pair learning with visible practice, not study alone.',
+    'You start targeted outreach as soon as the first proof is usable.'
+  ],
+  portfolio_role: [
+    'You ship small work samples quickly instead of waiting for one perfect project.',
+    'You ask for feedback early and use it to tighten the next sample.',
+    'You apply only where your current portfolio actually fits.'
+  ],
+  experience_ladder_role: [
+    'You lead with measurable results, not just title history.',
+    'You treat referrals and positioning as part of the plan, not extras.',
+    'You tighten your stories based on response quality each week.'
+  ],
+  general_role: [
+    'You focus on the highest-overlap openings first.',
+    'You turn the top missing requirement into simple visible proof quickly.',
+    'You keep applications, follow-ups, and outreach measured every week.'
+  ]
+}
+
+const TEMPLATE_DEFAULT_REQUIREMENTS: Record<PlanTemplateKey, RequirementDescriptor[]> = {
+  regulated_trade: [
+    { label: 'Safety and compliance basics', weight: 1, action: 'Confirm the first safety and entry requirements in your area.' },
+    { label: 'Hands-on tool familiarity', weight: 0.92, action: 'Get hands-on with the core tools or materials used in the trade.' },
+    { label: 'Registration or sponsor process', weight: 0.96, action: 'Map the sponsor, registration, or intake step before you apply widely.' },
+    { label: 'Supervised hours and technical schooling', weight: 0.88, action: 'Understand how supervised hours and classroom training are tracked.' }
+  ],
+  regulated_profession: [
+    { label: 'Education prerequisites', weight: 1, action: 'Confirm the exact education baseline and missing prerequisites.' },
+    { label: 'Licensing or board registration', weight: 1, action: 'Map the licensing or board process before you commit to a route.' },
+    { label: 'Supervised practice path', weight: 0.9, action: 'Identify the supervised practice, placement, or residency path tied to this field.' }
+  ],
+  credentialed_role: [
+    { label: 'A recognized credential', weight: 0.96, action: 'Choose one respected certification or learning path and start it now.' },
+    { label: 'Hands-on practice', weight: 0.88, action: 'Turn the top target skill into a repeatable weekly practice block.' },
+    { label: 'Proof of applied skill', weight: 0.86, action: 'Create one example that shows you can use the skill in context.' }
+  ],
+  portfolio_role: [
+    { label: 'Portfolio-ready work samples', weight: 0.98, action: 'Create one focused work sample that mirrors the real job.' },
+    { label: 'Clear case studies', weight: 0.88, action: 'Write simple case notes that explain the problem, choices, and result.' },
+    { label: 'Targeted feedback', weight: 0.82, action: 'Ask practitioners for feedback on your strongest sample this week.' }
+  ],
+  experience_ladder_role: [
+    { label: 'Quantified outcomes', weight: 0.96, action: 'Document measurable wins that already match the next level.' },
+    { label: 'Leadership or ownership examples', weight: 0.9, action: 'Prepare 2 short stories that show ownership, coordination, or decision-making.' },
+    { label: 'Next-level scope fit', weight: 0.86, action: 'Focus on roles where your current scope already overlaps meaningfully.' }
+  ],
+  general_role: [
+    { label: 'Role-specific evidence', weight: 0.92, action: 'Build one clear example that proves the top target requirement.' },
+    { label: 'Targeted outreach', weight: 0.84, action: 'Reach out directly instead of relying on job boards alone.' },
+    { label: 'Resume and interview fit', weight: 0.82, action: 'Rewrite your positioning so it sounds like the target role, not your current one.' }
+  ]
+}
+
+const SIGNAL_RULES: SignalRule[] = [
+  {
+    key: 'safety',
+    label: 'Safety and compliance discipline',
+    sourcePatterns: [/\bsafety\b/, /\bosha\b/, /\bwhmis\b/, /\bworking at heights\b/, /\bfirst aid\b/, /\bprotocol\b/],
+    targetPatterns: [/\bsafety\b/, /\bcompliance\b/, /\blicens/, /\bregulat/, /\biso\b/, /\bquality\b/],
+    overlapText: 'You already show safety and rule-following habits, which helps you earn trust faster.',
+    missingAction: 'Close the safety or compliance gap early so employers do not block you on basics.'
+  },
+  {
+    key: 'process',
+    label: 'Process discipline',
+    sourcePatterns: [/\bsop\b/, /\bprocedure\b/, /\bchecklist\b/, /\bworkflow\b/, /\bstandard\b/, /\bdocumentation\b/],
+    targetPatterns: [/\bprocess\b/, /\bworkflow\b/, /\bprocedure\b/, /\bdocument/, /\bpolicy\b/],
+    overlapText: 'You already work inside repeatable processes, which lowers the learning curve.',
+    missingAction: 'Show that you can follow the target workflow with one concrete example.'
+  },
+  {
+    key: 'stamina',
+    label: 'Physical stamina and reliability',
+    sourcePatterns: [/\bwarehouse\b/, /\bkitchen\b/, /\bchef\b/, /\bcook\b/, /\blift\b/, /\bstand\b/, /\bmanual\b/, /\bshift\b/, /\bovernight\b/],
+    targetPatterns: [/\bphysical\b/, /\blabor\b/, /\bmaterial\b/, /\bon site\b/, /\bfield\b/],
+    overlapText: 'You already handle physical work and long shifts, which is real leverage here.',
+    missingAction: 'Be ready to explain how your pace, attendance, and physical reliability carry over.'
+  },
+  {
+    key: 'teamwork',
+    label: 'Team coordination',
+    sourcePatterns: [/\bteam\b/, /\bcrew\b/, /\bcollaborat/, /\bservice\b/, /\bclassroom\b/],
+    targetPatterns: [/\bteam\b/, /\bcross functional\b/, /\bcoordina/, /\bpartner\b/],
+    overlapText: 'You already have teamwork reps that transfer into the new environment.',
+    missingAction: 'Prepare one example that shows you can coordinate cleanly with others under pressure.'
+  },
+  {
+    key: 'leadership',
+    label: 'Leadership and ownership',
+    sourcePatterns: [/\blead\b/, /\bmanage\b/, /\bsupervis/, /\bmentor\b/, /\btrain\b/, /\bhead chef\b/],
+    targetPatterns: [/\blead\b/, /\bmanage\b/, /\bowner\b/, /\bsupervis/, /\bcoach\b/],
+    overlapText: 'You already have leadership or ownership signals that can support a faster move.',
+    missingAction: 'Tighten 2 examples that show leadership, ownership, or decision-making.'
+  },
+  {
+    key: 'communication',
+    label: 'Clear communication',
+    sourcePatterns: [/\bcustomer\b/, /\bclient\b/, /\bservice\b/, /\bteach/, /\bpresent/, /\bphone\b/, /\bemail\b/],
+    targetPatterns: [/\bcommunic/, /\bstakeholder\b/, /\bclient\b/, /\binterview\b/, /\bcollaborat/],
+    overlapText: 'You already communicate clearly with customers, clients, or teams, which matters in the transition.',
+    missingAction: 'Turn communication into proof with one sharp outreach message and one interview story.'
+  },
+  {
+    key: 'documentation',
+    label: 'Documentation and detail control',
+    sourcePatterns: [/\badmin\b/, /\bdocument/, /\breport/, /\bdata entry\b/, /\bnotes\b/, /\brecord\b/, /\bpaperwork\b/],
+    targetPatterns: [/\bdocument/, /\brecord/, /\bdetail\b/, /\baccuracy\b/, /\bcompliance\b/],
+    overlapText: 'You already have detail and documentation habits, which reduces ramp time.',
+    missingAction: 'Show one example where your detail control prevented errors or kept work moving.'
+  },
+  {
+    key: 'scheduling',
+    label: 'Scheduling and coordination',
+    sourcePatterns: [/\bschedul/, /\bcalendar\b/, /\bdispatch\b/, /\bcoordinat/, /\bplan\b/],
+    targetPatterns: [/\bschedul/, /\bcoordinat/, /\boperations\b/, /\bworkflow\b/],
+    overlapText: 'You already coordinate moving pieces, which translates into many structured roles.',
+    missingAction: 'Use one concrete scheduling or coordination example to show readiness.'
+  },
+  {
+    key: 'analysis',
+    label: 'Analytical thinking',
+    sourcePatterns: [/\banalys/, /\bexcel\b/, /\bsql\b/, /\bdata\b/, /\bresearch\b/, /\bmetrics\b/],
+    targetPatterns: [/\banalys/, /\bdata\b/, /\bmodel\b/, /\binsight\b/, /\bforecast\b/, /\breporting\b/],
+    overlapText: 'You already use data or structured analysis, which gives you a real head start.',
+    missingAction: 'Add one project, case, or example that shows analysis in the target context.'
+  },
+  {
+    key: 'technical',
+    label: 'Technical tooling',
+    sourcePatterns: [/\bsoftware\b/, /\bdeveloper\b/, /\bengineering\b/, /\btool\b/, /\bplatform\b/, /\bsystem\b/],
+    targetPatterns: [/\bsoftware\b/, /\btool\b/, /\bplatform\b/, /\btechnical\b/, /\bautomation\b/, /\bcode\b/],
+    overlapText: 'You already work around tools or systems, which makes the technical ramp cleaner.',
+    missingAction: 'Get hands-on with the top tools early and capture proof you can talk through.'
+  },
+  {
+    key: 'troubleshooting',
+    label: 'Troubleshooting',
+    sourcePatterns: [/\btroubleshoot/, /\bdebug\b/, /\bresolve\b/, /\bproblem solving\b/, /\brepair\b/],
+    targetPatterns: [/\btroubleshoot/, /\bdiagnos/, /\bdebug\b/, /\bproblem\b/, /\bresolve\b/],
+    overlapText: 'You already solve problems in real time, which is valuable in the target role.',
+    missingAction: 'Prepare one example that shows how you diagnosed and solved a problem step by step.'
+  },
+  {
+    key: 'portfolio',
+    label: 'Portfolio-quality proof',
+    sourcePatterns: [/\bportfolio\b/, /\bcase stud/, /\bgithub\b/, /\bdesign\b/, /\bprototype\b/, /\bproject\b/],
+    targetPatterns: [/\bportfolio\b/, /\bcase stud/, /\bux\b/, /\bdesign\b/, /\bwork sample\b/, /\bgithub\b/],
+    overlapText: 'You already have some proof-building habits, which helps in portfolio-driven moves.',
+    missingAction: 'Create focused work samples and simple case notes before expecting strong response rates.'
+  },
+  {
+    key: 'credential',
+    label: 'Credential readiness',
+    sourcePatterns: [/\bcertif/, /\blicens/, /\btraining\b/, /\bcourse\b/, /\bdegree\b/, /\bapprentice/],
+    targetPatterns: [/\bcertif/, /\blicens/, /\bregistration\b/, /\bdegree\b/, /\bexam\b/, /\bboard\b/],
+    overlapText: 'You already have experience completing formal training steps, which helps on gated paths.',
+    missingAction: 'Treat the next credential, registration, or exam step as a named project with a deadline.'
+  },
+  {
+    key: 'care',
+    label: 'People support and direct care',
+    sourcePatterns: [/\bteacher\b/, /\bclassroom\b/, /\bcoach\b/, /\bcare\b/, /\bpatient\b/, /\bstudent\b/],
+    targetPatterns: [/\bpatient\b/, /\bcare\b/, /\bclinical\b/, /\bnurs/, /\bservice\b/],
+    overlapText: 'You already have people-facing care or support experience that can transfer.',
+    missingAction: 'Show one example of calm, organized support under pressure.'
+  },
+  {
+    key: 'sales',
+    label: 'Persuasion and customer insight',
+    sourcePatterns: [/\bretail\b/, /\bsales\b/, /\bupsell\b/, /\bcustomer\b/, /\bmerchand/],
+    targetPatterns: [/\buser\b/, /\bcustomer\b/, /\bclient\b/, /\bresearch\b/, /\bstakeholder\b/],
+    overlapText: 'You already understand customer behavior, which can transfer into user or client-facing work.',
+    missingAction: 'Translate customer-facing experience into clearer user, client, or stakeholder language.'
+  },
+  {
+    key: 'math',
+    label: 'Measurement and practical math',
+    sourcePatterns: [/\bmeasure\b/, /\binventory\b/, /\bcounts?\b/, /\bprep\b/, /\bbudget\b/],
+    targetPatterns: [/\bmath\b/, /\bmeasure\b/, /\bblueprint\b/, /\bschematic\b/, /\bcalculation\b/],
+    overlapText: 'You already work with measurements or counts, which helps on technical tasks.',
+    missingAction: 'Refresh the basic calculations or measurement habits the target role expects.'
+  }
+]
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function normalizeText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function normalizeBulletKey(value: string) {
+  return sharedNormalizeBulletKey(value)
+}
+
+function tokenize(value: string) {
+  return normalizeText(value).split(' ').filter(Boolean)
+}
+
+function formatLabel(value: string) {
+  const trimmed = value.trim().replace(/\s+/g, ' ')
+  if (!trimmed) return ''
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
+}
+
+function toSentence(value: string) {
+  const formatted = formatLabel(value)
+  if (!formatted) return ''
+  return /[.!?]$/.test(formatted) ? formatted : `${formatted}.`
+}
+
+function parseTimelineRange(value: string) {
+  const numbers = [...value.matchAll(/(\d+)/g)].map((match) => Number.parseInt(match[1], 10))
+  if (numbers.length === 0) return null
+  if (numbers.length === 1) {
+    const exact = clamp(numbers[0], 1, 48)
+    return { min: exact, max: exact }
+  }
+  const min = clamp(Math.min(...numbers), 1, 48)
+  const max = clamp(Math.max(...numbers), min, 48)
+  return { min, max }
+}
+
+function normalizeHourlyValue(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return null
+  return Number((value > 250 ? value / 2080 : value).toFixed(1))
+}
+
+export function dedupeBullets(values: string[], max = 4) {
+  return sharedDedupeBullets(values, max, toSentence)
+}
+
+export function compressSimilarBullets(values: string[], max = 4) {
+  return sharedCompressSimilarBullets(values, max, toSentence)
+}
+
+function inferEducationRank(value: string) {
+  const normalized = normalizeText(value)
+  if (!normalized) return 0
+  let best = 0
+  for (const [label, rank] of Object.entries(EDUCATION_RANK)) {
+    if (normalized.includes(label)) {
+      best = Math.max(best, rank)
+    }
+  }
+  return best
+}
+
+function sameMeaningfulRoleInputs(left: string, right: string) {
+  const leftTokens = tokenize(left).filter((token) => !['a', 'an', 'the', 'and', 'of', 'to'].includes(token))
+  const rightTokens = tokenize(right).filter((token) => !['a', 'an', 'the', 'and', 'of', 'to'].includes(token))
+  return leftTokens.join(' ') === rightTokens.join(' ')
+}
+
+function determineRelationship(
+  currentRole: string,
+  targetRole: string,
+  currentResolution: OccupationResolutionSummary | null,
+  targetResolution: OccupationResolutionSummary | null
+): TransitionRelationship {
+  if (
+    currentResolution &&
+    targetResolution &&
+    currentResolution.code &&
+    currentResolution.code === targetResolution.code &&
+    !sameMeaningfulRoleInputs(currentResolution.rawInputTitle, targetResolution.rawInputTitle)
+  ) {
+    return 'within_career_progression'
+  }
+
+  if (
+    currentRole &&
+    targetRole &&
+    sameMeaningfulRoleInputs(currentRole, targetRole)
+  ) {
+    return 'within_career_progression'
+  }
+
+  return 'career_switch'
+}
+
+function buildOccupationProfile(
+  input: GenerateTransitionPlanInput,
+  relationship: TransitionRelationship
+): OccupationTemplateProfile {
+  const targetResolution = input.targetResolution ?? null
+  const requirements = input.report.targetRequirements
+  const suggested = input.report.suggestedCareers[0] ?? null
+
+  return {
+    title:
+      targetResolution?.title ||
+      suggested?.title ||
+      input.report.transitionReport?.marketSnapshot.role ||
+      input.targetRole ||
+      'Target role',
+    code: targetResolution?.code || suggested?.occupationId || input.targetRole || 'target-role',
+    regulated: Boolean(requirements?.regulated || suggested?.regulated),
+    education: requirements?.education ?? '',
+    certifications: requirements?.certifications ?? [],
+    hardGates: requirements?.hardGates ?? [],
+    employerSignals: requirements?.employerSignals ?? [],
+    apprenticeshipHours: requirements?.apprenticeshipHours ?? null,
+    examRequired: requirements?.examRequired ?? null,
+    stage: targetResolution?.stage ?? null,
+    region: targetResolution?.region ?? null,
+    relationship
+  }
+}
+
+function mapRequirementToSignalRule(value: string) {
+  const normalized = normalizeText(value)
+  return (
+    SIGNAL_RULES.find((rule) =>
+      rule.targetPatterns.some((pattern) => pattern.test(normalized))
+    ) ?? null
+  )
+}
+
+function addRequirementDescriptor(
+  target: Map<string, RequirementDescriptor>,
+  descriptor: RequirementDescriptor
+) {
+  const key = normalizeBulletKey(descriptor.label)
+  if (!key) return
+
+  const existing = target.get(key)
+  if (!existing || descriptor.weight > existing.weight) {
+    target.set(key, descriptor)
+  }
+}
+
+function buildRequirementDescriptors(
+  report: PlannerReportSource,
+  templateKey: PlanTemplateKey
+) {
+  const descriptors = new Map<string, RequirementDescriptor>()
+
+  for (const certification of report.targetRequirements?.certifications ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: certification,
+      weight: 1,
+      action: `Start or schedule ${formatLabel(certification)} if it shows up repeatedly in the target path.`
+    })
+  }
+
+  for (const gate of report.targetRequirements?.hardGates ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: gate,
+      weight: 0.98,
+      action: `Confirm the exact requirement for ${formatLabel(gate)} before you spend time on low-value applications.`
+    })
+  }
+
+  for (const item of report.targetRequirements?.employerSignals ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: item,
+      weight: 0.86,
+      action: `Build one example that proves ${normalizeText(item) || 'this requirement'} in a realistic setting.`
+    })
+  }
+
+  for (const item of report.transitionSections?.mandatoryGateRequirements ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: item.label,
+      weight: item.gapLevel === 'missing' ? 0.97 : 0.88,
+      action: `Close ${normalizeText(item.label) || 'this gate'} with the exact step employers or regulators expect.`
+    })
+  }
+
+  for (const item of report.transitionSections?.coreHardSkills ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: item.label,
+      weight: item.gapLevel === 'missing' ? 0.9 : 0.8,
+      action: `Practice ${normalizeText(item.label) || 'this skill'} in a focused weekly block until you can explain it clearly.`
+    })
+  }
+
+  for (const item of report.transitionSections?.toolsPlatforms ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: item.label,
+      weight: item.gapLevel === 'missing' ? 0.88 : 0.78,
+      action: `Get hands-on with ${normalizeText(item.label) || 'the core tools'} and capture one example you can talk through.`
+    })
+  }
+
+  for (const item of report.transitionSections?.experienceSignals ?? []) {
+    addRequirementDescriptor(descriptors, {
+      label: item.label,
+      weight: item.gapLevel === 'missing' ? 0.84 : 0.74,
+      action: `Create one story or work example that proves ${normalizeText(item.label) || 'this requirement'}.`
+    })
+  }
+
+  if (descriptors.size === 0) {
+    for (const fallback of TEMPLATE_DEFAULT_REQUIREMENTS[templateKey]) {
+      addRequirementDescriptor(descriptors, fallback)
+    }
+  }
+
+  return [...descriptors.values()]
+    .sort((left, right) => right.weight - left.weight)
+    .slice(0, 8)
+}
+
+function collectExperienceSourceText(input: GenerateTransitionPlanInput) {
+  return normalizeText(
+    [
+      input.currentRole,
+      input.currentResolution?.rawInputTitle ?? '',
+      input.currentResolution?.title ?? '',
+      input.experienceText ?? '',
+      ...(input.report.executionStrategy?.whereYouStandNow.strengths ?? []).map((item) => item.summary),
+      ...(input.report.transitionSections?.transferableStrengths ?? []).map((item) => item.label),
+      ...(input.report.transitionReport?.transferableStrengths ?? []).map((item) => item.strength)
+    ].join(' ')
+  )
+}
+
+function inferAvailableSignals(sourceText: string) {
+  const matched = new Set<string>()
+  for (const rule of SIGNAL_RULES) {
+    if (rule.sourcePatterns.some((pattern) => pattern.test(sourceText))) {
+      matched.add(rule.key)
+    }
+  }
+  return matched
+}
+
+export function deriveSignals(
+  input: GenerateTransitionPlanInput,
+  targetProfile: OccupationTemplateProfile,
+  templateKey: PlanTemplateKey
+): DerivedSignals {
+  const sourceText = collectExperienceSourceText(input)
+  const availableSignals = inferAvailableSignals(sourceText)
+  const requirements = buildRequirementDescriptors(input.report, templateKey)
+
+  const transferableSignals: DerivedSignal[] = []
+  const missingSignals: DerivedSignal[] = []
+
+  for (const descriptor of requirements) {
+    const rule = mapRequirementToSignalRule(descriptor.label)
+    const matched = Boolean(
+      rule &&
+        (availableSignals.has(rule.key) ||
+          rule.sourcePatterns.some((pattern) => pattern.test(sourceText)))
+    )
+
+    if (matched) {
+      transferableSignals.push({
+        label: rule?.overlapText || `You already have some overlap with ${descriptor.label}.`,
+        weight: descriptor.weight,
+        action: descriptor.action
+      })
+      continue
+    }
+
+    missingSignals.push({
+      label: `Gap to close: ${formatLabel(descriptor.label)}.`,
+      weight: descriptor.weight,
+      action: rule?.missingAction ? toSentence(rule.missingAction) : toSentence(descriptor.action)
+    })
+  }
+
+  if (transferableSignals.length === 0) {
+    for (const key of availableSignals) {
+      const rule = SIGNAL_RULES.find((item) => item.key === key)
+      if (!rule) continue
+      transferableSignals.push({
+        label: rule.overlapText,
+        weight: 0.65,
+        action: rule.missingAction
+      })
+    }
+  }
+
+  if (missingSignals.length === 0) {
+    for (const fallback of TEMPLATE_DEFAULT_REQUIREMENTS[templateKey]) {
+      missingSignals.push({
+        label: `Gap to close: ${formatLabel(fallback.label)}.`,
+        weight: fallback.weight,
+        action: toSentence(fallback.action)
+      })
+    }
+  }
+
+  const priorityActions = compressSimilarBullets(
+    [
+      ...missingSignals
+        .sort((left, right) => right.weight - left.weight)
+        .map((item) => item.action),
+      ...TEMPLATE_DEFAULT_REQUIREMENTS[templateKey].map((item) => item.action)
+    ],
+    4
+  )
+
+  if (
+    targetProfile.relationship === 'within_career_progression' &&
+    !priorityActions.some((item) => normalizeBulletKey(item).includes('measurable'))
+  ) {
+    priorityActions.unshift('Document 3 measurable wins that already prove next-level scope.')
+  }
+
+  return {
+    transferableSignals: transferableSignals.sort((left, right) => right.weight - left.weight).slice(0, 4),
+    missingSignals: missingSignals.sort((left, right) => right.weight - left.weight).slice(0, 4),
+    priorityActions: priorityActions.slice(0, 4)
+  }
+}
+
+function buildDifficulty(
+  report: PlannerReportSource,
+  targetProfile: OccupationTemplateProfile,
+  templateKey: PlanTemplateKey,
+  education: string,
+  signals: DerivedSignals
+) {
+  const compatibilityScore = report.compatibilitySnapshot.score
+  const hardGateCount = targetProfile.hardGates.length
+  const certificationCount = targetProfile.certifications.length
+  const missingSignalCount = signals.missingSignals.length
+  const transferabilityCredit = Math.min(1.6, signals.transferableSignals.length * 0.28)
+  const marketFriction = report.marketEvidence?.baselineOnly
+    ? 1.1
+    : (report.marketEvidence?.postingsCount ?? 0) < 5
+      ? 0.65
+      : 0.25
+  const educationGap = Math.max(
+    0,
+    inferEducationRank(targetProfile.education) - inferEducationRank(education)
+  )
+
+  const templateBase =
+    templateKey === 'regulated_profession'
+      ? 4.4
+      : templateKey === 'regulated_trade'
+        ? 3.5
+        : templateKey === 'credentialed_role'
+          ? 3.1
+          : templateKey === 'portfolio_role'
+            ? 2.8
+            : templateKey === 'experience_ladder_role'
+              ? 2.2
+              : 2.6
+
+  const gatedBarrier =
+    hardGateCount * 0.45 +
+    certificationCount * 0.35 +
+    (targetProfile.examRequired ? 0.8 : 0) +
+    (targetProfile.apprenticeshipHours ? 0.8 : 0) +
+    (targetProfile.regulated ? 0.55 : 0)
+
+  const evidenceBarrier = missingSignalCount * 0.45
+  const compatibilityPenalty = clamp((72 - compatibilityScore) / 18, 0, 2.6)
+
+  const score = Number(
+    clamp(
+      Math.round((templateBase + gatedBarrier + educationGap * 0.7 + evidenceBarrier + marketFriction + compatibilityPenalty - transferabilityCredit) * 10) /
+        10,
+      1,
+      9.8
+    ).toFixed(1)
+  )
+
+  const label: TransitionModeReport['difficulty']['label'] =
+    score >= 7.6 ? 'Very Hard' : score >= 5.9 ? 'Hard' : score >= 3.6 ? 'Moderate' : 'Easy'
+
+  const why = compressSimilarBullets(
+    [
+      hardGateCount > 0 || certificationCount > 0
+        ? `This target has ${hardGateCount + certificationCount} formal gate${hardGateCount + certificationCount === 1 ? '' : 's'} you need to respect early.`
+        : 'There is no heavy formal gate blocking the first move.',
+      educationGap > 0
+        ? 'Your current education profile is lighter than the common baseline, so the pathway takes longer.'
+        : 'Your current education profile does not create a major extra delay.',
+      missingSignalCount > 0
+        ? `${missingSignalCount} high-value requirement${missingSignalCount === 1 ? '' : 's'} still need stronger proof.`
+        : 'Most of the target requirements already have at least some evidence from your background.',
+      targetProfile.relationship === 'within_career_progression'
+        ? 'This is closer to a progression move than a full reset, so positioning matters as much as skill-building.'
+        : 'This is a real transition, so proof and channel mix matter more than intent alone.'
+    ],
+    3
+  )
+
+  return { score, label, why }
+}
+
+function buildTimeline(
+  report: PlannerReportSource,
+  targetProfile: OccupationTemplateProfile,
+  templateKey: PlanTemplateKey,
+  difficultyScore: number
+) {
+  const fromCareer = parseTimelineRange(report.suggestedCareers[0]?.transitionTime ?? '')
+
+  const minimumFloor =
+    templateKey === 'regulated_profession'
+      ? 6
+      : templateKey === 'regulated_trade'
+        ? 3
+        : templateKey === 'credentialed_role'
+          ? 3
+          : templateKey === 'portfolio_role'
+            ? 2
+            : templateKey === 'experience_ladder_role'
+              ? 1
+              : 2
+
+  const maximumFloor =
+    templateKey === 'regulated_profession'
+      ? 18
+      : templateKey === 'regulated_trade'
+        ? 9
+        : templateKey === 'credentialed_role'
+          ? 9
+          : templateKey === 'portfolio_role'
+            ? 7
+            : templateKey === 'experience_ladder_role'
+              ? 6
+              : 7
+
+  let minMonths = Math.max(minimumFloor, fromCareer?.min ?? Math.max(1, Math.round(difficultyScore - 1)))
+  let maxMonths = Math.max(maximumFloor, fromCareer?.max ?? Math.max(minMonths + 1, Math.round(difficultyScore + 2)))
+
+  if (targetProfile.certifications.length > 0) {
+    minMonths += 1
+    maxMonths += Math.min(3, targetProfile.certifications.length)
+  }
+  if (targetProfile.examRequired) maxMonths += 2
+  if (targetProfile.apprenticeshipHours) maxMonths += templateKey === 'regulated_trade' ? 2 : 4
+  if (report.marketEvidence?.baselineOnly) maxMonths += 1
+
+  minMonths = clamp(minMonths, 1, 48)
+  maxMonths = clamp(Math.max(minMonths, maxMonths), minMonths, 48)
+
+  const assumptions = dedupeBullets(TEMPLATE_ASSUMPTIONS[templateKey], 3)
+  return { minMonths, maxMonths, assumptions }
+}
+
+function buildTemplateOutput(context: TransitionPlanContext) {
+  const builders: Record<PlanTemplateKey, (value: TransitionPlanContext) => TemplateOutput> = {
+    regulated_trade: buildRegulatedTradeTemplate,
+    regulated_profession: buildRegulatedProfessionTemplate,
+    credentialed_role: buildCredentialedRoleTemplate,
+    portfolio_role: buildPortfolioRoleTemplate,
+    experience_ladder_role: buildExperienceLadderRoleTemplate,
+    general_role: buildGeneralRoleTemplate
+  }
+
+  return builders[context.templateKey](context)
+}
+
+function fillToLength(values: string[], target: number, fallback: string | string[]) {
+  const output = [...values]
+  const pool = (Array.isArray(fallback) ? fallback : [fallback]).map((item) => toSentence(item))
+  let index = 0
+
+  while (output.length < target) {
+    const candidate =
+      pool[index] ??
+      `Focus on the next measurable step (${output.length + 1}).`
+    if (!output.some((item) => normalizeBulletKey(item) === normalizeBulletKey(candidate))) {
+      output.push(candidate)
+    }
+    index += 1
+    if (index > pool.length + target) break
+  }
+
+  return output
+}
+
+function buildEarnings(
+  report: PlannerReportSource,
+  templateKey: PlanTemplateKey,
+  incomeTarget: string
+) {
+  const primaryCareer = report.suggestedCareers[0] ?? null
+  const native = primaryCareer?.salary.native
+  const usd = primaryCareer?.salary.usd
+  const currency = native?.currency ?? 'USD'
+
+  let low = normalizeHourlyValue(native?.low ?? usd?.low ?? null)
+  let high = normalizeHourlyValue(native?.high ?? usd?.high ?? null)
+  let median = normalizeHourlyValue(native?.median ?? usd?.median ?? null)
+
+  if (low === null || high === null) {
+    const normalizedIncome = normalizeText(incomeTarget)
+    const fallbackAnnual =
+      normalizedIncome.includes('150') ? { low: 150_000, high: 190_000 } :
+      normalizedIncome.includes('100') ? { low: 100_000, high: 140_000 } :
+      normalizedIncome.includes('75') ? { low: 75_000, high: 100_000 } :
+      normalizedIncome.includes('50') ? { low: 50_000, high: 75_000 } :
+      { low: 42_000, high: 65_000 }
+    low = low ?? Number((fallbackAnnual.low / 2080).toFixed(1))
+    high = high ?? Number((fallbackAnnual.high / 2080).toFixed(1))
+    median = median ?? Number((((fallbackAnnual.low + fallbackAnnual.high) / 2) / 2080).toFixed(1))
+  }
+
+  const floor =
+    templateKey === 'regulated_trade'
+      ? 18
+      : templateKey === 'regulated_profession'
+        ? 22
+        : templateKey === 'credentialed_role'
+          ? 20
+          : 18
+  const safeLow = Math.max(floor, low ?? floor)
+  const safeHigh = Math.max(safeLow + 4, high ?? safeLow + 8)
+  const safeMedian = clamp(median ?? (safeLow + safeHigh) / 2, safeLow, safeHigh)
+  const unit = `${currency}/hour`
+
+  return [
+    { stage: 'Year 1', rangeLow: Math.round(Math.max(floor, safeLow * 0.9)), rangeHigh: Math.round(Math.max(floor + 2, safeMedian * 0.95)), unit },
+    { stage: 'Year 2', rangeLow: Math.round(safeLow), rangeHigh: Math.round(safeMedian), unit },
+    { stage: 'Year 3', rangeLow: Math.round(Math.max(safeLow + 1, safeMedian)), rangeHigh: Math.round(Math.max(safeMedian + 2, safeHigh * 0.93)), unit },
+    { stage: templateKey === 'regulated_trade' || templateKey === 'regulated_profession' ? 'Fully Qualified' : 'Established', rangeLow: Math.round(Math.max(safeMedian, safeHigh * 0.8)), rangeHigh: Math.round(safeHigh), unit }
+  ] satisfies TransitionModeReport['earnings']
+}
+
+function buildReality(
+  templateKey: PlanTemplateKey,
+  report: PlannerReportSource,
+  signals: DerivedSignals
+) {
+  const templateBarrier =
+    templateKey === 'regulated_trade'
+      ? 'Trade hiring often moves through direct relationships and timing, not easy job-board visibility.'
+      : templateKey === 'regulated_profession'
+        ? 'The sequence matters here. Skipping education or licensure steps wastes time.'
+        : templateKey === 'credentialed_role'
+          ? 'Study alone is not enough if you cannot show applied proof.'
+          : templateKey === 'portfolio_role'
+            ? 'Applications stay weak if the portfolio does not clearly match the role.'
+            : templateKey === 'experience_ladder_role'
+              ? 'Weak positioning can hide the fact that you are already close to the next step.'
+              : 'Passive applying usually underperforms if your proof and positioning are not clear.'
+
+  const barriers = fillToLength(
+    compressSimilarBullets(
+      [
+        templateBarrier,
+        ...signals.missingSignals.map((item) => item.label),
+        report.marketEvidence?.baselineOnly
+          ? 'Local demand is thin or unclear, so you need live feedback from outreach early.'
+          : 'If response rates stay low, your channel mix or positioning needs to tighten quickly.'
+      ],
+      3
+    ),
+    3,
+    [
+      'This move gets harder when weekly output is inconsistent.',
+      'Small misses compound when you do not review the plan each week.',
+      'Slow feedback loops can hide the real blocker for too long.'
+    ]
+  ).slice(0, 3)
+
+  const mitigations = fillToLength(
+    compressSimilarBullets(
+      [
+        ...signals.priorityActions,
+        'Track applications, outreach, and follow-ups every week so low-yield activity gets cut fast.',
+        report.marketEvidence?.baselineOnly
+          ? 'Use real conversations to validate demand before you overinvest in one lane.'
+          : 'Double down on the channel that creates real conversations first.'
+      ],
+      3
+    ),
+    3,
+    [
+      'Review the plan weekly and replace vague effort with measured output.',
+      'Keep the next action specific enough to finish this week.',
+      'Use real conversations and results to decide what to keep doing.'
+    ]
+  ).slice(0, 3)
+
+  return { barriers, mitigations }
+}
+
+function toResolutionSummary(input: OccupationResolutionSummary | null | undefined) {
+  return input ?? null
+}
+
+export function generateTransitionPlan(input: GenerateTransitionPlanInput): TransitionModeReport {
+  const currentResolution = toResolutionSummary(input.currentResolution)
+  const targetResolution = toResolutionSummary(input.targetResolution)
+  const relationship = determineRelationship(
+    input.currentRole,
+    input.targetRole,
+    currentResolution,
+    targetResolution
+  )
+  const targetProfile = buildOccupationProfile(input, relationship)
+  const templateKey = selectPlanTemplate(targetProfile, input.location, targetResolution?.stage ?? null)
+  const signals = deriveSignals(input, targetProfile, templateKey)
+
+  const context: TransitionPlanContext = {
+    currentRole: input.currentRole,
+    targetRole: input.targetRole,
+    experienceText: input.experienceText ?? '',
+    location: input.location ?? '',
+    education: input.education ?? '',
+    incomeTarget: input.incomeTarget ?? '',
+    report: input.report,
+    templateKey,
+    relationship,
+    currentResolution,
+    targetResolution,
+    targetProfile,
+    signals,
+    proofBuilderTerm: null
+  }
+
+  const templateOutput = buildTemplateOutput(context)
+  const first3Steps = fillToLength(
+    compressSimilarBullets(
+      [
+        ...signals.priorityActions,
+        templateOutput.routes.primary.firstStep,
+        templateOutput.routes.secondary.firstStep
+      ],
+      3
+    ),
+    3,
+    [
+      'Move one concrete blocker onto the calendar this week.',
+      'Pick the highest-value next step and schedule it now.',
+      'Tie the next action to one visible output you can finish.'
+    ]
+  ).slice(0, 3)
+
+  const difficulty = buildDifficulty(
+    input.report,
+    targetProfile,
+    templateKey,
+    input.education ?? '',
+    signals
+  )
+  const timeline = buildTimeline(input.report, targetProfile, templateKey, difficulty.score)
+
+  return TransitionModeSchema.parse({
+    definitions: templateOutput.definitions,
+    difficulty,
+    timeline,
+    routes: templateOutput.routes,
+    plan90: templateOutput.plan90,
+    execution: templateOutput.execution,
+    gaps: {
+      strengths: fillToLength(
+        compressSimilarBullets(signals.transferableSignals.map((item) => item.label), 4),
+        3,
+        [
+          'You already bring some usable overlap into this move.',
+          'Lead with the strongest overlap when you apply or reach out.',
+          'Use the clearest transferable signal as early interview proof.'
+        ]
+      ).slice(0, 4),
+      missing: fillToLength(
+        compressSimilarBullets(signals.missingSignals.map((item) => item.action), 4),
+        3,
+        [
+          'Turn the biggest missing requirement into one concrete proof action.',
+          'Choose one gap and make the next step visible this week.',
+          'Do not leave the top blocker vague or unscheduled.'
+        ]
+      ).slice(0, 4),
+      first3Steps
+    },
+    earnings: buildEarnings(input.report, templateKey, input.incomeTarget ?? ''),
+    reality: buildReality(templateKey, input.report, signals),
+    resources: {
+      local: templateOutput.resources?.local ?? [],
+      online: templateOutput.resources?.online ?? [],
+      internal: [
+        { label: 'CareerHeap Blog', url: '/blog' },
+        { label: 'Career Tools', url: '/tools' },
+        { label: 'Run This Plan Again', url: '/tools/career-switch-planner' }
+      ]
+    }
+  })
+}
+
+export const buildTransitionModeReport = generateTransitionPlan

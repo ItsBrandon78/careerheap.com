@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fetchJobsPaged, isAdzunaConfigured } from '@/lib/server/adzuna'
+import { suggestRoleSearchVariantsWithLlm } from '@/lib/server/jobSearchQueryLlm'
 import {
   aggregateRequirements,
   extractRequirementsFromText
@@ -27,6 +28,15 @@ interface JobPostingRow {
   provider: string
   provider_job_id: string
   description: string | null
+}
+
+export interface RecommendedJobPosting {
+  id: string
+  title: string
+  company: string
+  location: string
+  description: string
+  sourceUrl: string
 }
 
 interface JobRequirementRow {
@@ -369,6 +379,36 @@ export function isMarketEvidenceConfigured() {
   return isAdzunaConfigured()
 }
 
+export async function listRecommendedJobPostings(queryId: string, limit = 6) {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('job_postings')
+    .select('provider,provider_job_id,title,company,location,description,source_url,posted_at')
+    .eq('query_id', queryId)
+    .order('posted_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw error
+
+  return ((data ?? []) as Array<{
+    provider: string
+    provider_job_id: string
+    title: string | null
+    company: string | null
+    location: string | null
+    description: string | null
+    source_url: string | null
+  }>)
+    .map((row) => ({
+      id: `${row.provider}:${row.provider_job_id}`,
+      title: row.title?.trim() || 'Untitled role',
+      company: row.company?.trim() || 'Unknown company',
+      location: row.location?.trim() || 'Location not provided',
+      description: row.description?.trim() || '',
+      sourceUrl: row.source_url?.trim() || ''
+    }))
+}
+
 async function persistExtractedRequirements(queryId: string, requirements: AggregatedRequirement[]) {
   const admin = createAdminClient()
   await admin.from('job_requirements').delete().eq('query_id', queryId)
@@ -520,14 +560,38 @@ export async function ensureEvidenceRequirements(
 
   try {
     let postings = [] as Awaited<ReturnType<typeof fetchJobsPaged>>
-    for (const roleVariant of roleQueryVariants(role)) {
-      postings = await fetchJobsPaged({
-        role: roleVariant,
+    const baseVariants = roleQueryVariants(role)
+    const attemptedVariants = new Set<string>()
+    let usedAiQueryExpansion = false
+
+    const fetchWithVariants = async (variants: string[]) => {
+      for (const roleVariant of variants) {
+        const key = roleVariant.toLowerCase()
+        if (attemptedVariants.has(key)) continue
+        attemptedVariants.add(key)
+        postings = await fetchJobsPaged({
+          role: roleVariant,
+          location,
+          country,
+          maxPages: 2
+        })
+        if (postings.length > 0) return true
+      }
+      return false
+    }
+
+    await fetchWithVariants(baseVariants)
+
+    if (postings.length === 0) {
+      const aiVariants = await suggestRoleSearchVariantsWithLlm({
+        role,
         location,
-        country,
-        maxPages: 2
+        country
       })
-      if (postings.length > 0) break
+      if (aiVariants.length > 0) {
+        usedAiQueryExpansion = true
+        await fetchWithVariants(aiVariants)
+      }
     }
 
     if (postings.length > 0) {
@@ -600,7 +664,14 @@ export async function ensureEvidenceRequirements(
       startedAt,
       postingsCount: postingRows.length,
       requirementsCount: mergedMarket.length,
-      model: llmExtracted.length > 0 ? 'heuristic+gpt-v1' : 'heuristic-v1',
+      model:
+        llmExtracted.length > 0
+          ? usedAiQueryExpansion
+            ? 'heuristic+gpt-v1+query-expansion'
+            : 'heuristic+gpt-v1'
+          : usedAiQueryExpansion
+            ? 'heuristic-v1+query-expansion'
+            : 'heuristic-v1',
       status: 'success'
     })
 

@@ -21,7 +21,6 @@ import {
   ResourcesCard,
   RoadmapSteps,
   RoleAutocomplete,
-  RoleRecommendationCard,
   ScoreCard,
   SelectField,
   SkillsChipsInput,
@@ -34,10 +33,26 @@ import {
   careerSwitchMoreTools
 } from '@/lib/planner/content'
 import {
+  findExampleScenarioByIds,
+  pickRandomExampleScenarios,
+  type PlannerExampleScenario,
+  PLANNER_EXAMPLE_SCENARIOS
+} from '@/lib/planner/exampleScenarios'
+import {
+  buildPlannerJobRecommendationCards,
+  type PlannerJobRecommendationCard,
+  type PlannerJobRecommendationInput
+} from '@/lib/planner/jobRecommendations'
+import {
   type CareerSwitchPlannerResult,
   toPlannerResultView,
   type PlannerResultView
 } from '@/lib/planner/types'
+import {
+  dedupeBullets as sharedDedupeBullets,
+  excludeExistingBullets,
+  normalizeBulletKey
+} from '@/lib/transition/dedupe'
 import {
   scoreToLabel,
   shouldShowSimilarRoles,
@@ -87,34 +102,58 @@ type RoleResolutionMatch = {
   matched: {
     occupationId: string
     title: string
+    code: string
     region: 'CA' | 'US'
     source?: string | null
     lastUpdated?: string | null
     confidence: number
-    matchedBy: string
+    stage?: string | null
+    specialization?: string | null
+    rawInputTitle: string
   } | null
   suggestions: Array<{
     occupationId: string
     title: string
+    code: string
     region: 'CA' | 'US'
     source?: string | null
-    lastUpdated?: string | null
     confidence: number
-    matchedBy: string
   }>
 }
 
 type RoleSelectionPrompt = {
   role: 'current' | 'target'
   input: string
+  message?: string
   alternatives: Array<{
     occupationId: string
     title: string
+    code: string
     confidence: number
     source?: string | null
-    stage?: 'helper' | 'apprentice' | 'licensed' | null
+    stage?: string | null
+    specialization?: string | null
   }>
 }
+
+type PlannerFormDraft = {
+  currentRoleText: string
+  targetRoleText: string
+  currentRoleOccupationId: string | null
+  targetRoleOccupationId: string | null
+  recommendMode: boolean
+  skills: string[]
+  experienceText: string
+  userPostingText: string
+  useMarketEvidence: boolean
+  educationLevel: EducationLevelValue
+  workRegion: WorkRegionValue
+  locationText: string
+  timelineBucket: TimelineBucketValue
+  incomeTarget: IncomeTargetValue
+}
+
+type JobRecommendationStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error'
 
 type PlannerReportPayload = {
   compatibilitySnapshot: {
@@ -531,6 +570,7 @@ type PlannerReportPayload = {
     }
   }
   transitionMode?: {
+    definitions?: Record<string, string>
     difficulty: {
       score: number
       label: 'Easy' | 'Moderate' | 'Hard' | 'Very Hard'
@@ -626,6 +666,9 @@ type SubmittedPlannerSnapshot = {
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
 const FREE_LIMIT = 3
+const EXAMPLE_CARD_COUNT = 3
+const EXAMPLE_OPTIONS_STORAGE_KEY = 'career-switch-planner-example-options'
+const EXAMPLE_SELECTED_STORAGE_KEY = 'career-switch-planner-selected-example'
 const FALLBACK_SKILL_SUGGESTIONS = [
   'Stakeholder management',
   'Electrical safety',
@@ -759,16 +802,17 @@ function RoleNormalizationCard({
 }) {
   const matched = resolution.matched
   const confidenceLabel = scoreToLabel(matched?.confidence ?? 0)
-  const showSimilar = shouldShowSimilarRoles(confidenceLabel)
-  const similarRoles = showSimilar
-    ? resolution.suggestions
-        .filter((item) => item.occupationId !== matched?.occupationId)
-        .slice(0, 3)
-    : []
+  const showSimilar = shouldShowSimilarRoles(confidenceLabel) || (resolution.suggestions.length > 0 && confidenceLabel !== 'Exact')
+  const similarRoles = resolution.suggestions
+    .filter((item) => item.occupationId !== matched?.occupationId)
+    .slice(0, 3)
   const sourceLabel = taxonomySourceLabel({
     source: matched?.source ?? null,
     region: matched?.region ?? null
   })
+  const resolvedMeta = [matched?.stage, matched?.specialization]
+    .filter((item): item is string => Boolean(item && item.trim()))
+    .join(' | ')
 
   return (
     <div className="rounded-md border border-border-light p-3">
@@ -777,7 +821,7 @@ function RoleNormalizationCard({
         <p className="text-sm text-text-secondary">You entered: {resolution.input || 'Not provided'}</p>
         <div className="flex flex-wrap items-center gap-2 text-sm text-text-primary">
           <span>
-            Standardized as:{' '}
+            Resolved to:{' '}
             <span className="font-semibold text-text-primary">
               {matched?.title || 'Not resolved'}
             </span>
@@ -788,9 +832,17 @@ function RoleNormalizationCard({
           <span
             className={`rounded-pill border px-2 py-0.5 text-[11px] font-medium ${roleConfidenceClass(confidenceLabel)}`}
           >
-            {confidenceLabel}
+            {confidenceLabel} ({(matched?.confidence ?? 0).toFixed(2)})
           </span>
         </div>
+        {resolvedMeta ? (
+          <p className="text-xs text-text-tertiary">Stage / specialization: {resolvedMeta}</p>
+        ) : null}
+        {matched ? (
+          <p className="text-xs text-text-secondary">
+            Choose a different match if wrong.
+          </p>
+        ) : null}
         {showSimilar && similarRoles.length > 0 ? (
           <p className="text-xs text-text-tertiary">
             Similar roles: {similarRoles.map((item) => item.title).join(' | ')}
@@ -855,6 +907,183 @@ function formatMoneyRange(low: number, high: number, unit: string, annualize = f
   })
   const suffix = showAnnualized ? ' / year est.' : isHourly ? ' / hr' : unit.toLowerCase().includes('/year') ? ' / yr' : ''
   return `${formatter.format(displayLow)} - ${formatter.format(displayHigh)}${suffix}`
+}
+
+function buildTransitionChannelPriorities(routeTitle: string, routeReason: string) {
+  const text = `${routeTitle} ${routeReason}`.toLowerCase()
+
+  if (/\bapprentice\b|\btrade\b|\bunion\b|\bsponsor\b/.test(text)) {
+    return [
+      'Direct employer outreach: ask who handles helper, trainee, or apprenticeship intake.',
+      'Targeted applications: focus on entry routes that match the real pathway, not generic volume.',
+      'Pathway contacts: use unions, training authorities, and intake offices early if they matter.',
+      'Bridge work: use agency or adjacent site work only if it clearly creates experience or contacts.'
+    ]
+  }
+
+  if (/\blicens\b|\bboard\b|\beducation\b|\bsupervised\b/.test(text)) {
+    return [
+      'Licensing and admissions: move one formal requirement forward every week.',
+      'Practitioner outreach: use short conversations to confirm the right sequence before you spend money.',
+      'Adjacent support roles: stay close to the field while credentials are in motion.',
+      'Applications: do not push volume until the first formal gate is actually moving.'
+    ]
+  }
+
+  if (/\bportfolio\b|\bcase study\b|\bwork sample\b/.test(text)) {
+    return [
+      'Proof first: ship small work samples quickly instead of waiting for one perfect project.',
+      'Feedback loops: use practitioner feedback to tighten the next sample fast.',
+      'Targeted applications: apply where your current portfolio genuinely fits.',
+      'Warm outreach: ask for feedback and referrals, not just job status.'
+    ]
+  }
+
+  if (/\bcredential\b|\bcertificate\b|\blab\b/.test(text)) {
+    return [
+      'Learning path: keep one focused credential or study plan moving every week.',
+      'Practice: pair study with simple hands-on proof, not theory alone.',
+      'Targeted outreach: ask what proof matters most at the entry point.',
+      'Applications: start once the first proof is ready, then keep follow-ups measured.'
+    ]
+  }
+
+  if (/\boutcome\b|\bprogression\b|\bnext step\b/.test(text)) {
+    return [
+      'Positioning: lead with measurable wins that already match the next level.',
+      'Referrals: use managers, peers, and recruiters to shorten the jump.',
+      'Targeted applications: focus on scope fit, not title alone.',
+      'Internal leverage: use stretch work or cross-functional reps if external response is thin.'
+    ]
+  }
+
+  return [
+    'Targeted applications: focus on roles that actually match your current evidence.',
+    'Direct outreach: use short, specific messages instead of relying only on portals.',
+    'Proof actions: turn the top gap into one concrete example you can talk through.',
+    'Weekly review: keep only the channels that create real conversations.'
+  ]
+}
+
+function buildDraftFromExample(example: PlannerExampleScenario): PlannerFormDraft {
+  return {
+    currentRoleText: example.currentRole,
+    targetRoleText: example.targetRole,
+    currentRoleOccupationId: null,
+    targetRoleOccupationId: null,
+    recommendMode: false,
+    skills: example.skills,
+    experienceText: example.experienceText,
+    userPostingText: '',
+    useMarketEvidence: true,
+    educationLevel: example.educationLevel,
+    workRegion: example.workRegion,
+    locationText: example.locationText,
+    timelineBucket: example.timelineBucket,
+    incomeTarget: example.incomeTarget
+  }
+}
+
+function parseTransitionMonths(value: string) {
+  const matches = [...value.matchAll(/(\d+)/g)].map((match) => Number.parseInt(match[1], 10))
+  if (matches.length === 0) return Number.POSITIVE_INFINITY
+  return Math.min(...matches)
+}
+
+function normalizeRecommendedRoleWhy(values: string[]) {
+  return sharedDedupeBullets(
+    values.map((value) => value.replace(/\.$/, '')),
+    2
+  ).map((item) => (/[.!?]$/.test(item) ? item : `${item}.`))
+}
+
+function medianHourlyComp(career: PlannerReportPayload['suggestedCareers'][number]) {
+  const native = career.salary.native?.median
+  const usd = career.salary.usd?.median
+  const value = typeof native === 'number' ? native : typeof usd === 'number' ? usd : 0
+  return value > 250 ? value / 2080 : value
+}
+
+function buildRecommendedRoleSections(
+  careers: PlannerReportPayload['suggestedCareers'],
+  currentRoleInput: string
+) {
+  const uniqueCareers = careers.filter((career, index, collection) => {
+    const key = normalizeBulletKey(career.title)
+    return collection.findIndex((item) => normalizeBulletKey(item.title) === key) === index
+  })
+
+  if (uniqueCareers.length === 0) return []
+
+  const usedTitles = new Set<string>()
+  const takeUnique = (
+    source: PlannerReportPayload['suggestedCareers'],
+    count: number,
+    filter?: (career: PlannerReportPayload['suggestedCareers'][number]) => boolean
+  ) => {
+    const output: PlannerReportPayload['suggestedCareers'] = []
+    for (const career of source) {
+      if (filter && !filter(career)) continue
+      const key = normalizeBulletKey(career.title)
+      if (usedTitles.has(key)) continue
+      usedTitles.add(key)
+      output.push(career)
+      if (output.length >= count) break
+    }
+    return output
+  }
+
+  const closest = takeUnique(
+    [...uniqueCareers].sort((left, right) => right.score - left.score),
+    3
+  )
+  const higherUpside = takeUnique(
+    [...uniqueCareers].sort((left, right) => medianHourlyComp(right) - medianHourlyComp(left)),
+    3,
+    (career) => !closest.some((item) => normalizeBulletKey(item.title) === normalizeBulletKey(career.title))
+  )
+  const bridge = takeUnique(
+    [...uniqueCareers].sort((left, right) => parseTransitionMonths(left.transitionTime) - parseTransitionMonths(right.transitionTime)),
+    3,
+    (career) =>
+      !closest.some((item) => normalizeBulletKey(item.title) === normalizeBulletKey(career.title)) &&
+      !higherUpside.some((item) => normalizeBulletKey(item.title) === normalizeBulletKey(career.title))
+  )
+
+  const sectionMap = [
+    ['Closest matches', 'Strongest fit based on your current background.', closest],
+    ['Higher upside', 'Roles with stronger earnings potential if you can absorb a wider jump.', higherUpside],
+    ['Adjacent bridge roles', 'Faster-entry roles that can shorten the path into a bigger move.', bridge]
+  ] as const
+
+  return sectionMap
+    .filter(([, , roles]) => roles.length > 0)
+    .map(([title, description, roles]) => ({
+      title,
+      description,
+      roles: roles.map((career) => ({
+        title: career.title,
+        why: normalizeRecommendedRoleWhy([
+          ...(career.topReasons.slice(0, 2).length > 0
+            ? career.topReasons.slice(0, 2)
+            : [`Your ${currentRoleInput || 'current'} background overlaps with this path.`]),
+          career.regulated
+            ? 'This path has formal gates, so plan the entry sequence early.'
+            : 'This path can usually start with targeted applications and proof.'
+        ]),
+        difficulty: career.difficulty,
+        transitionTime: career.transitionTime
+      }))
+    }))
+}
+
+function buildJobRecommendationCards(
+  jobs: PlannerJobRecommendationInput[],
+  targetRole: string,
+  location: string,
+  signals: string[] = []
+) {
+  return buildPlannerJobRecommendationCards(jobs, targetRole, location, signals)
 }
 
 function scrollToSection(id: string) {
@@ -928,6 +1157,8 @@ export default function CareerSwitchPlannerPage({
   const { user, plan } = useAuth()
 
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
+  const [exampleOptions, setExampleOptions] = useState<PlannerExampleScenario[]>([])
+  const [selectedExampleId, setSelectedExampleId] = useState<string | null>(null)
   const [currentRoleText, setCurrentRoleText] = useState('')
   const [targetRoleText, setTargetRoleText] = useState('')
   const [currentRoleSelectedMatch, setCurrentRoleSelectedMatch] = useState<{
@@ -948,6 +1179,9 @@ export default function CareerSwitchPlannerPage({
   const [inputError, setInputError] = useState('')
   const [plannerResult, setPlannerResult] = useState<PlannerResultView | null>(null)
   const [plannerReport, setPlannerReport] = useState<PlannerReportPayload | null>(null)
+  const [jobRecommendationStatus, setJobRecommendationStatus] = useState<JobRecommendationStatus>('idle')
+  const [jobRecommendationItems, setJobRecommendationItems] = useState<PlannerJobRecommendationCard[]>([])
+  const [jobRecommendationMessage, setJobRecommendationMessage] = useState('')
   const [roleSelectionPrompt, setRoleSelectionPrompt] = useState<RoleSelectionPrompt | null>(null)
   const [lastSubmittedSnapshot, setLastSubmittedSnapshot] = useState<SubmittedPlannerSnapshot | null>(null)
   const [resumeStructuredSnapshot, setResumeStructuredSnapshot] = useState<ResumeStructuredSnapshot>({
@@ -981,6 +1215,7 @@ export default function CareerSwitchPlannerPage({
   const [earningsView, setEarningsView] = useState<'base' | 'annual'>('base')
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const lastJobRecommendationKeyRef = useRef('')
   const previewLocked = searchParams.get('locked') === '1'
   const proPreview = searchParams.get('propreview') === '1'
   const usageQuery = useMemo(() => {
@@ -1017,6 +1252,36 @@ export default function CareerSwitchPlannerPage({
       if (progressTimerRef.current) {
         clearInterval(progressTimerRef.current)
       }
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      const storedIds = typeof window !== 'undefined'
+        ? window.localStorage.getItem(EXAMPLE_OPTIONS_STORAGE_KEY)
+        : null
+      const storedSelectedId = typeof window !== 'undefined'
+        ? window.localStorage.getItem(EXAMPLE_SELECTED_STORAGE_KEY)
+        : null
+      const parsedIds = storedIds ? JSON.parse(storedIds) : null
+      const restoredExamples = Array.isArray(parsedIds)
+        ? findExampleScenarioByIds(parsedIds.filter((item) => typeof item === 'string'))
+        : []
+
+      if (restoredExamples.length === EXAMPLE_CARD_COUNT) {
+        setExampleOptions(restoredExamples)
+      } else {
+        setExampleOptions(pickRandomExampleScenarios(EXAMPLE_CARD_COUNT))
+      }
+
+      if (
+        storedSelectedId &&
+        PLANNER_EXAMPLE_SCENARIOS.some((item) => item.id === storedSelectedId)
+      ) {
+        setSelectedExampleId(storedSelectedId)
+      }
+    } catch {
+      setExampleOptions(pickRandomExampleScenarios(EXAMPLE_CARD_COUNT))
     }
   }, [])
 
@@ -1323,7 +1588,29 @@ export default function CareerSwitchPlannerPage({
     }
   }
 
-  const handleGeneratePlan = async () => {
+  const handleGeneratePlan = async (override?: Partial<PlannerFormDraft>) => {
+    const draft: PlannerFormDraft = {
+      currentRoleText,
+      targetRoleText,
+      currentRoleOccupationId: currentRoleSelectedMatch?.occupationId ?? null,
+      targetRoleOccupationId: targetRoleSelectedMatch?.occupationId ?? null,
+      recommendMode,
+      skills,
+      experienceText,
+      userPostingText,
+      useMarketEvidence,
+      educationLevel,
+      workRegion,
+      locationText,
+      timelineBucket,
+      incomeTarget,
+      ...override
+    }
+    const hasDraftMinimumInput =
+      draft.currentRoleText.trim().length > 0 ||
+      draft.experienceText.trim().length > 0 ||
+      draft.skills.length >= 3
+
     if (isLocked || isUsageLoading) {
       return
     }
@@ -1333,23 +1620,27 @@ export default function CareerSwitchPlannerPage({
       return
     }
 
-    if (!hasMinimumRequiredInput) {
+    if (!hasDraftMinimumInput) {
       setInputError('Add a current role, an experience summary, or at least 3 skills to continue.')
       return
     }
 
-    if (!recommendMode && !targetRoleText.trim()) {
+    if (!draft.recommendMode && !draft.targetRoleText.trim()) {
       setInputError('Add your target role or enable Not sure mode.')
       return
     }
 
-    if (!locationText.trim()) {
+    if (!draft.locationText.trim()) {
       setInputError('Add your target location to generate market evidence.')
       return
     }
 
     setInputError('')
     setPlannerReport(null)
+    setJobRecommendationStatus('idle')
+    setJobRecommendationItems([])
+    setJobRecommendationMessage('')
+    lastJobRecommendationKeyRef.current = ''
     setPlannerState('loading')
 
     try {
@@ -1362,44 +1653,44 @@ export default function CareerSwitchPlannerPage({
       }
 
       const normalizedExperience = [
-        experienceText.trim(),
-        skills.length > 0 ? `Skills: ${skills.join(', ')}` : '',
+        draft.experienceText.trim(),
+        draft.skills.length > 0 ? `Skills: ${draft.skills.join(', ')}` : '',
         resumeStructuredSnapshot.certifications.length > 0
           ? `Certifications: ${resumeStructuredSnapshot.certifications.join(', ')}`
           : ''
       ]
         .filter(Boolean)
         .join('\n')
-      const confirmedSkills = mergeUniqueCaseInsensitive(skills, resumeStructuredSnapshot.certifications)
+      const confirmedSkills = mergeUniqueCaseInsensitive(draft.skills, resumeStructuredSnapshot.certifications)
       const currentRoleFallback =
-        currentRoleText.trim() || (confirmedSkills.length > 0 ? `${confirmedSkills[0]} specialist` : 'Career transition')
-      const targetRoleValue = recommendMode ? '' : targetRoleText.trim()
+        draft.currentRoleText.trim() || (confirmedSkills.length > 0 ? `${confirmedSkills[0]} specialist` : 'Career transition')
+      const targetRoleValue = draft.recommendMode ? '' : draft.targetRoleText.trim()
 
       const response = await fetch('/api/tools/career-switch-planner', {
         method: 'POST',
         headers: requestHeaders,
         body: JSON.stringify({
-          currentRoleText: currentRoleText.trim(),
-          targetRoleText: recommendMode ? null : targetRoleValue,
-          currentRoleOccupationId: currentRoleSelectedMatch?.occupationId ?? null,
+          currentRoleText: draft.currentRoleText.trim(),
+          targetRoleText: draft.recommendMode ? null : targetRoleValue,
+          currentRoleOccupationId: draft.currentRoleOccupationId,
           targetRoleOccupationId:
-            recommendMode ? null : targetRoleSelectedMatch?.occupationId ?? null,
-          recommendMode,
+            draft.recommendMode ? null : draft.targetRoleOccupationId,
+          recommendMode: draft.recommendMode,
           skills: confirmedSkills,
           experienceText: normalizedExperience,
-          userPostingText: userPostingText.trim(),
-          useMarketEvidence,
-          educationLevel,
-          workRegion,
-          locationText: locationText.trim(),
-          timelineBucket,
-          incomeTarget,
+          userPostingText: draft.userPostingText.trim(),
+          useMarketEvidence: draft.useMarketEvidence,
+          educationLevel: draft.educationLevel,
+          workRegion: draft.workRegion,
+          locationText: draft.locationText.trim(),
+          timelineBucket: draft.timelineBucket,
+          incomeTarget: draft.incomeTarget,
           currentRole: currentRoleFallback,
           targetRole: targetRoleValue,
-          notSureMode: recommendMode,
-          location: locationText.trim(),
-          timeline: timelineBucket,
-          education: educationLevel
+          notSureMode: draft.recommendMode,
+          location: draft.locationText.trim(),
+          timeline: draft.timelineBucket,
+          education: draft.educationLevel
         })
       })
 
@@ -1449,19 +1740,26 @@ export default function CareerSwitchPlannerPage({
         Array.isArray(data.alternatives)
       ) {
         const alternatives = data.alternatives
-          .map((item) => ({
-            occupationId: typeof item.occupationId === 'string' ? item.occupationId : '',
-            title: typeof item.title === 'string' ? item.title.trim() : '',
-            confidence: typeof item.confidence === 'number' ? item.confidence : 0,
-            source: typeof item.source === 'string' ? item.source : null,
-            stage: item.stage ?? null
-          }))
+          .map((item) => {
+            const candidate = item as Record<string, unknown>
+            return {
+              occupationId: typeof candidate.occupationId === 'string' ? candidate.occupationId : '',
+              title: typeof candidate.title === 'string' ? candidate.title.trim() : '',
+              code: typeof candidate.code === 'string' ? candidate.code : '',
+              confidence: typeof candidate.confidence === 'number' ? candidate.confidence : 0,
+              source: typeof candidate.source === 'string' ? candidate.source : null,
+              stage: typeof candidate.stage === 'string' ? candidate.stage : null,
+              specialization:
+                typeof candidate.specialization === 'string' ? candidate.specialization : null
+            }
+          })
           .filter((item) => item.occupationId && item.title)
 
         if (alternatives.length > 0) {
           setRoleSelectionPrompt({
             role: data.role,
             input: typeof data.input === 'string' ? data.input : '',
+            message: typeof data.message === 'string' ? data.message : undefined,
             alternatives
           })
           setInputError(data.message || 'Choose the closest role match before continuing.')
@@ -1502,17 +1800,17 @@ export default function CareerSwitchPlannerPage({
       setEarningsView('base')
       const resolvedCurrentRole =
         data?.report?.roleResolution?.current?.matched?.title ??
-        (currentRoleText.trim() || currentRoleFallback)
-      const resolvedTargetRole = recommendMode
+        (draft.currentRoleText.trim() || currentRoleFallback)
+      const resolvedTargetRole = draft.recommendMode
         ? ''
         : data?.report?.roleResolution?.target?.matched?.title ?? targetRoleValue
       setLastSubmittedSnapshot({
         currentRole: resolvedCurrentRole,
         targetRole: resolvedTargetRole,
-        currentRoleInput: currentRoleText.trim() || currentRoleFallback,
+        currentRoleInput: draft.currentRoleText.trim() || currentRoleFallback,
         targetRoleInput: targetRoleValue,
-        recommendMode,
-        timelineBucket
+        recommendMode: draft.recommendMode,
+        timelineBucket: draft.timelineBucket
       })
       setPlannerState('results')
       if (data?.usage) {
@@ -1526,27 +1824,182 @@ export default function CareerSwitchPlannerPage({
     }
   }
 
-  const handleUseExample = () => {
-    setCurrentRoleText('Sous Chef')
-    setTargetRoleText('Apprentice Electrician')
+  const shuffleExampleOptions = () => {
+    const nextExamples = pickRandomExampleScenarios(EXAMPLE_CARD_COUNT)
+    setSelectedExampleId(null)
+    setExampleOptions(nextExamples)
+    try {
+      window.localStorage.removeItem(EXAMPLE_SELECTED_STORAGE_KEY)
+      window.localStorage.setItem(
+        EXAMPLE_OPTIONS_STORAGE_KEY,
+        JSON.stringify(nextExamples.map((item) => item.id))
+      )
+    } catch {
+      // ignore local storage write failures
+    }
+  }
+
+  const handleGenerateExampleOptions = () => {
+    shuffleExampleOptions()
+  }
+
+  const applyExampleScenario = async (example: PlannerExampleScenario) => {
+    const draft = buildDraftFromExample(example)
+    setSelectedExampleId(example.id)
+    setCurrentRoleText(draft.currentRoleText)
+    setTargetRoleText(draft.targetRoleText)
     setCurrentRoleSelectedMatch(null)
     setTargetRoleSelectedMatch(null)
-    setExperienceText(
-      '8 years in kitchen operations. Led prep and line teams, maintained food-safety SOPs, worked long standing shifts, and kept service moving during high-volume rushes.'
-    )
-    setSkills(['Team leadership', 'Safety compliance', 'Fast-paced operations'])
-    setRecommendMode(false)
-    setWorkRegion('ca')
-    setLocationText('Toronto, Ontario, Canada')
+    setExperienceText(draft.experienceText)
+    setSkills(draft.skills)
+    setRecommendMode(draft.recommendMode)
+    setWorkRegion(draft.workRegion)
+    setLocationText(draft.locationText)
     setLocationTouched(true)
-    setTimelineBucket('3-6 months')
-    setEducationLevel('High school')
-    setIncomeTarget('$50-75k')
-    setUserPostingText('')
-    setUseMarketEvidence(marketEvidenceAvailable)
+    setTimelineBucket(draft.timelineBucket)
+    setEducationLevel(draft.educationLevel)
+    setIncomeTarget(draft.incomeTarget)
+    setUserPostingText(draft.userPostingText)
+    setUseMarketEvidence(marketEvidenceAvailable && draft.useMarketEvidence)
     dismissDetectedResumeData()
     setRoleSelectionPrompt(null)
     setInputError('')
+    try {
+      window.localStorage.setItem(EXAMPLE_SELECTED_STORAGE_KEY, example.id)
+      window.localStorage.setItem(
+        EXAMPLE_OPTIONS_STORAGE_KEY,
+        JSON.stringify(exampleOptions.length > 0 ? exampleOptions.map((item) => item.id) : [example.id])
+      )
+    } catch {
+      // ignore local storage write failures
+    }
+    await handleGeneratePlan({
+      ...draft,
+      useMarketEvidence: marketEvidenceAvailable && draft.useMarketEvidence
+    })
+  }
+
+  const handlePlanRecommendedRole = async (nextTargetRole: string) => {
+    setRecommendMode(false)
+    setTargetRoleText(nextTargetRole)
+    setTargetRoleSelectedMatch(null)
+    setRoleSelectionPrompt(null)
+    setInputError('')
+    await handleGeneratePlan({
+      recommendMode: false,
+      targetRoleText: nextTargetRole,
+      targetRoleOccupationId: null
+    })
+  }
+
+  const handleFetchJobRecommendations = async (options?: { forceRefresh?: boolean }) => {
+    const role = (targetRoleText.trim() || primaryCareer?.title || lastSubmittedSnapshot?.targetRole || '').trim()
+    const location = locationText.trim() || plannerReport?.transitionReport?.marketSnapshot.location || ''
+
+    if (!role || !location || !user) {
+      setJobRecommendationStatus('empty')
+      setJobRecommendationItems([])
+      setJobRecommendationMessage('Add a target role and location to pull live job matches.')
+      return
+    }
+
+    setJobRecommendationStatus('loading')
+    setJobRecommendationMessage('')
+
+    try {
+      const authHeaders = await getSupabaseAuthHeaders()
+      const requestHeaders: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (typeof authHeaders.Authorization === 'string') {
+        requestHeaders.Authorization = authHeaders.Authorization
+      }
+
+      const response = await fetch('/api/jobs/ingest', {
+        method: 'POST',
+        headers: requestHeaders,
+        body: JSON.stringify({
+          role,
+          location,
+          country: workRegion === 'ca' || workRegion === 'remote-ca' ? 'ca' : 'us',
+          useAdzuna: useMarketEvidence,
+          userPostingText: userPostingText.trim(),
+          forceRefresh: Boolean(options?.forceRefresh)
+        })
+      })
+
+      const data = (await response.json().catch(() => null)) as
+        | {
+            error?: string
+            message?: string
+            jobs?: Array<{
+              id?: string
+              title?: string
+              company?: string
+              location?: string
+              description?: string
+              sourceUrl?: string
+            }>
+            postingsCount?: number
+            baselineOnly?: boolean
+          }
+        | null
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Unable to load job recommendations right now.')
+      }
+
+      const jobs = Array.isArray(data?.jobs)
+        ? data.jobs
+            .map((item) => {
+              const candidate = item as Record<string, unknown>
+              return {
+                id: typeof candidate.id === 'string' ? candidate.id : '',
+                title: typeof candidate.title === 'string' ? candidate.title : '',
+                company: typeof candidate.company === 'string' ? candidate.company : 'Unknown company',
+                location: typeof candidate.location === 'string' ? candidate.location : location,
+                description: typeof candidate.description === 'string' ? candidate.description : '',
+                sourceUrl: typeof candidate.sourceUrl === 'string' ? candidate.sourceUrl : ''
+              }
+            })
+            .filter((item) => item.id && item.title)
+        : []
+
+      if (jobs.length === 0) {
+        setJobRecommendationStatus('empty')
+        setJobRecommendationItems([])
+        setJobRecommendationMessage(
+          data?.baselineOnly
+            ? 'Live job data is thin right now. Try refreshing, widening the location, or pasting a specific posting.'
+            : 'No job matches came back yet. Try a broader title, a nearby city, or refresh the search.'
+        )
+        return
+      }
+
+      const cards = buildJobRecommendationCards(
+        jobs,
+        role,
+        location,
+        plannerReport?.targetRequirements?.employerSignals ?? []
+      )
+      setJobRecommendationItems(cards)
+      setJobRecommendationStatus('success')
+      setJobRecommendationMessage('')
+    } catch (error) {
+      setJobRecommendationStatus('error')
+      setJobRecommendationItems([])
+      setJobRecommendationMessage(
+        error instanceof Error ? error.message : 'Unable to load job recommendations right now.'
+      )
+    }
+  }
+
+  const handleUseJobRecommendation = async (job: PlannerJobRecommendationCard) => {
+    setUserPostingText(job.description)
+    await handleGeneratePlan({
+      userPostingText: job.description,
+      targetRoleText: targetRoleText.trim() || job.title
+    })
   }
 
   const primaryCareer = plannerReport?.suggestedCareers?.[0] ?? null
@@ -1559,6 +2012,31 @@ export default function CareerSwitchPlannerPage({
   const transitionReport = plannerReport?.transitionReport ?? null
   const executionStrategy = plannerReport?.executionStrategy ?? null
   const transitionModeReport = plannerReport?.transitionMode ?? null
+  const transitionQuickWins = transitionModeReport
+    ? sharedDedupeBullets(transitionModeReport.gaps.strengths, 4)
+    : []
+  const transitionPrimaryGaps = transitionModeReport
+    ? sharedDedupeBullets(transitionModeReport.gaps.missing, 4)
+    : []
+  const transitionSkillMapStrengths = transitionModeReport
+    ? excludeExistingBullets(transitionModeReport.gaps.strengths, transitionQuickWins, 4)
+    : []
+  const transitionSkillMapMissing = transitionModeReport
+    ? excludeExistingBullets(transitionModeReport.gaps.missing, transitionPrimaryGaps, 4)
+    : []
+  const proofBuilderDefinition = transitionModeReport?.definitions?.proofBuilder ?? null
+  const transitionChannelPriorities = transitionModeReport
+    ? buildTransitionChannelPriorities(
+        transitionModeReport.routes.primary.title,
+        transitionModeReport.routes.primary.reason
+      )
+    : []
+  const recommendedRoleSections = plannerReport
+    ? buildRecommendedRoleSections(
+        plannerReport.suggestedCareers,
+        currentRoleText.trim() || lastSubmittedSnapshot?.currentRoleInput || ''
+      )
+    : []
   const canAnnualizeEarnings = transitionModeReport?.earnings.some((stage) =>
     stage.unit.toLowerCase().includes('/hour')
   ) ?? false
@@ -1579,6 +2057,26 @@ export default function CareerSwitchPlannerPage({
         .filter((item): item is string => Boolean(item))
     )
   )
+
+  useEffect(() => {
+    if (!user || !isTransitionMode) return
+    const role = (targetRoleText.trim() || primaryCareer?.title || lastSubmittedSnapshot?.targetRole || '').trim()
+    const location = (locationText.trim() || plannerReport?.transitionReport?.marketSnapshot.location || '').trim()
+    if (!role || !location) return
+
+    const requestKey = `${role}|${location}`
+    if (lastJobRecommendationKeyRef.current === requestKey) return
+    lastJobRecommendationKeyRef.current = requestKey
+    void handleFetchJobRecommendations()
+  }, [
+    user,
+    isTransitionMode,
+    targetRoleText,
+    primaryCareer?.title,
+    lastSubmittedSnapshot?.targetRole,
+    locationText,
+    plannerReport?.transitionReport?.marketSnapshot.location
+  ])
 
   return (
     <>
@@ -1832,8 +2330,9 @@ export default function CareerSwitchPlannerPage({
                   )}
                 </div>
                 <p className="mt-2 text-xs text-text-tertiary">
-                  Paste a target posting for highest-fidelity requirements. Market evidence pulls
-                  live demand and caches results.
+                  Paste a target posting for highest-fidelity requirements. If you leave this
+                  blank, market evidence searches live postings for your target role and location,
+                  then retries with close GPT search variants if direct matches are thin.
                 </p>
                 <label className="mt-3 flex flex-col gap-1.5">
                   <span className="text-[13px] font-semibold text-text-primary">
@@ -1872,8 +2371,8 @@ export default function CareerSwitchPlannerPage({
                 Choose your closest match for the {roleSelectionPrompt.role} role
               </p>
               <p className="mt-1 text-xs text-text-secondary">
-                We could not confidently place &quot;{roleSelectionPrompt.input || 'your entry'}&quot;.
-                Pick the closest occupation so the plan stays on the right pathway.
+                {roleSelectionPrompt.message ||
+                  `We found multiple close matches for "${roleSelectionPrompt.input || 'your entry'}". Pick the closest occupation so the plan stays on the right pathway.`}
               </p>
               <div className="mt-3 grid gap-2">
                 {roleSelectionPrompt.alternatives.map((option) => (
@@ -1903,8 +2402,17 @@ export default function CareerSwitchPlannerPage({
                       setInputError('')
                     }}
                   >
-                    <span>{option.title}</span>
-                    <span className="text-xs text-text-tertiary">{scoreToLabel(option.confidence)}</span>
+                    <span>
+                      {option.title}
+                      {option.stage ? (
+                        <span className="ml-2 text-xs text-text-tertiary">
+                          ({option.stage}{option.specialization ? ` | ${option.specialization}` : ''})
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="text-xs text-text-tertiary">
+                      {scoreToLabel(option.confidence)} ({option.confidence.toFixed(2)})
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1913,7 +2421,7 @@ export default function CareerSwitchPlannerPage({
 
           <div className="mt-5 flex flex-col gap-3 md:flex-row">
             <PrimaryButton
-              onClick={handleGeneratePlan}
+              onClick={() => void handleGeneratePlan()}
               isLoading={plannerState === 'loading'}
               className="md:flex-1"
               disabled={
@@ -1928,10 +2436,38 @@ export default function CareerSwitchPlannerPage({
             >
               {user ? 'Generate My Data-Backed Plan' : 'Sign In to Generate'}
             </PrimaryButton>
-            <Button variant="outline" onClick={handleUseExample} className="md:flex-1">
-              Use Example
+            <Button variant="outline" onClick={handleGenerateExampleOptions} className="md:flex-1">
+              Generate Example
+            </Button>
+            <Button variant="ghost" onClick={shuffleExampleOptions} className="md:flex-1">
+              Shuffle examples
             </Button>
           </div>
+
+          {exampleOptions.length > 0 ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {exampleOptions.map((example) => (
+                <button
+                  key={example.id}
+                  type="button"
+                  onClick={() => void applyExampleScenario(example)}
+                  className={`rounded-lg border p-4 text-left transition-colors ${
+                    selectedExampleId === example.id
+                      ? 'border-accent bg-accent-light'
+                      : 'border-border-light bg-bg-secondary hover:border-accent'
+                  }`}
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                    Example
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-text-primary">
+                    {example.currentRole} to {example.targetRole}
+                  </p>
+                  <p className="mt-2 text-sm leading-[1.6] text-text-secondary">{example.summary}</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <p className="mt-3 text-[13px] text-text-tertiary">
             We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.
@@ -2072,7 +2608,7 @@ export default function CareerSwitchPlannerPage({
                             Quick wins
                           </p>
                           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                            {transitionModeReport.gaps.strengths.slice(0, 4).map((item) => (
+                            {transitionQuickWins.map((item) => (
                               <li key={`quick-win-${item}`}>- {item}</li>
                             ))}
                           </ul>
@@ -2083,7 +2619,7 @@ export default function CareerSwitchPlannerPage({
                             Primary gaps
                           </p>
                           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                            {transitionModeReport.gaps.missing.slice(0, 4).map((item) => (
+                            {transitionPrimaryGaps.map((item) => (
                               <li key={`primary-gap-${item}`}>- {item}</li>
                             ))}
                           </ul>
@@ -2144,6 +2680,14 @@ export default function CareerSwitchPlannerPage({
                   <h3 className="text-lg font-bold text-text-primary">90-Day Plan</h3>
                   <Badge variant="default">Weekly outputs included</Badge>
                 </div>
+                {proofBuilderDefinition ? (
+                  <details className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                    <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+                      What&apos;s Proof Builder?
+                    </summary>
+                    <p className="mt-2 text-sm text-text-secondary">{proofBuilderDefinition}</p>
+                  </details>
+                ) : null}
                 {transitionModeReport.plan90.map((phase, index) => (
                   <div key={phase.phase} id={index === 0 ? 'transition-plan-phase-1' : undefined}>
                     <ReportSection
@@ -2212,10 +2756,9 @@ export default function CareerSwitchPlannerPage({
                           Channel priorities
                         </p>
                         <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                          <li>- Cold call strategy: reach employers and ask for the hiring contact instead of waiting on portal status.</li>
-                          <li>- Online applications: keep them targeted and paired with proof of work, not generic volume.</li>
-                          <li>- Union / licensing route: use it early if the route has a formal gate or sponsorship path.</li>
-                          <li>- Temp agencies: use them as a deliberate bridge, not as an afterthought after momentum drops.</li>
+                          {transitionChannelPriorities.map((item) => (
+                            <li key={`channel-priority-${item}`}>- {item}</li>
+                          ))}
                         </ul>
                       </div>
                     </div>
@@ -2246,28 +2789,40 @@ export default function CareerSwitchPlannerPage({
                 <div className="space-y-5">
                   <Card className="space-y-4 p-5">
                     <h3 className="text-lg font-bold text-text-primary">Skill Gap Map</h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="rounded-lg border border-success/20 bg-success/10 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
-                          Transferable strengths
-                        </p>
-                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                          {transitionModeReport.gaps.strengths.map((item) => (
-                            <li key={`gap-strength-${item}`}>- {item}</li>
-                          ))}
-                        </ul>
+                    {transitionSkillMapStrengths.length > 0 || transitionSkillMapMissing.length > 0 ? (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {transitionSkillMapStrengths.length > 0 ? (
+                          <div className="rounded-lg border border-success/20 bg-success/10 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                              Additional transferable strengths
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                              {transitionSkillMapStrengths.map((item) => (
+                                <li key={`gap-strength-${item}`}>- {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {transitionSkillMapMissing.length > 0 ? (
+                          <div className="rounded-lg border border-error/20 bg-error-light p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
+                              Additional gaps to close
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                              {transitionSkillMapMissing.map((item) => (
+                                <li key={`gap-missing-${item}`}>- {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
                       </div>
-                      <div className="rounded-lg border border-error/20 bg-error-light p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
-                          Missing credentials / proof
+                    ) : (
+                      <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                        <p className="text-sm text-text-secondary">
+                          Quick wins and primary gaps are already summarized in the hero above, so this section focuses on the first required actions.
                         </p>
-                        <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-                          {transitionModeReport.gaps.missing.map((item) => (
-                            <li key={`gap-missing-${item}`}>- {item}</li>
-                          ))}
-                        </ul>
                       </div>
-                    </div>
+                    )}
                     <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                         First 3 required actions
@@ -3434,6 +3989,137 @@ export default function CareerSwitchPlannerPage({
                 </>
               )}
 
+              {recommendedRoleSections.length > 0 ? (
+                <Card className="space-y-4 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-text-primary">Recommended Roles</h3>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        These are grouped from your resolved role, your current signals, and the strongest nearby pathways.
+                      </p>
+                    </div>
+                    {currentRoleResolution?.matched &&
+                    currentRoleResolution.matched.confidence < 0.72 ? (
+                      <Badge variant="default">Refine current role for tighter matches</Badge>
+                    ) : null}
+                  </div>
+                  <div className="space-y-4">
+                    {recommendedRoleSections.map((section) => (
+                      <div key={section.title} className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <p className="text-base font-semibold text-text-primary">{section.title}</p>
+                            <p className="mt-1 text-sm text-text-secondary">{section.description}</p>
+                          </div>
+                          <Badge variant="default">{section.roles.length} roles</Badge>
+                        </div>
+                        <div className="mt-4 grid gap-3 md:grid-cols-2">
+                          {section.roles.map((role) => (
+                            <div key={`${section.title}-${role.title}`} className="rounded-lg border border-border-light bg-surface p-4">
+                              <p className="text-base font-semibold text-text-primary">{role.title}</p>
+                              <ul className="mt-2 space-y-2 text-sm text-text-secondary">
+                                {role.why.map((item) => (
+                                  <li key={`${role.title}-${item}`}>- {item}</li>
+                                ))}
+                              </ul>
+                              <p className="mt-3 text-xs text-text-tertiary">
+                                Difficulty: {role.difficulty} | Timeline: {role.transitionTime}
+                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mt-3"
+                                onClick={() => void handlePlanRecommendedRole(role.title)}
+                              >
+                                Plan this transition
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+
+              {plannerReport && isTransitionMode ? (
+                <Card className="space-y-4 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-text-primary">Job Recommendations</h3>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        Live postings tied to your current target role and location.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void handleFetchJobRecommendations({ forceRefresh: true })}
+                      disabled={jobRecommendationStatus === 'loading'}
+                    >
+                      {jobRecommendationStatus === 'loading' ? 'Refreshing...' : 'Refresh jobs'}
+                    </Button>
+                  </div>
+
+                  {jobRecommendationStatus === 'loading' ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {[0, 1, 2, 3].map((index) => (
+                        <div key={index} className="h-28 animate-pulse rounded-lg border border-border-light bg-bg-secondary" />
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {jobRecommendationStatus === 'error' ? (
+                    <div className="rounded-lg border border-error/25 bg-error-light p-4">
+                      <p className="text-sm text-error">{jobRecommendationMessage}</p>
+                      <p className="mt-2 text-sm text-text-secondary">
+                        Try refreshing, widening the location, or pasting a specific posting to tailor the plan.
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {jobRecommendationStatus === 'empty' ? (
+                    <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                      <p className="text-sm text-text-secondary">{jobRecommendationMessage}</p>
+                    </div>
+                  ) : null}
+
+                  {jobRecommendationStatus === 'success' ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {jobRecommendationItems.map((job) => (
+                        <div key={job.id} className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="text-base font-semibold text-text-primary">{job.title}</p>
+                              <p className="mt-1 text-sm text-text-secondary">{job.company}</p>
+                              <p className="mt-1 text-xs text-text-tertiary">{job.location}</p>
+                            </div>
+                            {job.sourceUrl ? (
+                              <Link href={job.sourceUrl} className="text-xs font-medium text-accent hover:text-accent-hover">
+                                View source
+                              </Link>
+                            ) : null}
+                          </div>
+                          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                            {job.reasons.map((item) => (
+                              <li key={`${job.id}-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-3"
+                            onClick={() => void handleUseJobRecommendation(job)}
+                          >
+                            Use this job to tailor plan
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </Card>
+              ) : null}
+
               {plannerReport ? (
                 <Card className="p-5">
                   <details>
@@ -3476,19 +4162,6 @@ export default function CareerSwitchPlannerPage({
                 </Card>
               ) : null}
 
-              {!isTransitionMode && recommendMode && plannerResult.recommendations.length > 0 && (
-                <Card className="p-5">
-                  <h3 className="text-lg font-bold text-text-primary">Suggested Alternative Careers</h3>
-                  <div className="mt-3 grid gap-3 md:grid-cols-3">
-                    {plannerResult.recommendations.map((recommendation) => (
-                      <RoleRecommendationCard
-                        key={recommendation.title}
-                        recommendation={recommendation}
-                      />
-                    ))}
-                  </div>
-                </Card>
-              )}
             </div>
           ) : null}
         </div>
