@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "node --test tests/*.test.mjs",
     "qa:transition-mode": "tsx scripts/qa-transition-mode.ts",
+    "qa:roadmap-planner": "tsx scripts/roadmap-planner-qa.ts",
     "validate:transition-mode": "tsx scripts/validate-transition-mode.ts",
     "ingest:career-data": "node scripts/ingest-career-data.mjs",
     "preflight:planner": "node scripts/planner-preflight.mjs",
