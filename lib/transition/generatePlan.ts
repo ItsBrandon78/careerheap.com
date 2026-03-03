@@ -646,8 +646,28 @@ function buildOccupationProfile(
   const targetResolution = input.targetResolution ?? null
   const requirements = input.report.targetRequirements
   const suggested = input.report.suggestedCareers[0] ?? null
+  const curatedProfile = input.report.careerPathwayProfile ?? null
+  const curatedEducation =
+    curatedProfile?.requirements.must_have.find((item) =>
+      /\beducation|degree|diploma|school|math\b/i.test(item.type)
+    )?.name ?? ''
+  const curatedCertifications = [
+    ...(curatedProfile?.requirements.must_have
+      .filter((item) => /\b(cert|license|licen[cs]e|exam|training|legal|health_safety)\b/i.test(item.type))
+      .map((item) => item.name) ?? []),
+    ...(curatedProfile?.requirements.nice_to_have
+      .filter((item) => /\b(cert|license|licen[cs]e|training|health_safety)\b/i.test(item.type))
+      .map((item) => item.name) ?? [])
+  ]
+  const curatedHardGates = curatedProfile?.requirements.must_have.map((item) => item.name) ?? []
+  const curatedEmployerSignals = [
+    ...(curatedProfile?.skills.core ?? []),
+    ...(curatedProfile?.skills.tools_tech ?? []),
+    ...(curatedProfile?.skills.soft_skills ?? [])
+  ]
   const displayTitle =
     targetResolution?.rawInputTitle ||
+    curatedProfile?.meta.title ||
     targetResolution?.title ||
     suggested?.title ||
     input.report.transitionReport?.marketSnapshot.role ||
@@ -662,7 +682,7 @@ function buildOccupationProfile(
     ].join(' ')
   )
   const inferredRegulated =
-    Boolean(requirements?.regulated || suggested?.regulated) ||
+    Boolean(curatedProfile?.meta.regulated || requirements?.regulated || suggested?.regulated) ||
     /\b(orthodont|dentist|anesthesi|psychiat|surgeon|cardiolog|physician|doctor|pharmac|nurs|therap|midwife|clinical)\b/.test(
       regulatedTitleSignal
     ) ||
@@ -670,16 +690,31 @@ function buildOccupationProfile(
 
   return {
     title: displayTitle,
-    code: targetResolution?.code || suggested?.occupationId || input.targetRole || 'target-role',
+    code:
+      targetResolution?.code ||
+      curatedProfile?.meta.codes.trade_code ||
+      curatedProfile?.meta.codes.noc_2021 ||
+      suggested?.occupationId ||
+      input.targetRole ||
+      'target-role',
     regulated: inferredRegulated,
-    education: requirements?.education ?? '',
-    certifications: requirements?.certifications ?? [],
-    hardGates: requirements?.hardGates ?? [],
-    employerSignals: requirements?.employerSignals ?? [],
+    education: curatedEducation || requirements?.education || '',
+    certifications: dedupeBullets([...(requirements?.certifications ?? []), ...curatedCertifications], 8),
+    hardGates: dedupeBullets([...(requirements?.hardGates ?? []), ...curatedHardGates], 8),
+    employerSignals: dedupeBullets(
+      [...(requirements?.employerSignals ?? []), ...curatedEmployerSignals],
+      8
+    ),
     apprenticeshipHours: requirements?.apprenticeshipHours ?? null,
     examRequired: requirements?.examRequired ?? null,
     stage: targetResolution?.stage ?? null,
-    region: targetResolution?.region ?? null,
+    region:
+      targetResolution?.region ??
+      (curatedProfile?.meta.jurisdiction.country === 'CA'
+        ? 'CA'
+        : curatedProfile?.meta.jurisdiction.country === 'US'
+          ? 'US'
+          : null),
     relationship
   }
 }
@@ -1054,6 +1089,29 @@ function buildTimeline(
   templateKey: PlanTemplateKey,
   difficultyScore: number
 ) {
+  const curatedProfile = report.careerPathwayProfile ?? null
+  if (curatedProfile && curatedProfile.timeline.phases.length >= 3) {
+    const employable = curatedProfile.timeline.time_to_employable
+    const minMonths = clamp(Math.max(1, Math.round(employable.min_weeks / 4.3)), 1, 48)
+    const maxMonths = clamp(
+      Math.max(minMonths, Math.round(employable.max_weeks / 4.3)),
+      minMonths,
+      48
+    )
+    const qualificationWindow = curatedProfile.timeline.time_to_full_qualification
+    const assumptions = dedupeBullets(
+      [
+        ...TEMPLATE_ASSUMPTIONS[templateKey],
+        `Full qualification can take about ${qualificationWindow.min_months}-${qualificationWindow.max_months} months, even if you can become employable sooner.`,
+        curatedProfile.meta.regulated
+          ? 'Exact sequence still varies by province, regulator, employer, or school.'
+          : ''
+      ],
+      4
+    )
+    return { minMonths, maxMonths, assumptions }
+  }
+
   const fromCareer = parseTimelineRange(report.suggestedCareers[0]?.transitionTime ?? '')
 
   const minimumFloor =
@@ -1198,6 +1256,65 @@ function buildRoadmapGuide(
   plan90: TransitionModeReport['plan90'],
   safeFirst3Steps: string[]
 ) {
+  const curatedProfile = context.report.careerPathwayProfile ?? null
+  if (curatedProfile) {
+    const phases = curatedProfile.timeline.phases.slice(0, 3).map((phase) => ({
+      label: phase.phase,
+      focus:
+        phase.milestones[0]?.done_when ??
+        `Move the ${phase.phase.toLowerCase()} phase forward for ${curatedProfile.meta.title}.`,
+      steps: phase.milestones.map((milestone) => ({
+        title: milestone.title,
+        whyItMatters: `This keeps you moving through the ${phase.phase.toLowerCase()} phase for ${curatedProfile.meta.title}.`,
+        timeRange: `${phase.duration.min_weeks}-${phase.duration.max_weeks} weeks`,
+        costRange:
+          phase.phase.toLowerCase().includes('credential') || phase.phase.toLowerCase().includes('exam')
+            ? `${costPrefix(context)}150-${costPrefix(context)}2,500+ (varies by province, employer, or school)`
+            : `${costPrefix(context)}0-${costPrefix(context)}500+ (varies by employer or provider)`,
+        prereqs: dedupeBullets(
+          [
+            ...curatedProfile.requirements.must_have.slice(0, 3).map((item) => item.name),
+            phase.phase.toLowerCase().includes('training')
+              ? curatedProfile.entry_paths[0]?.steps[1] ?? ''
+              : ''
+          ],
+          3
+        ),
+        proofChecklist: fillToLength(
+          dedupeBullets(
+            [
+              milestone.done_when,
+              'Save the exact confirmation email, registration, or checklist that proves this milestone is complete.',
+              phase.phase.toLowerCase().includes('start')
+                ? 'Write down the next named checkpoint and who controls it.'
+                : ''
+            ],
+            3
+          ),
+          2,
+          ['One visible checkpoint completed this week.', 'One saved note showing what changed.']
+        ).slice(0, 3)
+      }))
+    }))
+
+    const next7Days = fillToLength(
+      dedupeBullets(
+        [
+          ...safeFirst3Steps,
+          ...((curatedProfile.entry_paths[0]?.steps ?? []).slice(0, 3))
+        ],
+        5
+      ),
+      3,
+      safeFirst3Steps
+    ).slice(0, 5)
+
+    return {
+      phases,
+      next7Days
+    } satisfies NonNullable<TransitionModeReport['roadmapGuide']>
+  }
+
   const phaseLabels = ['0-30 Days', '30-90 Days', '3-12 Months'] as const
   const phaseFocusFallbacks = [
     context.templateKey === 'regulated_profession'

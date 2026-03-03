@@ -1,5 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { CareerPathwayProfile } from '@/lib/career-pathway/schema'
 import { CAREER_MAP_SCORE_WEIGHTS } from '@/lib/planner/contract'
+import { getCareerPathwayProfile } from '@/lib/server/careerPathwayProfiles'
 import {
   ensureEvidenceRequirements,
   isMarketEvidenceConfigured
@@ -382,6 +384,7 @@ export interface CareerPlannerAnalysis {
       datasetsUsed: string[]
       fxRateUsed: string | null
     }
+    careerPathwayProfile?: CareerPathwayProfile | null
   }
   legacy: {
     score: number
@@ -1526,6 +1529,76 @@ async function selectByIdsInChunks<T>(args: {
   return rows
 }
 
+function toCuratedResourceLinks(profile: CareerPathwayProfile) {
+  return [
+    ...profile.resources.official.map((item) => ({
+      label: item.title,
+      url: item.url,
+      type: 'official' as const
+    })),
+    ...profile.resources.training.map((item) => ({
+      label: item.title,
+      url: item.url,
+      type: 'official' as const
+    })),
+    ...profile.resources.job_search.map((item) => ({
+      label: item.title,
+      url: item.url,
+      type: 'curated' as const
+    }))
+  ]
+}
+
+function mergeCuratedTargetRequirements(args: {
+  existing: CareerPlannerAnalysis['report']['targetRequirements']
+  profile: CareerPathwayProfile
+  apprenticeshipHours: number | null
+  examRequired: boolean | null
+}) {
+  const { existing, profile, apprenticeshipHours, examRequired } = args
+
+  const requiredItems = profile.requirements.must_have.map((item) => item.name)
+  const helpfulItems = profile.requirements.nice_to_have.map((item) => item.name)
+  const educationRequirement =
+    profile.requirements.must_have.find((item) => /education|degree|diploma|math|school/i.test(item.type))?.name ??
+    existing.education
+
+  return {
+    education: educationRequirement,
+    certifications: uniqueStrings([
+      ...existing.certifications,
+      ...profile.requirements.must_have
+        .filter((item) => /cert|license|licen[cs]e|exam|training|legal|health_safety/i.test(item.type))
+        .map((item) => item.name),
+      ...profile.requirements.nice_to_have
+        .filter((item) => /cert|license|licen[cs]e|health_safety|training/i.test(item.type))
+        .map((item) => item.name)
+    ]).slice(0, 8),
+    hardGates: uniqueStrings([...requiredItems, ...existing.hardGates]).slice(0, 8),
+    employerSignals: uniqueStrings([
+      ...existing.employerSignals,
+      ...profile.skills.core,
+      ...profile.skills.tools_tech,
+      ...profile.skills.soft_skills,
+      ...helpfulItems
+    ]).slice(0, 8),
+    apprenticeshipHours,
+    examRequired,
+    regulated: profile.meta.regulated || existing.regulated,
+    sources: uniqueStrings([
+      ...existing.sources.map((item) => `${item.label}|${item.url}`),
+      ...profile.sources.map((item) => `${item.title}|${item.url}`),
+      ...toCuratedResourceLinks(profile).map((item) => `${item.label}|${item.url}`)
+    ])
+      .map((value) => {
+        const [label, url] = value.split('|')
+        return { label, url }
+      })
+      .filter((item) => item.label && item.url)
+      .slice(0, 8)
+  } satisfies CareerPlannerAnalysis['report']['targetRequirements']
+}
+
 export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput): Promise<CareerPlannerAnalysis> {
   const supabase = createAdminClient()
   const country = inferCountry(input.location)
@@ -1679,7 +1752,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
           sourcePriority: ['user_posting', 'adzuna', 'onet']
         },
         bottleneck: null,
-        dataTransparency: { inputsUsed: ['currentRole', 'experienceText'], datasetsUsed: [], fxRateUsed: null }
+        dataTransparency: { inputsUsed: ['currentRole', 'experienceText'], datasetsUsed: [], fxRateUsed: null },
+        careerPathwayProfile: null
       },
       legacy: {
         score: 0,
@@ -2001,6 +2075,14 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     hasNonBaselineEvidence(item)
   )
   const usesBaselineFallback = baselineFallbackRequirements.length > 0
+  const careerPathwayProfile = best
+    ? await getCareerPathwayProfile({
+        occupationId: best.occupationId,
+        targetRole: input.targetRole || best.title,
+        region: input.location || country,
+        tradeCode: best.tradeRequirement?.tradeCode ?? null
+      })
+    : null
 
   const gateRequirements = allRequirements.filter((item) => item.type === 'gate')
   const hardSkillRequirements = allRequirements.filter((item) => item.type === 'hard_skill')
@@ -2590,11 +2672,13 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   const executionStrategy = await generateExecutionStrategyFromContext(executionContext)
 
   const transitionReport: CareerPlannerAnalysis['report']['transitionReport'] = {
-    marketSnapshot: {
-      role: evidenceResult.query?.role ?? evidenceRole,
-      location: evidenceResult.query?.location ?? evidenceLocation,
-      summaryLine: `Based on ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`,
-      topRequirements: allRequirements
+      marketSnapshot: {
+        role: evidenceResult.query?.role ?? evidenceRole,
+        location: evidenceResult.query?.location ?? evidenceLocation,
+        summaryLine: careerPathwayProfile
+          ? `${careerPathwayProfile.snapshot.one_liner} Verified against curated pathway data and ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`
+          : `Based on ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`,
+        topRequirements: allRequirements
         .filter((item) => item.type !== 'tool')
         .sort(sortByFrequency)
         .slice(0, 5)
@@ -2667,6 +2751,49 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       .slice(0, 6)
   }
 
+  const mergedTargetRequirements = careerPathwayProfile
+    ? mergeCuratedTargetRequirements({
+        existing: targetRequirements,
+        profile: careerPathwayProfile,
+        apprenticeshipHours: best?.tradeRequirement?.hours ?? null,
+        examRequired:
+          typeof best?.tradeRequirement?.examRequired === 'boolean'
+            ? best.tradeRequirement.examRequired
+            : null
+      })
+    : targetRequirements
+
+  const mergedLinksResources = careerPathwayProfile
+    ? uniqueStrings([
+        ...toCuratedResourceLinks(careerPathwayProfile).map(
+          (link) => `${link.label}|${link.url}|${link.type}`
+        ),
+        ...[
+          ...(best?.officialLinks ?? []).map(
+            (link) => `${link.label}|${link.url}|official`
+          ),
+          ...(best?.wage?.source_url
+            ? [`${best.wage.source} wage source|${best.wage.source_url}|official`]
+            : [])
+        ]
+      ])
+        .map((value) => {
+          const [label, url, type] = value.split('|')
+          return {
+            label,
+            url,
+            type: type === 'curated' ? ('curated' as const) : ('official' as const)
+          }
+        })
+        .filter((item) => item.label && item.url)
+        .slice(0, 10)
+    : [
+        ...(best?.officialLinks ?? []).map((link) => ({ ...link, type: 'official' as const })),
+        ...(best?.wage?.source_url
+          ? [{ label: `${best.wage.source} wage source`, url: best.wage.source_url, type: 'official' as const }]
+          : [])
+      ].slice(0, 8)
+
   const bottleneck: CareerPlannerAnalysis['report']['bottleneck'] =
     missingRequirements[0]
       ? {
@@ -2736,11 +2863,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     skillGaps,
     roadmap,
     resumeReframe: resumeReframes,
-    linksResources: [
-      ...(best?.officialLinks ?? []).map((link) => ({ ...link, type: 'official' as const })),
-      ...(best?.wage?.source_url ? [{ label: `${best.wage.source} wage source`, url: best.wage.source_url, type: 'official' as const }] : [])
-    ].slice(0, 8),
-    targetRequirements,
+    linksResources: mergedLinksResources,
+    targetRequirements: mergedTargetRequirements,
     transitionSections: {
       mandatoryGateRequirements,
       coreHardSkills,
@@ -2774,6 +2898,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         'occupation_requirements',
         'occupation_wages',
         'trade_requirements',
+        ...(careerPathwayProfile ? ['career_pathway_profiles'] : []),
         ...(hasEffectiveAdzunaEvidence
           ? ['job_queries', 'job_postings', 'job_requirements']
           : []),
@@ -2781,7 +2906,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         ...(usesBaselineFallback ? ['onet_baseline'] : [])
       ]),
       fxRateUsed: fxRate ? `USD/CAD ${fxRate.rate} (${fxRate.as_of_date})` : null
-    }
+    },
+    careerPathwayProfile
   }
 
   return {

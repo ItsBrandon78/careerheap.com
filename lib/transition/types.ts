@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { CareerPathwayProfile } from '@/lib/career-pathway/schema'
 
 export type PlanTemplateKey =
   | 'regulated_trade'
@@ -305,6 +306,7 @@ export type PlannerReportSource = {
     datasetsUsed: string[]
     fxRateUsed: string | null
   }
+  careerPathwayProfile?: CareerPathwayProfile | null
 }
 
 export type OccupationResolutionSummary = {
