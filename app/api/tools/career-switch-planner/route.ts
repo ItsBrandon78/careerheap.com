@@ -503,13 +503,13 @@ export async function POST(request: Request) {
         : null
     })
     const enhancementTargetRole =
-      resolvedTargetRoleTitle ||
       input.targetRole ||
       input.targetRoleText ||
+      resolvedTargetRoleTitle ||
       finalReport.suggestedCareers[0]?.title ||
       transitionMode.routes.primary.title
     const transitionEnhancement = await getCachedOrGenerateTransitionEnhancement({
-      currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText || 'Career transition',
+      currentRole: input.currentRole || input.currentRoleText || resolvedCurrentRoleTitle || 'Career transition',
       targetRole: enhancementTargetRole,
       region: input.workRegion || input.location || 'United States',
       location: input.location,

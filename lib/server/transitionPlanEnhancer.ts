@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { TransitionModeReport } from '@/lib/transition/types'
 
-const CACHE_VERSION = 'transition-plan-v2'
+const CACHE_VERSION = 'transition-plan-v3'
 const MODEL_DEFAULT = 'gpt-4.1-mini'
 
 export const TransitionStructuredPlanSchema = z
@@ -133,7 +133,22 @@ function salaryProjection(input: EnhancementInput) {
   return `${first.stage}: ${first.rangeLow}-${first.rangeHigh} ${first.unit}; ${last.stage}: ${last.rangeLow}-${last.rangeHigh} ${last.unit}`
 }
 
+function formatRegionLabel(region: string, location: string) {
+  const trimmedLocation = location.trim()
+  if (trimmedLocation) return trimmedLocation
+
+  const normalized = normalizeText(region)
+  if (normalized === 'ca' || normalized === 'canada' || normalized === 'remote ca') return 'Canada'
+  if (normalized === 'us' || normalized === 'usa' || normalized === 'united states' || normalized === 'remote us') {
+    return 'the United States'
+  }
+  if (normalized === 'either') return 'the United States or Canada'
+  return region.trim() || 'your area'
+}
+
 function deterministicScripts(input: EnhancementInput) {
+  return buildProfessionalScripts(input)
+
   const route = input.transitionMode.routes.primary.title
   const firstStep = input.transitionMode.routes.primary.firstStep
   const targetTitle = input.targetRole
@@ -152,6 +167,39 @@ function deterministicScripts(input: EnhancementInput) {
       'If you can share what makes an entry-level candidate credible in your hiring process, I would appreciate it.',
       '',
       'Best,',
+      'Your Name'
+    ].join('\n'),
+    source: 'deterministic'
+  } satisfies TransitionPlanScripts
+}
+
+function buildProfessionalScripts(input: EnhancementInput) {
+  const route = input.transitionMode.routes.primary.title
+  const firstStep = input.transitionMode.routes.primary.firstStep
+  const targetTitle = input.targetRole.trim() || 'this role'
+  const currentTitle = input.currentRole.trim() || 'my current role'
+  const regionLabel = formatRegionLabel(input.region, input.location)
+
+  return {
+    call: [
+      `Hi, this is [Your Name]. I'm transitioning from ${currentTitle} into ${targetTitle} and I'm calling about entry-level openings in ${regionLabel}.`,
+      `I'm following the ${route.toLowerCase()} path and I have already started ${firstStep.toLowerCase()}.`,
+      'Are you hiring helpers, trainees, or apprentices right now?',
+      'If not, could you tell me what skills, tickets, or first-step experience you expect before you speak with someone new?',
+      'If it is easier, I am happy to follow up by email or continue by phone.'
+    ].join(' '),
+    email: [
+      `Subject: Entry path into ${targetTitle}`,
+      '',
+      'Hello,',
+      '',
+      `I'm transitioning from ${currentTitle} into ${targetTitle} and mapping the right entry path in ${regionLabel}.`,
+      `I'm following the ${route.toLowerCase()} route and I have already started ${firstStep.toLowerCase()}.`,
+      'Are you currently hiring entry-level candidates, helpers, trainees, or apprentices?',
+      'If you are not hiring today, I would still appreciate two quick pointers on the skills, tickets, or first-step experience you expect before you take a first conversation.',
+      'If it helps, I can follow up by email or schedule a short call whenever it is convenient.',
+      '',
+      'Thank you,',
       'Your Name'
     ].join('\n'),
     source: 'deterministic'
@@ -287,17 +335,22 @@ async function generateWithLlm(input: EnhancementInput & { fallbackPlan: Transit
               'Use only provided requirements, timelines, and salary ranges.',
               'If the user is not a strong match, explain the gap constructively and name the first 3 actions.',
               'Keep compatibility_level as Low, Medium, or High.',
-              'Call script must sound like a short real phone opener.',
+              'Call script must sound like a short, professional phone opener.',
               'Email must sound like a professional apprenticeship, hiring, or entry-path inquiry.',
+              'Use natural geography labels, never raw abbreviations like "ca" or "us".',
+              'Ask whether they are hiring and offer a short follow-up by phone or email.',
+              'Avoid casual phrasing such as "I am moving from X into Y in ca".',
               'Do not invent credentials, exams, or legal requirements.'
             ],
             input: {
               current_role: input.currentRole,
               target_role: input.targetRole,
               region: input.region,
+              region_display: formatRegionLabel(input.region, input.location),
               location: input.location,
               experience_level_bucket: inferExperienceLevelBucket(input.experienceText),
               deterministic_plan: input.fallbackPlan,
+              target_requirements: input.report.targetRequirements ?? null,
               transition_mode: {
                 difficulty: input.transitionMode.difficulty,
                 timeline: input.transitionMode.timeline,

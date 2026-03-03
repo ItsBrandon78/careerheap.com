@@ -71,6 +71,17 @@ type OcrCapabilityMode = 'native' | 'fallback' | 'unavailable'
 type OcrCapabilityStatus = 'idle' | 'loading' | 'ready' | 'error'
 type WizardStep = 0 | 1 | 2
 type RoadmapTabKey = '0-30' | '30-90' | '3-12'
+type DashboardRoadmapItem = {
+  title: string
+  detail: string
+  bullets: string[]
+}
+type DashboardRoadmapTab = {
+  key: RoadmapTabKey
+  label: string
+  summary: string
+  items: DashboardRoadmapItem[]
+}
 type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
@@ -1021,6 +1032,239 @@ function buildTransitionChannelPriorities(routeTitle: string, routeReason: strin
   ]
 }
 
+function joinReadableList(values: string[]) {
+  if (values.length === 0) return ''
+  if (values.length === 1) return values[0]
+  if (values.length === 2) return `${values[0]} and ${values[1]}`
+  return `${values.slice(0, -1).join(', ')}, and ${values[values.length - 1]}`
+}
+
+function cleanRoadmapLabel(value: string) {
+  return value
+    .replace(/\s+/g, ' ')
+    .replace(/\bjob description\b/gi, '')
+    .replace(/\bbefore applying\b/gi, '')
+    .replace(/\s+,/g, ',')
+    .trim()
+    .replace(/[.;:,]+$/g, '')
+}
+
+function normalizeRoadmapBullets(values: string[], max = 4) {
+  return sharedDedupeBullets(
+    values
+      .map((value) => cleanRoadmapLabel(mapSkillGapLabel(value)))
+      .filter(Boolean),
+    max
+  )
+}
+
+function buildDashboardRoadmapTabs(input: {
+  plannerReport: PlannerReportPayload | null
+  transitionModeReport: NonNullable<PlannerReportPayload['transitionMode']> | null
+  targetRole: string
+  location: string
+}) {
+  const { plannerReport, transitionModeReport, targetRole, location } = input
+  if (!plannerReport || !transitionModeReport) return [] as DashboardRoadmapTab[]
+
+  const targetLabel =
+    targetRole.trim() || plannerReport.transitionReport?.marketSnapshot.role || 'this role'
+  const locationLabel =
+    plannerReport.transitionReport?.marketSnapshot.location || location.trim() || 'your area'
+  const targetRequirements = plannerReport.targetRequirements
+  const transitionSections = plannerReport.transitionSections
+  const marketSnapshot = plannerReport.transitionReport?.marketSnapshot
+  const commonSkills = normalizeRoadmapBullets([
+    ...(marketSnapshot?.topRequirements ?? []).map((item) => item.label),
+    ...(transitionSections?.coreHardSkills ?? []).map((item) => item.label)
+  ])
+  const commonTools = normalizeRoadmapBullets([
+    ...(marketSnapshot?.topTools ?? []).map((item) => item.label),
+    ...(transitionSections?.toolsPlatforms ?? []).map((item) => item.label)
+  ])
+  const entryTickets = normalizeRoadmapBullets([
+    ...(targetRequirements?.certifications ?? []),
+    ...(targetRequirements?.hardGates ?? [])
+  ])
+  const employerSignals = normalizeRoadmapBullets([
+    ...(targetRequirements?.employerSignals ?? []),
+    ...(transitionSections?.experienceSignals ?? []).map((item) => item.label)
+  ])
+  const firstSteps = normalizeRoadmapBullets(transitionModeReport.gaps.first3Steps)
+  const phaseThreeTargets = normalizeRoadmapBullets([
+    ...(transitionModeReport.plan90[2]?.weeklyTargets ?? []),
+    ...(transitionSections?.roadmapPlan.strongCandidatePath ?? [])
+  ])
+  const channelPriorities = normalizeRoadmapBullets(
+    buildTransitionChannelPriorities(
+      transitionModeReport.routes.primary.title,
+      transitionModeReport.routes.primary.reason
+    ),
+    3
+  )
+  const earningsSummary = transitionModeReport.earnings
+
+  return [
+    {
+      key: '0-30',
+      label: '0-30 Days',
+      summary: ROADMAP_TABS[0].summary,
+      items: [
+        {
+          title: `Confirm what ${targetLabel} employers expect first`,
+          detail: `Start with real requirements in ${locationLabel} before you spend money or spray applications.`,
+          bullets: normalizeRoadmapBullets([
+            commonSkills.length > 0
+              ? `Verify the top skills first: ${joinReadableList(commonSkills.slice(0, 3))}.`
+              : '',
+            commonTools.length > 0
+              ? `Check the common tools, workflow, or job tasks: ${joinReadableList(commonTools.slice(0, 3))}.`
+              : '',
+            targetRequirements?.education
+              ? `Baseline education: ${targetRequirements.education}.`
+              : '',
+            plannerReport.marketEvidence?.baselineOnly
+              ? 'Live market data is thin, so confirm the local sequence by speaking with real employers this week.'
+              : ''
+          ])
+        },
+        {
+          title: 'Lock in the real entry requirements',
+          detail: 'Get clear on the gates, tickets, and formal steps that make you look job-ready.',
+          bullets: normalizeRoadmapBullets([
+            entryTickets.length > 0
+              ? `Priority tickets or gates: ${joinReadableList(entryTickets.slice(0, 4))}.`
+              : '',
+            typeof targetRequirements?.apprenticeshipHours === 'number'
+              ? `Formal hour target to plan around: about ${targetRequirements.apprenticeshipHours.toLocaleString()} supervised hours.`
+              : '',
+            typeof targetRequirements?.examRequired === 'boolean'
+              ? targetRequirements.examRequired
+                ? 'Plan for an exam or qualification step later in the path.'
+                : 'This path does not show a mandatory exam in the current data.'
+              : '',
+            transitionModeReport.routes.primary.firstStep
+              ? `Immediate move: ${transitionModeReport.routes.primary.firstStep}.`
+              : ''
+          ])
+        },
+        {
+          title: 'Start direct outreach with a hiring question',
+          detail: 'Use early conversations to validate the entry route, not just the title.',
+          bullets: normalizeRoadmapBullets([
+            `Ask whether they are hiring for helper, trainee, apprentice, or entry-level starts in ${locationLabel}.`,
+            'Ask what a serious beginner needs in the first 30 days to get taken seriously.',
+            'Ask whether they prefer a follow-up by phone or email and who handles hiring.'
+          ])
+        }
+      ]
+    },
+    {
+      key: '30-90',
+      label: '30-90 Days',
+      summary: ROADMAP_TABS[1].summary,
+      items: [
+        {
+          title: 'Build the core skills employers mention most',
+          detail: 'Focus on the requirements that show up across postings and role evidence.',
+          bullets: normalizeRoadmapBullets([
+            ...commonSkills.slice(0, 4).map((item) => `Spend weekly time on ${item}.`),
+            ...(firstSteps.length === 0 ? ['Keep one measurable learning block moving every week.'] : [])
+          ])
+        },
+        {
+          title: 'Practice the tools, workflow, and safe habits',
+          detail: 'Turn theory into hands-on familiarity you can describe clearly in interviews.',
+          bullets: normalizeRoadmapBullets([
+            ...commonTools.slice(0, 3).map((item) => `Get hands-on repetition with ${item}.`),
+            ...((transitionSections?.toolsPlatforms ?? [])
+              .slice(0, 2)
+              .map((item) => item.quickProject)),
+            ...(commonTools.length === 0 ? ['Use a small practice project, shadow day, or lab session to build confidence.'] : [])
+          ])
+        },
+        {
+          title: 'Create proof that employers can trust',
+          detail: 'Package your progress into proof, references, and a better first conversation.',
+          bullets: normalizeRoadmapBullets([
+            ...firstSteps.slice(0, 3),
+            ...employerSignals.slice(0, 2).map((item) => `Show one concrete example tied to ${item}.`)
+          ])
+        }
+      ]
+    },
+    {
+      key: '3-12',
+      label: '3-12 Months',
+      summary: ROADMAP_TABS[2].summary,
+      items: [
+        {
+          title: targetRequirements?.regulated ? 'Track formal progression and required hours' : 'Build durable experience and stronger proof',
+          detail: targetRequirements?.regulated
+            ? 'Stay disciplined with the formal sequence so you do not lose time later.'
+            : 'Turn early proof into a track record employers can trust.',
+          bullets: normalizeRoadmapBullets([
+            typeof targetRequirements?.apprenticeshipHours === 'number'
+              ? `Track hours, schooling blocks, and supervisor sign-off against the ${targetRequirements.apprenticeshipHours.toLocaleString()} hour path.`
+              : '',
+            typeof targetRequirements?.examRequired === 'boolean' && targetRequirements.examRequired
+              ? 'Keep the exam or qualification step visible so your study and field work line up.'
+              : '',
+            ...phaseThreeTargets.slice(0, 3)
+          ])
+        },
+        {
+          title: 'Keep building paid-ready evidence',
+          detail: 'The goal is not generic activity. The goal is proof that maps to real hiring decisions.',
+          bullets: normalizeRoadmapBullets([
+            ...employerSignals.slice(0, 3).map((item) => `Collect examples that prove ${item}.`),
+            ...channelPriorities.slice(0, 2)
+          ])
+        },
+        {
+          title: 'Move toward stronger pay and better lanes',
+          detail: 'Once the base path is moving, use your proof to reach better-paying versions of the role.',
+          bullets: normalizeRoadmapBullets([
+            earningsSummary.length > 0
+              ? `Early stage pay in the current data: ${earningsSummary[0].stage} at ${earningsSummary[0].rangeLow}-${earningsSummary[0].rangeHigh} ${earningsSummary[0].unit}.`
+              : '',
+            earningsSummary.length > 1
+              ? `Later upside: ${earningsSummary[earningsSummary.length - 1].stage} at ${earningsSummary[earningsSummary.length - 1].rangeLow}-${earningsSummary[earningsSummary.length - 1].rangeHigh} ${earningsSummary[earningsSummary.length - 1].unit}.`
+              : '',
+            'Use better evidence, better referrals, and the right specialization to reach the higher end of the range.'
+          ])
+        }
+      ]
+    }
+  ]
+}
+
+function buildResumeTalkingPoints(input: {
+  targetRole: string
+  certifications: string[]
+  quickWins: string[]
+  firstSteps: string[]
+  commonSkills: string[]
+}) {
+  const targetLabel = input.targetRole.trim() || 'the target role'
+
+  return normalizeRoadmapBullets([
+    input.certifications.length > 0
+      ? `Lead with the tickets you already hold: ${joinReadableList(input.certifications.slice(0, 3))}.`
+      : '',
+    input.quickWins[0]
+      ? `Translate your strongest overlap into ${targetLabel} language: ${input.quickWins[0]}.`
+      : '',
+    input.commonSkills.length > 0
+      ? `Add one line showing how you are building ${joinReadableList(input.commonSkills.slice(0, 2))}.`
+      : '',
+    input.firstSteps[0]
+      ? `Replace a generic objective with a concrete next-step signal: ${input.firstSteps[0]}.`
+      : '',
+    'Use short, measurable statements that prove safety, reliability, learning speed, or hands-on readiness.'
+  ])
+}
+
 function buildDraftFromExample(example: PlannerExampleScenario): PlannerFormDraft {
   return {
     currentRoleText: example.currentRole,
@@ -1167,6 +1411,9 @@ export default function CareerSwitchPlannerPage({
   const [outreachToolkitOpen, setOutreachToolkitOpen] = useState(false)
   const [copiedToolkitSection, setCopiedToolkitSection] = useState<string | null>(null)
   const [isPrintMode, setIsPrintMode] = useState(false)
+  const [resumeToolkitDraft, setResumeToolkitDraft] = useState('')
+  const [callToolkitDraft, setCallToolkitDraft] = useState('')
+  const [emailToolkitDraft, setEmailToolkitDraft] = useState('')
   const [exampleOptions, setExampleOptions] = useState<PlannerExampleScenario[]>([])
   const [selectedExampleId, setSelectedExampleId] = useState<string | null>(null)
   const [currentRoleText, setCurrentRoleText] = useState('')
@@ -2185,15 +2432,27 @@ export default function CareerSwitchPlannerPage({
         4
       )
     : []
+  const currentProfileSignals = extractProfileSignals({
+    experienceText,
+    explicitSkills: skills,
+    explicitCertifications: resumeStructuredSnapshot.certifications
+  })
   const proofBuilderDefinition = transitionModeReport?.definitions?.proofBuilder ?? null
-  const outreachResumeBullets = (
-    plannerReport?.resumeReframe?.length
-      ? plannerReport.resumeReframe
-      : plannerResult?.reframes ?? []
-  )
-    .map((item) => item.after.trim())
-    .filter(Boolean)
-    .slice(0, 4)
+  const resumeTalkingPointSkills = normalizeRoadmapBullets([
+    ...(plannerReport?.transitionReport?.marketSnapshot.topRequirements ?? []).map((item) => item.label),
+    ...(plannerReport?.transitionSections?.coreHardSkills ?? []).map((item) => item.label)
+  ], 3)
+  const outreachResumeBullets = buildResumeTalkingPoints({
+    targetRole:
+      targetRoleText.trim() ||
+      lastSubmittedSnapshot?.targetRoleInput ||
+      plannerReport?.transitionReport?.marketSnapshot.role ||
+      '',
+    certifications: currentProfileSignals.certifications,
+    quickWins: transitionQuickWins,
+    firstSteps: transitionModeReport?.gaps.first3Steps ?? [],
+    commonSkills: resumeTalkingPointSkills
+  })
   const transitionChannelPriorities = transitionModeReport
     ? buildTransitionChannelPriorities(
         transitionModeReport.routes.primary.title,
@@ -2218,71 +2477,12 @@ export default function CareerSwitchPlannerPage({
     : []
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
-  const currentProfileSignals = extractProfileSignals({
-    experienceText,
-    explicitSkills: skills,
-    explicitCertifications: resumeStructuredSnapshot.certifications
+  const roadmapTabs = buildDashboardRoadmapTabs({
+    plannerReport,
+    transitionModeReport,
+    targetRole: targetRoleText.trim() || lastSubmittedSnapshot?.targetRoleInput || '',
+    location: locationText.trim()
   })
-  const roadmapTabs = transitionModeReport
-    ? [
-        {
-          key: '0-30' as const,
-          label: '0-30 Days',
-          summary: ROADMAP_TABS[0].summary,
-          items:
-            plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks.map((item) => ({
-              title: item.action,
-              detail: `Tied to ${item.tiedRequirement}`
-            })) ??
-            transitionModeReport.plan90[0]?.tasks.map((task) => ({
-              title: task,
-              detail: transitionModeReport.plan90[0]?.weeklyTargets[0] ?? 'Start with one measurable output.'
-            })) ??
-            []
-        },
-        {
-          key: '30-90' as const,
-          label: '30-90 Days',
-          summary: ROADMAP_TABS[1].summary,
-          items:
-            plannerReport?.transitionSections?.roadmapPlan.oneToThreeMonths.map((item) => ({
-              title: item.action,
-              detail: `Tied to ${item.tiedRequirement}`
-            })) ??
-            transitionModeReport.plan90[1]?.tasks.map((task, index) => ({
-              title: task,
-              detail:
-                transitionModeReport.plan90[1]?.weeklyTargets[index] ??
-                transitionModeReport.plan90[1]?.weeklyTargets[0] ??
-                'Keep weekly outputs consistent.'
-            })) ??
-            []
-        },
-        {
-          key: '3-12' as const,
-          label: '3-12 Months',
-          summary: ROADMAP_TABS[2].summary,
-          items:
-            plannerReport?.transitionSections?.roadmapPlan.threeToTwelveMonths.map((item) => ({
-              title: item.action,
-              detail: `Tied to ${item.tiedRequirement}`
-            })) ??
-            [
-              ...((plannerReport?.transitionSections?.roadmapPlan.strongCandidatePath ?? []).map((item) => ({
-                title: item,
-                detail: 'Build toward strong-candidate positioning.'
-              })) ?? []),
-              ...(transitionModeReport.plan90[2]?.tasks.map((task, index) => ({
-                title: task,
-                detail:
-                  transitionModeReport.plan90[2]?.weeklyTargets[index] ??
-                  transitionModeReport.plan90[2]?.weeklyTargets[0] ??
-                  'Compound the strongest signal each week.'
-              })) ?? [])
-            ].slice(0, 5)
-        }
-      ]
-    : []
   const activeRoadmap = roadmapTabs.find((item) => item.key === activeRoadmapTab) ?? roadmapTabs[0] ?? null
   const activeWizardMeta = WIZARD_STEPS[activeWizardStep]
   const canGoBackWizard = activeWizardStep > 0
@@ -2336,6 +2536,11 @@ export default function CareerSwitchPlannerPage({
         .filter((item): item is string => Boolean(item))
     )
   )
+  const generatedResumeToolkitText = outreachResumeBullets.map((item) => `- ${item}`).join('\n')
+  const generatedCallToolkitText =
+    transitionPlanScripts?.call ?? transitionModeReport?.execution.outreachTemplates.call ?? ''
+  const generatedEmailToolkitText =
+    transitionPlanScripts?.email ?? transitionModeReport?.execution.outreachTemplates.email ?? ''
   const isToolkitExpanded = outreachToolkitOpen || isPrintMode
 
   useEffect(() => {
@@ -2362,6 +2567,12 @@ export default function CareerSwitchPlannerPage({
     if (!transitionModeReport) return
     setActiveRoadmapTab('0-30')
   }, [transitionModeReport])
+
+  useEffect(() => {
+    setResumeToolkitDraft(generatedResumeToolkitText)
+    setCallToolkitDraft(generatedCallToolkitText)
+    setEmailToolkitDraft(generatedEmailToolkitText)
+  }, [generatedResumeToolkitText, generatedCallToolkitText, generatedEmailToolkitText])
 
   return (
     <>
@@ -3007,7 +3218,7 @@ export default function CareerSwitchPlannerPage({
               ) : null}
 
               <div id="planner-report-anchor" className="space-y-6 planner-animate-in">
-                <Card className="print-page-keep overflow-hidden border border-border-light bg-bg-secondary p-0 shadow-panel">
+                <Card className="overflow-hidden border border-border-light bg-bg-secondary p-0 shadow-panel">
                   <div className="border-b border-border-light px-5 py-5 md:px-6 md:py-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="max-w-[70ch]">
@@ -3202,6 +3413,15 @@ export default function CareerSwitchPlannerPage({
                             <div key={`${activeRoadmap.key}-${item.title}`} className="rounded-xl border border-border-light bg-surface p-4">
                               <p className="text-sm font-semibold text-text-primary">{item.title}</p>
                               <p className="mt-2 text-xs leading-[1.6] text-text-secondary">{item.detail}</p>
+                              {item.bullets.length > 0 ? (
+                                <ul className="mt-3 space-y-2 text-xs leading-[1.7] text-text-secondary">
+                                  {item.bullets.map((bullet) => (
+                                    <li key={`${activeRoadmap.key}-${item.title}-${bullet}`} className="break-words">
+                                      - {bullet}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : null}
                             </div>
                           ))}
                         </div>
@@ -3223,7 +3443,7 @@ export default function CareerSwitchPlannerPage({
                         </p>
                         <h3 className="mt-2 text-xl font-bold text-text-primary">Employer Outreach Toolkit</h3>
                         <p className="mt-1 text-sm text-text-secondary">
-                          Email, call script, and resume bullets in one employer-ready workspace.
+                          Email, call script, and resume talking points in one employer-ready workspace.
                         </p>
                       </div>
                       <Badge variant="default">{isToolkitExpanded ? 'Expanded' : 'Collapsed'}</Badge>
@@ -3233,30 +3453,31 @@ export default function CareerSwitchPlannerPage({
                       <div className="p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                            Resume bullets
+                            Resume talking points
                           </p>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              void handleCopyToolkitSection(
-                                'resume',
-                                outreachResumeBullets.map((item) => `- ${item}`).join('\n')
-                              )
-                            }
+                            onClick={() => void handleCopyToolkitSection('resume', resumeToolkitDraft)}
                           >
                             {copiedToolkitSection === 'resume' ? 'Copied' : 'Copy'}
                           </Button>
                         </div>
-                        {outreachResumeBullets.length > 0 ? (
-                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                            {outreachResumeBullets.map((item) => (
-                              <li key={`toolkit-resume-${item}`}>- {item}</li>
-                            ))}
-                          </ul>
+                        {resumeToolkitDraft.trim() ? (
+                          <>
+                            <textarea
+                              rows={6}
+                              value={resumeToolkitDraft}
+                              onChange={(event) => setResumeToolkitDraft(event.target.value)}
+                              className="mt-3 w-full rounded-xl border border-border-light bg-surface p-3 text-sm leading-[1.7] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                            />
+                            <p className="mt-2 text-xs text-text-tertiary">
+                              Edit these into concise proof points for your resume, summary, or cover letter.
+                            </p>
+                          </>
                         ) : (
                           <p className="mt-3 text-sm text-text-secondary">
-                            Add more measurable achievements to generate stronger rewrite bullets.
+                            We will generate talking points here once the planner has enough signal.
                           </p>
                         )}
                       </div>
@@ -3268,18 +3489,19 @@ export default function CareerSwitchPlannerPage({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              void handleCopyToolkitSection(
-                                'call',
-                                transitionPlanScripts?.call ?? transitionModeReport.execution.outreachTemplates.call
-                              )
-                            }
+                            onClick={() => void handleCopyToolkitSection('call', callToolkitDraft)}
                           >
                             {copiedToolkitSection === 'call' ? 'Copied' : 'Copy'}
                           </Button>
                         </div>
-                        <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.7] text-text-secondary">
-                          {transitionPlanScripts?.call ?? transitionModeReport.execution.outreachTemplates.call}
+                        <textarea
+                          rows={5}
+                          value={callToolkitDraft}
+                          onChange={(event) => setCallToolkitDraft(event.target.value)}
+                          className="mt-3 w-full rounded-xl border border-border-light bg-surface p-3 text-sm leading-[1.7] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                        />
+                        <p className="mt-2 text-xs text-text-tertiary">
+                          Edit before you call. Lead with the real ask: whether they are hiring and what they expect from a beginner.
                         </p>
                       </div>
                       <div className="p-4">
@@ -3290,18 +3512,19 @@ export default function CareerSwitchPlannerPage({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              void handleCopyToolkitSection(
-                                'email',
-                                transitionPlanScripts?.email ?? transitionModeReport.execution.outreachTemplates.email
-                              )
-                            }
+                            onClick={() => void handleCopyToolkitSection('email', emailToolkitDraft)}
                           >
                             {copiedToolkitSection === 'email' ? 'Copied' : 'Copy'}
                           </Button>
                         </div>
-                        <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.7] text-text-secondary">
-                          {transitionPlanScripts?.email ?? transitionModeReport.execution.outreachTemplates.email}
+                        <textarea
+                          rows={9}
+                          value={emailToolkitDraft}
+                          onChange={(event) => setEmailToolkitDraft(event.target.value)}
+                          className="mt-3 w-full rounded-xl border border-border-light bg-surface p-3 text-sm leading-[1.7] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                        />
+                        <p className="mt-2 text-xs text-text-tertiary">
+                          Keep this specific, respectful, and easy to reply to. Ask if they are hiring and offer a short follow-up.
                         </p>
                       </div>
                     </div>
