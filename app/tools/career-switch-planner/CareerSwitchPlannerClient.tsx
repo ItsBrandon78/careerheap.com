@@ -2898,7 +2898,7 @@ export default function CareerSwitchPlannerPage({
         <p className="mt-1 text-sm text-text-secondary">
           Close these early so you do not get filtered out before a real conversation.
         </p>
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
           {missingHiringRequirements.map((item) => (
             <div
               key={item.key}
