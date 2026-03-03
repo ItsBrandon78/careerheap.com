@@ -1258,43 +1258,88 @@ function buildRoadmapGuide(
 ) {
   const curatedProfile = context.report.careerPathwayProfile ?? null
   if (curatedProfile) {
+    const requirementsAuditStep =
+      (context.templateKey === 'regulated_trade' || context.templateKey === 'regulated_profession') &&
+      context.report.targetRequirements
+        ? {
+            title:
+              context.templateKey === 'regulated_trade'
+                ? `Confirm what employers screen for first in ${context.location || 'your area'}`
+                : `Confirm the first regulator and admissions requirements in ${context.location || 'your area'}`,
+            whyItMatters:
+              context.templateKey === 'regulated_trade'
+                ? 'This keeps you from applying blindly before you know the exact tickets, education baseline, or sponsor path employers expect first.'
+                : 'This keeps you from wasting time or money on the wrong province, school, or regulator sequence.',
+            timeRange: '1-2 weeks',
+            costRange:
+              context.templateKey === 'regulated_trade'
+                ? `${costPrefix(context)}0-${costPrefix(context)}150 now (tickets and screening steps can vary by employer or province)`
+                : `${costPrefix(context)}0-${costPrefix(context)}250 now (document requests and regulator checks can vary by province)`,
+            prereqs: dedupeBullets(
+              [
+                context.report.targetRequirements.education
+                  ? `Education baseline: ${context.report.targetRequirements.education}`
+                  : '',
+                ...context.report.targetRequirements.certifications.slice(0, 2),
+                ...context.report.targetRequirements.hardGates.slice(0, 2)
+              ],
+              3
+            ),
+            proofChecklist: fillToLength(
+              dedupeBullets(
+                [
+                  'Write down the exact first requirement, who enforces it, and what proof you need.',
+                  'Save one source, employer note, or regulator page that confirms the requirement.',
+                  'List the next named checkpoint on your calendar.'
+                ],
+                3
+              ),
+              2,
+              ['One visible checkpoint completed this week.', 'One saved note showing what changed.']
+            ).slice(0, 3)
+          }
+        : null
+
     const phases = curatedProfile.timeline.phases.slice(0, 3).map((phase) => ({
       label: phase.phase,
       focus:
         phase.milestones[0]?.done_when ??
         `Move the ${phase.phase.toLowerCase()} phase forward for ${curatedProfile.meta.title}.`,
-      steps: phase.milestones.map((milestone) => ({
-        title: milestone.title,
-        whyItMatters: `This keeps you moving through the ${phase.phase.toLowerCase()} phase for ${curatedProfile.meta.title}.`,
-        timeRange: `${phase.duration.min_weeks}-${phase.duration.max_weeks} weeks`,
-        costRange:
-          phase.phase.toLowerCase().includes('credential') || phase.phase.toLowerCase().includes('exam')
-            ? `${costPrefix(context)}150-${costPrefix(context)}2,500+ (varies by province, employer, or school)`
-            : `${costPrefix(context)}0-${costPrefix(context)}500+ (varies by employer or provider)`,
-        prereqs: dedupeBullets(
-          [
-            ...curatedProfile.requirements.must_have.slice(0, 3).map((item) => item.name),
-            phase.phase.toLowerCase().includes('training')
-              ? curatedProfile.entry_paths[0]?.steps[1] ?? ''
-              : ''
-          ],
-          3
-        ),
-        proofChecklist: fillToLength(
-          dedupeBullets(
+      steps: [
+        ...(phase.phase.toLowerCase() === 'start' && requirementsAuditStep ? [requirementsAuditStep] : []),
+        ...phase.milestones.map((milestone) => ({
+          title: milestone.title,
+          whyItMatters: `This keeps you moving through the ${phase.phase.toLowerCase()} phase for ${curatedProfile.meta.title}.`,
+          timeRange: `${phase.duration.min_weeks}-${phase.duration.max_weeks} weeks`,
+          costRange:
+            phase.phase.toLowerCase().includes('credential') || phase.phase.toLowerCase().includes('exam')
+              ? `${costPrefix(context)}150-${costPrefix(context)}2,500+ (varies by province, employer, or school)`
+              : `${costPrefix(context)}0-${costPrefix(context)}500+ (varies by employer or provider)`,
+          prereqs: dedupeBullets(
             [
-              milestone.done_when,
-              'Save the exact confirmation email, registration, or checklist that proves this milestone is complete.',
-              phase.phase.toLowerCase().includes('start')
-                ? 'Write down the next named checkpoint and who controls it.'
+              ...curatedProfile.requirements.must_have.slice(0, 3).map((item) => item.name),
+              phase.phase.toLowerCase().includes('training')
+                ? curatedProfile.entry_paths[0]?.steps[1] ?? ''
                 : ''
             ],
             3
           ),
-          2,
-          ['One visible checkpoint completed this week.', 'One saved note showing what changed.']
-        ).slice(0, 3)
-      }))
+          proofChecklist: fillToLength(
+            dedupeBullets(
+              [
+                milestone.done_when,
+                'Save the exact confirmation email, registration, or checklist that proves this milestone is complete.',
+                phase.phase.toLowerCase().includes('start')
+                  ? 'Write down the next named checkpoint and who controls it.'
+                  : ''
+              ],
+              3
+            ),
+            2,
+            ['One visible checkpoint completed this week.', 'One saved note showing what changed.']
+          ).slice(0, 3)
+        }))
+      ]
     }))
 
     const next7Days = fillToLength(

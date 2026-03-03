@@ -515,10 +515,7 @@ export async function POST(request: Request) {
       location: input.location,
       experienceText: input.experienceText,
       transitionMode,
-      report: {
-        targetRequirements: finalReport.targetRequirements,
-        suggestedCareers: finalReport.suggestedCareers
-      }
+      report: finalReport
     })
     const reportWithResolution = {
       ...finalReport,
