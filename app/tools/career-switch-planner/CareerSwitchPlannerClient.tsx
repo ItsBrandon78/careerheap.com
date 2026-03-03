@@ -43,6 +43,8 @@ import {
   type PlannerJobRecommendationCard,
   type PlannerJobRecommendationInput
 } from '@/lib/planner/jobRecommendations'
+import { extractProfileSignals, isPersonalIdentifier } from '@/lib/planner/profileSignals'
+import { buildRecommendedTargetSections } from '@/lib/planner/recommendedTargets'
 import {
   type CareerSwitchPlannerResult,
   toPlannerResultView,
@@ -984,12 +986,6 @@ function buildDraftFromExample(example: PlannerExampleScenario): PlannerFormDraf
   }
 }
 
-function parseTransitionMonths(value: string) {
-  const matches = [...value.matchAll(/(\d+)/g)].map((match) => Number.parseInt(match[1], 10))
-  if (matches.length === 0) return Number.POSITIVE_INFINITY
-  return Math.min(...matches)
-}
-
 function normalizeRecommendedRoleWhy(values: string[]) {
   return sharedDedupeBullets(
     values.map((value) => value.replace(/\.$/, '')),
@@ -997,84 +993,38 @@ function normalizeRecommendedRoleWhy(values: string[]) {
   ).map((item) => (/[.!?]$/.test(item) ? item : `${item}.`))
 }
 
-function medianHourlyComp(career: PlannerReportPayload['suggestedCareers'][number]) {
-  const native = career.salary.native?.median
-  const usd = career.salary.usd?.median
-  const value = typeof native === 'number' ? native : typeof usd === 'number' ? usd : 0
-  return value > 250 ? value / 2080 : value
-}
-
 function buildRecommendedRoleSections(
   careers: PlannerReportPayload['suggestedCareers'],
-  currentRoleInput: string
+  currentRoleInput: string,
+  currentRoleCode?: string | null,
+  targetRoleInput?: string | null,
+  targetRoleCode?: string | null,
+  currentAlternatives?: Array<{ title: string; code?: string | null }>
 ) {
-  const uniqueCareers = careers.filter((career, index, collection) => {
-    const key = normalizeBulletKey(career.title)
-    return collection.findIndex((item) => normalizeBulletKey(item.title) === key) === index
+  return buildRecommendedTargetSections({
+    careers: careers.map((career) => ({
+      occupationId: career.occupationId,
+      title: career.title,
+      score: career.score,
+      difficulty: career.difficulty,
+      transitionTime: career.transitionTime,
+      regulated: career.regulated,
+      topReasons: normalizeRecommendedRoleWhy([
+        ...(career.topReasons.slice(0, 2).length > 0
+          ? career.topReasons.slice(0, 2)
+          : [`Your ${currentRoleInput || 'current'} background overlaps with this path.`]),
+        career.regulated
+          ? 'This path has formal gates, so plan the entry sequence early.'
+          : 'This path can usually start with targeted applications and proof.'
+      ]),
+      salary: career.salary
+    })),
+    currentRoleInput,
+    currentRoleCode,
+    targetRoleInput,
+    targetRoleCode,
+    currentAlternatives
   })
-
-  if (uniqueCareers.length === 0) return []
-
-  const usedTitles = new Set<string>()
-  const takeUnique = (
-    source: PlannerReportPayload['suggestedCareers'],
-    count: number,
-    filter?: (career: PlannerReportPayload['suggestedCareers'][number]) => boolean
-  ) => {
-    const output: PlannerReportPayload['suggestedCareers'] = []
-    for (const career of source) {
-      if (filter && !filter(career)) continue
-      const key = normalizeBulletKey(career.title)
-      if (usedTitles.has(key)) continue
-      usedTitles.add(key)
-      output.push(career)
-      if (output.length >= count) break
-    }
-    return output
-  }
-
-  const closest = takeUnique(
-    [...uniqueCareers].sort((left, right) => right.score - left.score),
-    3
-  )
-  const higherUpside = takeUnique(
-    [...uniqueCareers].sort((left, right) => medianHourlyComp(right) - medianHourlyComp(left)),
-    3,
-    (career) => !closest.some((item) => normalizeBulletKey(item.title) === normalizeBulletKey(career.title))
-  )
-  const bridge = takeUnique(
-    [...uniqueCareers].sort((left, right) => parseTransitionMonths(left.transitionTime) - parseTransitionMonths(right.transitionTime)),
-    3,
-    (career) =>
-      !closest.some((item) => normalizeBulletKey(item.title) === normalizeBulletKey(career.title)) &&
-      !higherUpside.some((item) => normalizeBulletKey(item.title) === normalizeBulletKey(career.title))
-  )
-
-  const sectionMap = [
-    ['Closest matches', 'Strongest fit based on your current background.', closest],
-    ['Higher upside', 'Roles with stronger earnings potential if you can absorb a wider jump.', higherUpside],
-    ['Adjacent bridge roles', 'Faster-entry roles that can shorten the path into a bigger move.', bridge]
-  ] as const
-
-  return sectionMap
-    .filter(([, , roles]) => roles.length > 0)
-    .map(([title, description, roles]) => ({
-      title,
-      description,
-      roles: roles.map((career) => ({
-        title: career.title,
-        why: normalizeRecommendedRoleWhy([
-          ...(career.topReasons.slice(0, 2).length > 0
-            ? career.topReasons.slice(0, 2)
-            : [`Your ${currentRoleInput || 'current'} background overlaps with this path.`]),
-          career.regulated
-            ? 'This path has formal gates, so plan the entry sequence early.'
-            : 'This path can usually start with targeted applications and proof.'
-        ]),
-        difficulty: career.difficulty,
-        transitionTime: career.transitionTime
-      }))
-    }))
 }
 
 function buildJobRecommendationCards(
@@ -1173,7 +1123,9 @@ export default function CareerSwitchPlannerPage({
     confidence: number
     matchedBy: string
   } | null>(null)
-  const [recommendMode, setRecommendMode] = useState(false)
+  const recommendMode = false
+  const [showSuggestedTargets, setShowSuggestedTargets] = useState(false)
+  const [suggestedTargetShuffle, setSuggestedTargetShuffle] = useState(0)
   const [skills, setSkills] = useState<string[]>([])
   const [experienceText, setExperienceText] = useState('')
   const [inputError, setInputError] = useState('')
@@ -1626,7 +1578,7 @@ export default function CareerSwitchPlannerPage({
     }
 
     if (!draft.recommendMode && !draft.targetRoleText.trim()) {
-      setInputError('Add your target role or enable Not sure mode.')
+      setInputError('Add your target role or pick a suggestion below.')
       return
     }
 
@@ -1652,16 +1604,28 @@ export default function CareerSwitchPlannerPage({
         requestHeaders.Authorization = authHeaders.Authorization
       }
 
+      const normalizedProfile = extractProfileSignals({
+        experienceText: draft.experienceText.trim(),
+        explicitSkills: draft.skills,
+        explicitCertifications: resumeStructuredSnapshot.certifications
+      })
       const normalizedExperience = [
-        draft.experienceText.trim(),
-        draft.skills.length > 0 ? `Skills: ${draft.skills.join(', ')}` : '',
-        resumeStructuredSnapshot.certifications.length > 0
-          ? `Certifications: ${resumeStructuredSnapshot.certifications.join(', ')}`
+        ...normalizedProfile.rawLines.filter(
+          (line) => !/^skills:/i.test(line) && !/^certifications:/i.test(line)
+        ),
+        normalizedProfile.skills.length > 0
+          ? `Skills: ${normalizedProfile.skills.join(', ')}`
+          : '',
+        normalizedProfile.certifications.length > 0
+          ? `Certifications: ${normalizedProfile.certifications.join(', ')}`
           : ''
       ]
         .filter(Boolean)
         .join('\n')
-      const confirmedSkills = mergeUniqueCaseInsensitive(draft.skills, resumeStructuredSnapshot.certifications)
+      const confirmedSkills = mergeUniqueCaseInsensitive(
+        normalizedProfile.skills,
+        normalizedProfile.certifications
+      )
       const currentRoleFallback =
         draft.currentRoleText.trim() || (confirmedSkills.length > 0 ? `${confirmedSkills[0]} specialist` : 'Career transition')
       const targetRoleValue = draft.recommendMode ? '' : draft.targetRoleText.trim()
@@ -1852,7 +1816,6 @@ export default function CareerSwitchPlannerPage({
     setTargetRoleSelectedMatch(null)
     setExperienceText(draft.experienceText)
     setSkills(draft.skills)
-    setRecommendMode(draft.recommendMode)
     setWorkRegion(draft.workRegion)
     setLocationText(draft.locationText)
     setLocationTouched(true)
@@ -1880,7 +1843,7 @@ export default function CareerSwitchPlannerPage({
   }
 
   const handlePlanRecommendedRole = async (nextTargetRole: string) => {
-    setRecommendMode(false)
+    setShowSuggestedTargets(false)
     setTargetRoleText(nextTargetRole)
     setTargetRoleSelectedMatch(null)
     setRoleSelectionPrompt(null)
@@ -2013,16 +1976,30 @@ export default function CareerSwitchPlannerPage({
   const executionStrategy = plannerReport?.executionStrategy ?? null
   const transitionModeReport = plannerReport?.transitionMode ?? null
   const transitionQuickWins = transitionModeReport
-    ? sharedDedupeBullets(transitionModeReport.gaps.strengths, 4)
+    ? sharedDedupeBullets(
+        transitionModeReport.gaps.strengths.filter((item) => !isPersonalIdentifier(item)),
+        4
+      )
     : []
   const transitionPrimaryGaps = transitionModeReport
-    ? sharedDedupeBullets(transitionModeReport.gaps.missing, 4)
+    ? sharedDedupeBullets(
+        transitionModeReport.gaps.missing.filter((item) => !isPersonalIdentifier(item)),
+        4
+      )
     : []
   const transitionSkillMapStrengths = transitionModeReport
-    ? excludeExistingBullets(transitionModeReport.gaps.strengths, transitionQuickWins, 4)
+    ? excludeExistingBullets(
+        transitionModeReport.gaps.strengths.filter((item) => !isPersonalIdentifier(item)),
+        transitionQuickWins,
+        4
+      )
     : []
   const transitionSkillMapMissing = transitionModeReport
-    ? excludeExistingBullets(transitionModeReport.gaps.missing, transitionPrimaryGaps, 4)
+    ? excludeExistingBullets(
+        transitionModeReport.gaps.missing.filter((item) => !isPersonalIdentifier(item)),
+        transitionPrimaryGaps,
+        4
+      )
     : []
   const proofBuilderDefinition = transitionModeReport?.definitions?.proofBuilder ?? null
   const transitionChannelPriorities = transitionModeReport
@@ -2031,18 +2008,48 @@ export default function CareerSwitchPlannerPage({
         transitionModeReport.routes.primary.reason
       )
     : []
+  const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
+  const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
+  const currentProfileSignals = extractProfileSignals({
+    experienceText,
+    explicitSkills: skills,
+    explicitCertifications: resumeStructuredSnapshot.certifications
+  })
   const recommendedRoleSections = plannerReport
     ? buildRecommendedRoleSections(
         plannerReport.suggestedCareers,
-        currentRoleText.trim() || lastSubmittedSnapshot?.currentRoleInput || ''
+        currentRoleText.trim() || lastSubmittedSnapshot?.currentRoleInput || '',
+        currentRoleResolution?.matched?.occupationId ?? currentRoleSelectedMatch?.occupationId ?? null,
+        targetRoleText.trim() || lastSubmittedSnapshot?.targetRoleInput || '',
+        targetRoleResolution?.matched?.occupationId ?? targetRoleSelectedMatch?.occupationId ?? null,
+        currentRoleResolution?.suggestions.map((item) => ({ title: item.title, code: item.code })) ?? []
       )
     : []
+  const assistiveSuggestedTargetSections = buildRecommendedRoleSections(
+    plannerReport?.suggestedCareers ?? [],
+    currentRoleText.trim() || lastSubmittedSnapshot?.currentRoleInput || '',
+    currentRoleResolution?.matched?.occupationId ?? currentRoleSelectedMatch?.occupationId ?? null,
+    targetRoleText.trim() || lastSubmittedSnapshot?.targetRoleInput || '',
+    targetRoleResolution?.matched?.occupationId ?? targetRoleSelectedMatch?.occupationId ?? null,
+    currentRoleResolution?.suggestions.map((item) => ({ title: item.title, code: item.code })) ?? []
+  )
+  const assistiveSuggestedTargetPool = assistiveSuggestedTargetSections.flatMap((section) => section.roles)
+  const assistiveSuggestedTargets =
+    assistiveSuggestedTargetPool.length <= 8
+      ? assistiveSuggestedTargetPool
+      : [
+          ...assistiveSuggestedTargetPool.slice(
+            suggestedTargetShuffle % assistiveSuggestedTargetPool.length
+          ),
+          ...assistiveSuggestedTargetPool.slice(
+            0,
+            suggestedTargetShuffle % assistiveSuggestedTargetPool.length
+          )
+        ].slice(0, 8)
   const canAnnualizeEarnings = transitionModeReport?.earnings.some((stage) =>
     stage.unit.toLowerCase().includes('/hour')
   ) ?? false
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
-  const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
-  const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
   const hasPlannerResults = plannerState === 'results' && Boolean(plannerResult)
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
     .map((dataset) => FRIENDLY_DATASET_NAMES[dataset] ?? dataset.replaceAll('_', ' '))
@@ -2126,16 +2133,8 @@ export default function CareerSwitchPlannerPage({
                   id="target-role"
                   label="Target Role"
                   value={targetRoleText}
-                  placeholder={
-                    recommendMode ? 'Disabled while recommendation mode is on' : 'Type your target role'
-                  }
+                  placeholder="Type your target role"
                   region={roleAutocompleteRegion}
-                  disabled={recommendMode}
-                  helperText={
-                    recommendMode
-                      ? 'Recommendation mode is enabled. We will rank top roles for you.'
-                      : undefined
-                  }
                   onChange={handleTargetRoleInputChange}
                   onSuggestionSelect={(suggestion) => {
                     setRoleSelectionPrompt(null)
@@ -2148,22 +2147,51 @@ export default function CareerSwitchPlannerPage({
                   }}
                 />
               </div>
-              <Toggle
-                checked={recommendMode}
-                onChange={(next) => {
-                  setRecommendMode(next)
-                  setRoleSelectionPrompt(null)
-                  if (next) {
-                    setTargetRoleText('')
-                    setTargetRoleSelectedMatch(null)
-                  }
-                }}
-                label="Not sure - recommend roles for me"
-              />
-              {recommendMode ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSuggestedTargets((previous) => !previous)}
+                >
+                  {showSuggestedTargets ? 'Hide suggested targets' : 'Show suggested targets'}
+                </Button>
+                {showSuggestedTargets ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSuggestedTargetShuffle((previous) => previous + 1)}
+                  >
+                    Shuffle
+                  </Button>
+                ) : null}
                 <p className="text-xs text-text-secondary">
-                  Target role is optional in this mode. Output will include ranked role recommendations.
+                  Not sure what to aim for? Pick a suggestion below.
                 </p>
+              </div>
+              {showSuggestedTargets ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {assistiveSuggestedTargets.length === 0 ? (
+                    <div className="rounded-lg border border-border-light bg-surface p-4 text-sm text-text-secondary md:col-span-2">
+                      Add your current role first, then use suggestions to narrow the target.
+                    </div>
+                  ) : null}
+                  {assistiveSuggestedTargets.map((role) => (
+                    <button
+                      key={`assistive-${role.title}`}
+                      type="button"
+                      className="rounded-lg border border-border-light bg-surface p-4 text-left transition hover:border-accent/40 hover:bg-bg-secondary"
+                      onClick={() => void handlePlanRecommendedRole(role.title)}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-text-primary">{role.title}</p>
+                        <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
+                          {role.difficulty} • {role.transitionTime}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs text-text-secondary">{role.why[0] ?? 'Suggested from your current role.'}</p>
+                    </button>
+                  ))}
+                </div>
               ) : null}
             </div>
 
@@ -2625,6 +2653,24 @@ export default function CareerSwitchPlannerPage({
                           </ul>
                         </div>
                       </div>
+
+                      {currentProfileSignals.certifications.length > 0 ? (
+                        <div className="rounded-lg border border-accent/20 bg-accent/10 p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-accent">
+                            Certifications &amp; Tickets
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {currentProfileSignals.certifications.map((item) => (
+                              <span
+                                key={`cert-ticket-${item}`}
+                                className="rounded-pill border border-accent/20 bg-surface px-3 py-1 text-xs font-medium text-text-primary"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className="rounded-lg border border-border bg-surface p-5">
@@ -3387,8 +3433,13 @@ export default function CareerSwitchPlannerPage({
                     ))}
                   </ReportSection>
 
-                  <ReportSection title="F) Transferable Strengths (from your resume/background)" count={transitionReport.transferableStrengths.length}>
-                    {transitionReport.transferableStrengths.map((item) => (
+                  <ReportSection
+                    title="F) Transferable Strengths (from your resume/background)"
+                    count={transitionReport.transferableStrengths.filter((item) => !isPersonalIdentifier(item.strength)).length}
+                  >
+                    {transitionReport.transferableStrengths
+                      .filter((item) => !isPersonalIdentifier(item.strength))
+                      .map((item) => (
                       <div key={item.id} className="rounded-md border border-border-light bg-surface p-3 text-sm text-text-secondary">
                         <p className="font-semibold text-text-primary">{item.strength}</p>
                         <p className="mt-1 text-xs text-text-tertiary">
@@ -3686,11 +3737,21 @@ export default function CareerSwitchPlannerPage({
 
                   <ReportSection
                     title="5) Transferable Strengths (from your inputs)"
-                    count={Math.min(plannerReport.transitionSections.transferableStrengths.length, 3)}
+                    count={Math.min(
+                      plannerReport.transitionSections.transferableStrengths.filter(
+                        (item) => !isPersonalIdentifier(item.label)
+                      ).length,
+                      3
+                    )}
                   >
-                    {plannerReport.transitionSections.transferableStrengths.length > 0 ? (
+                    {plannerReport.transitionSections.transferableStrengths.filter(
+                      (item) => !isPersonalIdentifier(item.label)
+                    ).length > 0 ? (
                       <ul className="space-y-2">
-                        {plannerReport.transitionSections.transferableStrengths.slice(0, 3).map((item) => (
+                        {plannerReport.transitionSections.transferableStrengths
+                          .filter((item) => !isPersonalIdentifier(item.label))
+                          .slice(0, 3)
+                          .map((item) => (
                           <li
                             key={item.id}
                             className="rounded-md border border-border-light bg-surface p-3 text-sm text-text-secondary"

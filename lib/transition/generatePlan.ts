@@ -1,3 +1,4 @@
+import { extractProfileSignals, isPersonalIdentifier } from '@/lib/planner/profileSignals'
 import { selectPlanTemplate } from '@/lib/transition/selectTemplate'
 import {
   compressSimilarBullets as sharedCompressSimilarBullets,
@@ -49,6 +50,14 @@ type SignalRule = {
   targetPatterns: RegExp[]
   overlapText: string
   missingAction: string
+}
+
+type ActionableGapType = 'credential' | 'knowledge' | 'tools' | 'proof' | 'channel'
+
+type ActionableGap = {
+  type: ActionableGapType
+  title: string
+  howToFix: string[]
 }
 
 const EDUCATION_RANK: Record<string, number> = {
@@ -296,6 +305,200 @@ function toSentence(value: string) {
   return /[.!?]$/.test(formatted) ? formatted : `${formatted}.`
 }
 
+function cleanPublicFacingBullet(value: string) {
+  const formatted = toSentence(value)
+  if (!formatted || isPersonalIdentifier(formatted)) return ''
+  return formatted
+}
+
+function isTradeProfile(targetProfile: OccupationTemplateProfile, templateKey: PlanTemplateKey) {
+  const title = normalizeText(`${targetProfile.title} ${targetProfile.code}`)
+  return (
+    templateKey === 'regulated_trade' ||
+    /\b(electric|plumb|hvac|mechanic|carpenter|welder|millwright|pipefitter|refrigeration|sheet metal)\b/.test(
+      title
+    )
+  )
+}
+
+function classifyGapType(label: string, templateKey: PlanTemplateKey) {
+  const normalized = normalizeText(label)
+  if (
+    /\b(certif|license|licen[sc]e|registration|apprentice|sponsor|board|exam|permit|clearance|red seal|coq)\b/.test(
+      normalized
+    )
+  ) {
+    return 'credential' as const
+  }
+  if (/\b(tool|equipment|multimeter|drill|ladder|platform|software|system)\b/.test(normalized)) {
+    return 'tools' as const
+  }
+  if (/\b(year|experience|portfolio|proof|sample|project|demo)\b/.test(normalized)) {
+    return 'proof' as const
+  }
+  if (
+    /\b(outreach|application|referral|recruiter|union|contractor|manager|network|channel)\b/.test(
+      normalized
+    )
+  ) {
+    return 'channel' as const
+  }
+  if (templateKey === 'regulated_trade' && /\b(cross functional|stakeholder)\b/.test(normalized)) {
+    return 'proof' as const
+  }
+  return 'knowledge' as const
+}
+
+function buildActionableGap(
+  descriptor: RequirementDescriptor,
+  templateKey: PlanTemplateKey,
+  targetProfile: OccupationTemplateProfile
+) {
+  const normalizedLabel = normalizeText(descriptor.label)
+  if (
+    templateKey !== 'experience_ladder_role' &&
+    /\b(cross functional|cross-functional)\b/.test(normalizedLabel)
+  ) {
+    return {
+      type: 'proof',
+      title: 'Clean handoff and team coordination proof',
+      howToFix: [
+        'Shadow one site or workflow handoff and note what good coordination looks like.',
+        'Prepare one short example showing how you kept work moving with another team.'
+      ]
+    } satisfies ActionableGap
+  }
+
+  if (/\b\d+\+?\s*(year|yr)s?\b/.test(normalizedLabel)) {
+    return {
+      type: 'proof',
+      title: 'Proof of hands-on readiness',
+      howToFix: [
+        'Create 1 small, job-relevant proof example this week.',
+        'Get 1 reference or shadow day that shows you can work safely and reliably.'
+      ]
+    } satisfies ActionableGap
+  }
+
+  const type = classifyGapType(descriptor.label, templateKey)
+  const displayLabel = formatLabel(descriptor.label) || 'Role-relevant proof'
+  const tradeMode = isTradeProfile(targetProfile, templateKey)
+
+  if (tradeMode) {
+    if (/\b(theory|circuit|ohm|voltage|current|resistance)\b/.test(normalizedLabel)) {
+      return {
+        type: 'knowledge',
+        title: 'Electrical theory basics',
+        howToFix: [
+          'Learn circuits, voltage, current, and resistance for 2 weeks at 30 min/day.',
+          'Explain the basics back in plain language after each study session.'
+        ]
+      } satisfies ActionableGap
+    }
+    if (/\b(safety|lockout|isolation|test before touch|compliance)\b/.test(normalizedLabel)) {
+      return {
+        type: 'knowledge',
+        title: 'Safety isolation habits',
+        howToFix: [
+          'Learn the test-before-touch habit before you do any hands-on demo work.',
+          'Use only safe demo-board or classroom-style practice, not live work.'
+        ]
+      } satisfies ActionableGap
+    }
+    if (/\b(tool|multimeter|hand tool|strippers|drill|ladder)\b/.test(normalizedLabel)) {
+      return {
+        type: 'tools',
+        title: 'Tools familiarity',
+        howToFix: [
+          'Handle a multimeter, basic hand tools, drills, and ladders in safe demo practice.',
+          'Label what each tool is for and when you would use it.'
+        ]
+      } satisfies ActionableGap
+    }
+    if (/\b(blueprint|schematic|measurement|layout)\b/.test(normalizedLabel)) {
+      return {
+        type: 'knowledge',
+        title: 'Blueprints and measurement',
+        howToFix: [
+          'Practice reading 1 simple schematic or layout each week.',
+          'Refresh tape-measure and basic calculation habits alongside that practice.'
+        ]
+      } satisfies ActionableGap
+    }
+    if (/\b(apprentice|sponsor|registration|hours|school|schooling|union|intake)\b/.test(normalizedLabel)) {
+      return {
+        type: 'credential',
+        title: 'Pathway step: sponsor and apprenticeship intake',
+        howToFix: [
+          'List the first sponsor, intake, or apprenticeship registration step in your area.',
+          targetProfile.region === 'CA'
+            ? 'Confirm how hours, technical training, and licensing are tracked in your province.'
+            : 'Confirm how employer sponsorship, supervised hours, and schooling are tracked in your area.'
+        ]
+      } satisfies ActionableGap
+    }
+  }
+
+  if (type === 'credential') {
+    return {
+      type,
+      title: displayLabel,
+      howToFix: [
+        `Start the first formal step for ${displayLabel.toLowerCase()}.`,
+        'Confirm the exact local requirement before you spend money.'
+      ]
+    } satisfies ActionableGap
+  }
+
+  if (type === 'tools') {
+    return {
+      type,
+      title: displayLabel,
+      howToFix: [
+        `Get one hands-on practice rep with ${displayLabel.toLowerCase()}.`,
+        'Capture a short note or example you can use in applications.'
+      ]
+    } satisfies ActionableGap
+  }
+
+  if (type === 'channel') {
+    return {
+      type,
+      title: displayLabel,
+      howToFix: [
+        'Use the hiring channel that actually creates replies in this field.',
+        'Set a weekly outreach target and track who responds.'
+      ]
+    } satisfies ActionableGap
+  }
+
+  if (type === 'proof') {
+    return {
+      type,
+      title: displayLabel,
+      howToFix: [
+        `Build 1 concrete example that proves ${displayLabel.toLowerCase()}.`,
+        'Keep it small, visible, and easy to explain.'
+      ]
+    } satisfies ActionableGap
+  }
+
+  return {
+    type,
+    title: displayLabel,
+    howToFix: [
+      `Learn the basics of ${displayLabel.toLowerCase()} in short daily blocks.`,
+      'Turn the learning into one simple proof this month.'
+    ]
+  } satisfies ActionableGap
+}
+
+function formatActionableGap(gap: ActionableGap) {
+  const primaryFix = gap.howToFix[0] ?? ''
+  if (!primaryFix) return cleanPublicFacingBullet(gap.title)
+  return cleanPublicFacingBullet(primaryFix)
+}
+
 function parseTimelineRange(value: string) {
   const numbers = [...value.matchAll(/(\d+)/g)].map((match) => Number.parseInt(match[1], 10))
   if (numbers.length === 0) return null
@@ -491,16 +694,24 @@ function buildRequirementDescriptors(
 }
 
 function collectExperienceSourceText(input: GenerateTransitionPlanInput) {
+  const profile = extractProfileSignals({
+    experienceText: input.experienceText ?? ''
+  })
+
   return normalizeText(
     [
       input.currentRole,
       input.currentResolution?.rawInputTitle ?? '',
       input.currentResolution?.title ?? '',
-      input.experienceText ?? '',
+      ...profile.skills,
+      ...profile.certifications,
+      ...profile.experienceSignals,
       ...(input.report.executionStrategy?.whereYouStandNow.strengths ?? []).map((item) => item.summary),
       ...(input.report.transitionSections?.transferableStrengths ?? []).map((item) => item.label),
       ...(input.report.transitionReport?.transferableStrengths ?? []).map((item) => item.strength)
-    ].join(' ')
+    ]
+      .filter((item) => !isPersonalIdentifier(item))
+      .join(' ')
   )
 }
 
@@ -519,34 +730,89 @@ export function deriveSignals(
   targetProfile: OccupationTemplateProfile,
   templateKey: PlanTemplateKey
 ): DerivedSignals {
+  const profile = extractProfileSignals({
+    experienceText: input.experienceText ?? ''
+  })
   const sourceText = collectExperienceSourceText(input)
   const availableSignals = inferAvailableSignals(sourceText)
   const requirements = buildRequirementDescriptors(input.report, templateKey)
+  const tradeMode = isTradeProfile(targetProfile, templateKey)
+  const profileSkillKeys = profile.skills.map((item) => normalizeBulletKey(item))
+  const profileCertificationKeys = profile.certifications.map((item) => normalizeBulletKey(item))
+  const profileExperienceKeys = profile.experienceSignals.map((item) => normalizeBulletKey(item))
+  const profileEvidenceKeys = new Set([...profileSkillKeys, ...profileCertificationKeys, ...profileExperienceKeys])
 
   const transferableSignals: DerivedSignal[] = []
   const missingSignals: DerivedSignal[] = []
 
+  if (tradeMode && profile.certifications.length > 0) {
+    for (const certification of profile.certifications) {
+      const normalized = normalizeText(certification)
+      if (
+        /\b(whmis|osha|csts|working at heights|first aid|cpr|driver)\b/.test(normalized)
+      ) {
+        transferableSignals.push({
+          label: `You already have ${certification}, which helps you look more jobsite-ready from day one.`,
+          weight: 0.96,
+          action: `Lead with ${certification} when you talk to employers or sponsors.`
+        })
+      }
+    }
+  }
+
+  for (const signal of profile.experienceSignals) {
+    if (isPersonalIdentifier(signal)) continue
+    if (!/\b(led|managed|trained|reduced|improved|handled|maintained|worked|shift|team|crew|paced?)\b/i.test(signal)) {
+      continue
+    }
+    transferableSignals.push({
+      label: `Your background already shows usable proof: ${signal}.`,
+      weight: 0.72,
+      action: 'Turn that into one clean resume bullet and one interview example.'
+    })
+  }
+
   for (const descriptor of requirements) {
     const rule = mapRequirementToSignalRule(descriptor.label)
+    const descriptorKey = normalizeBulletKey(descriptor.label)
+    const matchesDirectProfileEvidence = [...profileEvidenceKeys].some((key) => {
+      if (!key || !descriptorKey) return false
+      return (
+        key === descriptorKey ||
+        key.includes(descriptorKey) ||
+        descriptorKey.includes(key)
+      )
+    })
+    const matchesDirectCertification = profileCertificationKeys.some((key) => {
+      if (!key || !descriptorKey) return false
+      return key === descriptorKey || key.includes(descriptorKey) || descriptorKey.includes(key)
+    })
     const matched = Boolean(
-      rule &&
-        (availableSignals.has(rule.key) ||
-          rule.sourcePatterns.some((pattern) => pattern.test(sourceText)))
+      matchesDirectProfileEvidence ||
+        (rule &&
+          (availableSignals.has(rule.key) ||
+            rule.sourcePatterns.some((pattern) => pattern.test(sourceText))))
     )
 
     if (matched) {
+      if (tradeMode && matchesDirectCertification) {
+        continue
+      }
       transferableSignals.push({
-        label: rule?.overlapText || `You already have some overlap with ${descriptor.label}.`,
+        label: rule?.overlapText || `You already have usable overlap with ${descriptor.label}.`,
         weight: descriptor.weight,
         action: descriptor.action
       })
       continue
     }
 
+    const actionableGap = buildActionableGap(descriptor, templateKey, targetProfile)
     missingSignals.push({
-      label: `Gap to close: ${formatLabel(descriptor.label)}.`,
+      label: actionableGap.title,
       weight: descriptor.weight,
-      action: rule?.missingAction ? toSentence(rule.missingAction) : toSentence(descriptor.action)
+      action:
+        formatActionableGap(actionableGap) ||
+        (rule?.missingAction ? cleanPublicFacingBullet(rule.missingAction) : cleanPublicFacingBullet(descriptor.action))
     })
   }
 
@@ -564,10 +830,11 @@ export function deriveSignals(
 
   if (missingSignals.length === 0) {
     for (const fallback of TEMPLATE_DEFAULT_REQUIREMENTS[templateKey]) {
+      const actionableGap = buildActionableGap(fallback, templateKey, targetProfile)
       missingSignals.push({
-        label: `Gap to close: ${formatLabel(fallback.label)}.`,
+        label: actionableGap.title,
         weight: fallback.weight,
-        action: toSentence(fallback.action)
+        action: formatActionableGap(actionableGap) || cleanPublicFacingBullet(fallback.action)
       })
     }
   }
@@ -590,9 +857,30 @@ export function deriveSignals(
   }
 
   return {
-    transferableSignals: transferableSignals.sort((left, right) => right.weight - left.weight).slice(0, 4),
-    missingSignals: missingSignals.sort((left, right) => right.weight - left.weight).slice(0, 4),
-    priorityActions: priorityActions.slice(0, 4)
+    transferableSignals: transferableSignals
+      .filter((item) => !isPersonalIdentifier(item.label))
+      .map((item) => ({
+        ...item,
+        label: cleanPublicFacingBullet(item.label),
+        action: cleanPublicFacingBullet(item.action)
+      }))
+      .filter((item) => item.label && item.action)
+      .sort((left, right) => right.weight - left.weight)
+      .slice(0, 4),
+    missingSignals: missingSignals
+      .filter((item) => !isPersonalIdentifier(item.label))
+      .map((item) => ({
+        ...item,
+        label: cleanPublicFacingBullet(item.label),
+        action: cleanPublicFacingBullet(item.action)
+      }))
+      .filter((item) => item.label && item.action)
+      .sort((left, right) => right.weight - left.weight)
+      .slice(0, 4),
+    priorityActions: priorityActions
+      .map((item) => cleanPublicFacingBullet(item))
+      .filter(Boolean)
+      .slice(0, 4)
   }
 }
 
@@ -925,6 +1213,41 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
     signals
   )
   const timeline = buildTimeline(input.report, targetProfile, templateKey, difficulty.score)
+  const strengthBullets = fillToLength(
+    compressSimilarBullets(signals.transferableSignals.map((item) => item.label), 4),
+    3,
+    [
+      'You already bring some usable overlap into this move.',
+      'Lead with the strongest overlap when you apply or reach out.',
+      'Use the clearest transferable signal as early interview proof.'
+    ]
+  )
+    .map((item) => cleanPublicFacingBullet(item))
+    .filter((item) => item && !isPersonalIdentifier(item))
+    .slice(0, 4)
+  const gapBullets = fillToLength(
+    compressSimilarBullets(signals.missingSignals.map((item) => item.action), 4),
+    3,
+    [
+      'Turn the biggest missing requirement into one concrete proof action.',
+      'Choose one gap and make the next step visible this week.',
+      'Do not leave the top blocker vague or unscheduled.'
+    ]
+  )
+    .map((item) => cleanPublicFacingBullet(item))
+    .filter((item) => item && !isPersonalIdentifier(item))
+    .slice(0, 4)
+  const safeFirst3Steps = fillToLength(
+    first3Steps
+      .map((item) => cleanPublicFacingBullet(item))
+      .filter((item) => item && !isPersonalIdentifier(item)),
+    3,
+    [
+      'Move one concrete blocker onto the calendar this week.',
+      'Pick the highest-value next step and schedule it now.',
+      'Tie the next action to one visible output you can finish.'
+    ]
+  ).slice(0, 3)
 
   return TransitionModeSchema.parse({
     definitions: templateOutput.definitions,
@@ -934,25 +1257,9 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
     plan90: templateOutput.plan90,
     execution: templateOutput.execution,
     gaps: {
-      strengths: fillToLength(
-        compressSimilarBullets(signals.transferableSignals.map((item) => item.label), 4),
-        3,
-        [
-          'You already bring some usable overlap into this move.',
-          'Lead with the strongest overlap when you apply or reach out.',
-          'Use the clearest transferable signal as early interview proof.'
-        ]
-      ).slice(0, 4),
-      missing: fillToLength(
-        compressSimilarBullets(signals.missingSignals.map((item) => item.action), 4),
-        3,
-        [
-          'Turn the biggest missing requirement into one concrete proof action.',
-          'Choose one gap and make the next step visible this week.',
-          'Do not leave the top blocker vague or unscheduled.'
-        ]
-      ).slice(0, 4),
-      first3Steps
+      strengths: strengthBullets,
+      missing: gapBullets,
+      first3Steps: safeFirst3Steps
     },
     earnings: buildEarnings(input.report, templateKey, input.incomeTarget ?? ''),
     reality: buildReality(templateKey, input.report, signals),
