@@ -3949,8 +3949,8 @@
     {
       "type": "frame",
       "id": "QwcKH",
-      "x": 7924,
-      "y": -368,
+      "x": 1829,
+      "y": 4383,
       "name": "Career Switch Planner — Flagship (Desktop)",
       "width": 1440,
       "fill": "$bg-primary",
@@ -6301,8 +6301,8 @@
     {
       "type": "frame",
       "id": "sELjA",
-      "x": 10229,
-      "y": 0,
+      "x": 0,
+      "y": -9612,
       "name": "Career Switch Planner — Flagship (Mobile)",
       "width": 390,
       "fill": "$bg-primary",
@@ -8526,8 +8526,8 @@
     {
       "type": "frame",
       "id": "uHZ57",
-      "x": 10779,
-      "y": 0,
+      "x": 3720,
+      "y": 4383,
       "name": "Account + Pricing v2 — Desktop States",
       "width": 1600,
       "fill": "$bg-primary",
@@ -10627,8 +10627,8 @@
     {
       "type": "frame",
       "id": "DhtUz",
-      "x": 12499,
-      "y": 0,
+      "x": 648,
+      "y": -9612,
       "name": "Account + Pricing v2 — Mobile States",
       "width": 430,
       "fill": "$bg-primary",
@@ -12544,7 +12544,7 @@
     {
       "type": "frame",
       "id": "cGXYn",
-      "x": 16249,
+      "x": 8031,
       "y": 2106,
       "name": "Blog Index Page (/blog) — Desktop",
       "width": 1440,
@@ -13439,8 +13439,8 @@
     {
       "type": "frame",
       "id": "VICn9",
-      "x": 14649,
-      "y": 545,
+      "x": 0,
+      "y": 4383,
       "name": "Blog Post Page (/blog/[slug]) — Desktop",
       "width": 1440,
       "fill": "$bg-primary",
@@ -14336,8 +14336,8 @@
     {
       "type": "frame",
       "id": "oR5w8",
-      "x": 13049,
-      "y": 0,
+      "x": 1198,
+      "y": -9612,
       "name": "Blog Index Page (/blog) — Mobile",
       "width": 390,
       "fill": "$bg-primary",
@@ -15200,8 +15200,8 @@
     {
       "type": "frame",
       "id": "ywtwQ",
-      "x": 13499,
-      "y": 0,
+      "x": 1648,
+      "y": -9612,
       "name": "Blog Post Page (/blog/[slug]) — Mobile",
       "width": 390,
       "fill": "$bg-primary",
@@ -16010,7 +16010,7 @@
     {
       "type": "frame",
       "id": "jKPNC",
-      "x": 16249,
+      "x": 8031,
       "y": -888,
       "name": "Blog System Components + Specs",
       "width": 1500,
@@ -16953,7 +16953,7 @@
     {
       "type": "frame",
       "id": "HnFTv",
-      "x": 17869,
+      "x": 9651,
       "y": -888,
       "name": "Account Creation Page — Desktop",
       "width": 1440,
@@ -17313,7 +17313,7 @@
     {
       "type": "frame",
       "id": "mvCdY",
-      "x": 19429,
+      "x": 11211,
       "y": -888,
       "name": "Transition Mode Iteration A",
       "width": 1440,
@@ -17321,88 +17321,13 @@
       "fill": "$bg-primary",
       "layout": "vertical",
       "gap": 24,
-      "padding": 32,
-      "children": [
-        {
-          "type": "frame",
-          "id": "VMiPX",
-          "name": "Hero + Command Bar",
-          "width": "fill_container",
-          "height": 260,
-          "fill": "$bg-secondary",
-          "gap": 24,
-          "padding": [
-            40,
-            48
-          ],
-          "children": [
-            {
-              "type": "frame",
-              "id": "8IYTO",
-              "name": "Dominant Difficulty Metrics",
-              "width": "fill_container",
-              "height": "fill_container",
-              "fill": "$surface",
-              "cornerRadius": 18,
-              "layout": "vertical",
-              "gap": 16,
-              "padding": 28
-            },
-            {
-              "type": "frame",
-              "id": "z5V7I",
-              "name": "Quick Wins + CTA Rail",
-              "width": 360,
-              "height": "fill_container",
-              "fill": "$surface",
-              "cornerRadius": 18,
-              "layout": "vertical",
-              "gap": 16,
-              "padding": 28
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "HVIrd",
-          "name": "Main Strategy Split",
-          "width": "fill_container",
-          "height": "fill_container",
-          "gap": 24,
-          "children": [
-            {
-              "type": "frame",
-              "id": "6p8lt",
-              "name": "Strategy + 90 Day Plan Stack",
-              "width": "fill_container",
-              "height": "fill_container",
-              "fill": "$surface",
-              "cornerRadius": 18,
-              "layout": "vertical",
-              "gap": 20,
-              "padding": 28
-            },
-            {
-              "type": "frame",
-              "id": "8BwZE",
-              "name": "Gaps + Reality + Data Rail",
-              "width": 360,
-              "height": "fill_container",
-              "fill": "$surface",
-              "cornerRadius": 18,
-              "layout": "vertical",
-              "gap": 20,
-              "padding": 24
-            }
-          ]
-        }
-      ]
+      "padding": 32
     },
     {
       "type": "frame",
       "id": "QAlLQ",
-      "x": 20989,
-      "y": -888,
+      "x": 11321,
+      "y": 694,
       "name": "Transition Mode Iteration B",
       "width": 1440,
       "height": 1180,
@@ -17470,73 +17395,21 @@
     {
       "type": "frame",
       "id": "AF3QL",
-      "x": 22549,
-      "y": -888,
+      "x": 9729,
+      "y": 2197,
       "name": "Transition Mode Iteration C",
       "width": 1440,
       "height": 1180,
       "fill": "$bg-primary",
       "layout": "vertical",
       "gap": 24,
-      "padding": 32,
-      "children": [
-        {
-          "type": "frame",
-          "id": "ZCvTW",
-          "name": "Split Hero with Sticky Summary",
-          "width": "fill_container",
-          "height": 260,
-          "fill": "$bg-secondary",
-          "cornerRadius": 20,
-          "gap": 24,
-          "padding": [
-            36,
-            44
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "UKWyl",
-          "name": "Stacked Narrative Cards",
-          "width": "fill_container",
-          "height": 220,
-          "fill": "$surface",
-          "cornerRadius": 18,
-          "layout": "vertical",
-          "gap": 16,
-          "padding": 28
-        },
-        {
-          "type": "frame",
-          "id": "SrEO8",
-          "name": "Quick Wins / Primary Gaps / Route Pulse",
-          "width": "fill_container",
-          "height": 160,
-          "gap": 18
-        },
-        {
-          "type": "frame",
-          "id": "aNHl3",
-          "name": "Plan + Outreach Workspace",
-          "width": "fill_container",
-          "height": 320,
-          "gap": 24
-        },
-        {
-          "type": "frame",
-          "id": "8lI1H",
-          "name": "Earnings + Reality + Resources",
-          "width": "fill_container",
-          "height": "fill_container",
-          "gap": 24
-        }
-      ]
+      "padding": 32
     },
     {
       "type": "frame",
       "id": "2OsG9",
-      "x": 22549,
-      "y": 446,
+      "x": 12881,
+      "y": 2028,
       "name": "Transparency Footer",
       "width": "fill_container(1376)",
       "height": 140,
@@ -17548,8 +17421,8 @@
     {
       "type": "frame",
       "id": "NS9xW",
-      "x": 21053,
-      "y": 436,
+      "x": 11385,
+      "y": 2018,
       "name": "Reality Check + Data Footer",
       "width": "fill_container(1376)",
       "height": 160,
@@ -17557,6 +17430,4922 @@
       "cornerRadius": 18,
       "gap": 18,
       "padding": 24
+    },
+    {
+      "type": "frame",
+      "id": "VMiPX",
+      "x": 9793,
+      "y": 726,
+      "name": "Hero + Command Bar",
+      "width": "fill_container(1376)",
+      "height": 260,
+      "fill": "$bg-secondary",
+      "gap": 24,
+      "padding": [
+        40,
+        48
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "8IYTO",
+          "name": "Dominant Difficulty Metrics",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 28
+        },
+        {
+          "type": "frame",
+          "id": "z5V7I",
+          "name": "Quick Wins + CTA Rail",
+          "width": 360,
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 28
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "HVIrd",
+      "x": 9793,
+      "y": 1010,
+      "name": "Main Strategy Split",
+      "width": "fill_container(1376)",
+      "height": "fill_container(832)",
+      "gap": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "6p8lt",
+          "name": "Strategy + 90 Day Plan Stack",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 28
+        },
+        {
+          "type": "frame",
+          "id": "8BwZE",
+          "name": "Gaps + Reality + Data Rail",
+          "width": 360,
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ZCvTW",
+      "x": 12913,
+      "y": 726,
+      "name": "Split Hero with Sticky Summary",
+      "width": "fill_container(1376)",
+      "height": 260,
+      "fill": "$bg-secondary",
+      "cornerRadius": 20,
+      "gap": 24,
+      "padding": [
+        36,
+        44
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "UKWyl",
+      "x": 12913,
+      "y": 1010,
+      "name": "Stacked Narrative Cards",
+      "width": "fill_container(1376)",
+      "height": 220,
+      "fill": "$surface",
+      "cornerRadius": 18,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 28
+    },
+    {
+      "type": "frame",
+      "id": "SrEO8",
+      "x": 12913,
+      "y": 1254,
+      "name": "Quick Wins / Primary Gaps / Route Pulse",
+      "width": "fill_container(1376)",
+      "height": 160,
+      "gap": 18
+    },
+    {
+      "type": "frame",
+      "id": "aNHl3",
+      "x": 12913,
+      "y": 1438,
+      "name": "Plan + Outreach Workspace",
+      "width": "fill_container(1376)",
+      "height": 320,
+      "gap": 24
+    },
+    {
+      "type": "frame",
+      "id": "8lI1H",
+      "x": 12913,
+      "y": 1782,
+      "name": "Earnings + Reality + Resources",
+      "width": "fill_container(1376)",
+      "height": "fill_container(60)",
+      "gap": 24
+    },
+    {
+      "type": "frame",
+      "id": "kFcDg",
+      "x": 0,
+      "y": 7788,
+      "name": "Homepage - Canada-First Refined",
+      "width": 1440,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "ZHMyg",
+          "type": "ref",
+          "ref": "boKHe",
+          "name": "header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "CN5AT",
+          "name": "Hero Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            112,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "DiD8d",
+              "name": "heroBadge",
+              "fill": "$accent-light",
+              "cornerRadius": "$radius-pill",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#2563EB20"
+              },
+              "gap": 8,
+              "padding": [
+                6,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "1vMXP",
+                  "name": "heroBadgeIcon",
+                  "width": 14,
+                  "height": 14,
+                  "iconFontName": "sparkles",
+                  "iconFontFamily": "lucide",
+                  "fill": "$accent"
+                },
+                {
+                  "type": "text",
+                  "id": "mBGEz",
+                  "name": "heroBadgeText",
+                  "fill": "$accent",
+                  "content": "Career transformation platform • Trusted by ambitious professionals",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "WKgdi",
+              "name": "headline",
+              "fill": "$text-primary",
+              "content": "Every Canadian Career Pathway\nStep by Step",
+              "lineHeight": 1.06,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 52,
+              "fontWeight": "700",
+              "letterSpacing": -1.2
+            },
+            {
+              "type": "text",
+              "id": "sRqwy",
+              "name": "subheadline",
+              "fill": "#334155",
+              "textGrowth": "fixed-width",
+              "width": 760,
+              "content": "Province-aware roadmaps with real timelines, certification requirements, and salary progression for Canadians making consequential career moves.",
+              "lineHeight": 1.68,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 19,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "LHaUJ",
+              "name": "ctaButtons",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "bXzcf",
+                  "type": "ref",
+                  "ref": "yV1lY",
+                  "name": "primaryCta",
+                  "descendants": {
+                    "zxPy9": {
+                      "enabled": true,
+                      "iconFontName": "arrow-right"
+                    },
+                    "O5nS5": {
+                      "content": "Start Career Switch Planner"
+                    }
+                  }
+                },
+                {
+                  "id": "k3wYW",
+                  "type": "ref",
+                  "ref": "Qv8Wy",
+                  "name": "secondaryCta",
+                  "descendants": {
+                    "qR3u9": {
+                      "content": "Explore Platform"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Td0AD",
+              "name": "Trust Metrics",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Xoktv",
+                  "name": "Metric 1",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#D7E3F0"
+                  },
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "6P08w",
+                      "fill": "#0F172A",
+                      "content": "Avg planning time: 9 min",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HZ31q",
+                  "name": "Metric 2",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#D7E3F0"
+                  },
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "khmaM",
+                      "fill": "#0F172A",
+                      "content": "Used by career switchers weekly",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zlw3m",
+                  "name": "Metric 3",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#D7E3F0"
+                  },
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "N7REM",
+                      "fill": "#0F172A",
+                      "content": "Structured reports in one flow",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "2uose",
+          "name": "Featured Tools Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 36,
+          "padding": [
+            88,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "zMMCe",
+              "name": "sectionHeader",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TXV6d",
+                  "name": "toolsLabel",
+                  "fill": "$accent",
+                  "content": "FLAGSHIP TOOL",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                  "letterSpacing": 1.7
+                },
+                {
+                  "type": "text",
+                  "id": "TGugI",
+                  "name": "toolsH2",
+                  "fill": "$text-primary",
+                  "content": "Career Switch Planner Is Your Strategic Hub",
+                  "lineHeight": 1.18,
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 38,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "eSphp",
+                  "name": "toolsSub",
+                  "fill": "#334155",
+                  "content": "Start with a full transition report, then use supporting tools for execution.",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "jBIP4",
+              "type": "ref",
+              "ref": "yR8ux",
+              "name": "Featured Tool / Career Switch Planner",
+              "width": "fill_container",
+              "fill": "#F5F9FF",
+              "stroke": {
+                "align": "inside",
+                "thickness": 2,
+                "fill": "#2563EB45"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#1D4ED81F",
+                "blur": 24
+              },
+              "padding": 34,
+              "descendants": {
+                "YleZ3": {
+                  "iconFontName": "route"
+                },
+                "l06Lf/8TGJz": {
+                  "enabled": true,
+                  "iconFontName": "sparkles"
+                },
+                "l06Lf/MgCNf": {
+                  "content": "Most Popular"
+                },
+                "IaXDk": {
+                  "content": "Career Switch Planner",
+                  "fontSize": 36,
+                  "fontWeight": "700",
+                  "lineHeight": 1.14
+                },
+                "HbXDB": {
+                  "content": "Evaluate transferability from your current role, prioritize high-leverage skill gaps, and execute a focused 30/60/90 plan with resume-ready language.",
+                  "fontSize": 16,
+                  "lineHeight": 1.72,
+                  "fill": "#334155"
+                },
+                "zRNY3/O5nS5": {
+                  "content": "Build My Transition Strategy"
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "oeT1m",
+              "name": "moreToolsHeading",
+              "fill": "#64748B",
+              "content": "Popular Pathways",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "DSslt",
+              "name": "More Tools Grid",
+              "width": "fill_container",
+              "gap": 18,
+              "children": [
+                {
+                  "id": "xAOFP",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "tool1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "file-text"
+                    },
+                    "IaXDk": {
+                      "content": "Resume Analyzer",
+                      "fontSize": 17
+                    },
+                    "HbXDB": {
+                      "content": "Get instant AI feedback on your resume — fix weak spots, improve wording, and stand out.",
+                      "fontSize": 13
+                    }
+                  }
+                },
+                {
+                  "id": "sLVqs",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "tool2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "message-square"
+                    },
+                    "IaXDk": {
+                      "content": "Interview Q&A",
+                      "fontSize": 17
+                    },
+                    "HbXDB": {
+                      "content": "Generate tailored interview questions and answers based on any job description.",
+                      "fontSize": 13
+                    }
+                  }
+                },
+                {
+                  "id": "P5pVX",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "tool3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "pen-tool"
+                    },
+                    "IaXDk": {
+                      "content": "Cover Letter Writer",
+                      "fontSize": 17
+                    },
+                    "HbXDB": {
+                      "content": "Create a personalized cover letter in seconds. Just paste the job listing.",
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "XGZIk",
+          "name": "Blog Preview Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 42,
+          "padding": [
+            100,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "6xTA2",
+              "name": "sectionHeader",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "2nWPY",
+                  "name": "blogHeaderLeft",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "IBzla",
+                      "name": "blogLabel",
+                      "fill": "$accent",
+                      "content": "FROM THE BLOG",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                      "letterSpacing": 1.5
+                    },
+                    {
+                      "type": "text",
+                      "id": "SgcGZ",
+                      "name": "blogH2",
+                      "fill": "$text-primary",
+                      "content": "Insights for High-Stakes Career Moves",
+                      "lineHeight": 1.2,
+                      "fontFamily": "Inter",
+                      "fontSize": 34,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "MVIps",
+                  "name": "blogViewAll",
+                  "fill": "$accent",
+                  "content": "Read all insights →",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BtQLO",
+              "name": "blogGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "El7u6",
+                  "type": "ref",
+                  "ref": "wgP5r",
+                  "name": "blog1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "RcPlE": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1762341123685-098ecb6c3ef7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzMTEzMTB8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    },
+                    "i0Mh9": {
+                      "content": "CAREER TIPS"
+                    },
+                    "ry7IA": {
+                      "content": "10 Resume Mistakes That Cost You Interviews"
+                    },
+                    "tAp4d": {
+                      "content": "Feb 12, 2026"
+                    }
+                  }
+                },
+                {
+                  "id": "GATN0",
+                  "type": "ref",
+                  "ref": "wgP5r",
+                  "name": "blog2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "RcPlE": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1681505526188-b05e68c77582?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzMTEzMTF8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    },
+                    "i0Mh9": {
+                      "content": "INTERVIEWS"
+                    },
+                    "ry7IA": {
+                      "content": "How to Answer 'Tell Me About Yourself' in 2026"
+                    },
+                    "tAp4d": {
+                      "content": "Feb 8, 2026"
+                    },
+                    "BPvzT": {
+                      "content": "7 min read"
+                    }
+                  }
+                },
+                {
+                  "id": "14nig",
+                  "type": "ref",
+                  "ref": "wgP5r",
+                  "name": "blog3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "RcPlE": {
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "https://images.unsplash.com/photo-1758874383489-7be291a44415?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzEzMTEzMTF8&ixlib=rb-4.1.0&q=80&w=1080",
+                        "mode": "fill"
+                      }
+                    },
+                    "i0Mh9": {
+                      "content": "TOOLS"
+                    },
+                    "ry7IA": {
+                      "content": "AI Cover Letters: Do They Actually Work?"
+                    },
+                    "tAp4d": {
+                      "content": "Feb 3, 2026"
+                    },
+                    "BPvzT": {
+                      "content": "4 min read"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "8bbHn",
+          "name": "CTA Wrapper",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            88,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "Ldfp0",
+              "type": "ref",
+              "ref": "VceQe",
+              "name": "ctaSection",
+              "width": "fill_container",
+              "descendants": {
+                "vMKG5": {
+                  "content": "Explore a Canadian Pathway"
+                },
+                "cWQwF": {
+                  "content": "Start with a province-aware roadmap, then upgrade when you want deeper breakdowns, exports, and repeat planning.",
+                  "width": 600
+                },
+                "a1lHW/O5nS5": {
+                  "content": "Upgrade to Pro"
+                },
+                "SYRY0": {
+                  "content": "Compare plans →"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "vvQTu",
+          "type": "ref",
+          "ref": "gM3YZ",
+          "name": "footer",
+          "width": "fill_container"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "s9ao2",
+      "x": 1540,
+      "y": 10601,
+      "name": "Tool Page - Active State - Canada-First Refined",
+      "width": 1440,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Zp4Ke",
+          "type": "ref",
+          "ref": "boKHe",
+          "name": "header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "Uoj6S",
+          "name": "Tool Hero Wrapper",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "padding": [
+            0,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "wJgvb",
+              "type": "ref",
+              "ref": "gGKhf",
+              "name": "toolHero",
+              "width": "fill_container",
+              "height": "fit_content",
+              "x": 170,
+              "y": 0,
+              "descendants": {
+                "Cv9Gi": {
+                  "content": "Career Switch Planner"
+                },
+                "mOnw9": {
+                  "content": "Build a province-aware Canadian pathway with timelines, requirements, and next steps you can actually follow.",
+                  "fill": "$text-secondary"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dwhVE",
+          "name": "Benefits Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            76,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "vUlqd",
+              "name": "benefitsH3",
+              "fill": "$text-primary",
+              "content": "What you get",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "N3WAC",
+              "name": "benefitsGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JOhyQ",
+                  "name": "b1",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VwvOa",
+                      "name": "b1Icon",
+                      "width": 36,
+                      "height": 36,
+                      "fill": "$accent-light",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "u8so2",
+                          "name": "b1IconInner",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "zap",
+                          "iconFontFamily": "lucide",
+                          "fill": "$accent"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "kEbwk",
+                      "name": "b1Title",
+                      "fill": "$text-primary",
+                      "content": "Decision-ready clarity",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "oJBhj",
+                      "name": "b1Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Pinpoint what weakens interview conversion before you apply.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ByezV",
+                  "name": "b2",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Iv8NJ",
+                      "name": "b2Icon",
+                      "width": 36,
+                      "height": 36,
+                      "fill": "$accent-light",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "ifGc1",
+                          "name": "b2IconInner",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "target",
+                          "iconFontFamily": "lucide",
+                          "fill": "$accent"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "zkSwy",
+                      "name": "b2Title",
+                      "fill": "$text-primary",
+                      "content": "High-impact revisions",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "En9QK",
+                      "name": "b2Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Receive concrete edits that strengthen relevance for target roles.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dM1LM",
+                  "name": "b3",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wgXAB",
+                      "name": "b3Icon",
+                      "width": 36,
+                      "height": 36,
+                      "fill": "$accent-light",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "a0iU0",
+                          "name": "b3IconInner",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "shield",
+                          "iconFontFamily": "lucide",
+                          "fill": "$accent"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "k7DP6",
+                      "name": "b3Title",
+                      "fill": "$text-primary",
+                      "content": "ATS + recruiter alignment",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "3LlF7",
+                      "name": "b3Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ensure structure and language survive ATS screening and human review.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rV7pg",
+          "name": "Tool UI Wrapper",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            72,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "Wtxcx",
+              "type": "ref",
+              "ref": "2URhs",
+              "name": "toolUI",
+              "width": "fill_container",
+              "descendants": {
+                "liru6": {
+                  "content": "2 of 3 lifetime uses remaining"
+                },
+                "OwQTe": {
+                  "enabled": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K8nqp",
+          "name": "FAQ Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 26,
+          "padding": [
+            76,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "irKlm",
+              "name": "faqH2",
+              "fill": "$text-primary",
+              "content": "Questions people ask before upgrading",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "ScxoJ",
+              "name": "faqList",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "xnHqH",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "How does the free trial work?"
+                    },
+                    "RlmoA": {
+                      "content": "You get 3 free uses of each tool — no credit card required. After that, upgrade to unlock unlimited access."
+                    }
+                  }
+                },
+                {
+                  "id": "DdUIN",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Is my resume data stored?"
+                    },
+                    "RlmoA": {
+                      "content": "No. We process your text in real-time and never store your resume content on our servers."
+                    }
+                  }
+                },
+                {
+                  "id": "q21gF",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "What makes this different from other resume tools?"
+                    },
+                    "RlmoA": {
+                      "content": "Our AI is trained specifically on hiring data and ATS systems. You get practical, role-specific feedback — not generic advice."
+                    }
+                  }
+                },
+                {
+                  "id": "AxGLa",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq4",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Can I cancel my subscription anytime?"
+                    },
+                    "RlmoA": {
+                      "content": "Yes, absolutely. Cancel anytime from your account settings. No questions asked."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EtHHA",
+          "name": "Related Tools Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            76,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "FwGFP",
+              "name": "relH2",
+              "fill": "$text-primary",
+              "content": "More Career Tools",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "R4A43",
+              "name": "relatedGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "2THkO",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "message-square"
+                    },
+                    "IaXDk": {
+                      "content": "Interview Q&A Prep"
+                    },
+                    "HbXDB": {
+                      "content": "Generate tailored interview questions and answers based on any job description."
+                    }
+                  }
+                },
+                {
+                  "id": "QnyT5",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "pen-tool"
+                    },
+                    "IaXDk": {
+                      "content": "Cover Letter Writer"
+                    },
+                    "HbXDB": {
+                      "content": "Create a personalized cover letter in seconds. Just paste the job listing."
+                    }
+                  }
+                },
+                {
+                  "id": "WYYsP",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "briefcase"
+                    },
+                    "IaXDk": {
+                      "content": "Job Match Score"
+                    },
+                    "HbXDB": {
+                      "content": "See how well your profile matches a job posting and what to improve."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8WjLi",
+          "type": "ref",
+          "ref": "gM3YZ",
+          "name": "footer",
+          "width": "fill_container"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "mBeks",
+      "x": 3080,
+      "y": 10601,
+      "name": "Tool Page - Locked State - Canada-First Refined",
+      "width": 1440,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "G09vc",
+          "type": "ref",
+          "ref": "boKHe",
+          "name": "header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "WNNMd",
+          "name": "Tool Hero Wrapper",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "padding": [
+            0,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "v4nZM",
+              "type": "ref",
+              "ref": "gGKhf",
+              "name": "toolHero",
+              "width": "fill_container",
+              "descendants": {
+                "ItJTZ/MgCNf": {
+                  "content": "0 Free Uses Left"
+                },
+                "Cv9Gi": {
+                  "content": "Career Switch Planner"
+                },
+                "mOnw9": {
+                  "content": "Preview the Canada-first pathway, then unlock full roadmap depth, province-aware requirements, and PDF export.",
+                  "fill": "$text-secondary"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xcjBU",
+          "name": "Benefits Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            76,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "OpiTo",
+              "name": "lpBenefitsH3",
+              "fill": "$text-primary",
+              "content": "What unlocks with Pro",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "bwzCH",
+              "name": "benefitsGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QIsbg",
+                  "name": "lb1",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "uDdnR",
+                      "name": "lb1Icon",
+                      "width": 36,
+                      "height": 36,
+                      "fill": "$accent-light",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "1oUES",
+                          "name": "lb1IconI",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "zap",
+                          "iconFontFamily": "lucide",
+                          "fill": "$accent"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "0klSZ",
+                      "name": "lb1Title",
+                      "fill": "$text-primary",
+                      "content": "Role-fit diagnostics",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NvyFu",
+                      "name": "lb1Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "See transferability confidence across your current and target role context.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PObx1",
+                  "name": "lb2",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "eyInY",
+                      "name": "lb2Icon",
+                      "width": 36,
+                      "height": 36,
+                      "fill": "$accent-light",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "R2OJg",
+                          "name": "lb2IconI",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "target",
+                          "iconFontFamily": "lucide",
+                          "fill": "$accent"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "g5Xks",
+                      "name": "lb2Title",
+                      "fill": "$text-primary",
+                      "content": "Strategic gap prioritization",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "PY9hb",
+                      "name": "lb2Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Focus only on capabilities that materially impact interview readiness.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zXGy0",
+                  "name": "lb3",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": "$radius-lg",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "delbS",
+                      "name": "lb3Icon",
+                      "width": 36,
+                      "height": 36,
+                      "fill": "$accent-light",
+                      "cornerRadius": "$radius-md",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "qy1kS",
+                          "name": "lb3IconI",
+                          "width": 18,
+                          "height": 18,
+                          "iconFontName": "shield",
+                          "iconFontFamily": "lucide",
+                          "fill": "$accent"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "wBsx8",
+                      "name": "lb3Title",
+                      "fill": "$text-primary",
+                      "content": "Execution roadmap",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "rtqQT",
+                      "name": "lb3Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Move through 30/60/90 actions with sequencing you can execute weekly.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LHzbV",
+          "name": "Paywall Wrapper",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            76,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "PBdlc",
+              "name": "Locked Label",
+              "fill": "#64748B",
+              "content": "Premium report access",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "id": "S0R6v",
+              "type": "ref",
+              "ref": "7frEh",
+              "name": "paywallBanner",
+              "width": "fill_container",
+              "descendants": {
+                "MiueB": {
+                  "content": "Your free previews are used up"
+                },
+                "M8DRf": {
+                  "content": "Upgrade for full pathway depth, province-specific guidance, PDF export, and unlimited roadmap reruns.",
+                  "width": 500
+                },
+                "sEuT5": {
+                  "type": "frame",
+                  "id": "HqBGZ",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "id": "L5kRK",
+                      "type": "ref",
+                      "ref": "yV1lY",
+                      "descendants": {
+                        "zxPy9": {
+                          "enabled": false
+                        },
+                        "O5nS5": {
+                          "content": "Upgrade to Pro — $7/mo"
+                        }
+                      }
+                    },
+                    {
+                      "id": "FLk3d",
+                      "type": "ref",
+                      "ref": "Qv8Wy",
+                      "descendants": {
+                        "i6ixl": {
+                          "enabled": false
+                        },
+                        "qR3u9": {
+                          "content": "Get Lifetime — $49"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "frame",
+              "id": "Zx1tL",
+              "name": "Locked Preview",
+              "opacity": 0.55,
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "4fFvv",
+                  "name": "Blur Card A",
+                  "width": "fill_container",
+                  "height": 78,
+                  "fill": "#F8FAFC",
+                  "cornerRadius": 10,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "Un5yz",
+                  "name": "Blur Card B",
+                  "width": "fill_container",
+                  "height": 78,
+                  "fill": "#F8FAFC",
+                  "cornerRadius": 10,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "5MjYa",
+                  "name": "Blur Card C",
+                  "width": "fill_container",
+                  "height": 78,
+                  "fill": "#F8FAFC",
+                  "cornerRadius": 10,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yq5ec",
+          "name": "FAQ Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 26,
+          "padding": [
+            76,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "GfwpZ",
+              "name": "lpFaqH2",
+              "fill": "$text-primary",
+              "content": "Questions people ask before upgrading",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "kPofJ",
+              "name": "faqList",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "OuWz8",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Why does the free plan stop after 3 reports?"
+                    },
+                    "RlmoA": {
+                      "content": "Free is intentionally a preview tier. Paid plans are built for repeated iteration and deeper guidance."
+                    }
+                  }
+                },
+                {
+                  "id": "9ggbI",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "What changes when I upgrade?"
+                    },
+                    "RlmoA": {
+                      "content": "You unlock unlimited runs, resume automation, strategic roadmap depth, and reframing outputs."
+                    }
+                  }
+                },
+                {
+                  "id": "IbN9K",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Can I cancel anytime?"
+                    },
+                    "RlmoA": {
+                      "content": "Yes, absolutely. Cancel anytime from your account settings. No questions asked."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "z0UM0",
+          "name": "Related Tools Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 34,
+          "padding": [
+            84,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "eXwYU",
+              "name": "lpRelH2",
+              "fill": "$text-primary",
+              "content": "More Career Tools",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "LUYvg",
+              "name": "relatedGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "GuI7R",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "message-square"
+                    },
+                    "IaXDk": {
+                      "content": "Interview Q&A Prep"
+                    },
+                    "HbXDB": {
+                      "content": "Generate tailored interview questions and answers based on any job description."
+                    }
+                  }
+                },
+                {
+                  "id": "F7BOC",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "pen-tool"
+                    },
+                    "IaXDk": {
+                      "content": "Cover Letter Writer"
+                    },
+                    "HbXDB": {
+                      "content": "Create a personalized cover letter in seconds. Just paste the job listing."
+                    }
+                  }
+                },
+                {
+                  "id": "64yLi",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "briefcase"
+                    },
+                    "IaXDk": {
+                      "content": "Job Match Score"
+                    },
+                    "HbXDB": {
+                      "content": "See how well your profile matches a job posting and what to improve."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "5OVwB",
+          "type": "ref",
+          "ref": "gM3YZ",
+          "name": "footer",
+          "width": "fill_container"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "9dm8V",
+      "x": 4620,
+      "y": 2502,
+      "name": "Pricing Page - Canada-First Refined",
+      "width": 1440,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Tzau4",
+          "type": "ref",
+          "ref": "boKHe",
+          "name": "header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "mG5kV",
+          "name": "Pricing Hero",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": [
+            88,
+            170,
+            20,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "cLVGq",
+              "name": "ppLabel",
+              "fill": "$accent",
+              "content": "MEMBERSHIP",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "7Zffx",
+              "name": "ppH1",
+              "fill": "$text-primary",
+              "content": "Simple, Transparent Pricing in CAD",
+              "lineHeight": 1.08,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 46,
+              "fontWeight": "700",
+              "letterSpacing": -1
+            },
+            {
+              "type": "text",
+              "id": "1Ak3n",
+              "name": "ppSub",
+              "fill": "#334155",
+              "textGrowth": "fixed-width",
+              "width": 760,
+              "content": "Start free, upgrade when you need full province-aware guidance, repeat planning, and exportable roadmaps.",
+              "lineHeight": 1.68,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 19,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gtJrO",
+          "name": "Pricing Cards",
+          "width": "fill_container",
+          "gap": 18,
+          "padding": [
+            44,
+            170
+          ],
+          "justifyContent": "center",
+          "children": [
+            {
+              "id": "8XYRH",
+              "type": "ref",
+              "ref": "myZkI",
+              "name": "monthlyPlan",
+              "width": "fill_container",
+              "height": "fit_content",
+              "x": 169.9999999999999,
+              "y": 44,
+              "descendants": {
+                "irl7V": {
+                  "enabled": true
+                },
+                "irl7V/8TGJz": {
+                  "x": 0,
+                  "y": 0
+                },
+                "irl7V/MgCNf": {
+                  "x": 11,
+                  "y": 5,
+                  "content": "Preview"
+                },
+                "AxOT7": {
+                  "content": "Free"
+                },
+                "e6yQz": {
+                  "content": "$0"
+                },
+                "MCGWw": {
+                  "content": ""
+                },
+                "JrTDN": {
+                  "content": "Canada-first preview"
+                },
+                "bJ6Zy": {
+                  "content": "Roadmap preview only"
+                },
+                "5YBCh": {
+                  "content": "Manual inputs only"
+                },
+                "X9eKe": {
+                  "content": "Manual input and basic detail"
+                },
+                "C9B2s/qR3u9": {
+                  "content": "Start Free"
+                }
+              }
+            },
+            {
+              "id": "s4r0k",
+              "type": "ref",
+              "ref": "myZkI",
+              "name": "annualPlan",
+              "width": "fill_container",
+              "stroke": {
+                "align": "inside",
+                "thickness": 2,
+                "fill": "#1D4ED8"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#1D4ED82B",
+                "blur": 26
+              },
+              "height": "fit_content",
+              "x": 542.6666666666665,
+              "y": 44,
+              "descendants": {
+                "irl7V": {
+                  "enabled": true
+                },
+                "irl7V/8TGJz": {
+                  "x": 0,
+                  "y": 0
+                },
+                "irl7V/MgCNf": {
+                  "content": "Most Popular",
+                  "x": 11,
+                  "y": 5
+                },
+                "AxOT7": {
+                  "content": "Pro"
+                },
+                "e6yQz": {
+                  "content": "$15"
+                },
+                "MCGWw": {
+                  "content": "/month"
+                },
+                "JrTDN": {
+                  "content": "Unlimited roadmaps and province-aware detail."
+                },
+                "bJ6Zy": {
+                  "content": "Unlimited roadmaps"
+                },
+                "5YBCh": {
+                  "content": "Resume upload + smart extraction"
+                },
+                "X9eKe": {
+                  "content": "PDF export and resume upload"
+                },
+                "C9B2s": {
+                  "id": "YSCJ5",
+                  "type": "ref",
+                  "ref": "yV1lY",
+                  "width": "fill_container",
+                  "name": "annualCta",
+                  "descendants": {
+                    "O5nS5": {
+                      "content": "Upgrade to Pro"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "id": "g0HQY",
+              "type": "ref",
+              "ref": "myZkI",
+              "width": "fill_container",
+              "name": "lifePlan",
+              "descendants": {
+                "irl7V": {
+                  "enabled": true
+                },
+                "irl7V/MgCNf": {
+                  "content": "Limited"
+                },
+                "AxOT7": {
+                  "content": "Founders"
+                },
+                "e6yQz": {
+                  "content": "$99"
+                },
+                "MCGWw": {
+                  "content": "one-time"
+                },
+                "JrTDN": {
+                  "content": "Full access without recurring billing."
+                },
+                "bJ6Zy": {
+                  "content": "Everything in Pro"
+                },
+                "5YBCh": {
+                  "content": "No recurring billing cycle"
+                },
+                "X9eKe": {
+                  "content": "Limited founders offer"
+                },
+                "C9B2s/qR3u9": {
+                  "content": "Own Lifetime Access"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "qkN9Y",
+          "name": "Guarantee",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            18,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "bDy1e",
+              "name": "ppGuaranteeText",
+              "fill": "$text-tertiary",
+              "content": "CAD pricing • Secure checkout • Manage billing anytime",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Ur9r2",
+          "name": "Upgrade Reasons",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": [
+            0,
+            170
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "pHfyP",
+              "name": "reasonsTitle",
+              "fill": "#0F172A",
+              "content": "Why Canadians upgrade",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 22,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "pOfbZ",
+              "name": "reasonsRow",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Tk8fa",
+                  "name": "reason1",
+                  "width": "fill_container",
+                  "fill": "#F8FAFC",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ywA67",
+                      "fill": "#0F172A",
+                      "content": "Reusable strategic report format",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "AbNjm",
+                  "name": "reason2",
+                  "width": "fill_container",
+                  "fill": "#F8FAFC",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "3oUmI",
+                      "fill": "#0F172A",
+                      "content": "Automation that saves manual prep hours",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Ih0z0",
+                  "name": "reason3",
+                  "width": "fill_container",
+                  "fill": "#F8FAFC",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uvVaG",
+                      "fill": "#0F172A",
+                      "content": "Guidance calibrated for role pivots",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Vji9J",
+          "name": "FAQ Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 30,
+          "padding": [
+            84,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "AwXLr",
+              "name": "ppFaqH2",
+              "fill": "$text-primary",
+              "content": "Buying Confidence",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "uNpfP",
+              "name": "faqList",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "GCS3l",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Is Free really usable?"
+                    },
+                    "RlmoA": {
+                      "content": "Yes. You can run any tools up to 3 total times, then decide if Pro or Lifetime is worth it."
+                    }
+                  }
+                },
+                {
+                  "id": "8Mcu7",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "What payment methods do you accept?"
+                    },
+                    "RlmoA": {
+                      "content": "We accept all major credit cards, debit cards, and PayPal through our secure payment processor."
+                    }
+                  }
+                },
+                {
+                  "id": "aA0Wj",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Should I choose Pro or Lifetime?"
+                    },
+                    "RlmoA": {
+                      "content": "Choose Pro if you need short-term support. Choose Lifetime if you want full access with no recurring billing."
+                    }
+                  }
+                },
+                {
+                  "id": "eqhge",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "faq4",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "What if I change my mind?"
+                    },
+                    "RlmoA": {
+                      "content": "You’re covered by a 30-day money-back guarantee on paid plans."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "KfFu7",
+          "type": "ref",
+          "ref": "gM3YZ",
+          "name": "footer",
+          "width": "fill_container"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "9OOxD",
+      "x": 1829,
+      "y": 13485,
+      "name": "Career Switch Planner - Canada-First Dashboard Refined",
+      "width": 1440,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "dPkC7",
+          "type": "ref",
+          "ref": "boKHe",
+          "name": "Header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "wPzmP",
+          "name": "Hero Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "padding": [
+            0,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "916BK",
+              "name": "ToolHero",
+              "width": 1100,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": [
+                64,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WiIe7",
+                  "name": "Badges",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "663HM",
+                      "type": "ref",
+                      "ref": "4Mlae",
+                      "name": "Badge Free Uses",
+                      "descendants": {
+                        "8TGJz": {
+                          "enabled": true
+                        },
+                        "MgCNf": {
+                          "content": "3 Free Uses"
+                        }
+                      }
+                    },
+                    {
+                      "id": "9rEOQ",
+                      "type": "ref",
+                      "ref": "4Mlae",
+                      "name": "Badge Resume Upload Pro",
+                      "descendants": {
+                        "8TGJz": {
+                          "enabled": false
+                        },
+                        "MgCNf": {
+                          "content": "Resume Upload (Pro)"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "YXHzJ",
+                  "name": "Title",
+                  "fill": "$text-primary",
+                  "content": "Career Switch Planner",
+                  "lineHeight": 1.1,
+                  "textAlign": "center",
+                  "fontFamily": "$font-heading",
+                  "fontSize": 48,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "FL8wK",
+                  "name": "Subtitle",
+                  "fill": "#334155",
+                  "textGrowth": "fixed-width",
+                  "width": 760,
+                  "content": "Build a strategic transition report with role-fit diagnostics, execution priorities, and resume-ready positioning.",
+                  "lineHeight": 1.65,
+                  "textAlign": "center",
+                  "fontFamily": "$font-body",
+                  "fontSize": 19,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "WwlHm",
+                  "name": "Trust Note",
+                  "fill": "$text-tertiary",
+                  "content": "No account required to preview your first report",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EI7x9",
+          "name": "Input Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            72,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "CK8LJ",
+              "name": "InputCard",
+              "width": 760,
+              "fill": "$surface",
+              "cornerRadius": "$radius-lg",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$border"
+              },
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#0F172A0A",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 24
+              },
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 34,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "dFbdJ",
+                  "name": "Input Lead",
+                  "fill": "#0F172A",
+                  "content": "Career Brief Builder",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "FPVvQ",
+                  "name": "Role Inputs Row",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "9trOc",
+                      "name": "RoleInput / Current Role",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 6,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "knXeM",
+                          "name": "Label",
+                          "fill": "$text-primary",
+                          "content": "Current Role",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Yvl8p",
+                          "name": "Value",
+                          "fill": "$text-tertiary",
+                          "content": "e.g., Customer Support Specialist",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RuwGx",
+                      "name": "RoleInput / Target Role",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 6,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "At5iu",
+                          "name": "Label",
+                          "fill": "$text-primary",
+                          "content": "Target Role",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "bUFjN",
+                          "name": "Value",
+                          "fill": "$text-tertiary",
+                          "content": "e.g., Product Manager",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "5tlNE",
+                  "name": "Toggle",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "vUmTB",
+                      "name": "Toggle Control",
+                      "width": 40,
+                      "height": 22,
+                      "fill": "$border",
+                      "cornerRadius": 100
+                    },
+                    {
+                      "type": "text",
+                      "id": "ruB77",
+                      "name": "Toggle Label",
+                      "fill": "$text-primary",
+                      "content": "Not sure where to pivot? Recommend strategic role paths",
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "y8AVz",
+                  "name": "SegmentedTabs",
+                  "width": "fill_container",
+                  "fill": "$bg-secondary",
+                  "cornerRadius": 10,
+                  "gap": 8,
+                  "padding": 4,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "lq4QL",
+                      "name": "Tab / Paste Experience",
+                      "width": "fill_container",
+                      "fill": "$surface",
+                      "cornerRadius": 8,
+                      "padding": [
+                        10,
+                        14
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rzHPS",
+                          "name": "Label",
+                          "fill": "$text-primary",
+                          "content": "Paste Experience",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZFq63",
+                      "name": "Tab / Upload Resume (Pro)",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 8,
+                      "padding": [
+                        10,
+                        14
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "8VWTd",
+                          "name": "Label",
+                          "fill": "$text-secondary",
+                          "content": "Upload Resume (Pro/Lifetime)",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "iTb2q",
+                  "name": "Resume Upload Flow States",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "f8AaJ",
+                      "name": "State / Paste Experience (Default)",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "uywFB",
+                          "name": "Experience Label",
+                          "fill": "$text-primary",
+                          "content": "Experience",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Ezqxu",
+                          "name": "Experience TextArea",
+                          "width": "fill_container",
+                          "height": 180,
+                          "fill": "$bg-secondary",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mtkE1",
+                              "name": "Placeholder",
+                              "fill": "$text-tertiary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Example: 5 years in operations, led onboarding for 12 teammates, built KPI dashboards, improved customer retention by 14%...",
+                              "lineHeight": 1.6,
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C99Hl",
+                      "name": "State / Upload Idle (Pro)",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 10,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zvjNH",
+                          "name": "DropzoneUpload",
+                          "width": "fill_container",
+                          "height": 92,
+                          "fill": "$surface",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "layout": "vertical",
+                          "gap": 8,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "4dQdG",
+                              "name": "Upload CTA",
+                              "fill": "$accent",
+                              "content": "Upload Resume File",
+                              "fontFamily": "Inter",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "Om6Rg",
+                          "name": "Helper Text",
+                          "fill": "$text-secondary",
+                          "content": "Automation benefit: skip manual typing. We extract and structure your resume text instantly.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "3UefB",
+                          "name": "File Rules",
+                          "fill": "$text-tertiary",
+                          "content": "PDF/DOCX • Max 10MB • Upgrade to Pro or Lifetime",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OpfeY",
+                      "name": "State / Upload Parsing",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 10,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "DbO9t",
+                          "name": "ParseProgress",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WWbB6",
+                              "name": "Progress Text",
+                              "fill": "$text-secondary",
+                              "content": "Parsing resume structure… 68%",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "PCHDK",
+                              "name": "Progress Track",
+                              "width": "fill_container",
+                              "height": 8,
+                              "fill": "$border",
+                              "cornerRadius": 100,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "JfWi4",
+                                  "name": "Progress Fill",
+                                  "width": 480,
+                                  "height": "fill_container",
+                                  "fill": "$accent",
+                                  "cornerRadius": 100
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VZtHu",
+                      "name": "State / Parse Success",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 10,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "acS6r",
+                          "name": "extractedLabel",
+                          "fill": "$text-primary",
+                          "content": "Extracted Resume Text (edit if needed)",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "I4GFd",
+                          "name": "ExtractedTextArea",
+                          "width": "fill_container",
+                          "height": 120,
+                          "fill": "$surface",
+                          "cornerRadius": 8,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$border"
+                          },
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ivK2m",
+                              "name": "parsedText",
+                              "fill": "$text-secondary",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Led onboarding for 12 new hires, managed cross-functional projects, and built KPI dashboards that improved retention by 14%...",
+                              "lineHeight": 1.6,
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "PAFBr",
+                          "name": "sectionsLabel",
+                          "fill": "$text-secondary",
+                          "content": "Detected structure",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RbUbD",
+                          "name": "DetectedSectionsChips",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PlIgc",
+                              "name": "Chip Experience",
+                              "fill": "$success",
+                              "content": "Experience ✅",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "A2Hgv",
+                              "name": "Chip Skills",
+                              "fill": "$success",
+                              "content": "Skills ✅",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GVoOG",
+                              "name": "Chip Education",
+                              "fill": "$success",
+                              "content": "Education ✅",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "O2ZGo",
+                      "name": "State / Parse Error",
+                      "width": "fill_container",
+                      "fill": "$error-light",
+                      "cornerRadius": 10,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$error"
+                      },
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "4MJuM",
+                          "name": "Warning Title",
+                          "fill": "$error",
+                          "content": "Unable to read enough text from this file.",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "zdTa1",
+                          "name": "Warning Body",
+                          "fill": "$text-secondary",
+                          "content": "This usually means a scanned or protected PDF. Upload DOCX or paste your experience to continue.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ovCzJ",
+                  "name": "Optional Dropdowns",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "5KmMJ",
+                      "name": "Location",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        10,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "8Ukph",
+                          "name": "locLbl",
+                          "fill": "$text-secondary",
+                          "content": "Location",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cDzOT",
+                          "name": "locVal",
+                          "fill": "$text-primary",
+                          "content": "Remote (US) ▾",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "P3rmr",
+                      "name": "Timeline",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        10,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "iZglK",
+                          "name": "timeLbl",
+                          "fill": "$text-secondary",
+                          "content": "Timeline",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "TDraa",
+                          "name": "timeVal",
+                          "fill": "$text-primary",
+                          "content": "30/60/90 ▾",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RCOxT",
+                      "name": "Education Level",
+                      "width": "fill_container",
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      },
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        10,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "wjTvX",
+                          "name": "eduLbl",
+                          "fill": "$text-secondary",
+                          "content": "Education",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "UUYj8",
+                          "name": "eduVal",
+                          "fill": "$text-primary",
+                          "content": "Bachelor's ▾",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "h9Pmv",
+                  "name": "CTA Row",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "GgLh2",
+                      "type": "ref",
+                      "ref": "yV1lY",
+                      "name": "PrimaryButton",
+                      "width": "fill_container",
+                      "descendants": {
+                        "zxPy9": {
+                          "enabled": false
+                        },
+                        "O5nS5": {
+                          "content": "Generate Strategic Report"
+                        }
+                      }
+                    },
+                    {
+                      "id": "j9iZz",
+                      "type": "ref",
+                      "ref": "Qv8Wy",
+                      "name": "Secondary Button",
+                      "width": 180,
+                      "descendants": {
+                        "i6ixl": {
+                          "enabled": false
+                        },
+                        "qR3u9": {
+                          "content": "Use Example"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "qexL5",
+                  "name": "Microcopy",
+                  "fill": "$text-tertiary",
+                  "content": "Inputs are used to generate this report in-session and are not retained as a profile.",
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "6OF83",
+          "name": "Output Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            72,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "X6eBn",
+              "name": "Output Heading",
+              "fill": "$text-primary",
+              "content": "Transition Roadmap",
+              "fontFamily": "Inter",
+              "fontSize": 30,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "0mM6z",
+              "name": "State / Default Empty",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "3CzsC",
+                  "name": "Default Panel",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "H7gGG",
+                      "name": "defaultTitle",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Generate a transition report from your current role and target role.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "L8Q3U",
+                      "name": "defaultBody",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "The report includes compatibility diagnostics, high-impact skill gaps, strategic roadmap steps, and resume reframing.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xfYh0",
+              "name": "State / Loading",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "2tzac",
+                  "name": "Skeleton Card A",
+                  "width": "fill_container",
+                  "height": 74,
+                  "fill": "$bg-secondary",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "c8nSX",
+                  "name": "Skeleton Card B",
+                  "width": "fill_container",
+                  "height": 132,
+                  "fill": "$bg-secondary",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "Avtv1",
+                  "name": "Skeleton Card C",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "$bg-secondary",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "HbJyw",
+                  "name": "Skeleton Card D",
+                  "width": "fill_container",
+                  "height": 118,
+                  "fill": "$bg-secondary",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "G0fjI",
+                  "name": "Skeleton Card E",
+                  "width": "fill_container",
+                  "height": 96,
+                  "fill": "$bg-secondary",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y6eZG",
+              "name": "State / Results Populated",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "KBZ6g",
+                  "name": "Report Header",
+                  "width": "fill_container",
+                  "fill": "#F8FBFF",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#DCE7F5"
+                  },
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 18,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "OVocA",
+                      "name": "metaTitle",
+                      "fill": "#0F172A",
+                      "content": "Report Summary",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "31Var",
+                      "name": "metaBody",
+                      "fill": "#334155",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Current role: Customer Support Lead → Target role: Product Operations Manager • Confidence: High",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ClD2J",
+                  "name": "ScoreCard",
+                  "width": "fill_container",
+                  "fill": "#F8FBFF",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#DCE7F5"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "NFyek",
+                      "name": "Score Title",
+                      "fill": "$text-primary",
+                      "content": "Compatibility Score",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "rDw32",
+                      "name": "Score Value",
+                      "fill": "$accent",
+                      "content": "82",
+                      "lineHeight": 1,
+                      "fontFamily": "Inter",
+                      "fontSize": 44,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "GG8Ye",
+                      "name": "Score Description",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Your background maps strongly to cross-functional execution. With targeted positioning changes, this pivot is highly viable.",
+                      "lineHeight": 1.6,
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Dmuva",
+                      "name": "strongTitle",
+                      "fill": "$text-secondary",
+                      "content": "Strongest matching skill areas",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "7Se5f",
+                      "name": "Strong Areas",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "id": "JYzzj",
+                          "type": "ref",
+                          "ref": "4Mlae",
+                          "name": "Area / Process Ops",
+                          "descendants": {
+                            "8TGJz": {
+                              "enabled": false
+                            },
+                            "MgCNf": {
+                              "content": "Process Ops"
+                            }
+                          }
+                        },
+                        {
+                          "id": "zpX1m",
+                          "type": "ref",
+                          "ref": "4Mlae",
+                          "name": "Area / Stakeholder Comms",
+                          "descendants": {
+                            "8TGJz": {
+                              "enabled": false
+                            },
+                            "MgCNf": {
+                              "content": "Stakeholder Comms"
+                            }
+                          }
+                        },
+                        {
+                          "id": "swEYt",
+                          "type": "ref",
+                          "ref": "4Mlae",
+                          "name": "Area / KPI Analysis",
+                          "descendants": {
+                            "8TGJz": {
+                              "enabled": false
+                            },
+                            "MgCNf": {
+                              "content": "KPI Analysis"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uU5rU",
+                  "name": "SkillsChips",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lRvms",
+                      "name": "skillsTitle",
+                      "fill": "$text-primary",
+                      "content": "Transferable Skills",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "2NXJD",
+                      "name": "Skills Chips Row",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "id": "lXEwf",
+                          "type": "ref",
+                          "ref": "4Mlae",
+                          "name": "Skill / Team Leadership",
+                          "descendants": {
+                            "8TGJz": {
+                              "enabled": false
+                            },
+                            "MgCNf": {
+                              "content": "Team Leadership"
+                            }
+                          }
+                        },
+                        {
+                          "id": "3Z8G9",
+                          "type": "ref",
+                          "ref": "4Mlae",
+                          "name": "Skill / Stakeholder Mgmt",
+                          "descendants": {
+                            "8TGJz": {
+                              "enabled": false
+                            },
+                            "MgCNf": {
+                              "content": "Stakeholder Mgmt"
+                            }
+                          }
+                        },
+                        {
+                          "id": "3jYHK",
+                          "type": "ref",
+                          "ref": "4Mlae",
+                          "name": "Skill / Process Design",
+                          "descendants": {
+                            "8TGJz": {
+                              "enabled": false
+                            },
+                            "MgCNf": {
+                              "content": "Process Design"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hFPIp",
+                  "name": "GapsList",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "bSHBZ",
+                      "name": "gapsTitle",
+                      "fill": "$text-primary",
+                      "content": "Skill Gaps (Prioritized)",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kEoJh",
+                      "name": "Gap Rows",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "z26mX",
+                          "name": "Gap 1",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "y7bB2",
+                              "name": "gap1Text",
+                              "fill": "$text-primary",
+                              "content": "Product strategy framing",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "egduL",
+                              "type": "ref",
+                              "ref": "4Mlae",
+                              "name": "Difficulty / Medium",
+                              "descendants": {
+                                "8TGJz": {
+                                  "enabled": false
+                                },
+                                "MgCNf": {
+                                  "content": "Medium"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PJj4N",
+                          "name": "Gap 2",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "5XPVX",
+                              "name": "gap2Text",
+                              "fill": "$text-primary",
+                              "content": "Technical discovery interviews",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "MXz3B",
+                              "type": "ref",
+                              "ref": "4Mlae",
+                              "name": "Difficulty / Hard",
+                              "descendants": {
+                                "8TGJz": {
+                                  "enabled": false
+                                },
+                                "MgCNf": {
+                                  "content": "Hard"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "M43Zz",
+                          "name": "Gap 3",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "pLiml",
+                              "name": "gap3Text",
+                              "fill": "$text-primary",
+                              "content": "Portfolio storytelling for new role",
+                              "fontFamily": "Inter",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "id": "bROxb",
+                              "type": "ref",
+                              "ref": "4Mlae",
+                              "name": "Difficulty / Easy",
+                              "descendants": {
+                                "8TGJz": {
+                                  "enabled": false
+                                },
+                                "MgCNf": {
+                                  "content": "Easy"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EHZjC",
+                  "name": "RoadmapSteps",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "O5fhW",
+                      "name": "roadTitle",
+                      "fill": "$text-primary",
+                      "content": "Strategic Roadmap (30/60/90)",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EkAFX",
+                      "name": "Roadmap 30",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "eLnlu",
+                          "name": "road30H",
+                          "fill": "$accent",
+                          "content": "30 Days",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "kVfWe",
+                          "name": "road30S1",
+                          "fill": "$text-secondary",
+                          "content": "• Reframe top 3 achievements for target role language.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "qRI4U",
+                          "name": "road30S2",
+                          "fill": "$text-secondary",
+                          "content": "• Complete one foundational course and update LinkedIn summary.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "3O49A",
+                      "name": "Roadmap 60",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "IN7NC",
+                          "name": "road60H",
+                          "fill": "$accent",
+                          "content": "60 Days",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "IVh2E",
+                          "name": "road60S1",
+                          "fill": "$text-secondary",
+                          "content": "• Build 2 role-relevant case studies from your prior work.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "JUSkN",
+                          "name": "road60S2",
+                          "fill": "$text-secondary",
+                          "content": "• Start informational interviews with hiring managers.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SYtLQ",
+                      "name": "Roadmap 90",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "RZzC9",
+                          "name": "road90H",
+                          "fill": "$accent",
+                          "content": "90 Days",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "9Edbp",
+                          "name": "road90S1",
+                          "fill": "$text-secondary",
+                          "content": "• Launch targeted applications with transition narrative and quantified impact bullets.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "suRVb",
+                          "name": "road90S2",
+                          "fill": "$text-secondary",
+                          "content": "• Track interview feedback and iterate weekly.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "9hh5V",
+                  "name": "ReframeList",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 12,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "S3vEt",
+                      "name": "reframeTitle",
+                      "fill": "$text-primary",
+                      "content": "Resume Reframing for Target Role",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "hKGDE",
+                      "name": "rewrite1",
+                      "fill": "$text-secondary",
+                      "content": "• Managed onboarding → Built onboarding workflow reducing ramp time by 22%.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "8KAkT",
+                      "name": "rewrite2",
+                      "fill": "$text-secondary",
+                      "content": "• Worked with teams → Drove cross-functional execution across product, ops, and CX.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SHqn0",
+                      "name": "rewrite3",
+                      "fill": "$text-secondary",
+                      "content": "• Improved KPIs → Increased retention by 14% through dashboard-led interventions.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ASkeA",
+              "name": "State / Not Sure Mode",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "UmfQy",
+                  "name": "Not Sure Title",
+                  "fill": "$text-primary",
+                  "content": "Recommended Strategic Alternatives",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "rBUpM",
+                  "name": "Recommendations Grid",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "tX2YX",
+                      "type": "ref",
+                      "ref": "yR8ux",
+                      "name": "RoleRecommendationCard / Product Ops",
+                      "width": 240,
+                      "descendants": {
+                        "l06Lf/MgCNf": {
+                          "content": "84% Match"
+                        },
+                        "IaXDk": {
+                          "content": "Product Ops",
+                          "fontSize": 21
+                        },
+                        "HbXDB": {
+                          "content": "Match 84% • Workflow optimization and cross-functional execution."
+                        }
+                      }
+                    },
+                    {
+                      "id": "ecMqv",
+                      "type": "ref",
+                      "ref": "yR8ux",
+                      "name": "RoleRecommendationCard / Customer Success",
+                      "width": 240,
+                      "descendants": {
+                        "l06Lf/MgCNf": {
+                          "content": "79% Match"
+                        },
+                        "IaXDk": {
+                          "content": "Cust. Strategy",
+                          "fontSize": 20
+                        },
+                        "HbXDB": {
+                          "content": "Match 79% • Relationship ownership and retention strategy."
+                        }
+                      }
+                    },
+                    {
+                      "id": "NVlrc",
+                      "type": "ref",
+                      "ref": "yR8ux",
+                      "name": "RoleRecommendationCard / Program Manager",
+                      "width": 240,
+                      "descendants": {
+                        "l06Lf/MgCNf": {
+                          "content": "76% Match"
+                        },
+                        "IaXDk": {
+                          "content": "Program Ops",
+                          "fontSize": 21
+                        },
+                        "HbXDB": {
+                          "content": "Match 76% • Process, communication, and execution planning."
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "0KyHQ",
+              "name": "State / Locked",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "id": "mjaDd",
+                  "type": "ref",
+                  "ref": "7frEh",
+                  "name": "LockedPanel",
+                  "width": "fill_container",
+                  "descendants": {
+                    "MiueB": {
+                      "content": "Your preview reports are complete."
+                    },
+                    "M8DRf": {
+                      "content": "Upgrade to unlock full diagnostic depth, strategic roadmap execution, resume reframing, and resume automation."
+                    },
+                    "sEuT5": {
+                      "type": "frame",
+                      "id": "K7bHC",
+                      "name": "Upgrade Actions",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "id": "p3ium",
+                          "type": "ref",
+                          "ref": "yV1lY",
+                          "name": "Upgrade Pro",
+                          "descendants": {
+                            "zxPy9": {
+                              "enabled": false
+                            },
+                            "O5nS5": {
+                              "content": "Upgrade to Pro — $7/mo"
+                            }
+                          }
+                        },
+                        {
+                          "id": "LS5sz",
+                          "type": "ref",
+                          "ref": "Qv8Wy",
+                          "name": "Get Lifetime",
+                          "descendants": {
+                            "i6ixl": {
+                              "enabled": false
+                            },
+                            "qR3u9": {
+                              "content": "Get Lifetime — $49"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "K6NdR",
+                  "name": "Locked Preview (Blurred)",
+                  "opacity": 0.65,
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "qN20S",
+                      "name": "lockedPreviewLabel",
+                      "fill": "$text-tertiary",
+                      "content": "Premium report preview",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "7ZhKS",
+                      "name": "Blur Card 1",
+                      "width": "fill_container",
+                      "height": 86,
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 12,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "11waF",
+                      "name": "Blur Card 2",
+                      "width": "fill_container",
+                      "height": 86,
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 12,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "AbKvZ",
+                      "name": "Blur Card 3",
+                      "width": "fill_container",
+                      "height": 86,
+                      "fill": "$bg-secondary",
+                      "cornerRadius": 12,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UWvB5",
+          "name": "FAQ Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            76,
+            340
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "YAkfl",
+              "name": "faqH2",
+              "fill": "$text-primary",
+              "content": "High-Trust Questions",
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Colx9",
+              "name": "faqList",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "gFvPL",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "FAQAccordion / Free Uses",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "How many free Career Switch plans can I run?"
+                    },
+                    "RlmoA": {
+                      "content": "You get 3 free plan generations. After that, upgrade to unlock unlimited reports and resume upload."
+                    }
+                  }
+                },
+                {
+                  "id": "qPlib",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "FAQAccordion / Resume Upload",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "What file types are supported for resume upload?"
+                    },
+                    "RlmoA": {
+                      "content": "PDF and DOCX are supported up to 10MB. If your PDF is scanned or protected, paste your experience instead."
+                    }
+                  }
+                },
+                {
+                  "id": "NiTVj",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "FAQAccordion / Not Sure Mode",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "What does “Not sure” mode do?"
+                    },
+                    "RlmoA": {
+                      "content": "We suggest nearby career paths based on your background, then generate a roadmap for the role you choose."
+                    }
+                  }
+                },
+                {
+                  "id": "uD4kK",
+                  "type": "ref",
+                  "ref": "PbZpT",
+                  "name": "FAQAccordion / Privacy",
+                  "width": "fill_container",
+                  "descendants": {
+                    "7IU5A": {
+                      "content": "Do you store my resume or pasted text?"
+                    },
+                    "RlmoA": {
+                      "content": "No. Input data is processed to generate your report and is not saved as a persistent profile."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FDxpc",
+          "name": "More Tools Section",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            72,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "xqKSj",
+              "name": "relH2",
+              "fill": "$text-primary",
+              "content": "More Career Tools",
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "lX4hI",
+              "name": "relatedGrid",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "id": "FJaZm",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool1",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "message-square"
+                    },
+                    "IaXDk": {
+                      "content": "Resume Analyzer"
+                    },
+                    "HbXDB": {
+                      "content": "Get instant ATS-style feedback and rewrite suggestions for your current resume."
+                    }
+                  }
+                },
+                {
+                  "id": "wQAUV",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool2",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "pen-tool"
+                    },
+                    "IaXDk": {
+                      "content": "Interview Q&A Prep"
+                    },
+                    "HbXDB": {
+                      "content": "Create a personalized cover letter in seconds. Just paste the job listing."
+                    }
+                  }
+                },
+                {
+                  "id": "TfBRz",
+                  "type": "ref",
+                  "ref": "yR8ux",
+                  "name": "relTool3",
+                  "width": "fill_container",
+                  "descendants": {
+                    "YleZ3": {
+                      "iconFontName": "briefcase"
+                    },
+                    "IaXDk": {
+                      "content": "Job Match Score"
+                    },
+                    "HbXDB": {
+                      "content": "See how well your profile matches a job posting and what to improve."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pFAzx",
+          "type": "ref",
+          "ref": "gM3YZ",
+          "name": "footer",
+          "width": "fill_container"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "JVg2L",
+      "x": 0,
+      "y": 19633,
+      "name": "Career Role Page - Canada-First Profile",
+      "width": 1440,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "IPC2E",
+          "type": "ref",
+          "ref": "boKHe",
+          "width": "fill_container",
+          "name": "roleHeader"
+        },
+        {
+          "type": "frame",
+          "id": "JplRo",
+          "name": "Role Hero",
+          "width": "fill_container",
+          "fill": "$bg-secondary",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": [
+            88,
+            170,
+            44,
+            170
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Rta5R",
+              "name": "roleEyebrow",
+              "fill": "$accent",
+              "content": "ROLE PROFILE",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 1.4
+            },
+            {
+              "type": "text",
+              "id": "7TiXG",
+              "name": "roleTitle",
+              "fill": "$text-primary",
+              "content": "Electrician (Construction and Maintenance) (309A)",
+              "lineHeight": 1.08,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 44,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "He0yb",
+              "name": "roleSubtitle",
+              "fill": "$text-secondary",
+              "content": "Ontario pathway, apprenticeship timeline, requirements, wages, and trusted resources in one structured view.",
+              "lineHeight": 1.65,
+              "textAlign": "center",
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "xtetW",
+          "name": "Role Content",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            72,
+            170
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "VhEhK",
+              "name": "Main Column",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "1PiGp",
+                  "name": "Snapshot Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "1Qkgt",
+                      "name": "snapshotText",
+                      "fill": "$text-primary",
+                      "content": "Snapshot\nWhat the role is, who hires, and where the work happens.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gMjpS",
+                  "name": "Timeline Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wQDmA",
+                      "name": "timelineText",
+                      "fill": "$text-primary",
+                      "content": "Timeline\nClear start, training, and qualification phases with visible milestones.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "G5B48",
+                  "name": "Requirements Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "1KnsC",
+                      "name": "requirementsText",
+                      "fill": "$text-primary",
+                      "content": "Requirements\nSeparate must-have, nice-to-have, and tools or gear in plain language.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "o8zhA",
+                  "name": "Progression Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "6nkRH",
+                      "name": "progressionText",
+                      "fill": "$text-primary",
+                      "content": "Progression\nShow the ladder from entry to fully qualified to higher-pay lanes.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "Inter",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "59Pnr",
+              "name": "Side Column",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uWPli",
+                  "name": "Wages Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mbQjU",
+                      "name": "wagesText",
+                      "fill": "$text-primary",
+                      "content": "Wages\nProvince-aware CAD wage bands with clear labels and source-backed context.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "6XPSD",
+                  "name": "Difficulty Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "1Jfiv",
+                      "name": "difficultyText",
+                      "fill": "$text-primary",
+                      "content": "Difficulty\nExplain the bottlenecks, the gates, and what most people get wrong first.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SMv3V",
+                  "name": "Resources Card",
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 14,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$border"
+                  },
+                  "layout": "vertical",
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Rw8Nd",
+                      "name": "resourcesText",
+                      "fill": "$text-primary",
+                      "content": "Resources\nOfficial links, training sources, and job-search starting points.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "I0wrn",
+          "type": "ref",
+          "ref": "gM3YZ",
+          "width": "fill_container",
+          "name": "roleFooter"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "lKotu",
+      "x": 1540,
+      "y": 19633,
+      "name": "Canada-First Design System Refinement Notes",
+      "width": 1100,
+      "fill": "$bg-secondary",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 40,
+      "children": [
+        {
+          "type": "text",
+          "id": "ecaPP",
+          "name": "specTitle",
+          "fill": "$text-primary",
+          "content": "Canada-First Design System Refinement",
+          "fontFamily": "Inter",
+          "fontSize": 32,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "reDpa",
+          "name": "specSubtitle",
+          "fill": "$text-secondary",
+          "content": "Refinement, not rebrand: consistency first, color discipline second.",
+          "lineHeight": 1.65,
+          "fontFamily": "Inter",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "LVGQg",
+          "name": "Spec Cards",
+          "width": "fill_container",
+          "gap": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "GRa3T",
+              "name": "Color Rules",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 14,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$border"
+              },
+              "layout": "vertical",
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "53WqH",
+                  "name": "colorText",
+                  "fill": "$text-primary",
+                  "content": "Color\nMuted Canadian red for highlights only. Structured blue for action. Dark neutrals and controlled surfaces everywhere else.",
+                  "lineHeight": 1.55,
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YAL0c",
+              "name": "Type Rules",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 14,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$border"
+              },
+              "layout": "vertical",
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GgSfi",
+                  "name": "typeText",
+                  "fill": "$text-primary",
+                  "content": "Typography\nOne sans-serif system, tighter heading hierarchy, calmer paragraph width, and consistent line-height from hero to footer.",
+                  "lineHeight": 1.55,
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "KUExK",
+              "name": "Spacing and Components",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 14,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$border"
+              },
+              "layout": "vertical",
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "0TXOA",
+                  "name": "spaceText",
+                  "fill": "$text-primary",
+                  "content": "Spacing + Components\n8px rhythm, one primary button system, one card system, one radius scale, lighter shadows, and cleaner section breaks.",
+                  "lineHeight": 1.55,
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "pZDYc",
+      "x": 0,
+      "y": 21980,
+      "name": "Design System - Canada-First Refinement Notes",
+      "width": 1280,
+      "fill": "$bg-primary",
+      "cornerRadius": 24,
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 48,
+      "children": [
+        {
+          "type": "frame",
+          "id": "nVxUN",
+          "name": "notesHeader",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "VJXqB",
+              "name": "notesEyebrow",
+              "fill": "#2563EB",
+              "content": "DESIGN SYSTEM",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 1.2
+            },
+            {
+              "type": "text",
+              "id": "6uXsy",
+              "name": "notesTitle",
+              "fill": "$text-primary",
+              "content": "Canada-First Refinement Rules",
+              "lineHeight": 1.1,
+              "fontFamily": "Inter",
+              "fontSize": 40,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "l2Qd1",
+              "name": "notesBody",
+              "fill": "$text-secondary",
+              "content": "Implementation reference for color, typography, spacing, and component rules.",
+              "lineHeight": 1.5,
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "8Gu38",
+          "name": "notesGrid",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "U0akv",
+              "name": "Color Discipline",
+              "width": "fill_container",
+              "fill": "$bg-secondary",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "iFeDd",
+                  "name": "colorTitle",
+                  "fill": "$text-primary",
+                  "content": "Color Discipline",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "cSDEM",
+                  "name": "colorBody",
+                  "fill": "$text-secondary",
+                  "content": "Keep the dark theme, use red sparingly, blue for actions, and remove extra accents.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "1Rd3u",
+              "name": "Typography + Spacing",
+              "width": "fill_container",
+              "fill": "$bg-secondary",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Tk5BC",
+                  "name": "typeTitle",
+                  "fill": "$text-primary",
+                  "content": "Typography + Spacing",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "x8HI9",
+                  "name": "typeBody",
+                  "fill": "$text-secondary",
+                  "content": "Use one heading scale, tighter reading widths, and an 8px spacing rhythm.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U4LML",
+              "name": "Component Rules",
+              "width": "fill_container",
+              "fill": "$bg-secondary",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "g0gi1",
+                  "name": "componentTitle",
+                  "fill": "$text-primary",
+                  "content": "Component Rules",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "qz4Mq",
+                  "name": "componentBody",
+                  "fill": "$text-secondary",
+                  "content": "One button system, one card system, one badge treatment, and calmer whitespace.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
