@@ -1664,6 +1664,13 @@ export default function CareerSwitchPlannerPage({
     }
   }
 
+  const advanceWizardAfterRoleSelection = (nextCurrentRole: string, nextTargetRole: string) => {
+    if (nextCurrentRole.trim() && nextTargetRole.trim()) {
+      setActiveWizardStep(1)
+      setInputError('')
+    }
+  }
+
   const handlePrintReport = () => {
     setIsPrintMode(true)
     window.requestAnimationFrame(() => {
@@ -2000,12 +2007,28 @@ export default function CareerSwitchPlannerPage({
     })
   }
 
-  const handlePlanRecommendedRole = async (nextTargetRole: string) => {
+  const handlePlanRecommendedRole = async (
+    nextTargetRole: string,
+    options?: { autoGenerate?: boolean; nextStep?: WizardStep }
+  ) => {
+    const shouldAutoGenerate = options?.autoGenerate ?? true
+
     setShowSuggestedTargets(false)
     setTargetRoleText(nextTargetRole)
     setTargetRoleSelectedMatch(null)
     setRoleSelectionPrompt(null)
     setInputError('')
+
+    if (typeof options?.nextStep === 'number') {
+      setActiveWizardStep(options.nextStep)
+    } else if (!shouldAutoGenerate) {
+      advanceWizardAfterRoleSelection(currentRoleText, nextTargetRole)
+    }
+
+    if (!shouldAutoGenerate) {
+      return
+    }
+
     await handleGeneratePlan({
       recommendMode: false,
       targetRoleText: nextTargetRole,
@@ -2421,19 +2444,14 @@ export default function CareerSwitchPlannerPage({
                   onChange={handleCurrentRoleInputChange}
                   onSuggestionSelect={(suggestion) => {
                     setRoleSelectionPrompt(null)
+                    setCurrentRoleText(suggestion.title)
                     setCurrentRoleSelectedMatch({
                       occupationId: suggestion.occupationId,
                       title: suggestion.title,
                       confidence: suggestion.confidence ?? 0,
                       matchedBy: suggestion.matchedBy ?? 'fallback'
                     })
-                    if (targetRoleText.trim()) {
-                      void handleGeneratePlan({
-                        currentRoleText: suggestion.title,
-                        currentRoleOccupationId: suggestion.occupationId,
-                        recommendMode: false
-                      })
-                    }
+                    advanceWizardAfterRoleSelection(suggestion.title, targetRoleText)
                   }}
                 />
                 <RoleAutocomplete
@@ -2445,19 +2463,14 @@ export default function CareerSwitchPlannerPage({
                   onChange={handleTargetRoleInputChange}
                   onSuggestionSelect={(suggestion) => {
                     setRoleSelectionPrompt(null)
+                    setTargetRoleText(suggestion.title)
                     setTargetRoleSelectedMatch({
                       occupationId: suggestion.occupationId,
                       title: suggestion.title,
                       confidence: suggestion.confidence ?? 0,
                       matchedBy: suggestion.matchedBy ?? 'fallback'
                     })
-                    if (currentRoleText.trim()) {
-                      void handleGeneratePlan({
-                        targetRoleText: suggestion.title,
-                        targetRoleOccupationId: suggestion.occupationId,
-                        recommendMode: false
-                      })
-                    }
+                    advanceWizardAfterRoleSelection(currentRoleText, suggestion.title)
                   }}
                 />
               </div>
@@ -2479,7 +2492,7 @@ export default function CareerSwitchPlannerPage({
                   </Button>
                 ) : null}
                 <p className="text-xs text-text-secondary">
-                  Not sure what to aim for? Pick a suggestion below.
+                  Not sure what to aim for? Pick a suggestion below. Your plan runs after the final step.
                 </p>
               </div>
               {showSuggestedTargets ? (
@@ -2494,7 +2507,12 @@ export default function CareerSwitchPlannerPage({
                       key={`assistive-${role.title}`}
                       type="button"
                       className="rounded-lg border border-border-light bg-surface p-4 text-left transition hover:border-accent/40 hover:bg-bg-secondary"
-                      onClick={() => void handlePlanRecommendedRole(role.title)}
+                      onClick={() =>
+                        void handlePlanRecommendedRole(role.title, {
+                          autoGenerate: false,
+                          nextStep: currentRoleText.trim() ? 1 : 0
+                        })
+                      }
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-text-primary">{role.title}</p>
