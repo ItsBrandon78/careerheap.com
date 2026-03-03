@@ -311,6 +311,42 @@ function cleanPublicFacingBullet(value: string) {
   return formatted
 }
 
+function shouldGeneralizeRequirementLabel(value: string) {
+  const normalized = value.trim().replace(/\s+/g, ' ')
+  if (!normalized) return true
+  const commaCount = (normalized.match(/,/g) ?? []).length
+  return (
+    normalized.includes('...') ||
+    normalized.length > 88 ||
+    commaCount >= 2 ||
+    (/^(install|maintain|perform|operate|use|manage|support|coordinate|verify|document)\b/i.test(normalized) &&
+      normalized.length > 48)
+  )
+}
+
+function fallbackGapTitle(
+  type: ActionableGapType,
+  tradeMode: boolean,
+  templateKey: PlanTemplateKey
+) {
+  if (type === 'credential') {
+    return tradeMode ? 'Pathway and registration steps' : 'Required credential steps'
+  }
+  if (type === 'tools') {
+    return tradeMode ? 'Core tools and materials' : 'Core tools and systems'
+  }
+  if (type === 'channel') {
+    return 'Better hiring channel mix'
+  }
+  if (type === 'proof') {
+    return tradeMode ? 'Proof of hands-on readiness' : 'Proof of role-ready work'
+  }
+  if (tradeMode) {
+    return 'Core job fundamentals'
+  }
+  return templateKey === 'portfolio_role' ? 'Portfolio-ready fundamentals' : 'Role-specific fundamentals'
+}
+
 function isTradeProfile(targetProfile: OccupationTemplateProfile, templateKey: PlanTemplateKey) {
   const title = normalizeText(`${targetProfile.title} ${targetProfile.code}`)
   return (
@@ -381,8 +417,11 @@ function buildActionableGap(
   }
 
   const type = classifyGapType(descriptor.label, templateKey)
-  const displayLabel = formatLabel(descriptor.label) || 'Role-relevant proof'
   const tradeMode = isTradeProfile(targetProfile, templateKey)
+  const useGenericLabel = shouldGeneralizeRequirementLabel(descriptor.label)
+  const displayLabel =
+    (useGenericLabel ? fallbackGapTitle(type, tradeMode, templateKey) : formatLabel(descriptor.label)) ||
+    fallbackGapTitle(type, tradeMode, templateKey)
 
   if (tradeMode) {
     if (/\b(theory|circuit|ohm|voltage|current|resistance)\b/.test(normalizedLabel)) {
@@ -425,6 +464,16 @@ function buildActionableGap(
         ]
       } satisfies ActionableGap
     }
+    if (/\b(wiring|fixture|switch|outlet|conduit|cable|panel|receptacle)\b/.test(normalizedLabel)) {
+      return {
+        type: 'knowledge',
+        title: 'Core installation workflow',
+        howToFix: [
+          'Practice basic install flow for outlets, switches, fixtures, and wire runs using safe demo setups only.',
+          'Write down the order of operations so you can explain the workflow clearly.'
+        ]
+      } satisfies ActionableGap
+    }
     if (/\b(apprentice|sponsor|registration|hours|school|schooling|union|intake)\b/.test(normalizedLabel)) {
       return {
         type: 'credential',
@@ -444,7 +493,9 @@ function buildActionableGap(
       type,
       title: displayLabel,
       howToFix: [
-        `Start the first formal step for ${displayLabel.toLowerCase()}.`,
+        useGenericLabel
+          ? 'Start the first formal step for this pathway requirement.'
+          : `Start the first formal step for ${displayLabel.toLowerCase()}.`,
         'Confirm the exact local requirement before you spend money.'
       ]
     } satisfies ActionableGap
@@ -455,7 +506,9 @@ function buildActionableGap(
       type,
       title: displayLabel,
       howToFix: [
-        `Get one hands-on practice rep with ${displayLabel.toLowerCase()}.`,
+        useGenericLabel
+          ? 'Get one hands-on practice rep with the core tools or materials used in this field.'
+          : `Get one hands-on practice rep with ${displayLabel.toLowerCase()}.`,
         'Capture a short note or example you can use in applications.'
       ]
     } satisfies ActionableGap
@@ -477,7 +530,9 @@ function buildActionableGap(
       type,
       title: displayLabel,
       howToFix: [
-        `Build 1 concrete example that proves ${displayLabel.toLowerCase()}.`,
+        useGenericLabel
+          ? 'Build 1 concrete example that proves you can handle a core task in this field.'
+          : `Build 1 concrete example that proves ${displayLabel.toLowerCase()}.`,
         'Keep it small, visible, and easy to explain.'
       ]
     } satisfies ActionableGap
@@ -487,7 +542,11 @@ function buildActionableGap(
     type,
     title: displayLabel,
     howToFix: [
-      `Learn the basics of ${displayLabel.toLowerCase()} in short daily blocks.`,
+      useGenericLabel
+        ? tradeMode
+          ? 'Learn the core job fundamentals in short daily blocks.'
+          : 'Learn the core role fundamentals in short daily blocks.'
+        : `Learn the basics of ${displayLabel.toLowerCase()} in short daily blocks.`,
       'Turn the learning into one simple proof this month.'
     ]
   } satisfies ActionableGap

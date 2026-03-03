@@ -767,8 +767,8 @@ export function ResumeExtractionReviewCard({
         </div>
       ) : null}
       {skills.length > 0 ? (
-        <div className="mt-2">
-          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Detected skills</p>
+        <div className="mt-2 rounded-md border border-border-light bg-surface p-3">
+          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Skills detected</p>
           <div className="mt-1 flex flex-wrap gap-2">
             {skills.map((skill) => (
               <span
@@ -790,8 +790,8 @@ export function ResumeExtractionReviewCard({
         </div>
       ) : null}
       {certifications.length > 0 ? (
-        <div className="mt-2">
-          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Detected certifications</p>
+        <div className="mt-2 rounded-md border border-border-light bg-surface p-3">
+          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Certifications detected</p>
           <div className="mt-1 flex flex-wrap gap-2">
             {certifications.map((certification) => (
               <span

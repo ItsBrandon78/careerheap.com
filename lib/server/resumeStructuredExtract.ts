@@ -181,14 +181,20 @@ export interface ResumeStructuredData {
   }>
   dateRanges: string[]
   bullets: string[]
-  skills: Array<{ id: string; name: string; confidence: number }>
+  skillMatches: Array<{ id: string; name: string; confidence: number }>
+  skills: string[]
   education: string[]
   certifications: string[]
+  soft_skills: string[]
+  experience_highlights: string[]
+  classificationSource: 'heuristic' | 'gpt'
   confidence: {
     titles: number
     skills: number
     education: number
     certifications: number
+    soft_skills: number
+    experience_highlights: number
   }
 }
 
@@ -281,14 +287,20 @@ export async function extractStructuredResumeData(input: {
     jobTitles: mappedTitles,
     dateRanges,
     bullets,
-    skills: combinedSkills,
+    skillMatches: combinedSkills,
+    skills: combinedSkills.map((item) => item.name),
     education,
     certifications,
+    soft_skills: [],
+    experience_highlights: bullets.slice(0, 6),
+    classificationSource: 'heuristic',
     confidence: {
       titles: titleConfidence,
       skills: combinedSkills.length > 0 ? 0.9 : 0,
       education: education.length > 0 ? 0.85 : 0,
-      certifications: certifications.length > 0 ? 0.85 : 0
+      certifications: certifications.length > 0 ? 0.85 : 0,
+      soft_skills: 0,
+      experience_highlights: bullets.length > 0 ? 0.8 : 0
     }
   }
 }

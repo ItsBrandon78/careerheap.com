@@ -624,6 +624,27 @@ type PlannerReportPayload = {
       internal: Array<{ label: string; url: string }>
     }
   }
+  transitionStructuredPlan?: {
+    summary: string
+    compatibility_level: 'Low' | 'Medium' | 'High'
+    timeline_estimate: string
+    required_certifications: string[]
+    required_experience: string[]
+    action_steps: string[]
+    salary_projection: string
+  }
+  transitionPlanScripts?: {
+    call: string
+    email: string
+    source: 'gpt' | 'deterministic'
+  }
+  transitionPlanCacheMeta?: {
+    version: string
+    generatedAt: string
+    region: string
+    experienceLevelBucket: string
+    cacheHit: boolean
+  }
   marketEvidence?: {
     enabled: boolean
     used: boolean
@@ -1422,8 +1443,11 @@ export default function CareerSwitchPlannerPage({
         text?: string
         detected?: { experience: boolean; skills: boolean; education: boolean }
         structured?: {
-          skills?: Array<{ id?: string; name?: string; confidence?: number }>
+          skills?: string[]
           certifications?: string[]
+          soft_skills?: string[]
+          experience_highlights?: string[]
+          classificationSource?: 'heuristic' | 'gpt'
           jobTitles?: Array<{
             raw?: string
             occupationId?: string | null
@@ -1453,7 +1477,7 @@ export default function CareerSwitchPlannerPage({
         : []
       const detectedSkills = Array.isArray(data.structured?.skills)
         ? data.structured.skills
-            .map((item) => (typeof item?.name === 'string' ? item.name.trim() : ''))
+            .map((item) => (typeof item === 'string' ? item.trim() : ''))
             .filter(Boolean)
             .slice(0, 12)
         : []
@@ -1480,7 +1504,9 @@ export default function CareerSwitchPlannerPage({
         data.warning ??
           (data.source === 'pdf-ocr'
             ? 'Scanned PDF detected - OCR used (may take a few seconds).'
-            : 'Review and apply detected skills/certifications before generating your plan.')
+            : data.structured?.classificationSource === 'gpt'
+              ? 'GPT sorted your resume into skills, certifications, and experience highlights. Review before applying.'
+              : 'Review and apply detected skills/certifications before generating your plan.')
       )
       setUploadStats(
         typeof data.stats?.meaningfulChars === 'number'
@@ -1975,6 +2001,9 @@ export default function CareerSwitchPlannerPage({
   const transitionReport = plannerReport?.transitionReport ?? null
   const executionStrategy = plannerReport?.executionStrategy ?? null
   const transitionModeReport = plannerReport?.transitionMode ?? null
+  const transitionStructuredPlan = plannerReport?.transitionStructuredPlan ?? null
+  const transitionPlanScripts = plannerReport?.transitionPlanScripts ?? null
+  const transitionPlanCacheMeta = plannerReport?.transitionPlanCacheMeta ?? null
   const transitionQuickWins = transitionModeReport
     ? sharedDedupeBullets(
         transitionModeReport.gaps.strengths.filter((item) => !isPersonalIdentifier(item)),
@@ -2087,7 +2116,7 @@ export default function CareerSwitchPlannerPage({
 
   return (
     <>
-      <ToolHero>
+      <ToolHero className="print-hidden">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Badge className="gap-1.5">{usageLabel(usage, previewLocked, plan)}</Badge>
           <Badge className="gap-1.5">Resume Upload (Pro)</Badge>
@@ -2106,7 +2135,7 @@ export default function CareerSwitchPlannerPage({
         </p>
       </ToolHero>
 
-      <section className="px-4 py-16 lg:px-[340px]">
+      <section className="print-hidden px-4 py-16 lg:px-[340px]">
         <InputCard>
           <div className="space-y-6">
             <div className="space-y-3">
@@ -2127,6 +2156,13 @@ export default function CareerSwitchPlannerPage({
                       confidence: suggestion.confidence ?? 0,
                       matchedBy: suggestion.matchedBy ?? 'fallback'
                     })
+                    if (targetRoleText.trim()) {
+                      void handleGeneratePlan({
+                        currentRoleText: suggestion.title,
+                        currentRoleOccupationId: suggestion.occupationId,
+                        recommendMode: false
+                      })
+                    }
                   }}
                 />
                 <RoleAutocomplete
@@ -2144,6 +2180,13 @@ export default function CareerSwitchPlannerPage({
                       confidence: suggestion.confidence ?? 0,
                       matchedBy: suggestion.matchedBy ?? 'fallback'
                     })
+                    if (currentRoleText.trim()) {
+                      void handleGeneratePlan({
+                        targetRoleText: suggestion.title,
+                        targetRoleOccupationId: suggestion.occupationId,
+                        recommendMode: false
+                      })
+                    }
                   }}
                 />
               </div>
@@ -2409,6 +2452,16 @@ export default function CareerSwitchPlannerPage({
                     type="button"
                     className="flex items-center justify-between rounded-md border border-border bg-bg-secondary px-3 py-2 text-left text-sm text-text-primary hover:border-accent hover:bg-surface"
                     onClick={() => {
+                      const override =
+                        roleSelectionPrompt.role === 'current'
+                          ? {
+                              currentRoleText: option.title,
+                              currentRoleOccupationId: option.occupationId
+                            }
+                          : {
+                              targetRoleText: option.title,
+                              targetRoleOccupationId: option.occupationId
+                            }
                       if (roleSelectionPrompt.role === 'current') {
                         setCurrentRoleText(option.title)
                         setCurrentRoleSelectedMatch({
@@ -2428,6 +2481,10 @@ export default function CareerSwitchPlannerPage({
                       }
                       setRoleSelectionPrompt(null)
                       setInputError('')
+                      void handleGeneratePlan({
+                        ...override,
+                        recommendMode: false
+                      })
                     }}
                   >
                     <span>
@@ -2513,6 +2570,7 @@ export default function CareerSwitchPlannerPage({
 
       <section className="px-4 pb-16 lg:px-[340px]">
         <div className="mx-auto w-full max-w-tool">
+          <div className="print-transition-report-root">
           <h2 className="text-2xl font-bold text-text-primary">
             {isTransitionMode ? 'Transition Report' : 'Discovery Report'}
           </h2>
@@ -2575,19 +2633,79 @@ export default function CareerSwitchPlannerPage({
 
               <Card className="overflow-hidden p-0">
                 <div className="bg-bg-secondary p-5 md:p-6">
-                  <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_300px]">
+                  <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
                     <div className="space-y-5">
                       <div className="flex flex-wrap items-center gap-3">
                         <Badge className="gap-1.5">Your Transition Plan</Badge>
+                        {transitionStructuredPlan ? (
+                          <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
+                            {transitionStructuredPlan.compatibility_level} match
+                          </span>
+                        ) : null}
                         <span
                           className={`rounded-pill border px-3 py-1 text-xs font-semibold ${difficultyToneClasses(transitionModeReport.difficulty.label)}`}
                         >
                           {transitionModeReport.difficulty.label}
                         </span>
                         <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
-                          {transitionModeReport.timeline.minMonths}-{transitionModeReport.timeline.maxMonths} months
+                          {transitionStructuredPlan?.timeline_estimate ??
+                            `${transitionModeReport.timeline.minMonths}-${transitionModeReport.timeline.maxMonths} months`}
                         </span>
+                        {transitionPlanCacheMeta?.cacheHit ? (
+                          <span className="rounded-pill border border-success/20 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                            Cached plan
+                          </span>
+                        ) : null}
                       </div>
+
+                      {transitionStructuredPlan ? (
+                        <div className="rounded-lg border border-border bg-surface p-5">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Compatibility summary
+                          </p>
+                          <p className="mt-3 text-sm leading-[1.6] text-text-secondary">
+                            {transitionStructuredPlan.summary}
+                          </p>
+                          <div className="mt-4 grid gap-3 md:grid-cols-2">
+                            {transitionStructuredPlan.required_certifications.length > 0 ? (
+                              <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                                <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                                  Required certifications
+                                </p>
+                                <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                                  {transitionStructuredPlan.required_certifications.map((item) => (
+                                    <li key={`required-cert-${item}`}>- {item}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {transitionStructuredPlan.required_experience.length > 0 ? (
+                              <div className="rounded-lg border border-border-light bg-bg-secondary p-4">
+                                <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                                  Experience requirements
+                                </p>
+                                <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                                  {transitionStructuredPlan.required_experience.map((item) => (
+                                    <li key={`required-exp-${item}`}>- {item}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                          {transitionStructuredPlan.action_steps.length > 0 ? (
+                            <div className="mt-4 rounded-lg border border-border-light bg-bg-secondary p-4">
+                              <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                                Suggested first 3 actions
+                              </p>
+                              <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                                {transitionStructuredPlan.action_steps.map((item) => (
+                                  <li key={`summary-step-${item}`}>- {item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
 
                       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                         <div className="rounded-lg border border-border bg-surface p-5">
@@ -2601,7 +2719,8 @@ export default function CareerSwitchPlannerPage({
                             <span className="pb-1 text-sm font-semibold text-text-secondary">/ 10</span>
                           </div>
                           <p className="mt-3 text-sm text-text-secondary">
-                            Likely {transitionModeReport.timeline.minMonths}-{transitionModeReport.timeline.maxMonths} months if you execute weekly.
+                            Likely {transitionStructuredPlan?.timeline_estimate ??
+                              `${transitionModeReport.timeline.minMonths}-${transitionModeReport.timeline.maxMonths} months`} if you execute weekly.
                           </p>
                           <p className="mt-3 text-sm font-semibold text-text-primary">
                             Primary entry strategy: {transitionModeReport.routes.primary.title}
@@ -2635,9 +2754,9 @@ export default function CareerSwitchPlannerPage({
                           <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
                             Quick wins
                           </p>
-                          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                             {transitionQuickWins.map((item) => (
-                              <li key={`quick-win-${item}`}>- {item}</li>
+                              <li key={`quick-win-${item}`} className="break-words">- {item}</li>
                             ))}
                           </ul>
                         </div>
@@ -2646,9 +2765,9 @@ export default function CareerSwitchPlannerPage({
                           <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
                             Primary gaps
                           </p>
-                          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                             {transitionPrimaryGaps.map((item) => (
-                              <li key={`primary-gap-${item}`}>- {item}</li>
+                              <li key={`primary-gap-${item}`} className="break-words">- {item}</li>
                             ))}
                           </ul>
                         </div>
@@ -2677,19 +2796,29 @@ export default function CareerSwitchPlannerPage({
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                         Why this is the score
                       </p>
-                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                         {transitionModeReport.difficulty.why.map((item) => (
-                          <li key={`difficulty-why-${item}`}>- {item}</li>
+                          <li key={`difficulty-why-${item}`} className="break-words">- {item}</li>
                         ))}
                       </ul>
                       <p className="mt-4 text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                         Timeline assumptions
                       </p>
-                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                         {transitionModeReport.timeline.assumptions.map((item) => (
-                          <li key={`timeline-assumption-${item}`}>- {item}</li>
+                          <li key={`timeline-assumption-${item}`} className="break-words">- {item}</li>
                         ))}
                       </ul>
+                      {transitionStructuredPlan?.salary_projection ? (
+                        <>
+                          <p className="mt-4 text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Salary projection
+                          </p>
+                          <p className="mt-2 text-sm text-text-secondary">
+                            {transitionStructuredPlan.salary_projection}
+                          </p>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -2815,7 +2944,7 @@ export default function CareerSwitchPlannerPage({
                           Call script
                         </p>
                         <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.6] text-text-secondary">
-                          {transitionModeReport.execution.outreachTemplates.call}
+                          {transitionPlanScripts?.call ?? transitionModeReport.execution.outreachTemplates.call}
                         </p>
                       </div>
                       <div className="rounded-lg border border-border-light bg-surface p-4">
@@ -2823,7 +2952,7 @@ export default function CareerSwitchPlannerPage({
                           Email template
                         </p>
                         <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.6] text-text-secondary">
-                          {transitionModeReport.execution.outreachTemplates.email}
+                          {transitionPlanScripts?.email ?? transitionModeReport.execution.outreachTemplates.email}
                         </p>
                       </div>
                     </div>
@@ -2831,7 +2960,7 @@ export default function CareerSwitchPlannerPage({
                 </Card>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_300px]">
+              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
                 <div className="space-y-5">
                   <Card className="space-y-4 p-5">
                     <h3 className="text-lg font-bold text-text-primary">Skill Gap Map</h3>
@@ -2873,9 +3002,9 @@ export default function CareerSwitchPlannerPage({
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                         First 3 required actions
                       </p>
-                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                         {transitionModeReport.gaps.first3Steps.map((item) => (
-                          <li key={`first-step-${item}`}>- {item}</li>
+                          <li key={`first-step-${item}`} className="break-words">- {item}</li>
                         ))}
                       </ul>
                     </div>
@@ -2938,9 +3067,9 @@ export default function CareerSwitchPlannerPage({
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-warning">
                         Realistic barriers
                       </p>
-                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                         {transitionModeReport.reality.barriers.map((item) => (
-                          <li key={`barrier-${item}`}>- {item}</li>
+                          <li key={`barrier-${item}`} className="break-words">- {item}</li>
                         ))}
                       </ul>
                     </div>
@@ -2948,9 +3077,9 @@ export default function CareerSwitchPlannerPage({
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
                         Mitigation strategy
                       </p>
-                      <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.65] text-text-secondary">
                         {transitionModeReport.reality.mitigations.map((item) => (
-                          <li key={`mitigation-${item}`}>- {item}</li>
+                          <li key={`mitigation-${item}`} className="break-words">- {item}</li>
                         ))}
                       </ul>
                     </div>
@@ -4222,15 +4351,15 @@ export default function CareerSwitchPlannerPage({
                   </details>
                 </Card>
               ) : null}
-
             </div>
           ) : null}
+        </div>
         </div>
       </section>
 
       {!hasPlannerResults ? (
         <>
-          <section className="px-4 py-16 lg:px-[340px]">
+          <section className="print-hidden px-4 py-16 lg:px-[340px]">
             <div className="mx-auto w-full max-w-tool">
               <h2 className="text-center text-2xl font-bold text-text-primary">
                 Frequently Asked Questions
@@ -4239,7 +4368,7 @@ export default function CareerSwitchPlannerPage({
             </div>
           </section>
 
-          <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
+          <section className="print-hidden bg-bg-secondary px-4 py-16 lg:px-[170px]">
             <div className="mx-auto w-full max-w-content">
               <h2 className="text-center text-2xl font-bold text-text-primary">More Career Tools</h2>
               <div className="mt-8 grid gap-6 md:grid-cols-3">
@@ -4263,7 +4392,7 @@ export default function CareerSwitchPlannerPage({
           </section>
         </>
       ) : (
-        <section className="px-4 py-8 lg:px-[340px]">
+        <section className="print-hidden px-4 py-8 lg:px-[340px]">
           <div className="mx-auto w-full max-w-tool">
             <Card className="p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">

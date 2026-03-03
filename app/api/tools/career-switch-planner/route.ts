@@ -20,6 +20,7 @@ import {
   recordToolRun
 } from '@/lib/server/toolUsage'
 import { generateTransitionPlan } from '@/lib/transition/generatePlan'
+import { getCachedOrGenerateTransitionEnhancement } from '@/lib/server/transitionPlanEnhancer'
 
 export const dynamic = 'force-dynamic'
 
@@ -240,6 +241,19 @@ async function persistReport(userId: string, payload: {
   report: unknown
 }) {
   const admin = createAdminClient()
+  const reportRecord =
+    payload.report && typeof payload.report === 'object'
+      ? (payload.report as Record<string, unknown>)
+      : null
+  const careerMapInsert = {
+    user_id: userId,
+    current_role: payload.input.currentRole || 'Career transition',
+    target_role: payload.input.targetRole || null,
+    input_payload: payload.input,
+    normalized_input: payload.input,
+    output_payload: payload.report,
+    score: payload.score
+  }
 
   try {
     await admin.from('reports').insert({
@@ -253,15 +267,29 @@ async function persistReport(userId: string, payload: {
   }
 
   try {
-    await admin.from('career_map_reports').insert({
-      user_id: userId,
-      current_role: payload.input.currentRole || 'Career transition',
-      target_role: payload.input.targetRole || null,
-      input_payload: payload.input,
-      normalized_input: payload.input,
-      output_payload: payload.report,
-      score: payload.score
+    const { error } = await admin.from('career_map_reports').insert({
+      ...careerMapInsert,
+      transition_structured_plan:
+        reportRecord?.transitionStructuredPlan &&
+        typeof reportRecord.transitionStructuredPlan === 'object'
+          ? reportRecord.transitionStructuredPlan
+          : null,
+      transition_plan_scripts:
+        reportRecord?.transitionPlanScripts &&
+        typeof reportRecord.transitionPlanScripts === 'object'
+          ? reportRecord.transitionPlanScripts
+          : null,
+      transition_plan_cache_meta:
+        reportRecord?.transitionPlanCacheMeta &&
+        typeof reportRecord.transitionPlanCacheMeta === 'object'
+          ? reportRecord.transitionPlanCacheMeta
+          : null
     })
+
+    if (error) {
+      const legacy = await admin.from('career_map_reports').insert(careerMapInsert)
+      if (legacy.error) throw legacy.error
+    }
   } catch {
     // ignore if table is unavailable in older schema
   }
@@ -474,9 +502,30 @@ export async function POST(request: Request) {
           }
         : null
     })
+    const enhancementTargetRole =
+      resolvedTargetRoleTitle ||
+      input.targetRole ||
+      input.targetRoleText ||
+      finalReport.suggestedCareers[0]?.title ||
+      transitionMode.routes.primary.title
+    const transitionEnhancement = await getCachedOrGenerateTransitionEnhancement({
+      currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText || 'Career transition',
+      targetRole: enhancementTargetRole,
+      region: input.workRegion || input.location || 'United States',
+      location: input.location,
+      experienceText: input.experienceText,
+      transitionMode,
+      report: {
+        targetRequirements: finalReport.targetRequirements,
+        suggestedCareers: finalReport.suggestedCareers
+      }
+    })
     const reportWithResolution = {
       ...finalReport,
       transitionMode,
+      transitionStructuredPlan: transitionEnhancement.plan,
+      transitionPlanScripts: transitionEnhancement.scripts,
+      transitionPlanCacheMeta: transitionEnhancement.cacheMeta,
       roleResolution: {
         current: buildRoleResolutionPayload(currentRoleInput, currentRoleResolution),
         target: input.recommendMode

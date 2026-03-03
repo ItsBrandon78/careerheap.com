@@ -1316,6 +1316,26 @@ function buildTransitionRoadmapStep(options: {
   } satisfies TransitionRoadmapStep
 }
 
+function summarizeResumeSignalLine(line: string) {
+  const normalized = line.trim().replace(/\s+/g, ' ')
+  if (normalized.length <= 120) return normalized
+
+  const boundary = Math.max(
+    normalized.lastIndexOf('. ', 120),
+    normalized.lastIndexOf('; ', 120),
+    normalized.lastIndexOf(', ', 96)
+  )
+
+  if (boundary >= 48) {
+    return normalized.slice(0, boundary).trim().replace(/[,:;]+$/g, '')
+  }
+
+  const clipped = normalized.slice(0, 120)
+  const lastSpace = clipped.lastIndexOf(' ')
+  const safe = lastSpace >= 48 ? clipped.slice(0, lastSpace) : clipped
+  return safe.trim().replace(/[,:;]+$/g, '')
+}
+
 function findTransferableEvidence(options: {
   requirement: AggregatedRequirement
   skills: string[]
@@ -1347,7 +1367,7 @@ function findTransferableEvidence(options: {
     if (requirementTokens.some((token) => normalized.includes(token))) {
       return {
         source: 'experience_text' as const,
-        label: line.length > 120 ? `${line.slice(0, 117)}...` : line
+        label: summarizeResumeSignalLine(line)
       }
     }
   }
@@ -2513,8 +2533,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       blockerClass: blockerClassFromRequirement(requirement),
       reason:
         requirement.type === 'gate'
-          ? 'No verified credential signal yet for this apply gate.'
-          : 'No direct resume evidence yet for this required apply item.'
+          ? 'This apply gate still needs a verified credential or registration step.'
+          : 'This apply requirement still needs one clear proof example before you look competitive.'
     }))
   const competitiveDisadvantages: ExecutionStandGap[] = requiredToCompeteKeys
     .map((key) => requirementByKey.get(key))
@@ -2524,7 +2544,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       normalized_key: requirement.normalized_key,
       label: requirement.label,
       blockerClass: blockerClassFromRequirement(requirement),
-      reason: 'Current profile does not yet show consistent proof for this hiring signal.'
+      reason: 'This hiring signal still needs stronger proof from your background, a project, or a recent example.'
     }))
 
   const executionRequirements: ExecutionContextRequirement[] = contextualRequirements.map((requirement) => ({

@@ -15,6 +15,7 @@ import {
 import { hasDomMatrixAvailable, isBinaryAvailable } from '@/lib/server/ocrRuntime'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import { extractStructuredResumeData } from '@/lib/server/resumeStructuredExtract'
+import { classifyResumeSignals } from '@/lib/server/resumeClassifierLlm'
 
 export const runtime = 'nodejs'
 
@@ -434,10 +435,35 @@ export async function POST(req: Request) {
       }
     })
 
-    const structured = await extractStructuredResumeData({
+    const structuredBase = await extractStructuredResumeData({
       text: parsed.text,
       regionHint
     })
+    const classification = await classifyResumeSignals({
+      text: parsed.text,
+      heuristicSkills: structuredBase.skills,
+      heuristicCertifications: structuredBase.certifications,
+      heuristicBullets: structuredBase.bullets
+    })
+    const structured = {
+      ...structuredBase,
+      skills: classification.classification.skills,
+      certifications: classification.classification.certifications,
+      soft_skills: classification.classification.soft_skills,
+      experience_highlights: classification.classification.experience_highlights,
+      classificationSource: classification.source,
+      confidence: {
+        ...structuredBase.confidence,
+        skills: classification.classification.skills.length > 0 ? 0.92 : structuredBase.confidence.skills,
+        certifications:
+          classification.classification.certifications.length > 0
+            ? 0.92
+            : structuredBase.confidence.certifications,
+        soft_skills: classification.classification.soft_skills.length > 0 ? 0.85 : 0,
+        experience_highlights:
+          classification.classification.experience_highlights.length > 0 ? 0.88 : structuredBase.confidence.experience_highlights
+      }
+    }
 
     const admin = createAdminClient()
     let resumeRow: { id?: string } | null = null

@@ -144,3 +144,33 @@ html[data-a11y-motion='reduced'] * {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+
+@media print {
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-transition-report-root,
+  .print-transition-report-root * {
+    visibility: visible;
+  }
+
+  .print-transition-report-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
