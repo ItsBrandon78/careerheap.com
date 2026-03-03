@@ -28,6 +28,8 @@ export interface AdzunaSearchResult {
   count: number
 }
 
+const FETCH_TIMEOUT_MS = 10_000
+
 function asPositiveInt(input: string | undefined, fallback: number) {
   const parsed = Number.parseInt(input ?? '', 10)
   if (!Number.isFinite(parsed) || parsed <= 0) return fallback
@@ -110,14 +112,29 @@ export async function fetchJobs(options: AdzunaFetchOptions): Promise<AdzunaSear
   })
 
   const url = `https://api.adzuna.com/v1/api/jobs/${country}/search/${page}?${params.toString()}`
-  const response = await fetch(url, {
-    method: 'GET',
-    cache: 'no-store',
-    headers: {
-      Accept: 'application/json',
-      'User-Agent': 'careerheap/1.0 (+https://www.careerheap.com)'
+  const signal =
+    typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+      ? AbortSignal.timeout(FETCH_TIMEOUT_MS)
+      : undefined
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'careerheap/1.0 (+https://www.careerheap.com)'
+      },
+      signal
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+    if (message.toLowerCase().includes('timed out') || message.toLowerCase().includes('abort')) {
+      throw new Error(`Adzuna request timed out after ${FETCH_TIMEOUT_MS}ms`)
     }
-  })
+    throw error
+  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => '')

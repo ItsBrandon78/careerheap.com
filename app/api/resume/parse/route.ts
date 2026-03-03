@@ -21,6 +21,7 @@ export const runtime = 'nodejs'
 
 const OCR_MAX_PAGES = 5
 const OCR_TIMEOUT_MS = 20_000
+const REDACTED_RESUME_PLACEHOLDER = '[redacted by default]'
 let pdfParseWorkerConfigured = false
 let pdfScreenshotPolyfillsReady = false
 
@@ -472,7 +473,7 @@ export async function POST(req: Request) {
         .from('resumes')
         .insert({
           user_id: user.id,
-          raw_text: parsed.text,
+          raw_text: REDACTED_RESUME_PLACEHOLDER,
           parsed_data: structured
         })
         .select('id')
