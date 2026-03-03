@@ -5,10 +5,11 @@ import CTASection from '@/components/CTASection'
 import Badge from '@/components/Badge'
 import FeaturedToolCard from '@/components/FeaturedToolCard'
 import Card from '@/components/Card'
+import ToolCard from '@/components/ToolCard'
 import { ArrowRightIcon, SparklesIcon } from '@/components/Icons'
 import { formatPublishedDate, toReadTimeLabel } from '@/lib/blog/utils'
 import { getAllBlogPosts } from '@/lib/sanity/api'
-import { featuredHomepageTool } from '@/src/design/mockupData'
+import { featuredHomepageTool, homepageTools } from '@/src/design/mockupData'
 
 export default async function HomePage() {
   const latestPosts = (await getAllBlogPosts()).slice(0, 3)
@@ -43,6 +44,19 @@ export default async function HomePage() {
               <Button variant="outline">View Top Canadian Careers</Button>
             </Link>
           </div>
+
+          <div className="grid w-full max-w-[760px] gap-3 sm:grid-cols-3">
+            {[
+              ['Province aware', 'Ontario first, with clean fallback when other provinces are not mapped yet.'],
+              ['Structured', 'Timelines, requirements, wages, and next actions stay in one clear flow.'],
+              ['Built for follow-through', 'Practical roadmaps, not vague compatibility scores.']
+            ].map(([title, detail]) => (
+              <Card key={title} className="h-full p-4 text-left shadow-none">
+                <p className="text-xs font-semibold uppercase tracking-[1.1px] text-accent">{title}</p>
+                <p className="mt-2 text-sm leading-[1.7] text-text-secondary">{detail}</p>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -50,21 +64,8 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-content flex-col items-center gap-12">
           <div className="text-center">
             <p className="text-xs font-semibold tracking-[1.5px] text-accent">HOW IT WORKS</p>
-            <h2 className="mt-2 text-[32px] font-bold text-text-primary">A Clear Path, Not Vague Advice</h2>
+            <h2 className="mt-2 text-[32px] font-bold text-text-primary">Career Switch Planner Is Your Strategic Hub</h2>
             <p className="mt-3 text-base text-text-secondary">Choose a career. Select your province. Get a structured roadmap.</p>
-          </div>
-
-          <div className="grid w-full gap-6 md:grid-cols-3">
-            {[
-              ['Choose a Career', 'Pick the role you want and compare it against a real pathway, not just a job title.'],
-              ['Select Your Province', 'Default to Ontario, then view wages, regulation, and requirements through that local lens.'],
-              ['Get a Structured Roadmap', 'See time to eligibility, certification checkpoints, salary progression, and the next 7 days.']
-            ].map(([title, detail]) => (
-              <Card key={title} className="p-6">
-                <p className="text-xs font-semibold tracking-[1.5px] text-accent">{title}</p>
-                <p className="mt-3 text-sm leading-7 text-text-secondary">{detail}</p>
-              </Card>
-            ))}
           </div>
 
           <FeaturedToolCard
@@ -76,20 +77,33 @@ export default async function HomePage() {
             usageLabel="Province Aware"
           />
 
+          <div className="grid w-full gap-6 md:grid-cols-3">
+            {homepageTools.map((tool) => (
+              <ToolCard
+                key={tool.slug}
+                slug={tool.slug}
+                title={tool.title}
+                description={tool.description}
+                icon={tool.icon}
+                isActive={tool.isActive}
+              />
+            ))}
+          </div>
+
           <div className="w-full">
             <p className="text-sm font-semibold text-text-secondary">What You Get</p>
           </div>
 
-          <div className="grid w-full gap-6 md:grid-cols-3">
+          <div className="grid w-full gap-4 md:grid-cols-3">
             {[
               'Time to qualification',
               'Real certification requirements',
               'Salary progression',
               'Province-specific regulation',
               'Difficulty rating',
-              'Cost estimate'
+              'Exportable roadmap'
             ].map((item) => (
-              <Card key={item} className="flex items-center justify-center p-4 text-center">
+              <Card key={item} className="flex min-h-[76px] items-center justify-center p-4 text-center shadow-none">
                 <p className="text-sm font-medium text-text-primary">{item}</p>
               </Card>
             ))}
@@ -163,10 +177,12 @@ export default async function HomePage() {
       </section>
 
       <CTASection
-        title="Build a Clearer Canadian Career Plan"
-        subtitle="See the pathway, the province-specific requirements, and the next action before you guess your next move."
-        primaryButtonText="View Pricing"
-        primaryHref="/pricing"
+        title="Explore a Canadian Pathway"
+        subtitle="See the province-specific requirements, salary progression, and next action before you guess your next move."
+        primaryButtonText="Explore Your Path"
+        primaryHref="/tools/career-switch-planner"
+        secondaryButtonText="View Pricing"
+        secondaryHref="/pricing"
       />
     </>
   )

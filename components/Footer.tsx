@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
           <div className="max-w-[280px] space-y-3">
             <BrandLogo variant="white" size="sm" />
             <p className="text-sm leading-[1.6] text-text-on-dark-muted">
-              Smarter career tools and insights to help you land your next role.
+              Province-aware Canadian career roadmaps built to make the next step clearer before you commit.
             </p>
           </div>
 

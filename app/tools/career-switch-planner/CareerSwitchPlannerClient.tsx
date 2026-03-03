@@ -3062,27 +3062,27 @@ export default function CareerSwitchPlannerPage({
 
   return (
     <>
-      <ToolHero className="print-hidden">
+      <ToolHero className="print-hidden pb-12 pt-16">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Badge className="gap-1.5">{usageLabel(usage, previewLocked, plan)}</Badge>
+          <Badge className="gap-1.5">Province-aware</Badge>
           <Badge className="gap-1.5">Resume Upload (Pro)</Badge>
         </div>
-        <h1 className="text-[34px] font-bold leading-tight text-text-primary md:text-[40px]">
+        <h1 className="max-w-[760px] text-[40px] font-bold leading-tight text-text-primary md:text-[48px]">
           Career Switch Planner
         </h1>
-        <p className="max-w-[680px] text-base leading-[1.6] text-text-secondary md:text-lg">
-          Transition mode turns your background into a decisive execution plan with timelines, routes, and weekly outputs.
+        <p className="max-w-[720px] text-base leading-[1.7] text-text-secondary md:text-lg">
+          Build a structured Canadian transition roadmap with clearer timelines, province-aware context, and practical weekly next steps.
         </p>
-        <p className="text-[13px] text-text-tertiary">
-          Free includes 3 lifetime analyses total.
-        </p>
-        <p className="text-[13px] text-text-tertiary">
-          Pro includes unlimited analyses, resume parsing, full roadmap depth, and resume reframe output.
-        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-text-tertiary">
+          <span>Generate after the final step</span>
+          <span>Province-aware wages and requirements</span>
+          <span>PDF export on Pro</span>
+        </div>
       </ToolHero>
 
-      <section className="print-hidden px-4 py-16 lg:px-[340px]">
-        <InputCard>
+      <section className="print-hidden bg-bg-secondary px-4 pb-16 pt-8 lg:px-[340px]">
+        <InputCard className="border border-border-light p-6 md:p-8">
           <div className="space-y-5">
             <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 md:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -3610,12 +3610,17 @@ export default function CareerSwitchPlannerPage({
         </InputCard>
       </section>
 
-      <section className="px-4 pb-16 lg:px-[340px]">
+      <section className="px-4 pb-20 pt-4 lg:px-[340px]">
         <div className="mx-auto w-full max-w-tool">
           <div className="print-transition-report-root">
-          <h2 className="text-2xl font-bold text-text-primary">
-            {isTransitionMode ? 'Transition Report' : 'Discovery Report'}
-          </h2>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-2xl font-bold text-text-primary">
+              {isTransitionMode ? 'Transition Roadmap' : 'Discovery Report'}
+            </h2>
+            <p className="max-w-[60ch] text-sm leading-[1.7] text-text-secondary">
+              Keep one clean plan in view, then update the inputs when you want to rerun with new assumptions.
+            </p>
+          </div>
 
           {isLocked ? (
             <div className="mt-5 space-y-4">
@@ -3733,8 +3738,8 @@ export default function CareerSwitchPlannerPage({
               ) : null}
 
               <div id="planner-report-anchor" className="space-y-6 planner-animate-in">
-                <Card className="overflow-hidden border border-border-light bg-bg-secondary p-0 shadow-panel">
-                  <div className="border-b border-border-light px-5 py-5 md:px-6 md:py-6">
+                <Card className="overflow-hidden border border-border-light bg-surface p-0 shadow-panel">
+                  <div className="border-b border-border-light bg-bg-secondary px-5 py-5 md:px-6 md:py-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="max-w-[70ch]">
                         <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
@@ -3750,7 +3755,7 @@ export default function CareerSwitchPlannerPage({
                             plannerResult.summary}
                         </p>
                       </div>
-                      <div className="rounded-2xl border border-border-light bg-surface px-5 py-4">
+                      <div className="rounded-2xl border border-border-light bg-surface px-5 py-4 shadow-none">
                         <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                           Transition difficulty
                         </p>
@@ -3795,7 +3800,7 @@ export default function CareerSwitchPlannerPage({
                     </div>
                   </div>
 
-                  <div className="grid gap-4 px-5 py-5 md:px-6 md:grid-cols-[minmax(0,1fr)_220px]">
+                  <div className="grid gap-4 px-5 py-5 md:px-6 md:grid-cols-[minmax(0,1fr)_240px]">
                     <div className="grid gap-4 lg:grid-cols-3">
                       {([
                         ['primary', transitionModeReport.routes.primary],
@@ -3818,7 +3823,7 @@ export default function CareerSwitchPlannerPage({
                         </div>
                       ))}
                     </div>
-                    <div className="rounded-2xl border border-border-light bg-surface p-4">
+                    <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                         Primary actions
                       </p>

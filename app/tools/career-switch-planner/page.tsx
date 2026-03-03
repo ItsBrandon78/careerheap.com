@@ -11,7 +11,7 @@ function PlannerFallback() {
             Career Switch Planner
           </h1>
           <p className="max-w-[680px] text-base leading-[1.6] text-text-secondary md:text-lg">
-            Structured inputs, deterministic scoring, and real wage data for US and Canada.
+            Structured inputs, Canada-first pathway logic, and real wage context for clearer transition planning.
           </p>
           <p className="text-[13px] text-text-tertiary">
             Free includes 3 lifetime analyses total. Pro unlocks unlimited analyses, resume upload,
