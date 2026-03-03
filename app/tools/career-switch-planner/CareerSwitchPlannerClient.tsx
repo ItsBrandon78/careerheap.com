@@ -82,6 +82,13 @@ type DashboardRoadmapTab = {
   summary: string
   items: DashboardRoadmapItem[]
 }
+type MissingHiringRequirement = {
+  key: string
+  kind: 'education' | 'credential'
+  title: string
+  detail: string
+  link: { label: string; url: string } | null
+}
 type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
@@ -1265,6 +1272,207 @@ function buildResumeTalkingPoints(input: {
   ])
 }
 
+function educationLevelRank(value: EducationLevelValue) {
+  switch (value) {
+    case 'No formal degree':
+      return 0
+    case 'High school':
+      return 1
+    case 'Trade certification':
+      return 2
+    case 'Apprenticeship':
+      return 3
+    case "Associate's":
+      return 4
+    case "Bachelor's":
+      return 5
+    case "Master's":
+      return 6
+    case 'Doctorate':
+      return 7
+    case 'Self-taught / portfolio-based':
+      return 0
+    default:
+      return 0
+  }
+}
+
+function inferRequiredEducationRank(value: string) {
+  const normalized = value.toLowerCase()
+  if (/(doctorate|phd|md|doctor\b)/.test(normalized)) return 7
+  if (/(master|mba)/.test(normalized)) return 6
+  if (/(bachelor|undergraduate|university degree|college degree)/.test(normalized)) return 5
+  if (/(associate|two-year)/.test(normalized)) return 4
+  if (/(apprenticeship)/.test(normalized)) return 3
+  if (/(trade school|trade certificate|trade certification|certificate program|certificate|certification|diploma)/.test(normalized)) {
+    return 2
+  }
+  if (/(high school|ged|grade 12|secondary school)/.test(normalized)) return 1
+  return null
+}
+
+function userLikelyMeetsEducationBaseline(
+  currentEducationLevel: EducationLevelValue,
+  requiredEducation: string
+) {
+  const requiredRank = inferRequiredEducationRank(requiredEducation)
+  if (requiredRank === null) return false
+  return educationLevelRank(currentEducationLevel) >= requiredRank
+}
+
+function isEducationRequirement(value: string) {
+  return /\b(high school|ged|grade 12|secondary school|diploma|degree|associate|bachelor|master|doctorate|phd|apprenticeship)\b/i.test(
+    value
+  )
+}
+
+function isCredentialRequirement(value: string) {
+  return /\b(cert|certificate|certification|license|licence|licensed|permit|registration|registered|ticket|training|first aid|cpr|whmis|osha|csts|working at heights|driver'?s license|red seal|qualification|exam)\b/i.test(
+    value
+  )
+}
+
+function findBestRequirementLink(
+  requirement: string,
+  links: Array<{ label: string; url: string }>
+) {
+  if (!requirement.trim() || links.length === 0) return null
+  const requirementKey = normalizeBulletKey(requirement)
+  const exactMatch = links.find((link) => {
+    const linkKey = normalizeBulletKey(link.label)
+    return linkKey.includes(requirementKey) || requirementKey.includes(linkKey)
+  })
+  if (exactMatch) return exactMatch
+
+  const ignoredTokens = new Set([
+    'required',
+    'preferred',
+    'entry',
+    'level',
+    'baseline',
+    'formal',
+    'training',
+    'education'
+  ])
+  const requirementTokens = requirementKey
+    .split(' ')
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2 && !ignoredTokens.has(token))
+
+  let bestMatch: { link: { label: string; url: string }; score: number } | null = null
+  for (const link of links) {
+    const linkKey = normalizeBulletKey(link.label)
+    const score = requirementTokens.filter((token) => linkKey.includes(token)).length
+    if (score === 0) continue
+    if (!bestMatch || score > bestMatch.score) {
+      bestMatch = { link, score }
+    }
+  }
+
+  return bestMatch?.link ?? null
+}
+
+function buildMissingHiringRequirements(input: {
+  targetRequirements?: PlannerReportPayload['targetRequirements']
+  transitionReport: PlannerReportPayload['transitionReport'] | null
+  currentCertifications: string[]
+  educationLevel: EducationLevelValue
+  resourceLinks: Array<{ label: string; url: string }>
+}) {
+  const { targetRequirements, transitionReport, currentCertifications, educationLevel, resourceLinks } = input
+  if (!targetRequirements && !transitionReport) return [] as MissingHiringRequirement[]
+
+  const output: MissingHiringRequirement[] = []
+  const seen = new Set<string>()
+  const heldCertificationKeys = new Set(
+    currentCertifications.map((item) => normalizeBulletKey(item)).filter(Boolean)
+  )
+  const missingMustHaves = (transitionReport?.mustHaves ?? []).filter((item) => item.status === 'missing')
+
+  const pushRequirement = (
+    kind: MissingHiringRequirement['kind'],
+    title: string,
+    detail: string,
+    fallbackLookup?: string
+  ) => {
+    const key = `${kind}:${normalizeBulletKey(title)}`
+    if (!title.trim() || seen.has(key)) return
+    seen.add(key)
+    const link =
+      findBestRequirementLink(title, resourceLinks) ??
+      (fallbackLookup ? findBestRequirementLink(fallbackLookup, resourceLinks) : null)
+    output.push({
+      key,
+      kind,
+      title: title.trim(),
+      detail: detail.trim(),
+      link
+    })
+  }
+
+  if (targetRequirements?.education) {
+    const likelyMet = userLikelyMeetsEducationBaseline(educationLevel, targetRequirements.education)
+    if (!likelyMet) {
+      const matchingEducationMustHave = missingMustHaves.find((item) =>
+        isEducationRequirement(item.label)
+      )
+      pushRequirement(
+        'education',
+        targetRequirements.education,
+        matchingEducationMustHave?.howToGet ||
+          'Most employers treat this as a baseline screen before they interview.',
+        matchingEducationMustHave?.label
+      )
+    }
+  }
+
+  for (const item of targetRequirements?.certifications ?? []) {
+    if (heldCertificationKeys.has(normalizeBulletKey(item))) continue
+    const matchingMustHave = missingMustHaves.find((mustHave) => {
+      const mustHaveKey = normalizeBulletKey(mustHave.label)
+      const itemKey = normalizeBulletKey(item)
+      return mustHaveKey.includes(itemKey) || itemKey.includes(mustHaveKey)
+    })
+    pushRequirement(
+      'credential',
+      item,
+      matchingMustHave?.howToGet ||
+        'Most employers treat this as an early screen or job-ready requirement.',
+      matchingMustHave?.label
+    )
+  }
+
+  for (const item of targetRequirements?.hardGates ?? []) {
+    if (!isCredentialRequirement(item) && !isEducationRequirement(item)) continue
+    if (heldCertificationKeys.has(normalizeBulletKey(item))) continue
+    const matchingMustHave = missingMustHaves.find((mustHave) => {
+      const mustHaveKey = normalizeBulletKey(mustHave.label)
+      const itemKey = normalizeBulletKey(item)
+      return mustHaveKey.includes(itemKey) || itemKey.includes(mustHaveKey)
+    })
+    pushRequirement(
+      isEducationRequirement(item) ? 'education' : 'credential',
+      item,
+      matchingMustHave?.howToGet ||
+        'This shows up as a hard gate in the current market data, so close it early.',
+      matchingMustHave?.label
+    )
+  }
+
+  for (const item of missingMustHaves) {
+    if (!isCredentialRequirement(item.label) && !isEducationRequirement(item.label)) continue
+    if (heldCertificationKeys.has(normalizeBulletKey(item.label))) continue
+    pushRequirement(
+      isEducationRequirement(item.label) ? 'education' : 'credential',
+      item.label,
+      item.howToGet || 'Employers keep mentioning this as a real entry filter.',
+      item.label
+    )
+  }
+
+  return output.slice(0, 5)
+}
+
 function buildDraftFromExample(example: PlannerExampleScenario): PlannerFormDraft {
   return {
     currentRoleText: example.currentRole,
@@ -1282,6 +1490,36 @@ function buildDraftFromExample(example: PlannerExampleScenario): PlannerFormDraf
     timelineBucket: example.timelineBucket,
     incomeTarget: example.incomeTarget
   }
+}
+
+function normalizeDraftField(value: string) {
+  return value.trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+function buildPlannerDraftSignature(
+  draft: PlannerFormDraft,
+  explicitCertifications: string[] = []
+) {
+  return JSON.stringify({
+    currentRoleText: normalizeDraftField(draft.currentRoleText),
+    targetRoleText: normalizeDraftField(draft.targetRoleText),
+    currentRoleOccupationId: draft.currentRoleOccupationId ?? '',
+    targetRoleOccupationId: draft.targetRoleOccupationId ?? '',
+    recommendMode: draft.recommendMode,
+    skills: draft.skills.map(normalizeDraftField).filter(Boolean).sort(),
+    certifications: explicitCertifications
+      .map(normalizeDraftField)
+      .filter(Boolean)
+      .sort(),
+    experienceText: normalizeDraftField(draft.experienceText),
+    userPostingText: normalizeDraftField(draft.userPostingText),
+    useMarketEvidence: draft.useMarketEvidence,
+    educationLevel: draft.educationLevel,
+    workRegion: draft.workRegion,
+    locationText: normalizeDraftField(draft.locationText),
+    timelineBucket: draft.timelineBucket,
+    incomeTarget: draft.incomeTarget
+  })
 }
 
 function normalizeRecommendedRoleWhy(values: string[]) {
@@ -1443,6 +1681,7 @@ export default function CareerSwitchPlannerPage({
   const [jobRecommendationMessage, setJobRecommendationMessage] = useState('')
   const [roleSelectionPrompt, setRoleSelectionPrompt] = useState<RoleSelectionPrompt | null>(null)
   const [lastSubmittedSnapshot, setLastSubmittedSnapshot] = useState<SubmittedPlannerSnapshot | null>(null)
+  const [lastSubmittedDraftSignature, setLastSubmittedDraftSignature] = useState<string | null>(null)
   const [resumeStructuredSnapshot, setResumeStructuredSnapshot] = useState<ResumeStructuredSnapshot>({
     certifications: []
   })
@@ -1962,6 +2201,10 @@ export default function CareerSwitchPlannerPage({
       incomeTarget,
       ...override
     }
+    const draftSignature = buildPlannerDraftSignature(
+      draft,
+      resumeStructuredSnapshot.certifications
+    )
     const hasDraftMinimumInput =
       draft.currentRoleText.trim().length > 0 ||
       draft.experienceText.trim().length > 0 ||
@@ -2188,6 +2431,7 @@ export default function CareerSwitchPlannerPage({
         recommendMode: draft.recommendMode,
         timelineBucket: draft.timelineBucket
       })
+      setLastSubmittedDraftSignature(draftSignature)
       setPlannerState('results')
       if (data?.usage) {
         setUsage(data.usage)
@@ -2212,6 +2456,56 @@ export default function CareerSwitchPlannerPage({
       )
     } catch {
       // ignore local storage write failures
+    }
+  }
+
+  const handleStartNewPlan = () => {
+    setCurrentRoleText('')
+    setTargetRoleText('')
+    setCurrentRoleSelectedMatch(null)
+    setTargetRoleSelectedMatch(null)
+    setShowSuggestedTargets(false)
+    setSkills([])
+    setExperienceText('')
+    setUserPostingText('')
+    setInputError('')
+    setPlannerResult(null)
+    setPlannerReport(null)
+    setPlannerState('idle')
+    setActiveWizardStep(0)
+    setActiveRoadmapTab('0-30')
+    setOutreachToolkitOpen(false)
+    setCopiedToolkitSection(null)
+    setResumeToolkitDraft('')
+    setCallToolkitDraft('')
+    setEmailToolkitDraft('')
+    setJobRecommendationStatus('idle')
+    setJobRecommendationItems([])
+    setJobRecommendationMessage('')
+    lastJobRecommendationKeyRef.current = ''
+    setRoleSelectionPrompt(null)
+    setLastSubmittedSnapshot(null)
+    setLastSubmittedDraftSignature(null)
+    setResumeStructuredSnapshot({ certifications: [] })
+    setPendingResumeSkills([])
+    setPendingResumeCertifications([])
+    setPendingResumeRoleCandidate(null)
+    setUploadState('idle')
+    setUploadProgress(0)
+    setUploadError('')
+    setUploadWarning('')
+    setUploadStats(null)
+    setDetectedSections({
+      experience: false,
+      skills: false,
+      education: false
+    })
+    setSelectedExampleId(null)
+
+    try {
+      window.localStorage.removeItem(EXAMPLE_SELECTED_STORAGE_KEY)
+    } catch {
+      // ignore local storage failures
     }
   }
 
@@ -2396,6 +2690,7 @@ export default function CareerSwitchPlannerPage({
   const primaryCareer = plannerReport?.suggestedCareers?.[0] ?? null
   const transitionResourceLinks = dedupeLinks([
     ...((primaryCareer?.officialLinks ?? []).filter((link) => link?.url && link?.label)),
+    ...((plannerReport?.targetRequirements?.sources ?? []).filter((link) => link?.url && link?.label)),
     ...((plannerReport?.linksResources ?? [])
       .filter((link) => link.type === 'official' && link.url && link.label)
       .map((link) => ({ label: link.label, url: link.url })))
@@ -2436,6 +2731,13 @@ export default function CareerSwitchPlannerPage({
     experienceText,
     explicitSkills: skills,
     explicitCertifications: resumeStructuredSnapshot.certifications
+  })
+  const missingHiringRequirements = buildMissingHiringRequirements({
+    targetRequirements: plannerReport?.targetRequirements,
+    transitionReport,
+    currentCertifications: currentProfileSignals.certifications,
+    educationLevel,
+    resourceLinks: transitionResourceLinks
   })
   const proofBuilderDefinition = transitionModeReport?.definitions?.proofBuilder ?? null
   const resumeTalkingPointSkills = normalizeRoadmapBullets([
@@ -2522,7 +2824,47 @@ export default function CareerSwitchPlannerPage({
     stage.unit.toLowerCase().includes('/hour')
   ) ?? false
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
+  const currentDraftSignature = buildPlannerDraftSignature(
+    {
+      currentRoleText,
+      targetRoleText,
+      currentRoleOccupationId: currentRoleSelectedMatch?.occupationId ?? null,
+      targetRoleOccupationId: targetRoleSelectedMatch?.occupationId ?? null,
+      recommendMode,
+      skills,
+      experienceText,
+      userPostingText,
+      useMarketEvidence,
+      educationLevel,
+      workRegion,
+      locationText,
+      timelineBucket,
+      incomeTarget
+    },
+    resumeStructuredSnapshot.certifications
+  )
   const hasPlannerResults = plannerState === 'results' && Boolean(plannerResult)
+  const hasDraftChanges =
+    hasPlannerResults &&
+    Boolean(lastSubmittedDraftSignature) &&
+    currentDraftSignature !== lastSubmittedDraftSignature
+  const hasAnyDraftInput = Boolean(
+    currentRoleText.trim() ||
+      targetRoleText.trim() ||
+      skills.length > 0 ||
+      experienceText.trim() ||
+      userPostingText.trim() ||
+      pendingResumeSkills.length > 0 ||
+      pendingResumeCertifications.length > 0 ||
+      pendingResumeRoleCandidate
+  )
+  const generateButtonLabel = user
+    ? hasDraftChanges
+      ? 'Generate Updated Plan'
+      : hasPlannerResults
+        ? 'Generate Again'
+        : 'Generate My Data-Backed Plan'
+    : 'Sign In to Generate'
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
     .map((dataset) => FRIENDLY_DATASET_NAMES[dataset] ?? dataset.replaceAll('_', ' '))
   const wageSourceDateSummary = Array.from(
@@ -2542,6 +2884,67 @@ export default function CareerSwitchPlannerPage({
   const generatedEmailToolkitText =
     transitionPlanScripts?.email ?? transitionModeReport?.execution.outreachTemplates.email ?? ''
   const isToolkitExpanded = outreachToolkitOpen || isPrintMode
+  const renderMissingHiringRequirementsCard = (className: string) => {
+    if (missingHiringRequirements.length === 0) return null
+
+    return (
+      <div className={className}>
+        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+          Still likely missing
+        </p>
+        <p className="mt-2 text-sm font-semibold text-text-primary">
+          Education or credentials most employers screen for first
+        </p>
+        <p className="mt-1 text-sm text-text-secondary">
+          Close these early so you do not get filtered out before a real conversation.
+        </p>
+        <div className="mt-4 space-y-3">
+          {missingHiringRequirements.map((item) => (
+            <div
+              key={item.key}
+              className="rounded-xl border border-border-light bg-surface p-3"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                {item.kind === 'education' ? 'Education baseline' : 'Required credential'}
+              </p>
+              <p className="mt-1 text-sm font-semibold text-text-primary">{item.title}</p>
+              <p className="mt-1 text-xs leading-[1.6] text-text-secondary">{item.detail}</p>
+              {item.link ? (
+                <a
+                  href={item.link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex text-xs font-semibold text-accent hover:text-accent/80"
+                >
+                  Where to get it
+                </a>
+              ) : null}
+            </div>
+          ))}
+        </div>
+        {!missingHiringRequirements.some((item) => item.link) && transitionResourceLinks.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+              Official sources
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {transitionResourceLinks.slice(0, 3).map((link) => (
+                <a
+                  key={`missing-requirement-link-${link.label}-${link.url}`}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-pill border border-border-light bg-surface px-3 py-1 text-xs font-medium text-text-primary hover:border-accent/20 hover:text-accent"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
 
   useEffect(() => {
     if (!user || !isTransitionMode) return
@@ -2932,6 +3335,11 @@ export default function CareerSwitchPlannerPage({
               Resume detections are waiting for review. Apply them if you want them included in scoring.
             </p>
           ) : null}
+          {hasDraftChanges ? (
+            <p className="mt-4 rounded-md border border-accent/20 bg-accent-light px-3 py-2 text-sm text-text-secondary">
+              You have updated the form since the last run. The report below is still showing your previous plan until you generate again.
+            </p>
+          ) : null}
           {inputError && (
             <p className="mt-4 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">
               {inputError}
@@ -3028,10 +3436,21 @@ export default function CareerSwitchPlannerPage({
                   Next
                 </Button>
               ) : null}
+              {hasPlannerResults || hasAnyDraftInput ? (
+                <Button
+                  variant="ghost"
+                  onClick={handleStartNewPlan}
+                  disabled={plannerState === 'loading'}
+                >
+                  Start New Plan
+                </Button>
+              ) : null}
               <p className="text-xs text-text-tertiary">
-                {activeWizardStep < 2
-                  ? 'The final generate button appears after you review constraints.'
-                  : 'We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.'}
+                {hasDraftChanges
+                  ? 'The current report stays visible until you run the updated plan.'
+                  : activeWizardStep < 2
+                    ? 'The final generate button appears after you review constraints.'
+                    : 'We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.'}
               </p>
             </div>
             {activeWizardStep === 2 ? (
@@ -3049,7 +3468,7 @@ export default function CareerSwitchPlannerPage({
                   (!recommendMode && !targetRoleText.trim())
                 }
               >
-                {user ? 'Generate My Data-Backed Plan' : 'Sign In to Generate'}
+                {generateButtonLabel}
               </PrimaryButton>
             ) : null}
           </div>
@@ -3348,6 +3767,9 @@ export default function CareerSwitchPlannerPage({
                         </div>
                       </Card>
                     ) : null}
+                    {renderMissingHiringRequirementsCard(
+                      'print-page-keep rounded-2xl border border-border-light bg-bg-secondary p-5'
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -3923,6 +4345,9 @@ export default function CareerSwitchPlannerPage({
                           </div>
                         </div>
                       ) : null}
+                      {renderMissingHiringRequirementsCard(
+                        'rounded-lg border border-border-light bg-bg-secondary p-5'
+                      )}
                     </div>
 
                     <div className="rounded-lg border border-border bg-surface p-5">
