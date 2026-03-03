@@ -68,7 +68,7 @@ export function buildRegulatedTradeTemplate(context: TransitionPlanContext): Tem
           'Track how on-the-job hours and technical schooling are recorded so you understand the full path.',
           isCanada
             ? 'Map the later licensing path: Certificate of Qualification and Red Seal if it applies in your province.'
-            : 'Map the later licensing path: any state exam, registration, or local licensing milestone that comes after supervised hours.'
+            : 'Map the later licensing path: any provincial or local exam, registration, or licensing milestone that comes after supervised hours.'
         ],
         ['1 formal pathway commitment', '1 hours-and-schooling plan', '5 warm follow-ups', '1 long-range licensing note'],
         10
@@ -101,11 +101,10 @@ export function buildRegulatedTradeTemplate(context: TransitionPlanContext): Tem
       }
     },
     fallbackLocal: [
-      { label: 'Local apprenticeship authority (your province/state)', url: '' },
+      { label: 'Local apprenticeship authority (your province)', url: '' },
       { label: 'Union intake information', url: '' },
       { label: 'Non-union apprenticeship providers (starting points)', url: '' }
     ],
     fallbackOnline: [{ label: 'Basic trade theory course (online)', url: '' }]
   })
 }
-

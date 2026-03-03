@@ -5,6 +5,12 @@ import Link from 'next/link'
 import Button from './Button'
 import Badge from './Badge'
 import { useAuth } from '@/lib/auth/context'
+import {
+  CANADA_PROVINCES,
+  getStoredProvince,
+  setStoredProvince,
+  type ProvinceCode
+} from '@/lib/client/provinceSession'
 import BrandLogo from './BrandLogo'
 
 function initialsFromEmail(email?: string | null) {
@@ -118,9 +124,24 @@ function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
 
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [province, setProvince] = useState<ProvinceCode>(() => getStoredProvince())
   const { user, isLoading, signOut } = useAuth()
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null)
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    const handleProvinceChange = (event: Event) => {
+      const next = (event as CustomEvent<string>).detail
+      if (typeof next === 'string') {
+        setProvince((CANADA_PROVINCES.some((item) => item.code === next) ? next : 'ON') as ProvinceCode)
+      }
+    }
+
+    window.addEventListener('careerheap:province-changed', handleProvinceChange)
+    return () => {
+      window.removeEventListener('careerheap:province-changed', handleProvinceChange)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -181,6 +202,26 @@ export const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 md:gap-4">
+          <label className="hidden items-center gap-2 rounded-pill border border-border bg-bg-secondary px-3 py-1.5 text-xs font-medium text-text-secondary lg:flex">
+            <span>Province</span>
+            <select
+              value={province}
+              onChange={(event) => {
+                const next = event.target.value as ProvinceCode
+                setProvince(next)
+                setStoredProvince(next)
+              }}
+              className="bg-transparent text-xs font-semibold text-text-primary outline-none"
+              aria-label="Select province"
+            >
+              {CANADA_PROVINCES.map((item) => (
+                <option key={item.code} value={item.code} className="bg-surface text-text-primary">
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           {!isLoading && user ? (
             <>
               <div className="hidden md:block">
@@ -232,6 +273,26 @@ export const Header: React.FC = () => {
           className="border-t border-border px-4 py-3 md:hidden"
         >
           <nav aria-label="Mobile" className="mx-auto flex max-w-wide flex-col gap-2">
+            <label className="mb-1 flex items-center justify-between rounded-md border border-border bg-bg-secondary px-3 py-2 text-sm text-text-secondary">
+              <span>Province</span>
+              <select
+                value={province}
+                onChange={(event) => {
+                  const next = event.target.value as ProvinceCode
+                  setProvince(next)
+                  setStoredProvince(next)
+                }}
+                className="bg-transparent text-sm font-semibold text-text-primary outline-none"
+                aria-label="Select province"
+              >
+                {CANADA_PROVINCES.map((item) => (
+                  <option key={item.code} value={item.code} className="bg-surface text-text-primary">
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <Link
               href="/tools"
               className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"

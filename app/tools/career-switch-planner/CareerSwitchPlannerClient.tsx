@@ -63,6 +63,12 @@ import {
 } from '@/lib/planner/roleNormalization'
 import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
 import { useAuth } from '@/lib/auth/context'
+import {
+  DEFAULT_PROVINCE,
+  getStoredProvince,
+  toProvinceLocation,
+  type ProvinceCode
+} from '@/lib/client/provinceSession'
 import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 
 type PlannerState = 'idle' | 'loading' | 'results'
@@ -706,6 +712,16 @@ type PlannerReportPayload = {
     datasetsUsed: string[]
     fxRateUsed: string | null
   }
+  careerPathwayProfile?: {
+    meta: {
+      title: string
+      slug: string
+      jurisdiction: { country: string; region?: string | null }
+      codes: { noc_2021?: string | null; trade_code?: string | null }
+      teer?: number | null
+      pathway_type?: string
+    }
+  } | null
 }
 
 type ResumeStructuredSnapshot = {
@@ -772,11 +788,11 @@ const FALLBACK_SKILL_SUGGESTIONS = [
 ]
 
 const WORK_REGION_OPTIONS: Array<{ value: WorkRegionValue; label: string }> = [
-  { value: 'us', label: 'United States' },
-  { value: 'ca', label: 'Canada' },
-  { value: 'remote-us', label: 'Remote (US)' },
+  { value: 'ca', label: 'Canada (default)' },
   { value: 'remote-ca', label: 'Remote (Canada)' },
-  { value: 'either', label: 'Open to either (US/CA)' }
+  { value: 'either', label: 'Open to either (Canada/US)' },
+  { value: 'us', label: 'United States (optional)' },
+  { value: 'remote-us', label: 'Remote (US)' }
 ]
 
 const TIMELINE_OPTIONS: Array<{ value: TimelineBucketValue; label: string }> = [
@@ -1629,7 +1645,7 @@ function toLocationFromWorkRegion(value: WorkRegionValue) {
   if (value === 'ca') return 'Canada'
   if (value === 'remote-us') return 'Remote (US)'
   if (value === 'remote-ca') return 'Remote (Canada)'
-  if (value === 'either') return 'Open to either (US/CA)'
+  if (value === 'either') return 'Open to either (Canada/US)'
   return 'United States'
 }
 
@@ -1728,8 +1744,9 @@ export default function CareerSwitchPlannerPage({
   const [uploadStats, setUploadStats] = useState<{ meaningfulChars: number } | null>(null)
   const [ocrCapabilityStatus, setOcrCapabilityStatus] = useState<OcrCapabilityStatus>('idle')
   const [ocrCapabilities, setOcrCapabilities] = useState<ResumeOcrCapabilities | null>(null)
-  const [workRegion, setWorkRegion] = useState<WorkRegionValue>('remote-us')
-  const [locationText, setLocationText] = useState('Remote (US)')
+  const [selectedProvince, setSelectedProvince] = useState<ProvinceCode>(DEFAULT_PROVINCE)
+  const [workRegion, setWorkRegion] = useState<WorkRegionValue>('ca')
+  const [locationText, setLocationText] = useState(toProvinceLocation(DEFAULT_PROVINCE))
   const [locationTouched, setLocationTouched] = useState(false)
   const [timelineBucket, setTimelineBucket] = useState<TimelineBucketValue>('1-3 months')
   const [educationLevel, setEducationLevel] = useState<EducationLevelValue>("Bachelor's")
@@ -1887,10 +1904,43 @@ export default function CareerSwitchPlannerPage({
   )
 
   useEffect(() => {
+    const nextProvince = getStoredProvince()
+    setSelectedProvince(nextProvince)
+    setWorkRegion((current) =>
+      current === 'us' || current === 'remote-us' ? current : 'ca'
+    )
     if (!locationTouched) {
-      setLocationText(toLocationFromWorkRegion(workRegion))
+      setLocationText(toProvinceLocation(nextProvince))
     }
-  }, [locationTouched, workRegion])
+
+    const handleProvinceChange = (event: Event) => {
+      const next = (event as CustomEvent<string>).detail
+      if (typeof next !== 'string') return
+      const normalized = (next.trim().toUpperCase() || DEFAULT_PROVINCE) as ProvinceCode
+      setSelectedProvince(normalized)
+      setWorkRegion((current) =>
+        current === 'us' || current === 'remote-us' ? current : 'ca'
+      )
+      if (!locationTouched) {
+        setLocationText(toProvinceLocation(normalized))
+      }
+    }
+
+    window.addEventListener('careerheap:province-changed', handleProvinceChange)
+    return () => {
+      window.removeEventListener('careerheap:province-changed', handleProvinceChange)
+    }
+  }, [locationTouched])
+
+  useEffect(() => {
+    if (!locationTouched) {
+      setLocationText(
+        workRegion === 'ca'
+          ? toProvinceLocation(selectedProvince)
+          : toLocationFromWorkRegion(workRegion)
+      )
+    }
+  }, [locationTouched, selectedProvince, workRegion])
 
   useEffect(() => {
     if (!isProUser) {
@@ -3669,6 +3719,19 @@ export default function CareerSwitchPlannerPage({
                 </Card>
               ) : null}
 
+              {workRegion === 'ca' &&
+              selectedProvince !== 'ON' &&
+              !plannerReport?.careerPathwayProfile ? (
+                <Card className="p-5">
+                  <p className="text-sm font-semibold text-warning">
+                    Jurisdiction Not Yet Mapped
+                  </p>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    Province-specific overlays are not available for {selectedProvince} yet, so this report is using the Canada baseline path where possible.
+                  </p>
+                </Card>
+              ) : null}
+
               <div id="planner-report-anchor" className="space-y-6 planner-animate-in">
                 <Card className="overflow-hidden border border-border-light bg-bg-secondary p-0 shadow-panel">
                   <div className="border-b border-border-light px-5 py-5 md:px-6 md:py-6">
@@ -3717,6 +3780,16 @@ export default function CareerSwitchPlannerPage({
                       {transitionPlanCacheMeta?.cacheHit ? (
                         <span className="rounded-pill border border-success/20 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
                           Cached plan
+                        </span>
+                      ) : null}
+                      {plannerReport?.careerPathwayProfile?.meta.codes?.noc_2021 ? (
+                        <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
+                          NOC {plannerReport.careerPathwayProfile.meta.codes.noc_2021}
+                        </span>
+                      ) : null}
+                      {typeof plannerReport?.careerPathwayProfile?.meta.teer === 'number' ? (
+                        <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
+                          TEER {plannerReport.careerPathwayProfile.meta.teer}
                         </span>
                       ) : null}
                     </div>
@@ -5677,7 +5750,6 @@ export default function CareerSwitchPlannerPage({
                       {plannerReport.suggestedCareers.length > 0 ? (
                         <div className="mt-3 grid gap-3 md:grid-cols-2">
                           {plannerReport.suggestedCareers.slice(0, 4).map((career) => {
-                            const usdMedian = career.salary.usd?.median
                             const nativeMedian = career.salary.native?.median
                             const nativeCurrency = career.salary.native?.currency
                             return (
@@ -5691,9 +5763,13 @@ export default function CareerSwitchPlannerPage({
                                 <p className="mt-1 text-xs text-text-secondary">
                                   Difficulty: {career.difficulty} | Transition: {career.transitionTime}
                                 </p>
-                                {typeof usdMedian === 'number' ? (
+                                {career.salary.native && typeof nativeMedian === 'number' ? (
                                   <p className="mt-2 text-sm text-text-primary">
-                                    Median salary (USD): ${Math.round(usdMedian).toLocaleString()}
+                                    Median wage ({nativeCurrency}): ${Math.round(nativeMedian).toLocaleString()}
+                                  </p>
+                                ) : typeof career.salary.usd?.median === 'number' ? (
+                                  <p className="mt-2 text-sm text-text-primary">
+                                    Median wage (comparison only): ${Math.round(career.salary.usd.median).toLocaleString()}
                                   </p>
                                 ) : (
                                   <p className="mt-2 text-sm text-text-secondary">
@@ -5708,11 +5784,6 @@ export default function CareerSwitchPlannerPage({
                                       : 'Not available'}
                                     {' | '}
                                     Source: {career.salary.native.sourceName} ({career.salary.native.asOfDate})
-                                  </p>
-                                ) : null}
-                                {career.salary.conversion ? (
-                                  <p className="text-xs text-text-tertiary">
-                                    FX USD/CAD: {career.salary.conversion.rate} ({career.salary.conversion.asOfDate})
                                   </p>
                                 ) : null}
                               </div>

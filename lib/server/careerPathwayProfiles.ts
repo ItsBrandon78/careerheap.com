@@ -26,6 +26,22 @@ type CareerRoleRow = {
   jurisdiction_region: string | null
 }
 
+const REGION_ALIASES: Array<{ code: string; patterns: string[] }> = [
+  { code: 'ON', patterns: ['ontario'] },
+  { code: 'BC', patterns: ['british columbia'] },
+  { code: 'AB', patterns: ['alberta'] },
+  { code: 'SK', patterns: ['saskatchewan'] },
+  { code: 'MB', patterns: ['manitoba'] },
+  { code: 'QC', patterns: ['quebec'] },
+  { code: 'NB', patterns: ['new brunswick'] },
+  { code: 'NS', patterns: ['nova scotia'] },
+  { code: 'PE', patterns: ['prince edward island'] },
+  { code: 'NL', patterns: ['newfoundland', 'labrador'] },
+  { code: 'YT', patterns: ['yukon'] },
+  { code: 'NT', patterns: ['northwest territories'] },
+  { code: 'NU', patterns: ['nunavut'] }
+]
+
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')
     .toLowerCase()
@@ -47,6 +63,16 @@ function similarity(left: string, right: string) {
   })
 
   return overlap / Math.max(aTokens.size, bTokens.size, 1)
+}
+
+function extractProvinceCode(region: string | null | undefined) {
+  const normalized = ` ${normalizeText(region)} `
+  for (const candidate of REGION_ALIASES) {
+    if (candidate.patterns.some((pattern) => normalized.includes(pattern))) {
+      return candidate.code
+    }
+  }
+  return null
 }
 
 function scoreRoleMatch(row: CareerRoleRow, args: LookupArgs) {
@@ -92,21 +118,72 @@ function scoreRoleMatch(row: CareerRoleRow, args: LookupArgs) {
 function matchBuiltInProfile(args: LookupArgs) {
   const target = normalizeText(args.targetRole)
   const region = normalizeText(args.region)
+  const requestedProvince = extractProvinceCode(args.region)
   const tradeCode = normalizeText(args.tradeCode)
   const nocCode = normalizeText(args.nocCode)
+  const onet = normalizeText(args.onetSocCode)
 
-  return (
-    BUILT_IN_CAREER_PATHWAY_PROFILES.find((profile) => {
-      const title = normalizeText(profile.meta.title)
-      return (
-        (tradeCode && normalizeText(profile.meta.codes.trade_code) === tradeCode) ||
-        (nocCode && normalizeText(profile.meta.codes.noc_2021) === nocCode) ||
-        (target.includes('electrician') &&
-          title.includes('electrician') &&
-          (!region || region.includes('canada') || region.includes('ontario') || region === 'ca'))
-      )
-    }) ?? null
-  )
+  const ranked = BUILT_IN_CAREER_PATHWAY_PROFILES.map((profile) => {
+    if (
+      requestedProvince &&
+      normalizeText(profile.meta.jurisdiction.region) !== normalizeText(requestedProvince)
+    ) {
+      return { profile, score: 0 }
+    }
+
+    let score = 0
+    let matchedByCode = false
+
+    if (
+      tradeCode &&
+      normalizeText(profile.meta.codes.trade_code) === tradeCode
+    ) {
+      score += 100
+      matchedByCode = true
+    }
+
+    if (
+      nocCode &&
+      normalizeText(profile.meta.codes.noc_2021) === nocCode
+    ) {
+      score += 90
+      matchedByCode = true
+    }
+
+    if (
+      onet &&
+      normalizeText(profile.meta.codes.onet_soc) === onet
+    ) {
+      score += 70
+      matchedByCode = true
+    }
+
+    const titleSimilarity = Math.max(
+      similarity(target, profile.meta.title),
+      similarity(target, profile.meta.slug)
+    )
+    if (titleSimilarity >= 0.45) {
+      score += Math.round(titleSimilarity * 60)
+    } else if (!matchedByCode) {
+      return { profile, score: 0 }
+    }
+
+    if (
+      region &&
+      (region === 'ca' ||
+        region === 'canada' ||
+        normalizeText(profile.meta.jurisdiction.region) === region ||
+        Boolean(requestedProvince && normalizeText(profile.meta.jurisdiction.region) === normalizeText(requestedProvince)))
+    ) {
+      score += 10
+    }
+
+    return { profile, score }
+  })
+    .filter((item) => item.score > 0)
+    .sort((left, right) => right.score - left.score)
+
+  return ranked[0]?.profile ?? null
 }
 
 async function fetchProfileFromDb(args: LookupArgs): Promise<CareerPathwayProfile | null> {

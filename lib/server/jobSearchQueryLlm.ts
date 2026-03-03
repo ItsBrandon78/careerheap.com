@@ -60,7 +60,7 @@ export async function suggestRoleSearchVariantsWithLlm(input: {
             'Keep each query to a short role title only.',
             'Stay in the same occupation family.',
             'You may remove stage words, expand abbreviations, or provide close common-market equivalents.',
-            'Do not add city, province, state, salary, seniority, employer names, or certifications.',
+            'Do not add city, province, salary, seniority, employer names, or certifications.',
             `Return at most ${MAX_QUERY_VARIANTS} queries total, including the original phrasing if useful.`
           ],
           input: {

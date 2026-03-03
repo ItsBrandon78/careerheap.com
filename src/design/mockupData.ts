@@ -11,7 +11,7 @@ export interface ToolSummary {
 export const featuredHomepageTool: ToolSummary = {
   slug: 'career-switch-planner',
   title: 'Career Switch Planner',
-  description: 'See how your skills transfer - and get a step-by-step plan.',
+  description: 'See the Canadian pathway, timeline, requirements, and next steps.',
   icon: 'planner',
   isActive: true
 }
@@ -21,7 +21,7 @@ export const homepageTools: ToolSummary[] = [
     slug: 'resume-analyzer',
     title: 'Resume Analyzer',
     description:
-      'Get instant AI feedback on your resume - fix weak spots, improve wording, and stand out.',
+      'Tighten your resume for real employer filters and Canadian job expectations.',
     icon: 'resume',
     isActive: true
   },
@@ -29,7 +29,7 @@ export const homepageTools: ToolSummary[] = [
     slug: 'interview-prep',
     title: 'Interview Q&A Prep',
     description:
-      'Generate tailored interview questions and answers based on any job description.',
+      'Practice stronger answers based on the role, the posting, and what employers ask for.',
     icon: 'interview',
     isActive: true
   },
@@ -37,7 +37,7 @@ export const homepageTools: ToolSummary[] = [
     slug: 'cover-letter',
     title: 'Cover Letter Writer',
     description:
-      'Create a personalized cover letter in seconds. Just paste the job listing.',
+      'Create a focused cover letter using the job posting and your real background.',
     icon: 'cover',
     isActive: true
   }
@@ -89,33 +89,45 @@ export const pricingPlans: PricingPlan[] = [
   {
     name: 'Free',
     price: '$0',
-    subtitle: 'For trying CareerHeap',
+    subtitle: 'Canada-first preview',
     buttonText: 'Try Free',
-    features: ['3 lifetime uses total', 'Manual paste input', 'Basic report preview']
+    features: ['Roadmap preview', 'Manual paste input', 'Core pathway summary']
   },
   {
     name: 'Pro',
-    price: '$7',
+    price: '$15 CAD',
     subtitle: '/month',
     highlighted: true,
     badge: 'Most Popular',
     buttonText: 'Upgrade to Pro',
     features: [
-      'Unlimited tool uses',
-      'Resume upload (PDF/DOCX)',
-      'Full career roadmap',
-      'Resume reframe generation'
+      'Unlimited roadmaps',
+      'Province-specific requirements',
+      'Full step breakdown',
+      'PDF export'
     ]
   },
   {
-    name: 'Lifetime',
-    price: '$49',
+    name: 'Annual',
+    price: '$129 CAD',
+    subtitle: '/year',
+    buttonText: 'Choose Annual',
+    features: [
+      'Everything in Pro',
+      'Lower annual price',
+      'Province-aware planning all year'
+    ]
+  },
+  {
+    name: 'Founders',
+    price: '$99 CAD',
     subtitle: 'One-time payment',
-    buttonText: 'Get Lifetime Access',
+    badge: 'Limited',
+    buttonText: 'Get Founders Access',
     features: [
       'Everything in Pro',
       'No recurring billing',
-      'Optional Early Supporter badge'
+      'Feature-flag controlled offer'
     ]
   }
 ]
@@ -124,17 +136,22 @@ export const pricingFaqs = [
   {
     question: 'Can I try before I buy?',
     answer:
-      'Yes. Free includes 3 total lifetime uses across all tools with no credit card required.'
+      'Yes. Free lets you preview the pathway and see the core roadmap structure before upgrading.'
   },
   {
     question: 'What unlocks with Pro?',
     answer:
-      'Pro gives unlimited uses, resume upload, full roadmap outputs, and resume reframing.'
+      'Pro unlocks unlimited roadmaps, province-specific requirements, deeper breakdowns, and PDF export.'
   },
   {
-    question: 'How is Lifetime different?',
+    question: 'How is Annual different?',
     answer:
-      'Lifetime includes everything in Pro with a single one-time payment and no recurring billing.'
+      'Annual includes everything in Pro with a lower yearly price than paying month to month.'
+  },
+  {
+    question: 'What is Founders access?',
+    answer:
+      'Founders access is a limited one-time offer that unlocks the full roadmap product without recurring billing.'
   },
   {
     question: 'What payment methods do you accept?',

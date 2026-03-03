@@ -1,14 +1,12 @@
 'use client'
 
-import { useState } from 'react'
 import PricingCard from '@/components/PricingCard'
 import FAQAccordion from '@/components/FAQAccordion'
 import { pricingFaqs, pricingPlans } from '@/src/design/mockupData'
 
-type ProCadence = 'monthly' | 'yearly'
-
 export default function PricingPage() {
-  const [proCadence, setProCadence] = useState<ProCadence>('monthly')
+  const foundersEnabled = process.env.NEXT_PUBLIC_FOUNDERS_LIFETIME_ENABLED !== '0'
+  const visiblePlans = pricingPlans.filter((plan) => foundersEnabled || plan.name !== 'Founders')
 
   return (
     <>
@@ -16,23 +14,19 @@ export default function PricingPage() {
         <p className="text-xs font-semibold tracking-[1.5px] text-accent">PRICING</p>
         <h1 className="mt-3 text-[40px] font-bold text-text-primary">Simple, Transparent Pricing</h1>
         <p className="mx-auto mt-4 max-w-[500px] text-lg leading-[1.6] text-text-secondary">
-          Upgrade to unlock unlimited access to every CareerHeap tool. Cancel anytime.
+          Province-aware Canadian career pathways, with a clearer upgrade path and no pricing fluff.
         </p>
       </section>
 
       <section className="px-4 py-12 lg:px-[340px]">
-        <div className="mx-auto grid max-w-content gap-6 md:grid-cols-3">
-          {pricingPlans.map((plan) => {
-            const isPro = plan.name === 'Pro'
-            const proPrice = proCadence === 'yearly' ? '$70' : '$7'
-            const proSubtitle = proCadence === 'yearly' ? '/year' : '/month'
-
+        <div className="mx-auto grid max-w-content gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {visiblePlans.map((plan) => {
             return (
               <PricingCard
                 key={plan.name}
                 name={plan.name}
-                price={isPro ? proPrice : plan.price}
-                subtitle={isPro ? proSubtitle : plan.subtitle}
+                price={plan.price}
+                subtitle={plan.subtitle}
                 features={plan.features}
                 highlighted={plan.highlighted}
                 badge={plan.badge}
@@ -40,44 +34,18 @@ export default function PricingPage() {
                 href={
                   plan.name === 'Free'
                     ? '/tools/career-switch-planner'
-                    : plan.name === 'Lifetime'
+                    : plan.name === 'Founders'
                       ? '/checkout?plan=lifetime'
-                      : `/checkout?plan=pro&cadence=${proCadence}`
-                }
-                detailsSlot={
-                  isPro ? (
-                    <div className="inline-flex rounded-pill border border-border bg-bg-secondary p-1">
-                      <button
-                        type="button"
-                        onClick={() => setProCadence('monthly')}
-                        className={`rounded-pill px-3 py-1 text-xs font-semibold ${
-                          proCadence === 'monthly'
-                            ? 'bg-surface text-text-primary'
-                            : 'text-text-secondary'
-                        }`}
-                      >
-                        Monthly
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setProCadence('yearly')}
-                        className={`rounded-pill px-3 py-1 text-xs font-semibold ${
-                          proCadence === 'yearly'
-                            ? 'bg-surface text-text-primary'
-                            : 'text-text-secondary'
-                        }`}
-                      >
-                        Yearly
-                      </button>
-                    </div>
-                  ) : undefined
+                      : plan.name === 'Annual'
+                        ? '/checkout?plan=pro&cadence=yearly'
+                        : '/checkout?plan=pro&cadence=monthly'
                 }
               />
             )
           })}
         </div>
         <p className="mt-8 text-center text-sm text-text-tertiary">
-          Secure checkout. Cancel subscription plans anytime.
+          Secure checkout. Subscription plans can still be managed from your account.
         </p>
       </section>
 

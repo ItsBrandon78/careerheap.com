@@ -68,6 +68,15 @@ export const CareerPathwayProfileSchema = z
             onet_soc: z.string().optional().nullable()
           })
           .strict(),
+        teer: z.number().int().min(0).max(5).optional().nullable(),
+        pathway_type: z
+          .enum([
+            'trade_apprenticeship',
+            'regulated_profession',
+            'non_regulated',
+            'credential_stack'
+          ])
+          .optional(),
         regulated: z.boolean(),
         last_verified: z.string().min(1)
       })
@@ -136,6 +145,19 @@ export const CareerPathwayProfileSchema = z
         notes: z.string().min(1)
       })
       .strict(),
+    wages_by_province: z
+      .array(
+        z
+          .object({
+            province: z.string().min(1),
+            low_hourly_cad: z.number().nullable(),
+            median_hourly_cad: z.number().nullable(),
+            high_hourly_cad: z.number().nullable(),
+            source: z.string().min(1)
+          })
+          .strict()
+      )
+      .optional(),
     difficulty: z
       .object({
         overall_1_5: z.number().int().min(1).max(5),

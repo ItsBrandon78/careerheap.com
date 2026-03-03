@@ -1476,7 +1476,7 @@ function buildReality(
         templateKey === 'regulated_profession'
           ? targetProfile.region === 'CA'
             ? 'This is a regulated profession. Licensing, credential recognition, and timelines can vary by province in Canada.'
-            : 'This is a regulated profession. Licensing, credential recognition, and timelines can vary by state or province.'
+            : 'This is a regulated profession. Licensing, credential recognition, and timelines can vary by province or regulator.'
           : '',
         ...signals.missingSignals.map((item) => item.label),
         report.marketEvidence?.baselineOnly

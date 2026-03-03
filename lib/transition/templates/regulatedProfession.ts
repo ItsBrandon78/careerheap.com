@@ -7,11 +7,11 @@ export function buildRegulatedProfessionTemplate(
   const target = roleLabel(context)
   const regionLabel =
     context.location.trim() ||
-    (context.targetProfile.region === 'CA' ? 'your province in Canada' : 'your state or province')
+    (context.targetProfile.region === 'CA' ? 'your province in Canada' : 'your local regulator area')
   const regulatorWarning =
     context.targetProfile.region === 'CA' || /canada/i.test(regionLabel)
       ? 'Requirements vary by province, regulator, and credential-recognition path if you trained outside Canada.'
-      : 'Requirements vary by state, regulator, and employer.'
+      : 'Requirements vary by province, regulator, and employer.'
 
   return buildBaseTemplateOutput(context, {
     routes: {

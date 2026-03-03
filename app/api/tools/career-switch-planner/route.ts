@@ -43,7 +43,7 @@ function asStringArray(value: unknown) {
 function locationFromWorkRegion(workRegion: string) {
   if (workRegion === 'ca' || workRegion === 'remote-ca') return 'Canada'
   if (workRegion === 'remote-us') return 'Remote (US)'
-  if (workRegion === 'either') return 'Open to either (US/CA)'
+  if (workRegion === 'either') return 'Open to either (Canada/US)'
   return 'United States'
 }
 
@@ -511,7 +511,7 @@ export async function POST(request: Request) {
     const transitionEnhancement = await getCachedOrGenerateTransitionEnhancement({
       currentRole: input.currentRole || input.currentRoleText || resolvedCurrentRoleTitle || 'Career transition',
       targetRole: enhancementTargetRole,
-      region: input.workRegion || input.location || 'United States',
+      region: input.workRegion || input.location || 'Canada',
       location: input.location,
       experienceText: input.experienceText,
       transitionMode,
