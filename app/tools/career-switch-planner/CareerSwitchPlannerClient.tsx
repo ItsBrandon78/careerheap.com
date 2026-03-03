@@ -3767,9 +3767,6 @@ export default function CareerSwitchPlannerPage({
                         </div>
                       </Card>
                     ) : null}
-                    {renderMissingHiringRequirementsCard(
-                      'print-page-keep rounded-2xl border border-border-light bg-bg-secondary p-5'
-                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -3796,6 +3793,9 @@ export default function CareerSwitchPlannerPage({
                       </ul>
                     </Card>
                   </div>
+                  {renderMissingHiringRequirementsCard(
+                    'print-page-keep rounded-2xl border border-border-light bg-bg-secondary p-5 lg:col-span-2'
+                  )}
                 </div>
 
                 <div id="transition-roadmap">
