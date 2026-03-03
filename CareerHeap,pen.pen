@@ -683,460 +683,6 @@
         },
         {
           "type": "frame",
-          "id": "ShFy7",
-          "name": "ToolCards",
-          "layout": "vertical",
-          "gap": 16,
-          "children": [
-            {
-              "type": "frame",
-              "id": "yR8ux",
-              "name": "Component/ToolCard",
-              "reusable": true,
-              "width": 340,
-              "fill": "$surface",
-              "cornerRadius": 14,
-              "stroke": {
-                "align": "inside",
-                "thickness": 1,
-                "fill": "#DBE4F0"
-              },
-              "effect": {
-                "type": "shadow",
-                "shadowType": "outer",
-                "color": "#0F172A10",
-                "blur": 18
-              },
-              "layout": "vertical",
-              "gap": 14,
-              "padding": 24,
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "9lVFM",
-                  "name": "top",
-                  "width": "fill_container",
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "Mqa8I",
-                      "name": "iconWrap",
-                      "width": 40,
-                      "height": 40,
-                      "fill": "$accent-light",
-                      "cornerRadius": "$radius-md",
-                      "justifyContent": "center",
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon_font",
-                          "id": "YleZ3",
-                          "name": "icon",
-                          "width": 20,
-                          "height": 20,
-                          "iconFontName": "file-text",
-                          "iconFontFamily": "lucide",
-                          "fill": "$accent"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "l06Lf",
-                      "type": "ref",
-                      "ref": "4Mlae",
-                      "name": "badge"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "q2nZQ",
-                  "name": "content",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "IaXDk",
-                      "name": "title",
-                      "fill": "$text-primary",
-                      "content": "Resume Analyzer",
-                      "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "700"
-                    },
-                    {
-                      "type": "text",
-                      "id": "HbXDB",
-                      "name": "description",
-                      "fill": "$text-secondary",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Get instant feedback on your resume with AI-powered analysis and actionable suggestions.",
-                      "lineHeight": 1.6,
-                      "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "id": "zRNY3",
-                  "type": "ref",
-                  "ref": "yV1lY",
-                  "name": "cta",
-                  "width": "fill_container",
-                  "descendants": {
-                    "O5nS5": {
-                      "content": "Try Free"
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "imcDL",
-          "name": "BlogCards",
-          "layout": "vertical",
-          "gap": 16,
-          "children": [
-            {
-              "type": "frame",
-              "id": "wgP5r",
-              "name": "Component/BlogCard",
-              "reusable": true,
-              "clip": true,
-              "width": 340,
-              "fill": "$surface",
-              "cornerRadius": 14,
-              "stroke": {
-                "align": "inside",
-                "thickness": 1,
-                "fill": "$border"
-              },
-              "effect": {
-                "type": "shadow",
-                "shadowType": "outer",
-                "color": "#0F172A0C",
-                "blur": 16
-              },
-              "layout": "vertical",
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "RcPlE",
-                  "name": "image",
-                  "width": "fill_container",
-                  "height": 180,
-                  "fill": "$bg-secondary"
-                },
-                {
-                  "type": "frame",
-                  "id": "C7v0k",
-                  "name": "body",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 12,
-                  "padding": 20,
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "i0Mh9",
-                      "name": "category",
-                      "fill": "$accent",
-                      "content": "CAREER TIPS",
-                      "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "600",
-                      "letterSpacing": 1
-                    },
-                    {
-                      "type": "text",
-                      "id": "ry7IA",
-                      "name": "title",
-                      "fill": "$text-primary",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "10 Resume Mistakes That Cost You Interviews",
-                      "lineHeight": 1.4,
-                      "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "600"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "eJnBk",
-                      "name": "meta",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "tAp4d",
-                          "name": "date",
-                          "fill": "$text-tertiary",
-                          "content": "Feb 12, 2026",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "tFe4a",
-                          "name": "bcDot",
-                          "fill": "$text-tertiary",
-                          "content": "·",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "BPvzT",
-                          "name": "readTime",
-                          "fill": "$text-tertiary",
-                          "content": "5 min read",
-                          "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "FXfOT",
-          "name": "PricingCards",
-          "gap": 24,
-          "children": [
-            {
-              "type": "frame",
-              "id": "myZkI",
-              "name": "Component/PricingCard",
-              "reusable": true,
-              "width": 360,
-              "fill": "$surface",
-              "cornerRadius": 14,
-              "stroke": {
-                "align": "inside",
-                "thickness": 1,
-                "fill": "#D7E0EC"
-              },
-              "effect": {
-                "type": "shadow",
-                "shadowType": "outer",
-                "color": "#0F172A10",
-                "blur": 18
-              },
-              "layout": "vertical",
-              "gap": 18,
-              "padding": 30,
-              "children": [
-                {
-                  "id": "irl7V",
-                  "type": "ref",
-                  "ref": "4Mlae",
-                  "name": "badge",
-                  "enabled": false
-                },
-                {
-                  "type": "frame",
-                  "id": "Tic2J",
-                  "name": "header",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 4,
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "AxOT7",
-                      "name": "planName",
-                      "fill": "$text-primary",
-                      "content": "Monthly",
-                      "fontFamily": "Inter",
-                      "fontSize": 20,
-                      "fontWeight": "600"
-                    },
-                    {
-                      "type": "frame",
-                      "id": "x1o5U",
-                      "name": "priceRow",
-                      "width": "fill_container",
-                      "gap": 4,
-                      "alignItems": "end",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "e6yQz",
-                          "name": "price",
-                          "fill": "$text-primary",
-                          "content": "$19",
-                          "fontFamily": "Inter",
-                          "fontSize": 40,
-                          "fontWeight": "700"
-                        },
-                        {
-                          "type": "text",
-                          "id": "MCGWw",
-                          "name": "period",
-                          "fill": "$text-tertiary",
-                          "content": "/month",
-                          "fontFamily": "Inter",
-                          "fontSize": 15,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "text",
-                      "id": "JrTDN",
-                      "name": "desc",
-                      "fill": "$text-secondary",
-                      "content": "For individuals getting started.",
-                      "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "rectangle",
-                  "id": "mhU4E",
-                  "name": "divider",
-                  "fill": "$border",
-                  "width": "fill_container",
-                  "height": 1
-                },
-                {
-                  "type": "frame",
-                  "id": "D7bVp",
-                  "name": "features",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 12,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "TuCZR",
-                      "name": "featureItem",
-                      "width": "fill_container",
-                      "gap": 10,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon_font",
-                          "id": "s0HJu",
-                          "name": "pcF1Icon",
-                          "width": 16,
-                          "height": 16,
-                          "iconFontName": "check",
-                          "iconFontFamily": "lucide",
-                          "fill": "$success"
-                        },
-                        {
-                          "type": "text",
-                          "id": "bJ6Zy",
-                          "name": "text",
-                          "fill": "$text-secondary",
-                          "content": "Unlimited tool access",
-                          "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "xrROi",
-                      "name": "featureItem",
-                      "width": "fill_container",
-                      "gap": 10,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon_font",
-                          "id": "kYKTZ",
-                          "name": "pcF2Icon",
-                          "width": 16,
-                          "height": 16,
-                          "iconFontName": "check",
-                          "iconFontFamily": "lucide",
-                          "fill": "$success"
-                        },
-                        {
-                          "type": "text",
-                          "id": "5YBCh",
-                          "name": "text",
-                          "fill": "$text-secondary",
-                          "content": "Priority support",
-                          "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "lopGx",
-                      "name": "featureItem",
-                      "width": "fill_container",
-                      "gap": 10,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "type": "icon_font",
-                          "id": "MyCp2",
-                          "name": "pcF3Icon",
-                          "width": 16,
-                          "height": 16,
-                          "iconFontName": "check",
-                          "iconFontFamily": "lucide",
-                          "fill": "$success"
-                        },
-                        {
-                          "type": "text",
-                          "id": "X9eKe",
-                          "name": "text",
-                          "fill": "$text-secondary",
-                          "content": "Export to PDF & Word",
-                          "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "id": "C9B2s",
-                  "type": "ref",
-                  "ref": "Qv8Wy",
-                  "name": "cta",
-                  "width": "fill_container",
-                  "descendants": {
-                    "qR3u9": {
-                      "content": "Get Started"
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
           "id": "VceQe",
           "name": "Component/CTASection",
           "reusable": true,
@@ -19326,7 +18872,7 @@
               "name": "monthlyPlan",
               "width": "fill_container",
               "height": "fit_content",
-              "x": 169.9999999999999,
+              "x": 169.99999999999994,
               "y": 44,
               "descendants": {
                 "irl7V": {
@@ -22342,6 +21888,466 @@
                   "fontWeight": "normal"
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ShFy7",
+      "x": 3360,
+      "y": -475,
+      "name": "ToolCards",
+      "layout": "vertical",
+      "gap": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "yR8ux",
+          "name": "Component/ToolCard",
+          "reusable": true,
+          "width": 340,
+          "fill": "$surface",
+          "cornerRadius": 14,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#DBE4F0"
+          },
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#0F172A10",
+            "blur": 18
+          },
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "9lVFM",
+              "name": "top",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Mqa8I",
+                  "name": "iconWrap",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "$accent-light",
+                  "cornerRadius": "$radius-md",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "YleZ3",
+                      "name": "icon",
+                      "width": 20,
+                      "height": 20,
+                      "iconFontName": "file-text",
+                      "iconFontFamily": "lucide",
+                      "fill": "$accent"
+                    }
+                  ]
+                },
+                {
+                  "id": "l06Lf",
+                  "type": "ref",
+                  "ref": "4Mlae",
+                  "name": "badge"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "q2nZQ",
+              "name": "content",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IaXDk",
+                  "name": "title",
+                  "fill": "$text-primary",
+                  "content": "Resume Analyzer",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "HbXDB",
+                  "name": "description",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Get instant feedback on your resume with AI-powered analysis and actionable suggestions.",
+                  "lineHeight": 1.6,
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "zRNY3",
+              "type": "ref",
+              "ref": "yV1lY",
+              "name": "cta",
+              "width": "fill_container",
+              "descendants": {
+                "O5nS5": {
+                  "content": "Try Free"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "imcDL",
+      "x": 3760,
+      "y": -475,
+      "name": "BlogCards",
+      "layout": "vertical",
+      "gap": 16,
+      "children": [
+        {
+          "type": "frame",
+          "id": "wgP5r",
+          "name": "Component/BlogCard",
+          "reusable": true,
+          "clip": true,
+          "width": 340,
+          "fill": "$surface",
+          "cornerRadius": 14,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "$border"
+          },
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#0F172A0C",
+            "blur": 16
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "RcPlE",
+              "name": "image",
+              "width": "fill_container",
+              "height": 180,
+              "fill": "$bg-secondary"
+            },
+            {
+              "type": "frame",
+              "id": "C7v0k",
+              "name": "body",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "i0Mh9",
+                  "name": "category",
+                  "fill": "$accent",
+                  "content": "CAREER TIPS",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "ry7IA",
+                  "name": "title",
+                  "fill": "$text-primary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "10 Resume Mistakes That Cost You Interviews",
+                  "lineHeight": 1.4,
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "eJnBk",
+                  "name": "meta",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tAp4d",
+                      "name": "date",
+                      "fill": "$text-tertiary",
+                      "content": "Feb 12, 2026",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tFe4a",
+                      "name": "bcDot",
+                      "fill": "$text-tertiary",
+                      "content": "·",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BPvzT",
+                      "name": "readTime",
+                      "fill": "$text-tertiary",
+                      "content": "5 min read",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "FXfOT",
+      "x": 4160,
+      "y": -475,
+      "name": "PricingCards",
+      "gap": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "myZkI",
+          "name": "Component/PricingCard",
+          "reusable": true,
+          "width": 360,
+          "fill": "$surface",
+          "cornerRadius": 14,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#D7E0EC"
+          },
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#0F172A10",
+            "blur": 18
+          },
+          "layout": "vertical",
+          "gap": 18,
+          "padding": 30,
+          "children": [
+            {
+              "id": "irl7V",
+              "type": "ref",
+              "ref": "4Mlae",
+              "name": "badge",
+              "enabled": false
+            },
+            {
+              "type": "frame",
+              "id": "Tic2J",
+              "name": "header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AxOT7",
+                  "name": "planName",
+                  "fill": "$text-primary",
+                  "content": "Monthly",
+                  "fontFamily": "Inter",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "frame",
+                  "id": "x1o5U",
+                  "name": "priceRow",
+                  "width": "fill_container",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "e6yQz",
+                      "name": "price",
+                      "fill": "$text-primary",
+                      "content": "$19",
+                      "fontFamily": "Inter",
+                      "fontSize": 40,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "MCGWw",
+                      "name": "period",
+                      "fill": "$text-tertiary",
+                      "content": "/month",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "JrTDN",
+                  "name": "desc",
+                  "fill": "$text-secondary",
+                  "content": "For individuals getting started.",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "mhU4E",
+              "name": "divider",
+              "fill": "$border",
+              "width": "fill_container",
+              "height": 1
+            },
+            {
+              "type": "frame",
+              "id": "D7bVp",
+              "name": "features",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TuCZR",
+                  "name": "featureItem",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "s0HJu",
+                      "name": "pcF1Icon",
+                      "width": 16,
+                      "height": 16,
+                      "iconFontName": "check",
+                      "iconFontFamily": "lucide",
+                      "fill": "$success"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bJ6Zy",
+                      "name": "text",
+                      "fill": "$text-secondary",
+                      "content": "Unlimited tool access",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "xrROi",
+                  "name": "featureItem",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "kYKTZ",
+                      "name": "pcF2Icon",
+                      "width": 16,
+                      "height": 16,
+                      "iconFontName": "check",
+                      "iconFontFamily": "lucide",
+                      "fill": "$success"
+                    },
+                    {
+                      "type": "text",
+                      "id": "5YBCh",
+                      "name": "text",
+                      "fill": "$text-secondary",
+                      "content": "Priority support",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "lopGx",
+                  "name": "featureItem",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "MyCp2",
+                      "name": "pcF3Icon",
+                      "width": 16,
+                      "height": 16,
+                      "iconFontName": "check",
+                      "iconFontFamily": "lucide",
+                      "fill": "$success"
+                    },
+                    {
+                      "type": "text",
+                      "id": "X9eKe",
+                      "name": "text",
+                      "fill": "$text-secondary",
+                      "content": "Export to PDF & Word",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "C9B2s",
+              "type": "ref",
+              "ref": "Qv8Wy",
+              "name": "cta",
+              "width": "fill_container",
+              "descendants": {
+                "qR3u9": {
+                  "content": "Get Started"
+                }
+              }
             }
           ]
         }
