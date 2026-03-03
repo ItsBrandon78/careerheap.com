@@ -145,7 +145,27 @@ html[data-a11y-motion='reduced'] * {
   scroll-behavior: auto !important;
 }
 
+@keyframes planner-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.planner-animate-in {
+  animation: planner-fade-in 220ms ease-out;
+}
+
 @media print {
+  @page {
+    margin: 14mm;
+  }
+
   body {
     background: #ffffff !important;
     background-image: none !important;
@@ -172,5 +192,10 @@ html[data-a11y-motion='reduced'] * {
     width: 100%;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  .print-page-keep {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

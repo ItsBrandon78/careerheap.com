@@ -69,6 +69,8 @@ type PlannerState = 'idle' | 'loading' | 'results'
 type UploadState = 'idle' | 'parsing' | 'success' | 'error'
 type OcrCapabilityMode = 'native' | 'fallback' | 'unavailable'
 type OcrCapabilityStatus = 'idle' | 'loading' | 'ready' | 'error'
+type WizardStep = 0 | 1 | 2
+type RoadmapTabKey = '0-30' | '30-90' | '3-12'
 type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
@@ -692,6 +694,37 @@ const FREE_LIMIT = 3
 const EXAMPLE_CARD_COUNT = 3
 const EXAMPLE_OPTIONS_STORAGE_KEY = 'career-switch-planner-example-options'
 const EXAMPLE_SELECTED_STORAGE_KEY = 'career-switch-planner-selected-example'
+const WIZARD_STEPS: Array<{
+  id: WizardStep
+  title: string
+  eyebrow: string
+  helper: string
+}> = [
+  {
+    id: 0,
+    title: 'Roles',
+    eyebrow: 'Step 1 of 3',
+    helper: 'Set the direction before we build the plan.'
+  },
+  {
+    id: 1,
+    title: 'Background',
+    eyebrow: 'Step 2 of 3',
+    helper: 'Add the strongest signals from your resume, skills, and experience.'
+  },
+  {
+    id: 2,
+    title: 'Constraints',
+    eyebrow: 'Step 3 of 3',
+    helper: 'Add location, timing, and market preferences before generating.'
+  }
+]
+const PLANNER_LOADING_STAGES = ['Parsing profile', 'Matching roles', 'Building plan', 'Finalizing']
+const ROADMAP_TABS: Array<{ key: RoadmapTabKey; label: string; summary: string }> = [
+  { key: '0-30', label: '0-30 Days', summary: 'Immediate traction and first proof.' },
+  { key: '30-90', label: '30-90 Days', summary: 'Stack consistency and market validation.' },
+  { key: '3-12', label: '3-12 Months', summary: 'Compounding proof, leverage, and readiness.' }
+]
 const FALLBACK_SKILL_SUGGESTIONS = [
   'Stakeholder management',
   'Electrical safety',
@@ -1128,6 +1161,12 @@ export default function CareerSwitchPlannerPage({
   const { user, plan } = useAuth()
 
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
+  const [activeWizardStep, setActiveWizardStep] = useState<WizardStep>(0)
+  const [activeRoadmapTab, setActiveRoadmapTab] = useState<RoadmapTabKey>('0-30')
+  const [loadingStageIndex, setLoadingStageIndex] = useState(0)
+  const [outreachToolkitOpen, setOutreachToolkitOpen] = useState(false)
+  const [copiedToolkitSection, setCopiedToolkitSection] = useState<string | null>(null)
+  const [isPrintMode, setIsPrintMode] = useState(false)
   const [exampleOptions, setExampleOptions] = useState<PlannerExampleScenario[]>([])
   const [selectedExampleId, setSelectedExampleId] = useState<string | null>(null)
   const [currentRoleText, setCurrentRoleText] = useState('')
@@ -1188,6 +1227,8 @@ export default function CareerSwitchPlannerPage({
   const [earningsView, setEarningsView] = useState<'base' | 'annual'>('base')
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const plannerStageTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastJobRecommendationKeyRef = useRef('')
   const previewLocked = searchParams.get('locked') === '1'
   const proPreview = searchParams.get('propreview') === '1'
@@ -1225,6 +1266,63 @@ export default function CareerSwitchPlannerPage({
       if (progressTimerRef.current) {
         clearInterval(progressTimerRef.current)
       }
+      if (plannerStageTimerRef.current) {
+        clearInterval(plannerStageTimerRef.current)
+      }
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (plannerStageTimerRef.current) {
+      clearInterval(plannerStageTimerRef.current)
+      plannerStageTimerRef.current = null
+    }
+
+    if (plannerState !== 'loading') {
+      setLoadingStageIndex(0)
+      return
+    }
+
+    setLoadingStageIndex(0)
+    plannerStageTimerRef.current = setInterval(() => {
+      setLoadingStageIndex((previous) =>
+        previous >= PLANNER_LOADING_STAGES.length - 1 ? previous : previous + 1
+      )
+    }, 850)
+
+    return () => {
+      if (plannerStageTimerRef.current) {
+        clearInterval(plannerStageTimerRef.current)
+        plannerStageTimerRef.current = null
+      }
+    }
+  }, [plannerState])
+
+  useEffect(() => {
+    if (plannerState !== 'results' || !plannerResult) return
+
+    const frame = window.requestAnimationFrame(() => {
+      scrollToSection('planner-report-anchor')
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [plannerResult, plannerState])
+
+  useEffect(() => {
+    const handleBeforePrint = () => setIsPrintMode(true)
+    const handleAfterPrint = () => setIsPrintMode(false)
+
+    window.addEventListener('beforeprint', handleBeforePrint)
+    window.addEventListener('afterprint', handleAfterPrint)
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint)
+      window.removeEventListener('afterprint', handleAfterPrint)
     }
   }, [])
 
@@ -1566,6 +1664,32 @@ export default function CareerSwitchPlannerPage({
     }
   }
 
+  const handlePrintReport = () => {
+    setIsPrintMode(true)
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.print()
+      })
+    })
+  }
+
+  const handleCopyToolkitSection = async (key: string, value: string) => {
+    if (!value.trim() || typeof navigator === 'undefined' || !navigator.clipboard) return
+
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedToolkitSection(key)
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current)
+      }
+      copyResetTimerRef.current = setTimeout(() => {
+        setCopiedToolkitSection(null)
+      }, 1800)
+    } catch {
+      // ignore clipboard failures
+    }
+  }
+
   const handleGeneratePlan = async (override?: Partial<PlannerFormDraft>) => {
     const draft: PlannerFormDraft = {
       currentRoleText,
@@ -1599,22 +1723,28 @@ export default function CareerSwitchPlannerPage({
     }
 
     if (!hasDraftMinimumInput) {
+      setActiveWizardStep(1)
       setInputError('Add a current role, an experience summary, or at least 3 skills to continue.')
       return
     }
 
     if (!draft.recommendMode && !draft.targetRoleText.trim()) {
+      setActiveWizardStep(0)
       setInputError('Add your target role or pick a suggestion below.')
       return
     }
 
     if (!draft.locationText.trim()) {
+      setActiveWizardStep(2)
       setInputError('Add your target location to generate market evidence.')
       return
     }
 
     setInputError('')
     setPlannerReport(null)
+    setOutreachToolkitOpen(false)
+    setCopiedToolkitSection(null)
+    setActiveRoadmapTab('0-30')
     setJobRecommendationStatus('idle')
     setJobRecommendationItems([])
     setJobRecommendationMessage('')
@@ -1752,8 +1882,10 @@ export default function CareerSwitchPlannerPage({
             message: typeof data.message === 'string' ? data.message : undefined,
             alternatives
           })
+          setActiveWizardStep(0)
           setInputError(data.message || 'Choose the closest role match before continuing.')
         } else {
+          setActiveWizardStep(0)
           setInputError(data.message || 'Choose the closest role match before continuing.')
         }
         setPlannerState('idle')
@@ -2031,10 +2163,34 @@ export default function CareerSwitchPlannerPage({
       )
     : []
   const proofBuilderDefinition = transitionModeReport?.definitions?.proofBuilder ?? null
+  const outreachResumeBullets = (
+    plannerReport?.resumeReframe?.length
+      ? plannerReport.resumeReframe
+      : plannerResult?.reframes ?? []
+  )
+    .map((item) => item.after.trim())
+    .filter(Boolean)
+    .slice(0, 4)
   const transitionChannelPriorities = transitionModeReport
     ? buildTransitionChannelPriorities(
         transitionModeReport.routes.primary.title,
         transitionModeReport.routes.primary.reason
+      )
+    : []
+  const employerRedFlags = executionStrategy
+    ? sharedDedupeBullets(
+        executionStrategy.whereYouStandNow.competitiveDisadvantages
+          .map((item) => item.reason || item.label)
+          .filter(Boolean),
+        4
+      )
+    : []
+  const criticalGapDetails = executionStrategy
+    ? sharedDedupeBullets(
+        executionStrategy.whereYouStandNow.missingMandatoryRequirements
+          .map((item) => item.reason || item.label)
+          .filter(Boolean),
+        4
       )
     : []
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
@@ -2044,6 +2200,70 @@ export default function CareerSwitchPlannerPage({
     explicitSkills: skills,
     explicitCertifications: resumeStructuredSnapshot.certifications
   })
+  const roadmapTabs = transitionModeReport
+    ? [
+        {
+          key: '0-30' as const,
+          label: '0-30 Days',
+          summary: ROADMAP_TABS[0].summary,
+          items:
+            plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks.map((item) => ({
+              title: item.action,
+              detail: `Tied to ${item.tiedRequirement}`
+            })) ??
+            transitionModeReport.plan90[0]?.tasks.map((task) => ({
+              title: task,
+              detail: transitionModeReport.plan90[0]?.weeklyTargets[0] ?? 'Start with one measurable output.'
+            })) ??
+            []
+        },
+        {
+          key: '30-90' as const,
+          label: '30-90 Days',
+          summary: ROADMAP_TABS[1].summary,
+          items:
+            plannerReport?.transitionSections?.roadmapPlan.oneToThreeMonths.map((item) => ({
+              title: item.action,
+              detail: `Tied to ${item.tiedRequirement}`
+            })) ??
+            transitionModeReport.plan90[1]?.tasks.map((task, index) => ({
+              title: task,
+              detail:
+                transitionModeReport.plan90[1]?.weeklyTargets[index] ??
+                transitionModeReport.plan90[1]?.weeklyTargets[0] ??
+                'Keep weekly outputs consistent.'
+            })) ??
+            []
+        },
+        {
+          key: '3-12' as const,
+          label: '3-12 Months',
+          summary: ROADMAP_TABS[2].summary,
+          items:
+            plannerReport?.transitionSections?.roadmapPlan.threeToTwelveMonths.map((item) => ({
+              title: item.action,
+              detail: `Tied to ${item.tiedRequirement}`
+            })) ??
+            [
+              ...((plannerReport?.transitionSections?.roadmapPlan.strongCandidatePath ?? []).map((item) => ({
+                title: item,
+                detail: 'Build toward strong-candidate positioning.'
+              })) ?? []),
+              ...(transitionModeReport.plan90[2]?.tasks.map((task, index) => ({
+                title: task,
+                detail:
+                  transitionModeReport.plan90[2]?.weeklyTargets[index] ??
+                  transitionModeReport.plan90[2]?.weeklyTargets[0] ??
+                  'Compound the strongest signal each week.'
+              })) ?? [])
+            ].slice(0, 5)
+        }
+      ]
+    : []
+  const activeRoadmap = roadmapTabs.find((item) => item.key === activeRoadmapTab) ?? roadmapTabs[0] ?? null
+  const activeWizardMeta = WIZARD_STEPS[activeWizardStep]
+  const canGoBackWizard = activeWizardStep > 0
+  const canGoNextWizard = activeWizardStep < WIZARD_STEPS.length - 1
   const recommendedRoleSections = plannerReport
     ? buildRecommendedRoleSections(
         plannerReport.suggestedCareers,
@@ -2093,6 +2313,7 @@ export default function CareerSwitchPlannerPage({
         .filter((item): item is string => Boolean(item))
     )
   )
+  const isToolkitExpanded = outreachToolkitOpen || isPrintMode
 
   useEffect(() => {
     if (!user || !isTransitionMode) return
@@ -2113,6 +2334,11 @@ export default function CareerSwitchPlannerPage({
     locationText,
     plannerReport?.transitionReport?.marketSnapshot.location
   ])
+
+  useEffect(() => {
+    if (!transitionModeReport) return
+    setActiveRoadmapTab('0-30')
+  }, [transitionModeReport])
 
   return (
     <>
@@ -2137,9 +2363,54 @@ export default function CareerSwitchPlannerPage({
 
       <section className="print-hidden px-4 py-16 lg:px-[340px]">
         <InputCard>
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <h2 className="text-base font-bold text-text-primary">1) Starting Point</h2>
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 md:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                    {activeWizardMeta.eyebrow}
+                  </p>
+                  <h2 className="mt-2 text-xl font-bold text-text-primary md:text-2xl">
+                    {activeWizardMeta.title}
+                  </h2>
+                  <p className="mt-2 max-w-[54ch] text-sm leading-[1.7] text-text-secondary">
+                    {activeWizardMeta.helper}
+                  </p>
+                </div>
+                <Badge variant="default">{activeWizardStep + 1} / {WIZARD_STEPS.length}</Badge>
+              </div>
+              <div className="mt-4">
+                <div className="h-2 rounded-pill bg-surface">
+                  <div
+                    className="h-full rounded-pill bg-accent transition-all duration-300"
+                    style={{ width: `${((activeWizardStep + 1) / WIZARD_STEPS.length) * 100}%` }}
+                  />
+                </div>
+                <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  {WIZARD_STEPS.map((step) => (
+                    <button
+                      key={step.id}
+                      type="button"
+                      onClick={() => setActiveWizardStep(step.id)}
+                      className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                        activeWizardStep === step.id
+                          ? 'border-accent bg-surface'
+                          : 'border-border-light bg-surface/60 hover:border-accent/40'
+                      }`}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        {step.eyebrow}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-text-primary">{step.title}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {activeWizardStep === 0 ? (
+              <div className="planner-animate-in space-y-3">
+                <h2 className="text-base font-bold text-text-primary">Role setup</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 <RoleAutocomplete
                   id="current-role"
@@ -2228,7 +2499,7 @@ export default function CareerSwitchPlannerPage({
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-text-primary">{role.title}</p>
                         <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                          {role.difficulty} • {role.transitionTime}
+                          {role.difficulty} | {role.transitionTime}
                         </span>
                       </div>
                       <p className="mt-2 text-xs text-text-secondary">{role.why[0] ?? 'Suggested from your current role.'}</p>
@@ -2237,11 +2508,11 @@ export default function CareerSwitchPlannerPage({
                 </div>
               ) : null}
             </div>
+            ) : null}
 
-            <div className="h-px w-full bg-border" />
-
-            <div className="space-y-3">
-              <h2 className="text-base font-bold text-text-primary">2) Background</h2>
+            {activeWizardStep === 1 ? (
+              <div className="planner-animate-in space-y-3">
+                <h2 className="text-base font-bold text-text-primary">Background details</h2>
               <SkillsChipsInput
                 id="skills-input"
                 label="Skills"
@@ -2342,11 +2613,11 @@ export default function CareerSwitchPlannerPage({
                 options={EDUCATION_OPTIONS}
               />
             </div>
+            ) : null}
 
-            <div className="h-px w-full bg-border" />
-
-            <div className="space-y-3">
-              <h2 className="text-base font-bold text-text-primary">3) Constraints</h2>
+            {activeWizardStep === 2 ? (
+              <div className="planner-animate-in space-y-3">
+                <h2 className="text-base font-bold text-text-primary">Constraints and preferences</h2>
               <label className="flex flex-col gap-1.5">
                 <span className="text-[13px] font-semibold text-text-primary">Target location</span>
                 <input
@@ -2419,6 +2690,7 @@ export default function CareerSwitchPlannerPage({
                 </label>
               </div>
             </div>
+            ) : null}
           </div>
 
           {!hasMinimumRequiredInput ? (
@@ -2481,6 +2753,7 @@ export default function CareerSwitchPlannerPage({
                       }
                       setRoleSelectionPrompt(null)
                       setInputError('')
+                      setActiveWizardStep(0)
                       void handleGeneratePlan({
                         ...override,
                         recommendMode: false
@@ -2504,59 +2777,97 @@ export default function CareerSwitchPlannerPage({
             </Card>
           ) : null}
 
-          <div className="mt-5 flex flex-col gap-3 md:flex-row">
-            <PrimaryButton
-              onClick={() => void handleGeneratePlan()}
-              isLoading={plannerState === 'loading'}
-              className="md:flex-1"
-              disabled={
-                isUsageLoading ||
-                plannerState === 'loading' ||
-                !user ||
-                Boolean(roleSelectionPrompt) ||
-                !hasMinimumRequiredInput ||
-                !locationText.trim() ||
-                (!recommendMode && !targetRoleText.trim())
-              }
-            >
-              {user ? 'Generate My Data-Backed Plan' : 'Sign In to Generate'}
-            </PrimaryButton>
-            <Button variant="outline" onClick={handleGenerateExampleOptions} className="md:flex-1">
-              Generate Example
-            </Button>
-            <Button variant="ghost" onClick={shuffleExampleOptions} className="md:flex-1">
-              Shuffle examples
-            </Button>
+          <div className="mt-5 flex flex-col gap-3 border-t border-border-light pt-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {canGoBackWizard ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => setActiveWizardStep((previous) => Math.max(0, previous - 1) as WizardStep)}
+                >
+                  Back
+                </Button>
+              ) : null}
+              {canGoNextWizard ? (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setActiveWizardStep((previous) =>
+                      Math.min(WIZARD_STEPS.length - 1, previous + 1) as WizardStep
+                    )
+                  }
+                >
+                  Next
+                </Button>
+              ) : null}
+              <p className="text-xs text-text-tertiary">
+                {activeWizardStep < 2
+                  ? 'The final generate button appears after you review constraints.'
+                  : 'We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.'}
+              </p>
+            </div>
+            {activeWizardStep === 2 ? (
+              <PrimaryButton
+                onClick={() => void handleGeneratePlan()}
+                isLoading={plannerState === 'loading'}
+                className="md:min-w-[280px]"
+                disabled={
+                  isUsageLoading ||
+                  plannerState === 'loading' ||
+                  !user ||
+                  Boolean(roleSelectionPrompt) ||
+                  !hasMinimumRequiredInput ||
+                  !locationText.trim() ||
+                  (!recommendMode && !targetRoleText.trim())
+                }
+              >
+                {user ? 'Generate My Data-Backed Plan' : 'Sign In to Generate'}
+              </PrimaryButton>
+            ) : null}
           </div>
 
-          {exampleOptions.length > 0 ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              {exampleOptions.map((example) => (
-                <button
-                  key={example.id}
-                  type="button"
-                  onClick={() => void applyExampleScenario(example)}
-                  className={`rounded-lg border p-4 text-left transition-colors ${
-                    selectedExampleId === example.id
-                      ? 'border-accent bg-accent-light'
-                      : 'border-border-light bg-bg-secondary hover:border-accent'
-                  }`}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                    Example
+          {activeWizardStep === 0 && exampleOptions.length > 0 ? (
+            <div className="mt-4 rounded-2xl border border-border-light bg-bg-secondary p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">Try a guided example</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    Load one of these sample transitions to see the full report immediately.
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-text-primary">
-                    {example.currentRole} to {example.targetRole}
-                  </p>
-                  <p className="mt-2 text-sm leading-[1.6] text-text-secondary">{example.summary}</p>
-                </button>
-              ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handleGenerateExampleOptions}>
+                    Generate Example
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={shuffleExampleOptions}>
+                    Shuffle examples
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {exampleOptions.map((example) => (
+                  <button
+                    key={example.id}
+                    type="button"
+                    onClick={() => void applyExampleScenario(example)}
+                    className={`rounded-xl border p-4 text-left transition-colors ${
+                      selectedExampleId === example.id
+                        ? 'border-accent bg-accent-light'
+                        : 'border-border-light bg-surface hover:border-accent'
+                    }`}
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Example
+                    </p>
+                    <p className="mt-2 text-sm font-semibold text-text-primary">
+                      {example.currentRole} to {example.targetRole}
+                    </p>
+                    <p className="mt-2 text-sm leading-[1.6] text-text-secondary">{example.summary}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           ) : null}
 
-          <p className="mt-3 text-[13px] text-text-tertiary">
-            We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.
-          </p>
           {!user ? (
             <p className="mt-2 text-[13px] text-text-secondary">
               Sign in to run this tool.{' '}
@@ -2599,15 +2910,61 @@ export default function CareerSwitchPlannerPage({
               </p>
             </Card>
           ) : plannerState === 'loading' ? (
-            <div className="mt-5 space-y-3">
-              {[0, 1, 2, 3, 4].map((index) => (
-                <div key={index} className="h-24 animate-pulse rounded-lg border border-border bg-bg-secondary" />
-              ))}
-            </div>
+            <Card className="mt-5 planner-animate-in p-5" aria-live="polite">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                    Building your transition report
+                  </p>
+                  <h3 className="mt-2 text-lg font-bold text-text-primary">We are assembling the plan in stages</h3>
+                  <p className="mt-2 max-w-[56ch] text-sm leading-[1.7] text-text-secondary">
+                    Matching, scoring, and roadmap generation run in sequence so the report lands in one clean pass.
+                  </p>
+                </div>
+                <Badge variant="default">
+                  {Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length)} / {PLANNER_LOADING_STAGES.length}
+                </Badge>
+              </div>
+              <div className="mt-5 h-2 rounded-pill bg-surface">
+                <div
+                  className="h-full rounded-pill bg-accent transition-all duration-300"
+                  style={{
+                    width: `${(Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length) / PLANNER_LOADING_STAGES.length) * 100}%`
+                  }}
+                />
+              </div>
+              <div className="mt-5 grid gap-3 md:grid-cols-4">
+                {PLANNER_LOADING_STAGES.map((stage, index) => {
+                  const isComplete = index < loadingStageIndex
+                  const isActive = index === loadingStageIndex
+
+                  return (
+                    <div
+                      key={stage}
+                      className={`rounded-xl border p-4 transition-colors ${
+                        isActive
+                          ? 'border-accent bg-surface'
+                          : isComplete
+                            ? 'border-success/20 bg-success/10'
+                            : 'border-border-light bg-bg-secondary'
+                      }`}
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Step {index + 1}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-text-primary">{stage}</p>
+                      <p className="mt-2 text-xs text-text-secondary">
+                        {isActive ? 'In progress now.' : isComplete ? 'Completed.' : 'Queued next.'}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
           ) : plannerResult && transitionModeReport ? (
             <div className="mt-5 space-y-5">
               {(currentRoleResolution || targetRoleResolution) ? (
-                <Card className="p-5">
+                <Card className="hidden p-5">
                   <h3 className="text-base font-bold text-text-primary">Role Match</h3>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     {currentRoleResolution ? (
@@ -2631,7 +2988,542 @@ export default function CareerSwitchPlannerPage({
                 </Card>
               ) : null}
 
-              <Card className="overflow-hidden p-0">
+              <div id="planner-report-anchor" className="space-y-6 planner-animate-in">
+                <Card className="print-page-keep overflow-hidden border border-border-light bg-bg-secondary p-0 shadow-panel">
+                  <div className="border-b border-border-light px-5 py-5 md:px-6 md:py-6">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="max-w-[70ch]">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Section A
+                        </p>
+                        <h3 className="mt-2 text-2xl font-bold leading-tight text-text-primary md:text-[32px]">
+                          Your Transition: {lastSubmittedSnapshot?.currentRole || currentRoleText || 'Current role'} {'->'}{' '}
+                          {lastSubmittedSnapshot?.targetRole || targetRoleText || 'Target role'}
+                        </h3>
+                        <p className="mt-3 max-w-[62ch] text-sm leading-[1.75] text-text-secondary md:text-base">
+                          {transitionStructuredPlan?.summary ??
+                            plannerReport?.transitionReport?.marketSnapshot.summaryLine ??
+                            plannerResult.summary}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-border-light bg-surface px-5 py-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Transition difficulty
+                        </p>
+                        <div className="mt-2 flex items-end gap-2">
+                          <span className="text-5xl font-bold leading-none text-text-primary">
+                            {transitionModeReport.difficulty.score.toFixed(1)}
+                          </span>
+                          <span className="pb-1 text-sm font-semibold text-text-secondary">/ 10</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {transitionStructuredPlan ? (
+                        <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
+                          {transitionStructuredPlan.compatibility_level} match
+                        </span>
+                      ) : null}
+                      <span
+                        className={`rounded-pill border px-3 py-1 text-xs font-semibold ${difficultyToneClasses(transitionModeReport.difficulty.label)}`}
+                      >
+                        {transitionModeReport.difficulty.label}
+                      </span>
+                      <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-text-secondary">
+                        {transitionStructuredPlan?.timeline_estimate ??
+                          `${transitionModeReport.timeline.minMonths}-${transitionModeReport.timeline.maxMonths} months`}
+                      </span>
+                      {transitionPlanCacheMeta?.cacheHit ? (
+                        <span className="rounded-pill border border-success/20 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                          Cached plan
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 px-5 py-5 md:px-6 md:grid-cols-[minmax(0,1fr)_220px]">
+                    <div className="grid gap-4 lg:grid-cols-3">
+                      {([
+                        ['primary', transitionModeReport.routes.primary],
+                        ['secondary', transitionModeReport.routes.secondary],
+                        ['contingency', transitionModeReport.routes.contingency]
+                      ] as const).map(([kind, route]) => (
+                        <div key={kind} className={`rounded-2xl border p-4 ${routeToneClasses(kind)}`}>
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            {kind === 'primary'
+                              ? 'Primary route'
+                              : kind === 'secondary'
+                                ? 'Secondary route'
+                                : 'Contingency route'}
+                          </p>
+                          <p className="mt-2 text-base font-semibold text-text-primary">{route.title}</p>
+                          <p className="mt-2 text-sm leading-[1.7] text-text-secondary">{route.reason}</p>
+                          <p className="mt-3 text-xs font-semibold text-text-primary">
+                            First step: {route.firstStep}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="rounded-2xl border border-border-light bg-surface p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Primary actions
+                      </p>
+                      <div className="mt-3 flex flex-col gap-2">
+                        <Button variant="outline" size="sm" onClick={handlePrintReport}>
+                          Download PDF
+                        </Button>
+                        <Button size="sm" onClick={() => scrollToSection('transition-roadmap')}>
+                          Start roadmap
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setOutreachToolkitOpen(true)
+                            scrollToSection('transition-execution')
+                          }}
+                        >
+                          Open toolkit
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <div className="space-y-4">
+                    <Card className="print-page-keep border border-success/20 bg-success/10 p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                        Section B | Transferable skills
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                        {transitionQuickWins.map((item) => (
+                          <li key={`hero-win-${item}`} className="break-words">- {item}</li>
+                        ))}
+                      </ul>
+                    </Card>
+                    {currentProfileSignals.certifications.length > 0 ? (
+                      <Card className="print-page-keep border border-accent/20 bg-bg-secondary p-5">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-accent">
+                          Certifications detected
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {currentProfileSignals.certifications.map((item) => (
+                            <span
+                              key={`hero-cert-${item}`}
+                              className="rounded-pill border border-accent/20 bg-surface px-3 py-1 text-xs font-medium text-text-primary"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-4">
+                    <Card className="print-page-keep border border-error/20 bg-error-light p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
+                        Critical gaps
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                        {(criticalGapDetails.length > 0 ? criticalGapDetails : transitionPrimaryGaps).map((item) => (
+                          <li key={`hero-gap-${item}`} className="break-words">- {item}</li>
+                        ))}
+                      </ul>
+                    </Card>
+                    <Card className="print-page-keep border border-warning/25 bg-warning-light p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-warning">
+                        Employer red flags
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                        {(employerRedFlags.length > 0
+                          ? employerRedFlags
+                          : transitionModeReport.reality.barriers).map((item) => (
+                          <li key={`hero-flag-${item}`} className="break-words">- {item}</li>
+                        ))}
+                      </ul>
+                    </Card>
+                  </div>
+                </div>
+
+                <div id="transition-roadmap">
+                  <Card className="print-page-keep p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Section C
+                        </p>
+                        <h3 className="mt-2 text-xl font-bold text-text-primary">Roadmap</h3>
+                        <p className="mt-1 text-sm text-text-secondary">
+                          One focused window at a time so the next move stays obvious.
+                        </p>
+                      </div>
+                      <Badge variant="default">Tabs reduce noise</Badge>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {ROADMAP_TABS.map((tab) => (
+                        <Button
+                          key={tab.key}
+                          variant={activeRoadmapTab === tab.key ? 'secondary' : 'ghost'}
+                          size="sm"
+                          onClick={() => setActiveRoadmapTab(tab.key)}
+                        >
+                          {tab.label}
+                        </Button>
+                      ))}
+                    </div>
+                    {activeRoadmap ? (
+                      <div key={activeRoadmap.key} className="mt-4 planner-animate-in rounded-2xl border border-border-light bg-bg-secondary p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-text-primary">{activeRoadmap.label}</p>
+                          <span className="text-xs text-text-tertiary">{activeRoadmap.summary}</span>
+                        </div>
+                        <div className="mt-3 grid gap-3 md:grid-cols-2">
+                          {activeRoadmap.items.slice(0, 4).map((item) => (
+                            <div key={`${activeRoadmap.key}-${item.title}`} className="rounded-xl border border-border-light bg-surface p-4">
+                              <p className="text-sm font-semibold text-text-primary">{item.title}</p>
+                              <p className="mt-2 text-xs leading-[1.6] text-text-secondary">{item.detail}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </Card>
+                </div>
+
+                <div id="transition-execution">
+                  <Card className="print-page-keep p-5">
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 text-left"
+                      onClick={() => setOutreachToolkitOpen((previous) => !previous)}
+                    >
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Section D
+                        </p>
+                        <h3 className="mt-2 text-xl font-bold text-text-primary">Employer Outreach Toolkit</h3>
+                        <p className="mt-1 text-sm text-text-secondary">
+                          Email, call script, and resume bullets in one employer-ready workspace.
+                        </p>
+                      </div>
+                      <Badge variant="default">{isToolkitExpanded ? 'Expanded' : 'Collapsed'}</Badge>
+                    </button>
+                    {isToolkitExpanded ? (
+                      <div className="mt-4 divide-y divide-border-light rounded-2xl border border-border-light bg-bg-secondary planner-animate-in">
+                      <div className="p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Resume bullets
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              void handleCopyToolkitSection(
+                                'resume',
+                                outreachResumeBullets.map((item) => `- ${item}`).join('\n')
+                              )
+                            }
+                          >
+                            {copiedToolkitSection === 'resume' ? 'Copied' : 'Copy'}
+                          </Button>
+                        </div>
+                        {outreachResumeBullets.length > 0 ? (
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                            {outreachResumeBullets.map((item) => (
+                              <li key={`toolkit-resume-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-3 text-sm text-text-secondary">
+                            Add more measurable achievements to generate stronger rewrite bullets.
+                          </p>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Call script
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              void handleCopyToolkitSection(
+                                'call',
+                                transitionPlanScripts?.call ?? transitionModeReport.execution.outreachTemplates.call
+                              )
+                            }
+                          >
+                            {copiedToolkitSection === 'call' ? 'Copied' : 'Copy'}
+                          </Button>
+                        </div>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.7] text-text-secondary">
+                          {transitionPlanScripts?.call ?? transitionModeReport.execution.outreachTemplates.call}
+                        </p>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Email template
+                          </p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              void handleCopyToolkitSection(
+                                'email',
+                                transitionPlanScripts?.email ?? transitionModeReport.execution.outreachTemplates.email
+                              )
+                            }
+                          >
+                            {copiedToolkitSection === 'email' ? 'Copied' : 'Copy'}
+                          </Button>
+                        </div>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-[1.7] text-text-secondary">
+                          {transitionPlanScripts?.email ?? transitionModeReport.execution.outreachTemplates.email}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                      <p className="mt-4 text-sm text-text-secondary">
+                        Keep this collapsed until you need outreach copy, then open it when you are ready to contact employers.
+                      </p>
+                    )}
+                  </Card>
+                </div>
+
+                <Card className="print-hidden p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        Section E
+                      </p>
+                      <h3 className="mt-2 text-xl font-bold text-text-primary">Advanced Insights</h3>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => void handleGeneratePlan()}>
+                      Regenerate plan
+                    </Button>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <details className="rounded-2xl border border-border-light bg-bg-secondary p-4">
+                      <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+                        Skill Gap Map
+                      </summary>
+                      <div className="mt-3 space-y-4">
+                        {transitionSkillMapStrengths.length > 0 ? (
+                          <div className="rounded-xl border border-success/20 bg-success/10 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                              Additional transferable strengths
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                              {transitionSkillMapStrengths.map((item) => (
+                                <li key={`advanced-strength-${item}`}>- {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {transitionSkillMapMissing.length > 0 ? (
+                          <div className="rounded-xl border border-error/20 bg-error-light p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
+                              Additional gaps to close
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                              {transitionSkillMapMissing.map((item) => (
+                                <li key={`advanced-gap-${item}`}>- {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        <div className="rounded-xl border border-border-light bg-surface p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            First 3 required actions
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                            {transitionModeReport.gaps.first3Steps.map((item) => (
+                              <li key={`advanced-step-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </details>
+
+                    <details className="rounded-2xl border border-border-light bg-bg-secondary p-4">
+                      <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+                        Reality Check
+                      </summary>
+                      <div className="mt-3 grid gap-4 md:grid-cols-2">
+                        <div className="rounded-xl border border-warning/25 bg-warning-light p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-warning">
+                            Realistic barriers
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                            {transitionModeReport.reality.barriers.map((item) => (
+                              <li key={`advanced-barrier-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="rounded-xl border border-success/20 bg-success/10 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                            Mitigation strategy
+                          </p>
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                            {transitionModeReport.reality.mitigations.map((item) => (
+                              <li key={`advanced-mitigation-${item}`}>- {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </details>
+
+                    <details className="rounded-2xl border border-border-light bg-bg-secondary p-4">
+                      <summary className="cursor-pointer text-sm font-semibold text-text-primary">
+                        Deep diagnostics
+                      </summary>
+                      <div className="mt-3 space-y-4">
+                        {(currentRoleResolution || targetRoleResolution) ? (
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {currentRoleResolution ? (
+                              <RoleNormalizationCard heading="Current role" resolution={currentRoleResolution} />
+                            ) : null}
+                            {targetRoleResolution ? (
+                              <RoleNormalizationCard heading="Target role" resolution={targetRoleResolution} />
+                            ) : null}
+                          </div>
+                        ) : null}
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="rounded-xl border border-border-light bg-surface p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Earnings path
+                            </p>
+                            <div className="mt-3 space-y-2">
+                              {transitionModeReport.earnings.map((stage) => (
+                                <div key={`advanced-earnings-${stage.stage}`} className="flex items-center justify-between gap-3 text-sm">
+                                  <span className="font-semibold text-text-primary">{stage.stage}</span>
+                                  <span className="text-text-secondary">
+                                    {formatMoneyRange(
+                                      stage.rangeLow,
+                                      stage.rangeHigh,
+                                      stage.unit,
+                                      earningsView === 'annual'
+                                    )}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            {canAnnualizeEarnings ? (
+                              <div className="mt-3 flex gap-2">
+                                <Button
+                                  variant={earningsView === 'base' ? 'secondary' : 'ghost'}
+                                  size="sm"
+                                  onClick={() => setEarningsView('base')}
+                                >
+                                  Hourly
+                                </Button>
+                                <Button
+                                  variant={earningsView === 'annual' ? 'secondary' : 'ghost'}
+                                  size="sm"
+                                  onClick={() => setEarningsView('annual')}
+                                >
+                                  Yearly est.
+                                </Button>
+                              </div>
+                            ) : null}
+                          </div>
+                          <div className="rounded-xl border border-border-light bg-surface p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Resources
+                            </p>
+                            <div className="mt-3 space-y-3">
+                              {([
+                                ['Local', transitionModeReport.resources.local],
+                                ['Online', transitionModeReport.resources.online],
+                                ['Internal', transitionModeReport.resources.internal]
+                              ] as const).map(([label, links]) => (
+                                <div key={`advanced-resource-${label}`}>
+                                  <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                                    {label}
+                                  </p>
+                                  {links.length > 0 ? (
+                                    <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+                                      {links.map((link) => (
+                                        <li key={`${label}-${link.label}-${link.url}`}>
+                                          {link.url ? (
+                                            <Link href={link.url} className="text-accent hover:text-accent-hover">
+                                              {link.label}
+                                            </Link>
+                                          ) : (
+                                            <span>{link.label}</span>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="mt-2 text-sm text-text-secondary">No resources added yet.</p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div className="rounded-xl border border-border-light bg-surface p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Simple breakdown
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                              <li>- We matched your current and target roles to the closest occupation pathway.</li>
+                              <li>- We combined your background with occupation requirements, wages, and transition blockers.</li>
+                              <li>- We turned that into a 90-day plan with measurable weekly outputs and outreach scripts.</li>
+                            </ul>
+                          </div>
+                          <div className="rounded-xl border border-border-light bg-surface p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Assumptions you can change
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                              <li>
+                                - Location:{' '}
+                                {plannerReport?.transitionReport?.marketSnapshot.location ||
+                                  locationText.trim() ||
+                                  'Not provided'}
+                              </li>
+                              <li>- Timeline target: {lastSubmittedSnapshot?.timelineBucket || timelineBucket}</li>
+                              <li>- Market evidence: {useMarketEvidence ? 'On' : 'Off'}</li>
+                            </ul>
+                          </div>
+                          <div className="rounded-xl border border-border-light bg-surface p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Data used
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+                              {(plannerReport?.dataTransparency.datasetsUsed ?? []).map((item) => (
+                                <li key={`advanced-dataset-${item}`}>
+                                  - {FRIENDLY_DATASET_NAMES[item] ?? item.replaceAll('_', ' ')}
+                                </li>
+                              ))}
+                            </ul>
+                            {plannerReport?.dataTransparency.fxRateUsed ? (
+                              <p className="mt-3 text-xs text-text-tertiary">
+                                FX rate: {plannerReport.dataTransparency.fxRateUsed}
+                              </p>
+                            ) : null}
+                            {wageSourceDateSummary.length > 0 ? (
+                              <p className="mt-2 text-xs text-text-tertiary">
+                                Wage sources: {wageSourceDateSummary.join(', ')}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                </Card>
+              </div>
+
+              <Card className="hidden overflow-hidden p-0">
                 <div className="bg-bg-secondary p-5 md:p-6">
                   <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
                     <div className="space-y-5">
@@ -2824,7 +3716,7 @@ export default function CareerSwitchPlannerPage({
                 </div>
               </Card>
 
-              <Card className="space-y-4 p-5">
+              <Card className="hidden space-y-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-lg font-bold text-text-primary">Recommended Entry Strategy</h3>
                   <Badge variant="default">Decisive route selection</Badge>
@@ -2850,7 +3742,7 @@ export default function CareerSwitchPlannerPage({
                 </div>
               </Card>
 
-              <Card className="space-y-4 p-5">
+              <Card className="hidden space-y-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-lg font-bold text-text-primary">90-Day Plan</h3>
                   <Badge variant="default">Weekly outputs included</Badge>
@@ -2898,8 +3790,8 @@ export default function CareerSwitchPlannerPage({
                 ))}
               </Card>
 
-              <div id="transition-execution">
-                <Card className="space-y-4 p-5">
+              <div className="hidden">
+                <Card className="print-hidden space-y-4 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-lg font-bold text-text-primary">Job Search Execution Engine</h3>
                     <Badge variant="default">Daily 45-minute routine</Badge>
@@ -2960,7 +3852,7 @@ export default function CareerSwitchPlannerPage({
                 </Card>
               </div>
 
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="hidden grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
                 <div className="space-y-5">
                   <Card className="space-y-4 p-5">
                     <h3 className="text-lg font-bold text-text-primary">Skill Gap Map</h3>
@@ -3121,7 +4013,7 @@ export default function CareerSwitchPlannerPage({
                 </div>
               </div>
 
-              <Card className="space-y-4 p-5">
+              <Card className="hidden space-y-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-lg font-bold text-text-primary">How This Plan Was Built</h3>
                   <Button variant="ghost" size="sm" onClick={() => void handleGeneratePlan()}>
@@ -3228,7 +4120,7 @@ export default function CareerSwitchPlannerPage({
                 </Card>
               ) : null}
               {executionStrategy ? (
-                <Card className="space-y-4 p-5">
+                <Card className="print-hidden space-y-4 p-5">
                   <h3 className="text-base font-bold text-text-primary">Personalized execution strategy</h3>
 
                   <ReportSection title="1) Where You Stand Right Now" count={executionStrategy.whereYouStandNow.strengths.length} defaultOpen>
@@ -3485,7 +4377,7 @@ export default function CareerSwitchPlannerPage({
                     {transitionReport.mustHaves.map((item) => (
                       <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
                         <p className="text-sm font-semibold text-text-primary">
-                          {item.label} ({frequencyPercentLabel(item.frequency_percent)}) • {item.status}
+                          {item.label} ({frequencyPercentLabel(item.frequency_percent)}) | {item.status}
                         </p>
                         <p className="mt-1 text-xs text-text-secondary">
                           {item.howToGet} Estimated time: {item.timeEstimate}.
@@ -3507,7 +4399,7 @@ export default function CareerSwitchPlannerPage({
                     {transitionReport.niceToHaves.map((item) => (
                       <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
                         <p className="text-sm font-semibold text-text-primary">
-                          {item.label} ({frequencyPercentLabel(item.frequency_percent)}) • {gapLevelLabel(item.gapLevel)}
+                          {item.label} ({frequencyPercentLabel(item.frequency_percent)}) | {gapLevelLabel(item.gapLevel)}
                         </p>
                         <p className="mt-1 text-xs text-text-secondary">{item.howToLearn}</p>
                         {item.evidenceQuote.length > 0 ? (
@@ -3523,11 +4415,11 @@ export default function CareerSwitchPlannerPage({
                     ))}
                   </ReportSection>
 
-                  <ReportSection title="D) Core Tasks You’ll Be Expected To Do" count={transitionReport.coreTasks.length}>
+                  <ReportSection title="D) Core Tasks You'll Be Expected To Do" count={transitionReport.coreTasks.length}>
                     {transitionReport.coreTasks.map((item) => (
                       <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
                         <p className="text-sm font-semibold text-text-primary">
-                          {item.task} ({frequencyPercentLabel(item.frequency_percent)}) • {gapLevelLabel(item.gapLevel)}
+                          {item.task} ({frequencyPercentLabel(item.frequency_percent)}) | {gapLevelLabel(item.gapLevel)}
                         </p>
                         {item.evidenceQuote.length > 0 ? (
                           <ul className="mt-2 space-y-1 text-xs text-text-tertiary">
@@ -3546,7 +4438,7 @@ export default function CareerSwitchPlannerPage({
                     {transitionReport.toolsPlatformsEquipment.map((item) => (
                       <div key={item.id} className="rounded-md border border-border-light bg-surface p-3">
                         <p className="text-sm font-semibold text-text-primary">
-                          {item.tool} ({frequencyPercentLabel(item.frequency_percent)}) • {gapLevelLabel(item.gapLevel)}
+                          {item.tool} ({frequencyPercentLabel(item.frequency_percent)}) | {gapLevelLabel(item.gapLevel)}
                         </p>
                         <p className="mt-1 text-xs text-text-secondary">{item.quickPractice}</p>
                         {item.evidenceQuote.length > 0 ? (
@@ -4180,7 +5072,7 @@ export default function CareerSwitchPlannerPage({
               )}
 
               {recommendedRoleSections.length > 0 ? (
-                <Card className="space-y-4 p-5">
+                <Card className="print-hidden space-y-4 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <h3 className="text-lg font-bold text-text-primary">Recommended Roles</h3>
@@ -4233,7 +5125,7 @@ export default function CareerSwitchPlannerPage({
               ) : null}
 
               {plannerReport && isTransitionMode ? (
-                <Card className="space-y-4 p-5">
+                <Card className="print-hidden space-y-4 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <h3 className="text-lg font-bold text-text-primary">Job Recommendations</h3>
