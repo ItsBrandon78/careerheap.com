@@ -371,7 +371,11 @@ export function inferExperienceLevelBucket(experienceText: string) {
 }
 
 function timelineEstimate(transitionMode: TransitionModeReport) {
-  return `${transitionMode.timeline.minMonths}-${transitionMode.timeline.maxMonths} months`
+  const primaryRouteSignal = `${transitionMode.routes.primary.title} ${transitionMode.routes.primary.firstStep}`.toLowerCase()
+  const entryAnchored = /\b(helper|apprentice|trainee|intern|junior|entry)\b/.test(primaryRouteSignal)
+  return entryAnchored
+    ? `${transitionMode.timeline.minMonths}-${transitionMode.timeline.maxMonths} months to your first viable entry role`
+    : `${transitionMode.timeline.minMonths}-${transitionMode.timeline.maxMonths} months`
 }
 
 function compatibilityLevel(transitionMode: TransitionModeReport) {

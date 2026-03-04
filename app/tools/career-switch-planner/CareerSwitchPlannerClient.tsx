@@ -2517,11 +2517,16 @@ export default function CareerSwitchPlannerPage({
       setRoleSelectionPrompt(null)
       setEarningsView('base')
       const resolvedCurrentRole =
-        data?.report?.roleResolution?.current?.matched?.title ??
-        (draft.currentRoleText.trim() || currentRoleFallback)
+        data?.report?.roleResolution?.current?.matched?.rawInputTitle?.trim() ||
+        draft.currentRoleText.trim() ||
+        data?.report?.roleResolution?.current?.matched?.title ||
+        currentRoleFallback
       const resolvedTargetRole = draft.recommendMode
         ? ''
-        : data?.report?.roleResolution?.target?.matched?.title ?? targetRoleValue
+        : data?.report?.roleResolution?.target?.matched?.rawInputTitle?.trim() ||
+          targetRoleValue ||
+          data?.report?.roleResolution?.target?.matched?.title ||
+          ''
       setLastSubmittedSnapshot({
         currentRole: resolvedCurrentRole,
         targetRole: resolvedTargetRole,
@@ -2800,6 +2805,46 @@ export default function CareerSwitchPlannerPage({
   const transitionStructuredPlan = plannerReport?.transitionStructuredPlan ?? null
   const transitionPlanScripts = plannerReport?.transitionPlanScripts ?? null
   const transitionPlanCacheMeta = plannerReport?.transitionPlanCacheMeta ?? null
+  const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
+  const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
+  const heroCurrentRoleLabel =
+    lastSubmittedSnapshot?.currentRoleInput?.trim() ||
+    currentRoleResolution?.matched?.rawInputTitle?.trim() ||
+    lastSubmittedSnapshot?.currentRole?.trim() ||
+    currentRoleText.trim() ||
+    'Current role'
+  const heroTargetRoleLabel =
+    lastSubmittedSnapshot?.targetRoleInput?.trim() ||
+    targetRoleResolution?.matched?.rawInputTitle?.trim() ||
+    lastSubmittedSnapshot?.targetRole?.trim() ||
+    targetRoleText.trim() ||
+    'Target role'
+  const primaryRouteTitle = transitionModeReport
+    ? transitionModeReport.routes.primary.title
+        .replace(/^Primary route:\s*/i, '')
+        .replace(/^Primary:\s*/i, '')
+        .trim()
+    : ''
+  const secondaryRouteTitle = transitionModeReport
+    ? transitionModeReport.routes.secondary.title
+        .replace(/^Secondary route:\s*/i, '')
+        .replace(/^Secondary:\s*/i, '')
+        .trim()
+    : ''
+  const contingencyRouteTitle = transitionModeReport
+    ? transitionModeReport.routes.contingency.title
+        .replace(/^Contingency route:\s*/i, '')
+        .replace(/^Contingency:\s*/i, '')
+        .trim()
+    : ''
+  const beforeHireRequirements =
+    transitionStructuredPlan?.narrative_sections?.credentials_you_need?.[0]?.bullets?.slice(0, 3) ??
+    transitionStructuredPlan?.required_certifications?.slice(0, 3) ??
+    []
+  const next7DayActions =
+    transitionModeReport?.roadmapGuide?.next7Days?.slice(0, 3) ??
+    transitionModeReport?.gaps.first3Steps?.slice(0, 3) ??
+    []
   const transitionQuickWins = transitionModeReport
     ? sharedDedupeBullets(
         transitionModeReport.gaps.strengths.filter((item) => !isPersonalIdentifier(item)),
@@ -2876,8 +2921,6 @@ export default function CareerSwitchPlannerPage({
         4
       )
     : []
-  const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
-  const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
   const roadmapTabs = buildDashboardRoadmapTabs({
     plannerReport,
     transitionModeReport,
@@ -3762,8 +3805,7 @@ export default function CareerSwitchPlannerPage({
                           Section A
                         </p>
                         <h3 className="mt-2 text-2xl font-bold leading-tight text-text-primary md:text-[32px]">
-                          Your Transition: {lastSubmittedSnapshot?.currentRole || currentRoleText || 'Current role'} {'->'}{' '}
-                          {lastSubmittedSnapshot?.targetRole || targetRoleText || 'Target role'}
+                          Your Transition: {heroCurrentRoleLabel} {'->'} {heroTargetRoleLabel}
                         </h3>
                         <p className="mt-3 max-w-[62ch] text-sm leading-[1.75] text-text-secondary md:text-base">
                           {transitionStructuredPlan?.summary ??
@@ -3816,28 +3858,71 @@ export default function CareerSwitchPlannerPage({
                     </div>
                   </div>
 
-                  <div className="grid gap-4 px-5 py-5 md:px-6 md:grid-cols-[minmax(0,1fr)_240px]">
-                    <div className="grid gap-4 lg:grid-cols-3">
-                      {([
-                        ['primary', transitionModeReport.routes.primary],
-                        ['secondary', transitionModeReport.routes.secondary],
-                        ['contingency', transitionModeReport.routes.contingency]
-                      ] as const).map(([kind, route]) => (
-                        <div key={kind} className={`rounded-2xl border p-4 ${routeToneClasses(kind)}`}>
-                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                            {kind === 'primary'
-                              ? 'Primary route'
-                              : kind === 'secondary'
-                                ? 'Secondary route'
-                                : 'Contingency route'}
+                  <div className="grid gap-4 px-5 py-5 md:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_240px]">
+                    <div className={`rounded-2xl border p-4 ${routeToneClasses('primary')}`}>
+                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                        First viable route
+                      </p>
+                      <p className="mt-2 text-base font-semibold text-text-primary">{primaryRouteTitle || transitionModeReport.routes.primary.title}</p>
+                      <p className="mt-2 text-sm leading-[1.7] text-text-secondary">
+                        {transitionModeReport.routes.primary.reason}
+                      </p>
+                      <p className="mt-3 text-xs font-semibold text-text-primary">
+                        First step: {transitionModeReport.routes.primary.firstStep}
+                      </p>
+                      {(secondaryRouteTitle || contingencyRouteTitle) ? (
+                        <div className="mt-4 border-t border-border-light pt-3">
+                          <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Backup options if this stalls
                           </p>
-                          <p className="mt-2 text-base font-semibold text-text-primary">{route.title}</p>
-                          <p className="mt-2 text-sm leading-[1.7] text-text-secondary">{route.reason}</p>
-                          <p className="mt-3 text-xs font-semibold text-text-primary">
-                            First step: {route.firstStep}
-                          </p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {secondaryRouteTitle ? (
+                              <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary">
+                                {secondaryRouteTitle}
+                              </span>
+                            ) : null}
+                            {contingencyRouteTitle ? (
+                              <span className="rounded-pill border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary">
+                                {contingencyRouteTitle}
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
-                      ))}
+                      ) : null}
+                    </div>
+                    <div className="grid gap-4">
+                      <div className="rounded-2xl border border-border-light bg-surface p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          What employers screen for first
+                        </p>
+                        {beforeHireRequirements.length > 0 ? (
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                            {beforeHireRequirements.map((item) => (
+                              <li key={`hero-before-hire-${item}`} className="break-words">- {item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-3 text-sm leading-[1.7] text-text-secondary">
+                            Confirm the first real screening requirement before you apply widely.
+                          </p>
+                        )}
+                      </div>
+                      <div className="rounded-2xl border border-border-light bg-surface p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Next 7 days
+                        </p>
+                        {next7DayActions.length > 0 ? (
+                          <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                            {next7DayActions.map((item) => (
+                              <li key={`hero-next-7-${item}`} className="break-words">- {item}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-3 text-sm leading-[1.7] text-text-secondary">
+                            Pick one concrete blocker, schedule it, and save proof that it moved this week.
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
                       <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">

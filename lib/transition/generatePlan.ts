@@ -1012,6 +1012,9 @@ function buildDifficulty(
   education: string,
   signals: DerivedSignals
 ) {
+  const isEntryStageTarget = /\b(helper|apprentice|intern|junior|entry)\b/i.test(
+    targetProfile.stage ?? ''
+  )
   const compatibilityScore = report.compatibilitySnapshot.score
   const hardGateCount = targetProfile.hardGates.length
   const certificationCount = targetProfile.certifications.length
@@ -1031,7 +1034,9 @@ function buildDifficulty(
     templateKey === 'regulated_profession'
       ? 4.4
       : templateKey === 'regulated_trade'
-        ? 3.5
+        ? isEntryStageTarget
+          ? 2.6
+          : 3.5
         : templateKey === 'credentialed_role'
           ? 3.1
           : templateKey === 'portfolio_role'
@@ -1040,15 +1045,22 @@ function buildDifficulty(
               ? 2.2
               : 2.6
 
+  const hardGateWeight = isEntryStageTarget && templateKey === 'regulated_trade' ? 0.18 : 0.45
+  const certificationWeight = isEntryStageTarget && templateKey === 'regulated_trade' ? 0.16 : 0.35
+  const examWeight = isEntryStageTarget && templateKey === 'regulated_trade' ? 0.15 : 0.8
+  const apprenticeshipWeight = isEntryStageTarget && templateKey === 'regulated_trade' ? 0.15 : 0.8
+  const regulatedWeight = isEntryStageTarget && templateKey === 'regulated_trade' ? 0.2 : 0.55
+
   const gatedBarrier =
-    hardGateCount * 0.45 +
-    certificationCount * 0.35 +
-    (targetProfile.examRequired ? 0.8 : 0) +
-    (targetProfile.apprenticeshipHours ? 0.8 : 0) +
-    (targetProfile.regulated ? 0.55 : 0)
+    hardGateCount * hardGateWeight +
+    certificationCount * certificationWeight +
+    (targetProfile.examRequired ? examWeight : 0) +
+    (targetProfile.apprenticeshipHours ? apprenticeshipWeight : 0) +
+    (targetProfile.regulated ? regulatedWeight : 0)
 
   const evidenceBarrier = missingSignalCount * 0.45
-  const compatibilityPenalty = clamp((72 - compatibilityScore) / 18, 0, 2.6)
+  const compatibilityPenalty = clamp((72 - compatibilityScore) / 18, 0, 2.6) *
+    (isEntryStageTarget && templateKey === 'regulated_trade' ? 0.7 : 1)
 
   const score = Number(
     clamp(
@@ -1067,6 +1079,9 @@ function buildDifficulty(
       hardGateCount > 0 || certificationCount > 0
         ? `This target has ${hardGateCount + certificationCount} formal gate${hardGateCount + certificationCount === 1 ? '' : 's'} you need to respect early.`
         : 'There is no heavy formal gate blocking the first move.',
+      isEntryStageTarget && templateKey === 'regulated_trade'
+        ? 'This score is anchored to the first viable entry route, not the full journeyperson end-state.'
+        : '',
       educationGap > 0
         ? 'Your current education profile is lighter than the common baseline, so the pathway takes longer.'
         : 'Your current education profile does not create a major extra delay.',
