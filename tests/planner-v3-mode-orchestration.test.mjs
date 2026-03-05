@@ -50,7 +50,7 @@ test('dashboard component includes required control actions and stale warning te
 test('intake component keeps 3-step flow controls and step-3 generation gating', () => {
   assert.match(intakeSource, /activeWizardStep \+ 1/)
   assert.match(intakeSource, /Step 1 of 3|Step 2 of 3|Step 3 of 3|wizardSteps/)
-  assert.match(intakeSource, /Go to Step 3 to Generate Preview/)
+  assert.doesNotMatch(intakeSource, /Go to Step 3 to Generate Preview/)
   assert.match(intakeSource, /activeWizardStep === 2/)
   assert.match(intakeSource, /Resume Upload \(Pro\)/)
 })

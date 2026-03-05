@@ -347,9 +347,9 @@ export function PlannerIntakeWizard({
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border-light bg-surface p-4 shadow-card md:p-5">
-              <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-                <div className="space-y-4 rounded-xl border border-border-light bg-bg-secondary p-4 md:p-5">
+            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card md:p-5">
+              <div className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr] lg:items-start">
+                <div className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-card md:p-5">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                       Core profile signals
@@ -358,7 +358,7 @@ export function PlannerIntakeWizard({
                       Skills and quantified outcomes are weighted most heavily in planner confidence.
                     </p>
                   </div>
-                  <p className="rounded-md border border-border-light bg-surface px-3 py-2 text-xs leading-[1.6] text-text-secondary">
+                  <p className="rounded-md border border-border-light bg-bg-secondary px-3 py-2 text-xs leading-[1.6] text-text-secondary">
                     Tip: add 8-15 role-relevant skills first, then include 2-4 measurable accomplishments.
                   </p>
 
@@ -373,7 +373,7 @@ export function PlannerIntakeWizard({
                     onChange={onSkillsChange}
                   />
 
-                  <label className="flex flex-col gap-1.5 rounded-xl border border-border-light bg-surface p-3 md:p-4">
+                  <label className="flex flex-col gap-1.5 rounded-xl border border-border-light bg-bg-secondary p-3 md:p-4">
                     <span className="text-[13px] font-semibold text-text-primary">
                       Add measurable accomplishments (optional)
                     </span>
@@ -382,7 +382,7 @@ export function PlannerIntakeWizard({
                       value={experienceText}
                       onChange={(event) => onExperienceTextChange(event.target.value)}
                       placeholder="Example: Led onboarding for 12 teammates, reduced ramp time by 18%, and improved retention by 14%."
-                      className="w-full rounded-md border border-border-light bg-surface p-3 text-sm leading-[1.75] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                      className="min-h-[160px] w-full resize-y overflow-x-hidden rounded-md border border-border-light bg-surface p-3 text-sm leading-[1.75] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                     />
                     <span className="text-xs text-text-tertiary">
                       Numbers help (team size, $ impact, time saved, % improved).
@@ -390,7 +390,7 @@ export function PlannerIntakeWizard({
                   </label>
                 </div>
 
-                <div className="space-y-4 rounded-xl border border-border-light bg-bg-secondary p-4 md:p-5 lg:sticky lg:top-4">
+                <div className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-card md:p-5">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                       Resume and credential signals
@@ -639,7 +639,11 @@ export function PlannerIntakeWizard({
       ) : null}
 
       <div className="sticky bottom-0 z-30 -mx-6 mt-6 border-t border-border-light bg-surface/95 px-6 pb-2 pt-4 backdrop-blur md:-mx-8 md:px-8">
-        <div className="flex flex-col gap-3 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 md:flex-row md:items-center md:justify-between md:px-4">
+        <div
+          className={`flex flex-col gap-3 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 md:px-4 ${
+            activeWizardStep === 2 ? 'md:flex-row md:items-center md:justify-between' : ''
+          }`}
+        >
           <div className="flex flex-wrap items-center gap-2">
             {canGoBackWizard ? (
               <Button variant="ghost" onClick={onBack}>
@@ -671,16 +675,7 @@ export function PlannerIntakeWizard({
             >
               {generateButtonLabel}
             </Button>
-          ) : (
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => onSetActiveWizardStep(2)}
-              disabled={plannerState === 'loading'}
-            >
-              Go to Step 3 to Generate Preview
-            </Button>
-          )}
+          ) : null}
         </div>
       </div>
     </Card>
