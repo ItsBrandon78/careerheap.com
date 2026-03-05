@@ -451,26 +451,35 @@ export function SkillsChipsInput({
   }
 
   return (
-    <label htmlFor={id} className="flex w-full flex-col gap-1.5">
+    <label htmlFor={id} className="flex w-full flex-col gap-2">
       <span className="text-[13px] font-semibold text-text-primary">{label}</span>
-      <div className="rounded-md border border-border bg-bg-secondary p-2.5">
-        <div className="mb-2 flex flex-wrap gap-2">
-          {skills.map((skill) => (
-            <span
-              key={skill}
-              className="inline-flex items-center gap-1 rounded-pill border border-border-light bg-surface px-2 py-1 text-xs text-text-primary"
-            >
-              {skill}
-              <button
-                type="button"
-                aria-label={`Remove ${skill}`}
-                className="text-text-tertiary hover:text-text-primary"
-                onClick={() => removeSkill(skill)}
+      <div className="rounded-md border border-border bg-bg-secondary p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Selected skills</p>
+          <p className="text-xs text-text-tertiary">{skills.length} added</p>
+        </div>
+        <div className="mb-2 max-h-24 overflow-y-auto rounded-md border border-border-light bg-surface p-2">
+          <div className="flex flex-wrap gap-2">
+            {skills.length === 0 ? (
+              <p className="text-xs text-text-tertiary">No skills added yet.</p>
+            ) : null}
+            {skills.map((skill) => (
+              <span
+                key={skill}
+                className="inline-flex items-center gap-1 rounded-pill border border-border-light bg-bg-secondary px-2 py-1 text-[12px] text-text-primary"
               >
-                x
-              </button>
-            </span>
-          ))}
+                {skill}
+                <button
+                  type="button"
+                  aria-label={`Remove ${skill}`}
+                  className="text-text-tertiary hover:text-text-primary"
+                  onClick={() => removeSkill(skill)}
+                >
+                  x
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
         <div className="relative">
           <input
@@ -599,13 +608,13 @@ export function SkillsChipsInput({
           </div>
         ) : null}
         {skills.length === 0 ? (
-          <p className="mt-2 text-xs text-text-tertiary">
+          <p className="mt-2 text-xs leading-[1.6] text-text-tertiary">
             Try: stakeholder management, electrical safety, SQL.
           </p>
         ) : null}
       </div>
       {helperText ? (
-        <p className="text-xs text-text-tertiary">{helperText}</p>
+        <p className="text-xs leading-[1.6] text-text-tertiary">{helperText}</p>
       ) : null}
     </label>
   )
