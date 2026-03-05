@@ -3497,18 +3497,19 @@ export default function CareerSwitchPlannerPage({
               </div>
             </Card>
           ) : showDashboard ? (
-            <PlannerDashboardV3
-              model={v3DashboardModel}
-              hasDraftChanges={hasDraftChanges}
-              isGuestPreview={isGuestPreview}
-              faqItems={careerSwitchFaqs}
-              relatedTools={careerSwitchMoreTools}
-              resumeToolkitDraft={resumeToolkitDraft}
-              emailToolkitDraft={emailToolkitDraft}
-              onEditInputs={() => setIsEditDrawerOpen(true)}
-              onRegenerate={() => void handleGeneratePlan()}
-              onStartNewPlan={handleStartNewPlan}
-              onSelectAlternativeRole={(title) =>
+              <PlannerDashboardV3
+                model={v3DashboardModel}
+                hasDraftChanges={hasDraftChanges}
+                isGuestPreview={isGuestPreview}
+                faqItems={careerSwitchFaqs}
+                relatedTools={careerSwitchMoreTools}
+                resumeToolkitDraft={resumeToolkitDraft}
+                emailToolkitDraft={emailToolkitDraft}
+                callToolkitDraft={callToolkitDraft}
+                onEditInputs={() => setIsEditDrawerOpen(true)}
+                onRegenerate={() => void handleGeneratePlan()}
+                onStartNewPlan={handleStartNewPlan}
+                onSelectAlternativeRole={(title) =>
                 void handlePlanRecommendedRole(title, { autoGenerate: true, nextStep: 2 })
               }
               onCopyEmail={() => void handleCopyToolkitSection('email', emailToolkitDraft)}

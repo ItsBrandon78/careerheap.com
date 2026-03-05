@@ -29,6 +29,13 @@ export interface PlannerDashboardAlternative {
 
 export interface PlannerDashboardV3Model {
   missingFields: string[]
+  summaryStrip: {
+    planScore: string
+    planStatus: string
+    confidenceTrend: string
+    modelVersion: string
+    dataFreshness: string
+  }
   summaryBar: {
     currentRole: string
     targetRole: string
@@ -40,6 +47,7 @@ export interface PlannerDashboardV3Model {
   hero: {
     title: string
     insight: string
+    scenarioModes: Array<{ label: string; active: boolean }>
     difficulty: DashboardFallbackValue<string>
     timeline: DashboardFallbackValue<string>
     probability: DashboardFallbackValue<string>
@@ -49,17 +57,22 @@ export interface PlannerDashboardV3Model {
   difficultyBreakdown: {
     items: Array<{ label: string; score: number }>
     explanation: string
+    driverImpactRows: Array<{ label: string; weight: number; impactPoints: number }>
+    primaryBarrier: string
+    coreAdvantage: string
   }
   skillTransfer: {
     transferable: Array<{ label: string; progress: number }>
     required: Array<{ label: string; progress: number }>
     largestGap: string
+    evidenceRequired: string[]
   }
   roadmap: {
     phases: PlannerDashboardRoadmapPhase[]
   }
   fastestPath: {
     steps: Array<{ label: string; detail: string }>
+    strongestPath: Array<{ label: string; detail: string }>
   }
   training: {
     courses: Array<{ name: string; provider: string; length: string; cost: string }>
@@ -85,9 +98,29 @@ export interface PlannerDashboardV3Model {
     shortTerm: string[]
     longTerm: string[]
     progressPercent: number
+    nowCompletionPercent: number
+    nextCompletionPercent: number
+    blockedCompletionPercent: number
+    reminderBadges: string[]
   }
   alternatives: {
     cards: PlannerDashboardAlternative[]
+    compareA: PlannerDashboardAlternative
+    compareB: PlannerDashboardAlternative
+  }
+  insights: {
+    welcomeBack: {
+      title: string
+      bodyLines: string[]
+      recommendedAction: string
+    }
+    aiInsight: {
+      summary: string
+      trendLabel: string
+      trendStartPercent: number
+      trendEndPercent: number
+      bars: number[]
+    }
   }
   stickyPanel: {
     transition: string
@@ -140,6 +173,16 @@ function toReadableDate(iso: string | null) {
     hour: 'numeric',
     minute: '2-digit'
   })
+}
+
+function toReadableShortDate(iso: string | null) {
+  if (!iso) return 'Updated now'
+  const parsed = new Date(iso)
+  if (Number.isNaN(parsed.getTime())) return 'Updated now'
+  return `Updated ${parsed.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  })}`
 }
 
 function estimateTrainingCost(report: any | null) {
@@ -449,10 +492,79 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
 
   pushIfMissing(missingFields, 'alternatives.cards', alternatives.length === 0)
 
+  const driverImpactRows = [
+    { label: 'Skill Gap', weight: 35, score: difficultyItems[0]?.score ?? compatibilityScore },
+    { label: 'Education Gap', weight: 20, score: difficultyItems[1]?.score ?? compatibilityScore },
+    { label: 'Hiring Barrier', weight: 20, score: difficultyItems[2]?.score ?? compatibilityScore },
+    { label: 'Market Demand', weight: 15, score: difficultyItems[3]?.score ?? compatibilityScore },
+    { label: 'Experience Requirement', weight: 10, score: difficultyItems[4]?.score ?? compatibilityScore }
+  ].map((item) => ({
+    label: item.label,
+    weight: item.weight,
+    impactPoints: Math.round(((item.score - 50) / 50) * item.weight)
+  }))
+
+  const evidenceRequiredSource = [
+    ...(Array.isArray(input.report?.targetRequirements?.hardGates) ? input.report.targetRequirements.hardGates : []),
+    ...(Array.isArray(input.report?.targetRequirements?.certifications)
+      ? input.report.targetRequirements.certifications.map((item: string) => `Credential: ${item}`)
+      : [])
+  ]
+    .map((item) => String(item ?? '').trim())
+    .filter(Boolean)
+    .slice(0, 4)
+  const evidenceRequired =
+    evidenceRequiredSource.length > 0
+      ? evidenceRequiredSource
+      : [
+          'Safety certification IDs uploaded',
+          'One practical work-sample proof project',
+          'Resume version tailored to role language',
+          'Two references prepared for employer calls'
+        ]
+
+  const strongestPathSource =
+    (input.report?.transitionSections?.roadmapPlan?.strongCandidatePath as string[] | undefined)?.filter(Boolean) ??
+    []
+  const strongestPath =
+    strongestPathSource.length > 0
+      ? strongestPathSource.slice(0, 4).map((item, index) => ({
+          label: `Month ${index + 1}`,
+          detail: item
+        }))
+      : [
+          { label: 'Month 1', detail: 'Stack certifications and publish one credible proof project.' },
+          { label: 'Month 2', detail: 'Refine resume narrative to apprenticeship job language and outcomes.' },
+          { label: 'Month 3-4', detail: 'Push high-frequency outreach and convert warm leads to interviews.' }
+        ]
+
+  const fallbackCards: PlannerDashboardAlternative[] = [
+    { occupationId: 'hvac-tech', title: 'HVAC Technician', difficulty: 'moderate', timeline: '4-9 months', salary: 'Estimate pending data' },
+    { occupationId: 'construction-supervisor', title: 'Construction Supervisor', difficulty: 'moderate', timeline: '6-12 months', salary: 'Estimate pending data' },
+    { occupationId: 'operations-manager', title: 'Operations Manager', difficulty: 'hard', timeline: '6-12 months', salary: 'Estimate pending data' },
+    { occupationId: 'logistics-coordinator', title: 'Logistics Coordinator', difficulty: 'moderate', timeline: '3-6 months', salary: 'Estimate pending data' }
+  ]
+  const alternativeCards = alternatives.length > 0 ? alternatives : fallbackCards
+  const compareA = alternativeCards[0] ?? fallbackCards[0]
+  const compareB = alternativeCards[1] ?? fallbackCards[1]
+
+  const trendStartPercent = clampPercent(Math.max(35, compatibilityScore - 6))
+  const trendEndPercent = clampPercent(compatibilityScore)
+  const trendBars = [44, 52, 58, 66, 72, 78]
+  const progressPercent = clampPercent(Math.min(90, compatibilityScore * 0.6))
+
   const missingFallbackFields = Array.from(new Set(missingFields)).sort()
 
   return {
     missingFields: missingFallbackFields,
+    summaryStrip: {
+      planScore: `${compatibilityScore} / 100`,
+      planStatus:
+        compatibilityScore >= 70 ? 'On Track (Week 2)' : compatibilityScore >= 55 ? 'At Risk (Week 2)' : 'Recovery Plan',
+      confidenceTrend: `${trendEndPercent - trendStartPercent >= 0 ? '+' : ''}${trendEndPercent - trendStartPercent} pts`,
+      modelVersion: 'Career Graph v2.3',
+      dataFreshness: toReadableShortDate(input.lastGeneratedAt)
+    },
     summaryBar: {
       currentRole: roleCurrent,
       targetRole: roleTarget,
@@ -467,6 +579,11 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         input.report?.transitionStructuredPlan?.summary ||
         input.report?.transitionMode?.difficulty?.why?.[0] ||
         'This transition is achievable with focused execution and consistent weekly outputs.',
+      scenarioModes: [
+        { label: 'Fastest', active: true },
+        { label: 'Balanced', active: false },
+        { label: 'Low Risk', active: false }
+      ],
       difficulty: {
         value: difficultyLabel,
         badge: missingFallbackFields.includes('hero.difficulty') ? 'Estimate' : undefined
@@ -492,18 +609,25 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       items: difficultyItems,
       explanation:
         input.report?.transitionMode?.difficulty?.why?.[0] ||
-        'Biggest barrier is proving role-specific evidence quickly; biggest advantage is transferable execution discipline.'
+        'Biggest barrier is proving role-specific evidence quickly; biggest advantage is transferable execution discipline.',
+      driverImpactRows,
+      primaryBarrier:
+        required[0]?.label || 'Technical theory and certification sequencing are the slowest moving constraints.',
+      coreAdvantage:
+        transferable[0]?.label || 'Operational reliability and shift discipline map well to employer expectations.'
     },
     skillTransfer: {
       transferable,
       required,
-      largestGap: required[0]?.label || 'Role-specific technical evidence'
+      largestGap: required[0]?.label || 'Role-specific technical evidence',
+      evidenceRequired
     },
     roadmap: {
       phases: roadmapPhases
     },
     fastestPath: {
-      steps: fastestPath
+      steps: fastestPath,
+      strongestPath
     },
     training: {
       courses: trainingCourses
@@ -560,18 +684,35 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       immediate: checklistImmediate.length > 0 ? checklistImmediate : nowFallback,
       shortTerm: checklistShortTerm.length > 0 ? checklistShortTerm : shortFallback,
       longTerm: checklistLongTerm.length > 0 ? checklistLongTerm : longFallback,
-      progressPercent: clampPercent(Math.min(90, compatibilityScore * 0.6))
+      progressPercent,
+      nowCompletionPercent: clampPercent(Math.min(95, compatibilityScore * 0.48)),
+      nextCompletionPercent: clampPercent(Math.min(80, compatibilityScore * 0.22)),
+      blockedCompletionPercent: clampPercent(Math.min(45, compatibilityScore * 0.1)),
+      reminderBadges: ['Reminders: On', 'Review every Friday', 'Streak: 2 weeks']
     },
     alternatives: {
-      cards:
-        alternatives.length > 0
-          ? alternatives
-          : [
-              { occupationId: 'hvac-tech', title: 'HVAC Technician', difficulty: 'moderate', timeline: '4-9 months', salary: 'Estimate pending data' },
-              { occupationId: 'construction-supervisor', title: 'Construction Supervisor', difficulty: 'moderate', timeline: '6-12 months', salary: 'Estimate pending data' },
-              { occupationId: 'operations-manager', title: 'Operations Manager', difficulty: 'hard', timeline: '6-12 months', salary: 'Estimate pending data' },
-              { occupationId: 'logistics-coordinator', title: 'Logistics Coordinator', difficulty: 'moderate', timeline: '3-6 months', salary: 'Estimate pending data' }
-            ]
+      cards: alternativeCards,
+      compareA,
+      compareB
+    },
+    insights: {
+      welcomeBack: {
+        title: 'Welcome back.',
+        bodyLines: [
+          `Your transition progress improved to ${clampPercent(Math.min(95, compatibilityScore * 0.69))}% this week.`,
+          'Two contractors opened your application.'
+        ],
+        recommendedAction:
+          input.report?.bottleneck?.nextAction || 'Follow up with Mason Electrical.'
+      },
+      aiInsight: {
+        summary:
+          'Confidence is rising as you complete credentials. Biggest risk: credential delay. Biggest advantage: operational reliability and team discipline.',
+        trendLabel: 'Confidence Trend',
+        trendStartPercent,
+        trendEndPercent,
+        bars: trendBars
+      }
     },
     stickyPanel: {
       transition: transitionLabel,
