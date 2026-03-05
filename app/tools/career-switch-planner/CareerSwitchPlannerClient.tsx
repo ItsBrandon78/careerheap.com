@@ -1763,6 +1763,7 @@ export default function CareerSwitchPlannerPage({
   const [pendingResumeSkills, setPendingResumeSkills] = useState<string[]>([])
   const [pendingResumeCertifications, setPendingResumeCertifications] = useState<string[]>([])
   const [pendingResumeRoleCandidate, setPendingResumeRoleCandidate] = useState<string | null>(null)
+  const [resumeReviewExpanded, setResumeReviewExpanded] = useState(false)
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
@@ -2207,6 +2208,7 @@ export default function CareerSwitchPlannerPage({
           : null
       )
       setUploadState('success')
+      setResumeReviewExpanded(false)
     } catch (error) {
       setUploadState('error')
       setUploadWarning('')
@@ -2235,12 +2237,14 @@ export default function CareerSwitchPlannerPage({
     setPendingResumeSkills([])
     setPendingResumeCertifications([])
     setPendingResumeRoleCandidate(null)
+    setResumeReviewExpanded(false)
   }
 
   const dismissDetectedResumeData = () => {
     setPendingResumeSkills([])
     setPendingResumeCertifications([])
     setPendingResumeRoleCandidate(null)
+    setResumeReviewExpanded(false)
   }
 
   const handleCurrentRoleInputChange = (value: string) => {
@@ -2604,6 +2608,7 @@ export default function CareerSwitchPlannerPage({
     setPendingResumeSkills([])
     setPendingResumeCertifications([])
     setPendingResumeRoleCandidate(null)
+    setResumeReviewExpanded(false)
     setUploadState('idle')
     setUploadProgress(0)
     setUploadError('')
@@ -3063,6 +3068,9 @@ export default function CareerSwitchPlannerPage({
       pendingResumeCertifications.length > 0 ||
       pendingResumeRoleCandidate
   )
+  const hasPendingResumeReview = Boolean(
+    pendingResumeSkills.length > 0 || pendingResumeCertifications.length > 0 || pendingResumeRoleCandidate
+  )
   const generateButtonLabel = user
     ? hasDraftChanges
       ? 'Generate Updated Plan'
@@ -3205,8 +3213,8 @@ export default function CareerSwitchPlannerPage({
 
       <section className="print-hidden bg-bg-secondary px-4 pb-16 pt-8 lg:px-[340px]">
         <InputCard className="border border-border-light p-6 md:p-8">
-          <div className="space-y-5">
-            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 md:p-5">
+          <div className="space-y-5 pb-24">
+            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card md:p-5 lg:sticky lg:top-3 lg:z-20 lg:backdrop-blur-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
@@ -3348,107 +3356,143 @@ export default function CareerSwitchPlannerPage({
             ) : null}
 
             {activeWizardStep === 1 ? (
-              <div className="planner-animate-in space-y-3">
+              <div className="planner-animate-in space-y-4">
                 <h2 className="text-base font-bold text-text-primary">Background details</h2>
-              <SkillsChipsInput
-                id="skills-input"
-                label="Skills"
-                skills={skills}
-                suggestions={FALLBACK_SKILL_SUGGESTIONS}
-                suggestionEndpoint="/api/career-map/skills"
-                placeholder="Start typing (e.g., stakeholder management, electrical safety)"
-                helperText="Autocomplete uses matched skills from our dataset. Custom skills are allowed."
-                onChange={setSkills}
-              />
+                <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+                  <div className="space-y-3">
+                    <SkillsChipsInput
+                      id="skills-input"
+                      label="Skills"
+                      skills={skills}
+                      suggestions={FALLBACK_SKILL_SUGGESTIONS}
+                      suggestionEndpoint="/api/career-map/skills"
+                      placeholder="Start typing (e.g., stakeholder management, electrical safety)"
+                      helperText="Autocomplete uses matched skills from our dataset. Custom skills are allowed."
+                      onChange={setSkills}
+                    />
 
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-semibold text-text-primary">
-                  Add measurable accomplishments (optional)
-                </span>
-                <textarea
-                  rows={6}
-                  value={experienceText}
-                  onChange={(event) => setExperienceText(event.target.value)}
-                  placeholder="Example: Led onboarding for 12 teammates, reduced ramp time by 18%, and improved retention by 14%."
-                  className="w-full rounded-md border border-border bg-bg-secondary p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
-                />
-                <span className="text-xs text-text-tertiary">
-                  Numbers help (team size, $ impact, time saved, % improved).
-                </span>
-              </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-[13px] font-semibold text-text-primary">
+                        Add measurable accomplishments (optional)
+                      </span>
+                      <textarea
+                        rows={6}
+                        value={experienceText}
+                        onChange={(event) => setExperienceText(event.target.value)}
+                        placeholder="Example: Led onboarding for 12 teammates, reduced ramp time by 18%, and improved retention by 14%."
+                        className="w-full rounded-md border border-border bg-bg-secondary p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                      />
+                      <span className="text-xs text-text-tertiary">
+                        Numbers help (team size, $ impact, time saved, % improved).
+                      </span>
+                    </label>
+                  </div>
 
-              <div className="rounded-md border border-border bg-bg-secondary p-4">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-text-primary">Resume Upload (Pro)</p>
-                  <Badge variant={ocrBadge.variant}>{ocrBadge.label}</Badge>
-                </div>
-                {ocrBadge.detail ? (
-                  <p className="mt-1 text-xs text-text-tertiary">{ocrBadge.detail}</p>
-                ) : null}
-                {!isProUser ? (
-                  <>
-                    <p className="mt-2 text-sm text-text-secondary">
-                      Upgrade to upload PDF/DOCX and auto-fill your background.
-                    </p>
-                    <div className="mt-3">
-                      <Link href="/pricing">
-                        <Button variant="outline">Upgrade to unlock upload</Button>
-                      </Link>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mt-3">
-                      <DropzoneUpload onFileSelected={parseFile} />
-                    </div>
-                    {uploadState === 'parsing' ? (
-                      <div className="mt-3">
-                        <ParseProgress progress={uploadProgress} />
+                  <div className="space-y-3">
+                    <div className="rounded-md border border-border bg-bg-secondary p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <p className="text-sm font-semibold text-text-primary">Resume Upload (Pro)</p>
+                        <Badge variant={ocrBadge.variant}>{ocrBadge.label}</Badge>
                       </div>
-                    ) : null}
-                    {uploadState === 'success' ? (
-                      <div className="mt-3 space-y-2">
-                        {uploadWarning ? (
-                          <p className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
-                            {uploadWarning}
+                      {ocrBadge.detail ? (
+                        <p className="mt-1 text-xs text-text-tertiary">{ocrBadge.detail}</p>
+                      ) : null}
+                      {!isProUser ? (
+                        <>
+                          <p className="mt-2 text-sm text-text-secondary">
+                            Upgrade to upload PDF/DOCX and auto-fill your background.
                           </p>
-                        ) : null}
-                        <p className="text-xs text-text-tertiary">
-                          Parsed text was inserted into your experience summary.
-                          {uploadStats ? ` Characters extracted: ${uploadStats.meaningfulChars}.` : ''}
-                        </p>
-                        <DetectedSectionsChips detected={detectedSections} />
-                        <ResumeExtractionReviewCard
-                          detectedRole={pendingResumeRoleCandidate}
-                          skills={pendingResumeSkills}
-                          certifications={pendingResumeCertifications}
-                          onRemoveSkill={(value) =>
-                            setPendingResumeSkills((previous) => previous.filter((item) => item !== value))
-                          }
-                          onRemoveCertification={(value) =>
-                            setPendingResumeCertifications((previous) => previous.filter((item) => item !== value))
-                          }
-                          onApply={applyDetectedResumeData}
-                          onDismiss={dismissDetectedResumeData}
-                        />
-                      </div>
-                    ) : null}
-                    {uploadState === 'error' ? (
-                      <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">
-                        {uploadError || 'Upload a DOCX or searchable PDF, then try again.'}
-                      </p>
-                    ) : null}
-                  </>
-                )}
-              </div>
+                          <div className="mt-3">
+                            <Link href="/pricing">
+                              <Button variant="outline">Upgrade to unlock upload</Button>
+                            </Link>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="mt-3">
+                            <DropzoneUpload onFileSelected={parseFile} />
+                          </div>
+                          {uploadState === 'parsing' ? (
+                            <div className="mt-3">
+                              <ParseProgress progress={uploadProgress} />
+                            </div>
+                          ) : null}
+                          {uploadState === 'success' ? (
+                            <div className="mt-3 space-y-2">
+                              {uploadWarning ? (
+                                <p className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
+                                  {uploadWarning}
+                                </p>
+                              ) : null}
+                              <p className="text-xs text-text-tertiary">
+                                Parsed text was inserted into your experience summary.
+                                {uploadStats ? ` Characters extracted: ${uploadStats.meaningfulChars}.` : ''}
+                              </p>
+                              <DetectedSectionsChips detected={detectedSections} />
+                              {hasPendingResumeReview ? (
+                                <div className="rounded-md border border-border-light bg-surface p-3">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                                      Resume detections ready
+                                    </p>
+                                    <button
+                                      type="button"
+                                      className="text-xs font-semibold text-accent hover:text-accent-hover"
+                                      onClick={() => setResumeReviewExpanded((previous) => !previous)}
+                                    >
+                                      {resumeReviewExpanded ? 'Hide review' : 'Review details'}
+                                    </button>
+                                  </div>
+                                  <p className="mt-1 text-sm text-text-secondary">
+                                    {pendingResumeSkills.length} skills, {pendingResumeCertifications.length} certifications
+                                    {pendingResumeRoleCandidate ? ', and 1 role candidate' : ''} detected.
+                                  </p>
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    <Button size="sm" onClick={applyDetectedResumeData}>
+                                      Apply detected data
+                                    </Button>
+                                    <Button size="sm" variant="ghost" onClick={dismissDetectedResumeData}>
+                                      Dismiss
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : null}
+                              {resumeReviewExpanded && hasPendingResumeReview ? (
+                                <ResumeExtractionReviewCard
+                                  detectedRole={pendingResumeRoleCandidate}
+                                  skills={pendingResumeSkills}
+                                  certifications={pendingResumeCertifications}
+                                  onRemoveSkill={(value) =>
+                                    setPendingResumeSkills((previous) => previous.filter((item) => item !== value))
+                                  }
+                                  onRemoveCertification={(value) =>
+                                    setPendingResumeCertifications((previous) => previous.filter((item) => item !== value))
+                                  }
+                                  onApply={applyDetectedResumeData}
+                                  onDismiss={dismissDetectedResumeData}
+                                />
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {uploadState === 'error' ? (
+                            <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">
+                              {uploadError || 'Upload a DOCX or searchable PDF, then try again.'}
+                            </p>
+                          ) : null}
+                        </>
+                      )}
+                    </div>
 
-              <SelectField
-                id="planner-education"
-                label="Education Level"
-                value={educationLevel}
-                onChange={(value) => setEducationLevel(value as EducationLevelValue)}
-                options={EDUCATION_OPTIONS}
-              />
+                    <SelectField
+                      id="planner-education"
+                      label="Education Level"
+                      value={educationLevel}
+                      onChange={(value) => setEducationLevel(value as EducationLevelValue)}
+                      options={EDUCATION_OPTIONS}
+                    />
+                  </div>
+                </div>
             </div>
             ) : null}
 
@@ -3535,7 +3579,7 @@ export default function CareerSwitchPlannerPage({
               Add either a current role, an experience summary, or at least 3 skills to enable generation.
             </p>
           ) : null}
-          {(pendingResumeSkills.length > 0 || pendingResumeCertifications.length > 0 || pendingResumeRoleCandidate) ? (
+          {hasPendingResumeReview ? (
             <p className="mt-4 rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
               Resume detections are waiting for review. Apply them if you want them included in scoring.
             </p>
@@ -3619,7 +3663,8 @@ export default function CareerSwitchPlannerPage({
             </Card>
           ) : null}
 
-          <div className="mt-5 flex flex-col gap-3 border-t border-border-light pt-4 md:flex-row md:items-center md:justify-between">
+          <div className="sticky bottom-0 z-30 -mx-6 mt-5 border-t border-border-light bg-surface/95 px-6 pb-2 pt-4 backdrop-blur md:-mx-8 md:px-8">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {canGoBackWizard ? (
                 <Button
@@ -3652,10 +3697,10 @@ export default function CareerSwitchPlannerPage({
               ) : null}
               <p className="text-xs text-text-tertiary">
                 {hasDraftChanges
-                  ? 'The current report stays visible until you run the updated plan.'
-                  : activeWizardStep < 2
-                    ? 'The final generate button appears after you review constraints.'
-                    : 'We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.'}
+                    ? 'The current report stays visible until you run the updated plan.'
+                    : activeWizardStep < 2
+                      ? 'The final generate button appears after you review constraints.'
+                      : 'We combine your inputs, employer evidence, and baseline occupation datasets to generate this report.'}
               </p>
             </div>
             {activeWizardStep === 2 ? (
@@ -3676,6 +3721,7 @@ export default function CareerSwitchPlannerPage({
                 {generateButtonLabel}
               </PrimaryButton>
             ) : null}
+            </div>
           </div>
 
           {activeWizardStep === 0 && exampleOptions.length > 0 ? (
