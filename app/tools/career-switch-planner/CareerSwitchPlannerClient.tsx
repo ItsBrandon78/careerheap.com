@@ -3423,6 +3423,11 @@ export default function CareerSwitchPlannerPage({
 
   const showDashboard = plannerState !== 'loading' && viewMode === 'dashboard' && hasPlannerResults
   const useWidePlannerShell = plannerState === 'loading' || showDashboard
+  const plannerShellMaxWidthClass = showDashboard
+    ? 'max-w-wide'
+    : useWidePlannerShell
+      ? 'max-w-content'
+      : 'max-w-tool'
 
   return (
     <>
@@ -3441,9 +3446,9 @@ export default function CareerSwitchPlannerPage({
       </ToolHero>
 
       <section
-        className={`px-4 pb-16 pt-8 ${useWidePlannerShell ? 'lg:px-[170px]' : 'lg:px-[340px]'}`}
+        className={`px-4 ${showDashboard ? 'bg-bg-secondary pb-20 pt-12' : 'pb-16 pt-8'} ${useWidePlannerShell ? 'lg:px-[170px]' : 'lg:px-[340px]'}`}
       >
-        <div className={`mx-auto w-full ${useWidePlannerShell ? 'max-w-content' : 'max-w-tool'}`}>
+        <div className={`mx-auto w-full ${plannerShellMaxWidthClass}`}>
           {plannerState === 'loading' ? (
             <Card className="planner-animate-in p-5" aria-live="polite">
               <div className="flex flex-wrap items-start justify-between gap-3">

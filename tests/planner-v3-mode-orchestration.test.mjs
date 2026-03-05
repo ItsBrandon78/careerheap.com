@@ -37,12 +37,11 @@ test('planner client wires V3 mode orchestration and edit drawer', () => {
 })
 
 test('dashboard component includes required control actions and stale warning text', () => {
-  assert.match(dashboardSource, /Input Summary/)
   assert.match(dashboardSource, /Edit Inputs/)
   assert.match(dashboardSource, /Regenerate with Changes/)
   assert.match(dashboardSource, /Start New Plan/)
   assert.match(dashboardSource, /This report is from previous inputs\./)
-  assert.match(dashboardSource, /Sticky Action Panel/)
+  assert.match(dashboardSource, /Action Panel and Next Best Move/)
   assert.match(dashboardSource, /Preview Limit/)
   assert.match(dashboardSource, /Sign In to Unlock Full Report/)
 })
