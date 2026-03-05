@@ -95,6 +95,10 @@ type MissingHiringRequirement = {
   detail: string
   link: { label: string; url: string } | null
 }
+type BlockerFix = {
+  issue: string
+  fix: string
+}
 type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
@@ -736,6 +740,12 @@ type PlannerReportPayload = {
       codes: { noc_2021?: string | null; trade_code?: string | null }
       teer?: number | null
       pathway_type?: string
+    }
+    timeline?: {
+      time_to_full_qualification?: {
+        min_months?: number
+        max_months?: number
+      }
     }
   } | null
 }
@@ -2921,6 +2931,52 @@ export default function CareerSwitchPlannerPage({
         4
       )
     : []
+  const mergedBlockerFixes: BlockerFix[] = (() => {
+    const pairs: BlockerFix[] = []
+    const seen = new Set<string>()
+    const mitigations = transitionModeReport?.reality.mitigations ?? []
+
+    const pushPair = (issue: string, fix: string) => {
+      const normalizedIssue = normalizeBulletKey(issue)
+      if (!normalizedIssue || seen.has(normalizedIssue)) return
+      seen.add(normalizedIssue)
+      pairs.push({
+        issue: issue.trim(),
+        fix: fix.trim()
+      })
+    }
+
+    for (const item of missingHiringRequirements) {
+      pushPair(item.title, item.detail || 'Close this requirement early to avoid getting filtered out.')
+    }
+
+    criticalGapDetails.forEach((issue, index) => {
+      pushPair(
+        issue,
+        mitigations[index] ||
+          transitionPrimaryGaps[index] ||
+          'Turn this into one concrete weekly action with visible proof.'
+      )
+    })
+
+    employerRedFlags.forEach((issue, index) => {
+      pushPair(
+        issue,
+        mitigations[index] || 'Adjust your channel mix and tighten positioning based on real employer feedback.'
+      )
+    })
+
+    if (pairs.length === 0) {
+      transitionPrimaryGaps.slice(0, 4).forEach((issue, index) => {
+        pushPair(
+          issue,
+          mitigations[index] || 'Schedule one concrete step this week and save proof that it moved.'
+        )
+      })
+    }
+
+    return pairs.slice(0, 4)
+  })()
   const roadmapTabs = buildDashboardRoadmapTabs({
     plannerReport,
     transitionModeReport,
@@ -2965,6 +3021,13 @@ export default function CareerSwitchPlannerPage({
   const canAnnualizeEarnings = transitionModeReport?.earnings.some((stage) =>
     stage.unit.toLowerCase().includes('/hour')
   ) ?? false
+  const fullQualificationTimeline =
+    plannerReport?.careerPathwayProfile?.timeline?.time_to_full_qualification
+  const fullQualificationNote =
+    typeof fullQualificationTimeline?.min_months === 'number' &&
+    typeof fullQualificationTimeline?.max_months === 'number'
+      ? `Full qualification is typically ${fullQualificationTimeline.min_months}-${fullQualificationTimeline.max_months} months.`
+      : null
   const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentDraftSignature = buildPlannerDraftSignature(
     {
@@ -3815,7 +3878,7 @@ export default function CareerSwitchPlannerPage({
                       </div>
                       <div className="rounded-2xl border border-border-light bg-surface px-5 py-4 shadow-none">
                         <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          Transition difficulty
+                          Entry-route difficulty
                         </p>
                         <div className="mt-2 flex items-end gap-2">
                           <span className="text-5xl font-bold leading-none text-text-primary">
@@ -3823,6 +3886,14 @@ export default function CareerSwitchPlannerPage({
                           </span>
                           <span className="pb-1 text-sm font-semibold text-text-secondary">/ 10</span>
                         </div>
+                        <p className="mt-2 text-xs leading-[1.6] text-text-secondary">
+                          Scored for your first viable entry route, not the fully qualified end-state.
+                        </p>
+                        {fullQualificationNote ? (
+                          <p className="mt-2 text-xs leading-[1.6] text-text-tertiary">
+                            {fullQualificationNote}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <div className="mt-5 flex flex-wrap gap-2">
@@ -3951,127 +4022,135 @@ export default function CareerSwitchPlannerPage({
                 </Card>
 
                 {transitionStructuredPlan?.narrative_sections ? (
-                  <Card className="border border-border-light bg-surface p-5 md:p-6">
-                    <div className="flex flex-col gap-2">
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        What this role really takes
-                      </p>
-                      <h3 className="text-xl font-bold text-text-primary">
-                        Skills you build vs. what employers screen for first
-                      </h3>
-                      <p className="max-w-[72ch] text-sm leading-[1.8] text-text-secondary">
-                        {transitionStructuredPlan.narrative_sections.intro}
-                      </p>
-                    </div>
+                  <Card className="border border-border-light bg-surface p-4 md:p-5">
+                    <details>
+                      <summary className="cursor-pointer list-none">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              What this role really takes
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-text-primary">
+                              Skills you build vs. what employers screen for first
+                            </p>
+                          </div>
+                          <Badge variant="default">Expand</Badge>
+                        </div>
+                      </summary>
 
-                    <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                      <div className="space-y-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
-                          Skills you develop
+                      <div className="mt-4 space-y-5">
+                        <p className="max-w-[72ch] text-sm leading-[1.8] text-text-secondary">
+                          {transitionStructuredPlan.narrative_sections.intro}
                         </p>
-                        {transitionStructuredPlan.narrative_sections.skills_you_build.map((section) => (
-                          <div
-                            key={`narrative-skill-${section.title}`}
-                            className="rounded-2xl border border-success/20 bg-success/10 p-4"
-                          >
-                            <p className="text-sm font-semibold text-text-primary">{section.title}</p>
-                            <p className="mt-2 text-xs leading-[1.7] text-text-secondary">{section.summary}</p>
+
+                        <div className="grid gap-4 lg:grid-cols-2">
+                          <div className="space-y-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                              Skills you develop
+                            </p>
+                            {transitionStructuredPlan.narrative_sections.skills_you_build.map((section) => (
+                              <div
+                                key={`narrative-skill-${section.title}`}
+                                className="rounded-2xl border border-success/20 bg-success/10 p-4"
+                              >
+                                <p className="text-sm font-semibold text-text-primary">{section.title}</p>
+                                <p className="mt-2 text-xs leading-[1.7] text-text-secondary">{section.summary}</p>
+                                <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                                  {section.bullets.map((bullet) => (
+                                    <li key={`narrative-skill-bullet-${section.title}-${bullet}`} className="break-words">
+                                      - {bullet}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="space-y-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-accent">
+                              Certifications and education that matter
+                            </p>
+                            {transitionStructuredPlan.narrative_sections.credentials_you_need.map((section) => (
+                              <div
+                                key={`narrative-credential-${section.title}`}
+                                className="rounded-2xl border border-accent/20 bg-bg-secondary p-4"
+                              >
+                                <p className="text-sm font-semibold text-text-primary">{section.title}</p>
+                                <p className="mt-2 text-xs leading-[1.7] text-text-secondary">{section.summary}</p>
+                                <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                                  {section.bullets.map((bullet) => (
+                                    <li
+                                      key={`narrative-credential-bullet-${section.title}-${bullet}`}
+                                      className="break-words"
+                                    >
+                                      - {bullet}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Soft skills that matter
+                            </p>
                             <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                              {section.bullets.map((bullet) => (
-                                <li key={`narrative-skill-bullet-${section.title}-${bullet}`} className="break-words">
-                                  - {bullet}
+                              {transitionStructuredPlan.narrative_sections.soft_skills_that_matter.map((item) => (
+                                <li key={`narrative-soft-${item}`} className="break-words">
+                                  - {item}
                                 </li>
                               ))}
                             </ul>
                           </div>
-                        ))}
-                      </div>
-
-                      <div className="space-y-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-accent">
-                          Certifications and education that matter
-                        </p>
-                        {transitionStructuredPlan.narrative_sections.credentials_you_need.map((section) => (
-                          <div
-                            key={`narrative-credential-${section.title}`}
-                            className="rounded-2xl border border-accent/20 bg-bg-secondary p-4"
-                          >
-                            <p className="text-sm font-semibold text-text-primary">{section.title}</p>
-                            <p className="mt-2 text-xs leading-[1.7] text-text-secondary">{section.summary}</p>
+                          <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              Why this path can pay off
+                            </p>
                             <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                              {section.bullets.map((bullet) => (
-                                <li
-                                  key={`narrative-credential-bullet-${section.title}-${bullet}`}
-                                  className="break-words"
-                                >
-                                  - {bullet}
+                              {transitionStructuredPlan.narrative_sections.why_this_path_can_pay_off.map((item) => (
+                                <li key={`narrative-payoff-${item}`} className="break-words">
+                                  - {item}
                                 </li>
                               ))}
                             </ul>
                           </div>
-                        ))}
+                          <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                              If you are starting from zero
+                            </p>
+                            <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                              {transitionStructuredPlan.narrative_sections.start_from_zero.map((item) => (
+                                <li key={`narrative-start-${item}`} className="break-words">
+                                  - {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="mt-5 grid gap-4 md:grid-cols-3">
-                      <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          Soft skills that matter
-                        </p>
-                        <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                          {transitionStructuredPlan.narrative_sections.soft_skills_that_matter.map((item) => (
-                            <li key={`narrative-soft-${item}`} className="break-words">
-                              - {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          Why this path can pay off
-                        </p>
-                        <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                          {transitionStructuredPlan.narrative_sections.why_this_path_can_pay_off.map((item) => (
-                            <li key={`narrative-payoff-${item}`} className="break-words">
-                              - {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="rounded-2xl border border-border-light bg-bg-secondary p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          If you are starting from zero
-                        </p>
-                        <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                          {transitionStructuredPlan.narrative_sections.start_from_zero.map((item) => (
-                            <li key={`narrative-start-${item}`} className="break-words">
-                              - {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+                    </details>
                   </Card>
                 ) : null}
 
                 <div className="grid gap-5 lg:grid-cols-2">
-                  <div className="space-y-4">
-                    <Card className="print-page-keep border border-success/20 bg-success/10 p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
-                        Section B | Transferable skills
-                      </p>
-                      <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                        {transitionQuickWins.map((item) => (
-                          <li key={`hero-win-${item}`} className="break-words">- {item}</li>
-                        ))}
-                      </ul>
-                    </Card>
+                  <Card className="print-page-keep border border-success/20 bg-success/10 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-success">
+                      Section B | Strengths to lead with
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
+                      {transitionQuickWins.map((item) => (
+                        <li key={`hero-win-${item}`} className="break-words">- {item}</li>
+                      ))}
+                    </ul>
                     {currentProfileSignals.certifications.length > 0 ? (
-                      <Card className="print-page-keep border border-accent/20 bg-bg-secondary p-5">
-                        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-accent">
-                          Certifications detected
+                      <div className="mt-4 border-t border-success/20 pt-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Certifications and tickets
                         </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <div className="mt-2 flex flex-wrap gap-2">
                           {currentProfileSignals.certifications.map((item) => (
                             <span
                               key={`hero-cert-${item}`}
@@ -4081,37 +4160,28 @@ export default function CareerSwitchPlannerPage({
                             </span>
                           ))}
                         </div>
-                      </Card>
+                      </div>
                     ) : null}
-                  </div>
+                  </Card>
 
-                  <div className="space-y-4">
-                    <Card className="print-page-keep border border-error/20 bg-error-light p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
-                        Critical gaps
-                      </p>
-                      <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                        {(criticalGapDetails.length > 0 ? criticalGapDetails : transitionPrimaryGaps).map((item) => (
-                          <li key={`hero-gap-${item}`} className="break-words">- {item}</li>
-                        ))}
-                      </ul>
-                    </Card>
-                    <Card className="print-page-keep border border-warning/25 bg-warning-light p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-warning">
-                        Employer red flags
-                      </p>
-                      <ul className="mt-3 space-y-2 text-sm leading-[1.7] text-text-secondary">
-                        {(employerRedFlags.length > 0
-                          ? employerRedFlags
-                          : transitionModeReport.reality.barriers).map((item) => (
-                          <li key={`hero-flag-${item}`} className="break-words">- {item}</li>
-                        ))}
-                      </ul>
-                    </Card>
-                  </div>
-                  {renderMissingHiringRequirementsCard(
-                    'print-page-keep rounded-2xl border border-border-light bg-bg-secondary p-5 lg:col-span-2'
-                  )}
+                  <Card className="print-page-keep border border-error/20 bg-error-light p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-error">
+                      Blockers to clear first
+                    </p>
+                    <div className="mt-3 space-y-3">
+                      {mergedBlockerFixes.map((item, index) => (
+                        <div
+                          key={`blocker-fix-${index}-${item.issue}`}
+                          className="rounded-xl border border-error/15 bg-surface p-3"
+                        >
+                          <p className="text-sm font-semibold text-text-primary">{item.issue}</p>
+                          <p className="mt-1 text-xs leading-[1.7] text-text-secondary">
+                            Fix: {item.fix}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
                 </div>
 
                 <div id="transition-roadmap">
