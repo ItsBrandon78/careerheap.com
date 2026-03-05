@@ -78,7 +78,7 @@ function SectionCard({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <Card className={`border border-border-light p-5 ${className}`}>{children}</Card>;
+  return <Card className={`p-5 ${className}`}>{children}</Card>;
 }
 
 function ChecklistCol({
@@ -132,7 +132,7 @@ export function PlannerDashboardV3({
   onSavePlan,
 }: PlannerDashboardV3Props) {
   return (
-    <div className="space-y-5 rounded-xl bg-bg-secondary p-4 md:p-5">
+    <div className="space-y-6 rounded-2xl bg-bg-secondary p-4 md:p-6">
       <div className="rounded-xl border border-border bg-surface px-4 py-3 shadow-card">
         <div className="grid gap-2 md:grid-cols-5">
           <div className="min-w-0">
@@ -988,27 +988,39 @@ export function PlannerDashboardV3({
                   ))}
                 </ul>
               </div>
-              <div className="mt-4 space-y-2 border-t border-border-light pt-3">
-                <Button size="sm" variant="outline" onClick={onEditInputs}>
-                  Edit Inputs
-                </Button>
-                <Button size="sm" onClick={onRegenerate}>
-                  Regenerate with Changes
-                </Button>
-                <Button size="sm" variant="ghost" onClick={onStartNewPlan}>
-                  Start New Plan
-                </Button>
+              <div className="mt-4 rounded-lg border border-border-light bg-bg-secondary p-3">
+                <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                  Plan Controls
+                </p>
+                <div className="mt-2 space-y-2">
+                  <Button size="sm" className="w-full" onClick={onRegenerate}>
+                    Regenerate with Changes
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" className="w-full" onClick={onEditInputs}>
+                      Edit Inputs
+                    </Button>
+                    <Button size="sm" variant="ghost" className="w-full" onClick={onStartNewPlan}>
+                      Start New Plan
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="mt-4 flex flex-col gap-2">
-                <Button size="sm" onClick={onExportPlan}>
-                  Export Plan
-                </Button>
-                <Button size="sm" variant="secondary" onClick={onDownloadPdf}>
-                  Download PDF
-                </Button>
-                <Button size="sm" variant="outline" onClick={onSavePlan}>
-                  Save Plan
-                </Button>
+              <div className="mt-4 rounded-lg border border-border-light bg-bg-secondary p-3">
+                <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                  Export
+                </p>
+                <div className="mt-2 flex flex-col gap-2">
+                  <Button size="sm" className="w-full" onClick={onExportPlan}>
+                    Export Plan
+                  </Button>
+                  <Button size="sm" variant="secondary" className="w-full" onClick={onDownloadPdf}>
+                    Download PDF
+                  </Button>
+                  <Button size="sm" variant="outline" className="w-full" onClick={onSavePlan}>
+                    Save Plan
+                  </Button>
+                </div>
               </div>
             </SectionCard>
           </div>
