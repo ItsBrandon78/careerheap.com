@@ -1726,9 +1726,12 @@ export default function CareerSwitchPlannerPage({
   const { user, plan } = useAuth()
   const plannerV3Enabled = useMemo(() => {
     const raw = process.env.NEXT_PUBLIC_PLANNER_V3_ENABLED?.trim().toLowerCase()
-    if (raw === '1' || raw === 'true' || raw === 'yes') return true
-    if (raw === '0' || raw === 'false' || raw === 'no') return false
-    return process.env.NODE_ENV !== 'production'
+    if (raw === '0' || raw === 'false' || raw === 'no') {
+      console.info(
+        'Career Switch Planner V3 is now always enabled; NEXT_PUBLIC_PLANNER_V3_ENABLED override is ignored.'
+      )
+    }
+    return true
   }, [])
 
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
