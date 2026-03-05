@@ -81,6 +81,26 @@ function SectionCard({
   return <Card className={`p-5 ${className}`}>{children}</Card>;
 }
 
+const ROADMAP_TIMEBANDS = [
+  {
+    title: '0-30 Days',
+    summary: '15 outreach messages'
+  },
+  {
+    title: '30-90 Days',
+    summary: '10 targeted applications'
+  },
+  {
+    title: '3-12 Months',
+    summary: '1 formal pathway commitment'
+  }
+] as const;
+
+function normalizeRoadmapActions(items: string[]) {
+  if (items.length === 0) return ['No detailed actions captured yet.'];
+  return items.slice(0, 4);
+}
+
 function ChecklistCol({
   title,
   items,
@@ -345,97 +365,81 @@ export function PlannerDashboardV3({
             </div>
           </SectionCard>
 
-          <SectionCard className="bg-surface">
+          <SectionCard className="bg-surface p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-secondary">
+              <p className="text-xs font-semibold uppercase tracking-[1.2px] text-text-secondary">
                 4. Roadmap and Milestone Tracking (Expandable)
               </p>
               <Badge variant="info">Contextual Detail</Badge>
             </div>
-            <div className="mt-4 space-y-3">
-              {model.roadmap.phases.map((phase) => (
-                <details
-                  key={phase.id}
-                  open={phase.expandedByDefault}
-                  className="rounded-lg border border-accent/25 bg-bg-secondary p-4"
-                >
-                  <summary className="cursor-pointer list-none text-sm font-semibold text-accent">
+            <div className="mt-4 space-y-4">
+              {model.roadmap.phases.slice(0, 3).map((phase, index) => {
+                const timeband = ROADMAP_TIMEBANDS[index];
+                const phaseStatus = index === 1 ? 'Expanded' : 'Quick view';
+                return (
+                  <article
+                    key={phase.id}
+                    className="rounded-lg border border-accent/30 bg-accent-light/30 px-3.5 py-3"
+                  >
                     <div className="flex items-center justify-between gap-2">
-                      <span>{phase.title}</span>
-                      <span className="text-xs text-text-tertiary">
-                        {phase.expandedByDefault ? 'Expanded' : 'Quick view'}
-                      </span>
-                    </div>
-                  </summary>
-                  <p className="mt-2 text-sm text-text-secondary">{phase.summary}</p>
-                  <div className="mt-3 grid gap-3 md:grid-cols-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        Detailed actions
+                      <p className="text-sm font-bold text-accent">
+                        {timeband?.title ?? phase.title}
                       </p>
-                      <ul className="mt-2 space-y-1.5 text-sm text-text-secondary">
-                        {phase.actions.map((item) => (
-                          <li key={item}>- {item}</li>
-                        ))}
-                      </ul>
+                      <p className="text-xs font-semibold text-text-tertiary">{phaseStatus}</p>
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        Resources
-                      </p>
-                      <ul className="mt-2 space-y-1.5 text-sm text-text-secondary">
-                        {phase.resources.map((item) => (
-                          <li key={item.label}>- {item.label}</li>
-                        ))}
-                      </ul>
+                    <p className="mt-2 text-xs font-semibold text-text-secondary">
+                      {timeband?.summary ?? phase.summary}
+                    </p>
+                    <div className="mt-4 grid gap-5 md:grid-cols-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-text-tertiary">
+                          Detailed actions
+                        </p>
+                        <ul className="mt-2 space-y-1.5 text-xs font-semibold leading-[1.7] text-text-secondary">
+                          {normalizeRoadmapActions(phase.actions).map((item) => (
+                            <li key={`${phase.id}-action-${item}`} className="break-words">
+                              - {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-text-tertiary">
+                          Resources
+                        </p>
+                        <ul className="mt-2 space-y-1.5 text-xs font-semibold leading-[1.7] text-text-secondary">
+                          {(phase.resources.length > 0
+                            ? phase.resources
+                            : [{ label: 'CareerHeap guidance notes' }]
+                          ).map((item) => (
+                            <li key={`${phase.id}-resource-${item.label}`} className="break-words">
+                              - {item.label}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[1.4px] text-text-tertiary">
+                          Links
+                        </p>
+                        <ul className="mt-2 space-y-1.5 text-xs font-semibold leading-[1.7] text-accent">
+                          {phase.links.map((item) => (
+                            <li key={`${phase.id}-link-${item.url}`} className="break-words">
+                              <a href={item.url} target="_blank" rel="noreferrer">
+                                {item.label}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        Links
-                      </p>
-                      <ul className="mt-2 space-y-1.5 text-sm text-accent">
-                        {phase.links.map((item) => (
-                          <li key={item.url}>
-                            <a href={item.url} target="_blank" rel="noreferrer">
-                              {item.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </details>
-              ))}
+                  </article>
+                );
+              })}
             </div>
-            <p className="mt-3 text-sm text-text-secondary">
+            <p className="mt-4 text-sm font-medium text-text-secondary">
               Click a phase to expand details only when you need them.
             </p>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <div className="rounded-lg border border-accent/25 bg-accent-light p-3">
-                <p className="text-sm font-semibold text-accent">Now</p>
-                <ul className="mt-2 space-y-1 text-xs font-semibold text-text-secondary">
-                  {model.checklist.immediate.map((item) => (
-                    <li key={`roadmap-now-${item}`}>[ ] {item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border border-border-light bg-bg-secondary p-3">
-                <p className="text-sm font-semibold text-text-primary">Next</p>
-                <ul className="mt-2 space-y-1 text-xs font-semibold text-text-secondary">
-                  {model.checklist.shortTerm.map((item) => (
-                    <li key={`roadmap-next-${item}`}>[ ] {item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border border-error/25 bg-error-light p-3">
-                <p className="text-sm font-semibold text-error">Blocked</p>
-                <ul className="mt-2 space-y-1 text-xs font-semibold text-text-secondary">
-                  {model.checklist.longTerm.map((item) => (
-                    <li key={`roadmap-blocked-${item}`}>[ ] {item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
           </SectionCard>
 
           {isGuestPreview ? (
