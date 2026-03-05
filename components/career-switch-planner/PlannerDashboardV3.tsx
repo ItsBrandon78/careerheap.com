@@ -133,49 +133,6 @@ export function PlannerDashboardV3({
 }: PlannerDashboardV3Props) {
   return (
     <div className="space-y-5 rounded-xl bg-bg-secondary p-4 md:p-5">
-      <SectionCard className="p-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
-                Current: {model.summaryBar.currentRole}
-              </span>
-              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
-                Target: {model.summaryBar.targetRole}
-              </span>
-              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
-                Location: {model.summaryBar.location}
-              </span>
-              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
-                Timeline: {model.summaryBar.timeline}
-              </span>
-              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
-                Skills: {model.summaryBar.skillsCount} skills
-              </span>
-            </div>
-            <p className="text-xs text-text-tertiary">
-              Last updated: {model.summaryBar.lastUpdated}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={onEditInputs}>
-              Edit Inputs
-            </Button>
-            <Button size="sm" onClick={onRegenerate}>
-              Regenerate with Changes
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onStartNewPlan}>
-              Start New Plan
-            </Button>
-          </div>
-        </div>
-        {hasDraftChanges ? (
-          <div className="mt-4 rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
-            This report is from previous inputs.
-          </div>
-        ) : null}
-      </SectionCard>
-
       <div className="rounded-xl border border-border bg-surface px-4 py-3 shadow-card">
         <div className="grid gap-2 md:grid-cols-5">
           <div className="min-w-0">
@@ -217,6 +174,51 @@ export function PlannerDashboardV3({
             <p className="mt-1 text-sm font-bold text-accent">{model.summaryStrip.dataFreshness}</p>
           </div>
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
+                Current: {model.summaryBar.currentRole}
+              </span>
+              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
+                Target: {model.summaryBar.targetRole}
+              </span>
+              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
+                Location: {model.summaryBar.location}
+              </span>
+              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
+                Timeline: {model.summaryBar.timeline}
+              </span>
+              <span className="rounded-pill border border-border px-3 py-1 text-text-secondary">
+                Skills: {model.summaryBar.skillsCount} skills
+              </span>
+            </div>
+            <p className="text-xs text-text-tertiary">
+              Last updated: {model.summaryBar.lastUpdated}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={onEditInputs}>
+              Edit Inputs
+            </Button>
+            <Button size="sm" onClick={onRegenerate}>
+              Regenerate with Changes
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onStartNewPlan}>
+              Start New Plan
+            </Button>
+          </div>
+        </div>
+
+        {hasDraftChanges ? (
+          <div className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
+            This report is from previous inputs.
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
