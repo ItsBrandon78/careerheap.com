@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import Badge from '@/components/Badge'
@@ -28,6 +28,8 @@ import {
   Toggle,
   ToolHero
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
+import PlannerIntakeWizard from '@/components/career-switch-planner/PlannerIntakeWizard'
+import PlannerDashboardV3 from '@/components/career-switch-planner/PlannerDashboardV3'
 import {
   careerSwitchFaqs,
   careerSwitchMoreTools
@@ -50,6 +52,7 @@ import {
   toPlannerResultView,
   type PlannerResultView
 } from '@/lib/planner/types'
+import { buildPlannerDashboardV3Model, type PlannerViewMode } from '@/lib/planner/v3Dashboard'
 import {
   dedupeBullets as sharedDedupeBullets,
   excludeExistingBullets,
@@ -706,6 +709,7 @@ type PlannerReportPayload = {
     experienceLevelBucket: string
     cacheHit: boolean
   }
+  previewLimited?: boolean
   marketEvidence?: {
     enabled: boolean
     used: boolean
@@ -731,6 +735,10 @@ type PlannerReportPayload = {
     inputsUsed: string[]
     datasetsUsed: string[]
     fxRateUsed: string | null
+  }
+  v3Diagnostics?: {
+    missingFields: string[]
+    generatedAt: string
   }
   careerPathwayProfile?: {
     meta: {
@@ -952,7 +960,7 @@ function RoleNormalizationCard({
         <p className="text-sm text-text-secondary">You entered: {resolution.input || 'Not provided'}</p>
         <div className="flex flex-wrap items-center gap-2 text-sm text-text-primary">
           <span>
-            Resolved to:{' '}
+            Standardized as:{' '}
             <span className="font-semibold text-text-primary">
               {matched?.title || 'Not resolved'}
             </span>
@@ -1716,8 +1724,18 @@ export default function CareerSwitchPlannerPage({
   const searchParams = useSearchParams()
   const { getUsage } = useToolUsage()
   const { user, plan } = useAuth()
+  const plannerV3Enabled = useMemo(() => {
+    const raw = process.env.NEXT_PUBLIC_PLANNER_V3_ENABLED?.trim().toLowerCase()
+    if (raw === '1' || raw === 'true' || raw === 'yes') return true
+    if (raw === '0' || raw === 'false' || raw === 'no') return false
+    return process.env.NODE_ENV !== 'production'
+  }, [])
 
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
+  const [viewMode, setViewMode] = useState<PlannerViewMode>('intake')
+  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false)
+  const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null)
+  const [isGuestPreview, setIsGuestPreview] = useState(false)
   const [activeWizardStep, setActiveWizardStep] = useState<WizardStep>(0)
   const [activeRoadmapTab, setActiveRoadmapTab] = useState<RoadmapTabKey>('0-30')
   const [loadingStageIndex, setLoadingStageIndex] = useState(0)
@@ -2327,11 +2345,6 @@ export default function CareerSwitchPlannerPage({
       return
     }
 
-    if (!user) {
-      setInputError('Sign in to generate and save your plan.')
-      return
-    }
-
     if (!hasDraftMinimumInput) {
       setActiveWizardStep(1)
       setInputError('Add a current role, an experience summary, or at least 3 skills to continue.')
@@ -2435,6 +2448,7 @@ export default function CareerSwitchPlannerPage({
             recommendedRoles?: CareerSwitchPlannerResult['recommendedRoles']
             report?: PlannerReportPayload
             usage?: ToolUsageResult
+            previewLimited?: boolean
             error?: string
             role?: 'current' | 'target'
             input?: string
@@ -2453,12 +2467,6 @@ export default function CareerSwitchPlannerPage({
         if (data.usage) {
           setUsage(data.usage)
         }
-        setPlannerState('idle')
-        return
-      }
-
-      if (response.status === 401 && data?.error === 'AUTH_REQUIRED') {
-        setInputError(data.message || 'Sign in required before generating a plan.')
         setPlannerState('idle')
         return
       }
@@ -2528,6 +2536,7 @@ export default function CareerSwitchPlannerPage({
 
       setPlannerResult(toPlannerResultView(plannerResultPayload))
       setPlannerReport(data?.report ?? null)
+      setIsGuestPreview(Boolean(data?.previewLimited || data?.report?.previewLimited || !user))
       setRoleSelectionPrompt(null)
       setEarningsView('base')
       const resolvedCurrentRole =
@@ -2551,6 +2560,11 @@ export default function CareerSwitchPlannerPage({
       })
       setLastSubmittedDraftSignature(draftSignature)
       setPlannerState('results')
+      setLastGeneratedAt(new Date().toISOString())
+      if (plannerV3Enabled) {
+        setViewMode('dashboard')
+        setIsEditDrawerOpen(false)
+      }
       if (data?.usage) {
         setUsage(data.usage)
       }
@@ -2589,7 +2603,11 @@ export default function CareerSwitchPlannerPage({
     setInputError('')
     setPlannerResult(null)
     setPlannerReport(null)
+    setIsGuestPreview(false)
     setPlannerState('idle')
+    setViewMode('intake')
+    setIsEditDrawerOpen(false)
+    setLastGeneratedAt(null)
     setActiveWizardStep(0)
     setActiveRoadmapTab('0-30')
     setOutreachToolkitOpen(false)
@@ -2693,6 +2711,50 @@ export default function CareerSwitchPlannerPage({
       recommendMode: false,
       targetRoleText: nextTargetRole,
       targetRoleOccupationId: null
+    })
+  }
+
+  const handleResolveRoleSelection = (selection: {
+    role: 'current' | 'target'
+    occupationId: string
+    title: string
+    confidence: number
+    stage?: string | null
+    specialization?: string | null
+  }) => {
+    const override =
+      selection.role === 'current'
+        ? {
+            currentRoleText: selection.title,
+            currentRoleOccupationId: selection.occupationId
+          }
+        : {
+            targetRoleText: selection.title,
+            targetRoleOccupationId: selection.occupationId
+          }
+    if (selection.role === 'current') {
+      setCurrentRoleText(selection.title)
+      setCurrentRoleSelectedMatch({
+        occupationId: selection.occupationId,
+        title: selection.title,
+        confidence: selection.confidence,
+        matchedBy: 'manual_selection'
+      })
+    } else {
+      setTargetRoleText(selection.title)
+      setTargetRoleSelectedMatch({
+        occupationId: selection.occupationId,
+        title: selection.title,
+        confidence: selection.confidence,
+        matchedBy: 'manual_selection'
+      })
+    }
+    setRoleSelectionPrompt(null)
+    setInputError('')
+    setActiveWizardStep(0)
+    void handleGeneratePlan({
+      ...override,
+      recommendMode: false
     })
   }
 
@@ -3077,7 +3139,38 @@ export default function CareerSwitchPlannerPage({
       : hasPlannerResults
         ? 'Generate Again'
         : 'Generate My Data-Backed Plan'
-    : 'Sign In to Generate'
+    : hasPlannerResults
+      ? 'Regenerate Preview'
+      : 'Generate Preview'
+  const v3DashboardModel = useMemo(
+    () =>
+      buildPlannerDashboardV3Model({
+        report: plannerReport,
+        plannerResult,
+        currentRole: heroCurrentRoleLabel,
+        targetRole: heroTargetRoleLabel,
+        locationText,
+        timelineBucket,
+        skillsCount: skills.length,
+        lastGeneratedAt
+      }),
+    [
+      plannerReport,
+      plannerResult,
+      heroCurrentRoleLabel,
+      heroTargetRoleLabel,
+      locationText,
+      timelineBucket,
+      skills.length,
+      lastGeneratedAt
+    ]
+  )
+  useEffect(() => {
+    if (!plannerV3Enabled || v3DashboardModel.missingFields.length === 0) return
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[career-switch-planner] missing_v3_fields', v3DashboardModel.missingFields)
+    }
+  }, [plannerV3Enabled, v3DashboardModel.missingFields])
   const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
     .map((dataset) => FRIENDLY_DATASET_NAMES[dataset] ?? dataset.replaceAll('_', ' '))
   const wageSourceDateSummary = Array.from(
@@ -3189,6 +3282,299 @@ export default function CareerSwitchPlannerPage({
     setCallToolkitDraft(generatedCallToolkitText)
     setEmailToolkitDraft(generatedEmailToolkitText)
   }, [generatedResumeToolkitText, generatedCallToolkitText, generatedEmailToolkitText])
+
+  const handleDownloadOutreachTemplate = () => {
+    const payload = [
+      'Career Switch Planner Outreach Toolkit',
+      '',
+      'Resume prompt:',
+      resumeToolkitDraft || '-',
+      '',
+      'Email template:',
+      emailToolkitDraft || '-',
+      '',
+      'Call script:',
+      callToolkitDraft || '-'
+    ].join('\n')
+
+    const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'career-switch-planner-toolkit.txt'
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleSavePlanSnapshot = () => {
+    try {
+      window.localStorage.setItem(
+        'career-switch-planner-v3-last-plan',
+        JSON.stringify({
+          generatedAt: lastGeneratedAt,
+          currentRole: heroCurrentRoleLabel,
+          targetRole: heroTargetRoleLabel,
+          locationText,
+          timelineBucket
+        })
+      )
+    } catch {
+      // ignore storage failures
+    }
+  }
+
+  const intakeWizardProps = {
+    activeWizardStep,
+    wizardSteps: WIZARD_STEPS,
+    roleAutocompleteRegion,
+    currentRoleText,
+    targetRoleText,
+    showSuggestedTargets,
+    assistiveSuggestedTargets,
+    suggestedSkillSuggestions: FALLBACK_SKILL_SUGGESTIONS,
+    skills,
+    experienceText,
+    educationLevel,
+    workRegion,
+    timelineBucket,
+    incomeTarget,
+    locationText,
+    userPostingText,
+    useMarketEvidence,
+    marketEvidenceAvailable,
+    isProUser,
+    ocrBadge: {
+      variant: ocrBadge.variant,
+      label: ocrBadge.label,
+      detail: ocrBadge.detail
+    },
+    uploadState,
+    uploadProgress,
+    uploadWarning,
+    uploadError,
+    uploadStats,
+    detectedSections,
+    pendingResumeSkills,
+    pendingResumeCertifications,
+    pendingResumeRoleCandidate,
+    resumeReviewExpanded,
+    hasPendingResumeReview,
+    hasMinimumRequiredInput,
+    hasDraftChanges,
+    hasAnyDraftInput,
+    inputError,
+    roleSelectionPrompt,
+    canGoBackWizard,
+    canGoNextWizard,
+    plannerState,
+    generateButtonLabel,
+    workRegionOptions: WORK_REGION_OPTIONS,
+    timelineOptions: TIMELINE_OPTIONS,
+    educationOptions: EDUCATION_OPTIONS,
+    incomeTargetOptions: INCOME_TARGET_OPTIONS,
+    onSetActiveWizardStep: setActiveWizardStep,
+    onCurrentRoleInputChange: handleCurrentRoleInputChange,
+    onTargetRoleInputChange: handleTargetRoleInputChange,
+    onCurrentRoleSuggestionSelect: (suggestion: {
+      occupationId: string
+      title: string
+      confidence?: number
+      matchedBy?: string
+    }) => {
+      setRoleSelectionPrompt(null)
+      setCurrentRoleText(suggestion.title)
+      setCurrentRoleSelectedMatch({
+        occupationId: suggestion.occupationId,
+        title: suggestion.title,
+        confidence: suggestion.confidence ?? 0,
+        matchedBy: suggestion.matchedBy ?? 'fallback'
+      })
+      advanceWizardAfterRoleSelection(suggestion.title, targetRoleText)
+    },
+    onTargetRoleSuggestionSelect: (suggestion: {
+      occupationId: string
+      title: string
+      confidence?: number
+      matchedBy?: string
+    }) => {
+      setRoleSelectionPrompt(null)
+      setTargetRoleText(suggestion.title)
+      setTargetRoleSelectedMatch({
+        occupationId: suggestion.occupationId,
+        title: suggestion.title,
+        confidence: suggestion.confidence ?? 0,
+        matchedBy: suggestion.matchedBy ?? 'fallback'
+      })
+      advanceWizardAfterRoleSelection(currentRoleText, suggestion.title)
+    },
+    onToggleSuggestedTargets: () => setShowSuggestedTargets((previous) => !previous),
+    onShuffleSuggestedTargets: () => setSuggestedTargetShuffle((previous) => previous + 1),
+    onSelectSuggestedTarget: (title: string) =>
+      void handlePlanRecommendedRole(title, {
+        autoGenerate: false,
+        nextStep: currentRoleText.trim() ? 1 : 0
+      }),
+    onSkillsChange: setSkills,
+    onExperienceTextChange: setExperienceText,
+    onParseFile: (file: File | null) => {
+      if (!file) return
+      void parseFile(file)
+    },
+    onApplyDetectedResumeData: applyDetectedResumeData,
+    onDismissDetectedResumeData: dismissDetectedResumeData,
+    onSetResumeReviewExpanded: setResumeReviewExpanded,
+    onRemovePendingResumeSkill: (value: string) =>
+      setPendingResumeSkills((previous) => previous.filter((item) => item !== value)),
+    onRemovePendingResumeCertification: (value: string) =>
+      setPendingResumeCertifications((previous) => previous.filter((item) => item !== value)),
+    onSetEducationLevel: setEducationLevel,
+    onSetWorkRegion: setWorkRegion,
+    onSetTimelineBucket: setTimelineBucket,
+    onSetIncomeTarget: setIncomeTarget,
+    onSetLocationText: (value: string) => {
+      setLocationTouched(true)
+      setLocationText(value)
+    },
+    onSetUseMarketEvidence: setUseMarketEvidence,
+    onSetUserPostingText: setUserPostingText,
+    onResolveRoleSelection: handleResolveRoleSelection,
+    onBack: () => setActiveWizardStep((previous) => Math.max(0, previous - 1) as WizardStep),
+    onNext: () =>
+      setActiveWizardStep((previous) =>
+        Math.min(WIZARD_STEPS.length - 1, previous + 1) as WizardStep
+      ),
+    onStartNewPlan: handleStartNewPlan,
+    onGenerate: () => void handleGeneratePlan()
+  } satisfies ComponentProps<typeof PlannerIntakeWizard>
+
+  if (plannerV3Enabled) {
+    const showDashboard = plannerState !== 'loading' && viewMode === 'dashboard' && hasPlannerResults
+    const useWidePlannerShell = plannerState === 'loading' || showDashboard
+
+    return (
+      <>
+        <ToolHero className="print-hidden pb-12 pt-16">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Badge className="gap-1.5">{usageLabel(usage, previewLocked, plan)}</Badge>
+            <Badge className="gap-1.5">Province-aware</Badge>
+            <Badge className="gap-1.5">Resume Upload (Pro)</Badge>
+          </div>
+          <h1 className="max-w-[760px] text-[40px] font-bold leading-tight text-text-primary md:text-[48px]">
+            Career Switch Planner
+          </h1>
+          <p className="max-w-[720px] text-base leading-[1.7] text-text-secondary md:text-lg">
+            Build a structured Canadian transition roadmap with clearer timelines, province-aware context, and practical weekly next steps.
+          </p>
+        </ToolHero>
+
+        <section
+          className={`px-4 pb-16 pt-8 ${useWidePlannerShell ? 'lg:px-[170px]' : 'lg:px-[340px]'}`}
+        >
+          <div className={`mx-auto w-full ${useWidePlannerShell ? 'max-w-content' : 'max-w-tool'}`}>
+            {plannerState === 'loading' ? (
+              <Card className="planner-animate-in p-5" aria-live="polite">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Building your transition report
+                    </p>
+                    <h3 className="mt-2 text-lg font-bold text-text-primary">We are assembling the plan in stages</h3>
+                    <p className="mt-2 max-w-[56ch] text-sm leading-[1.7] text-text-secondary">
+                      Matching, scoring, and roadmap generation run in sequence so the report lands in one clean pass.
+                    </p>
+                  </div>
+                  <Badge variant="default">
+                    {Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length)} / {PLANNER_LOADING_STAGES.length}
+                  </Badge>
+                </div>
+                <div className="mt-5 h-2 rounded-pill bg-surface">
+                  <div
+                    className="h-full rounded-pill bg-accent transition-all duration-300"
+                    style={{
+                      width: `${(Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length) / PLANNER_LOADING_STAGES.length) * 100}%`
+                    }}
+                  />
+                </div>
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  {PLANNER_LOADING_STAGES.map((stage, index) => {
+                    const isComplete = index < loadingStageIndex
+                    const isActive = index === loadingStageIndex
+
+                    return (
+                      <div
+                        key={stage}
+                        className={`rounded-xl border p-4 transition-colors ${
+                          isActive
+                            ? 'border-accent bg-surface'
+                            : isComplete
+                              ? 'border-success/20 bg-success/10'
+                              : 'border-border-light bg-bg-secondary'
+                        }`}
+                      >
+                        <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Step {index + 1}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-text-primary">{stage}</p>
+                        <p className="mt-2 text-xs text-text-secondary">
+                          {isActive ? 'In progress now.' : isComplete ? 'Completed.' : 'Queued next.'}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Card>
+            ) : showDashboard ? (
+              <PlannerDashboardV3
+                model={v3DashboardModel}
+                hasDraftChanges={hasDraftChanges}
+                isGuestPreview={isGuestPreview}
+                faqItems={careerSwitchFaqs}
+                relatedTools={careerSwitchMoreTools}
+                resumeToolkitDraft={resumeToolkitDraft}
+                emailToolkitDraft={emailToolkitDraft}
+                onEditInputs={() => setIsEditDrawerOpen(true)}
+                onRegenerate={() => void handleGeneratePlan()}
+                onStartNewPlan={handleStartNewPlan}
+                onSelectAlternativeRole={(title) =>
+                  void handlePlanRecommendedRole(title, { autoGenerate: true, nextStep: 2 })
+                }
+                onCopyEmail={() => void handleCopyToolkitSection('email', emailToolkitDraft)}
+                onCopyResumePrompt={() =>
+                  void handleCopyToolkitSection('resume', resumeToolkitDraft)
+                }
+                onDownloadTemplate={handleDownloadOutreachTemplate}
+                onExportPlan={handlePrintReport}
+                onDownloadPdf={handlePrintReport}
+                onSavePlan={handleSavePlanSnapshot}
+              />
+            ) : (
+              <PlannerIntakeWizard {...intakeWizardProps} />
+            )}
+          </div>
+        </section>
+
+        {showDashboard && isEditDrawerOpen ? (
+          <div className="fixed inset-0 z-50">
+            <button
+              type="button"
+              aria-label="Close input editor"
+              className="absolute inset-0 bg-primary/35"
+              onClick={() => setIsEditDrawerOpen(false)}
+            />
+            <div className="absolute right-0 top-0 h-full w-full max-w-[920px] overflow-y-auto border-l border-border-light bg-surface p-4 shadow-panel">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm font-semibold text-text-primary">Edit Inputs</p>
+                <Button variant="ghost" size="sm" onClick={() => setIsEditDrawerOpen(false)}>
+                  Close
+                </Button>
+              </div>
+              <PlannerIntakeWizard {...intakeWizardProps} />
+            </div>
+          </div>
+        ) : null}
+      </>
+    )
+  }
 
   return (
     <>
@@ -3366,8 +3752,8 @@ export default function CareerSwitchPlannerPage({
                       skills={skills}
                       suggestions={FALLBACK_SKILL_SUGGESTIONS}
                       suggestionEndpoint="/api/career-map/skills"
-                      placeholder="Start typing (e.g., stakeholder management, electrical safety)"
-                      helperText="Autocomplete uses matched skills from our dataset. Custom skills are allowed."
+                      placeholder="Type skills or paste from your resume (comma or line separated)."
+                      helperText="Type to search from our skills dataset, or paste skills/resume text. Custom skills are allowed."
                       onChange={setSkills}
                     />
 
@@ -3711,7 +4097,6 @@ export default function CareerSwitchPlannerPage({
                 disabled={
                   isUsageLoading ||
                   plannerState === 'loading' ||
-                  !user ||
                   Boolean(roleSelectionPrompt) ||
                   !hasMinimumRequiredInput ||
                   !locationText.trim() ||
@@ -3769,7 +4154,7 @@ export default function CareerSwitchPlannerPage({
 
           {!user ? (
             <p className="mt-2 text-[13px] text-text-secondary">
-              Sign in to run this tool.{' '}
+              Guest mode shows a limited preview. Sign in to unlock the full report.{' '}
               <Link href="/login" className="text-accent hover:text-accent-hover">
                 Go to login
               </Link>

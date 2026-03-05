@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ClipboardEvent,
   type ChangeEvent,
   type ComponentProps,
   type ReactNode
@@ -22,6 +23,12 @@ import type {
   PlannerResumeReframe
 } from '@/lib/planner/types'
 import { scoreToLabel } from '@/lib/planner/roleNormalization'
+import {
+  buildSkillIndex,
+  extractSkillsFromPastedText,
+  normalizeSkill,
+  normalizeSkillKey
+} from '@/lib/planner/skillsPaste'
 
 type ToolTab = 'paste' | 'upload'
 
@@ -263,10 +270,21 @@ export function SkillsChipsInput({
   const [isOpen, setIsOpen] = useState(false)
   const [remoteSuggestions, setRemoteSuggestions] = useState<string[]>([])
   const [isRemoteLoading, setIsRemoteLoading] = useState(false)
+  const [pendingPasteCandidates, setPendingPasteCandidates] = useState<string[]>([])
+  const [selectedPasteCandidates, setSelectedPasteCandidates] = useState<string[]>([])
+  const [isPasteReviewOpen, setIsPasteReviewOpen] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const normalizedSkills = useMemo(() => new Set(skills.map((skill) => skill.toLowerCase())), [skills])
+  const normalizedSkills = useMemo(
+    () => new Set(skills.map((skill) => normalizeSkillKey(skill)).filter(Boolean)),
+    [skills]
+  )
+  const skillIndex = useMemo(
+    () => buildSkillIndex([...suggestions, ...remoteSuggestions]),
+    [suggestions, remoteSuggestions]
+  )
   const normalizedQuery = query.trim().toLowerCase()
+  const normalizedQueryKey = normalizeSkillKey(query)
   const shouldSearchRemote = Boolean(suggestionEndpoint && normalizedQuery.length >= 2)
 
   const localSuggestions = useMemo(
@@ -275,7 +293,7 @@ export function SkillsChipsInput({
         .filter((skill) => {
           const normalized = skill.toLowerCase()
           if (!normalized.includes(normalizedQuery)) return false
-          return !normalizedSkills.has(normalized)
+          return !normalizedSkills.has(normalizeSkillKey(skill))
         })
         .slice(0, 6),
     [normalizedQuery, normalizedSkills, suggestions]
@@ -339,9 +357,9 @@ export function SkillsChipsInput({
     for (const value of merged) {
       const trimmed = value.trim()
       if (!trimmed) continue
-      const key = trimmed.toLowerCase()
+      const key = normalizeSkillKey(trimmed)
       if (normalizedSkills.has(key) || seen.has(key)) continue
-      if (!key.includes(normalizedQuery)) continue
+      if (!trimmed.toLowerCase().includes(normalizedQuery)) continue
       seen.add(key)
       output.push(trimmed)
       if (output.length >= 8) break
@@ -352,8 +370,9 @@ export function SkillsChipsInput({
 
   const canUseCustom =
     normalizedQuery.length > 1 &&
-    !normalizedSkills.has(normalizedQuery) &&
-    !filteredSuggestions.some((suggestion) => suggestion.toLowerCase() === normalizedQuery)
+    Boolean(normalizedQueryKey) &&
+    !normalizedSkills.has(normalizedQueryKey) &&
+    !filteredSuggestions.some((suggestion) => normalizeSkillKey(suggestion) === normalizedQueryKey)
 
   useEffect(() => {
     return () => {
@@ -363,21 +382,72 @@ export function SkillsChipsInput({
     }
   }, [])
 
-  const addSkill = (value: string) => {
-    const next = value.trim()
-    if (!next) return
-    if (normalizedSkills.has(next.toLowerCase())) {
-      setQuery('')
-      setIsOpen(false)
-      return
+  const addSkills = (values: string[]) => {
+    if (values.length === 0) return
+    const nextByKey = new Map<string, string>()
+
+    for (const existing of skills) {
+      const key = normalizeSkillKey(existing)
+      if (!key || nextByKey.has(key)) continue
+      nextByKey.set(key, existing)
     }
-    onChange([...skills, next])
+
+    for (const incoming of values) {
+      const cleaned = normalizeSkill(incoming)
+      const key = normalizeSkillKey(cleaned)
+      if (!cleaned || !key || nextByKey.has(key)) continue
+      nextByKey.set(key, cleaned)
+    }
+
+    onChange(Array.from(nextByKey.values()))
     setQuery('')
     setIsOpen(false)
   }
 
+  const addSkill = (value: string) => {
+    addSkills([value])
+  }
+
   const removeSkill = (value: string) => {
     onChange(skills.filter((skill) => skill !== value))
+  }
+
+  const clearPasteReview = () => {
+    setPendingPasteCandidates([])
+    setSelectedPasteCandidates([])
+    setIsPasteReviewOpen(false)
+  }
+
+  const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
+    const text = event.clipboardData.getData('text')
+    if (!text || text.trim().length === 0) return
+
+    event.preventDefault()
+
+    const extracted = extractSkillsFromPastedText({
+      text,
+      skillIndex
+    })
+
+    if (extracted.skills.length === 0) return
+
+    if (extracted.requiresReview) {
+      setPendingPasteCandidates(extracted.skills)
+      setSelectedPasteCandidates(extracted.skills)
+      setIsPasteReviewOpen(false)
+      return
+    }
+
+    addSkills(extracted.skills)
+    clearPasteReview()
+  }
+
+  const togglePasteSelection = (candidate: string) => {
+    setSelectedPasteCandidates((current) =>
+      current.includes(candidate)
+        ? current.filter((value) => value !== candidate)
+        : [...current, candidate]
+    )
   }
 
   return (
@@ -408,6 +478,7 @@ export function SkillsChipsInput({
             type="text"
             value={query}
             placeholder={placeholder}
+            onPaste={handlePaste}
             onFocus={() => setIsOpen(true)}
             onBlur={() => {
               closeTimerRef.current = setTimeout(() => setIsOpen(false), 120)
@@ -470,6 +541,63 @@ export function SkillsChipsInput({
             </div>
           ) : null}
         </div>
+        {pendingPasteCandidates.length > 0 ? (
+          <div className="mt-2 rounded-md border border-accent/20 bg-accent-light px-3 py-2">
+            <p className="text-xs font-semibold text-text-primary">
+              We detected {pendingPasteCandidates.length} skills from pasted text.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  addSkills(pendingPasteCandidates)
+                  clearPasteReview()
+                }}
+              >
+                Add all
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setIsPasteReviewOpen((value) => !value)}>
+                {isPasteReviewOpen ? 'Hide review' : 'Review'}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={clearPasteReview}>
+                Dismiss
+              </Button>
+            </div>
+            {isPasteReviewOpen ? (
+              <div className="mt-2 rounded-md border border-border-light bg-surface p-2">
+                <div className="max-h-40 space-y-1 overflow-y-auto pr-1">
+                  {pendingPasteCandidates.map((candidate) => (
+                    <label
+                      key={`detected-skill-${candidate}`}
+                      className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-text-primary hover:bg-bg-secondary"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedPasteCandidates.includes(candidate)}
+                        onChange={() => togglePasteSelection(candidate)}
+                        className="h-4 w-4 rounded border-border text-accent focus:ring-focus-ring"
+                      />
+                      <span>{candidate}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      addSkills(selectedPasteCandidates)
+                      clearPasteReview()
+                    }}
+                    disabled={selectedPasteCandidates.length === 0}
+                  >
+                    Add selected
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         {skills.length === 0 ? (
           <p className="mt-2 text-xs text-text-tertiary">
             Try: stakeholder management, electrical safety, SQL.

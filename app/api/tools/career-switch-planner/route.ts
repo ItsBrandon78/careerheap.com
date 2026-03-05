@@ -14,6 +14,7 @@ import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/
 import type { CareerSwitchPlannerInput } from '@/lib/planner/types'
 import {
   consumeUsageForSuccessfulRun,
+  getAnonymousUsageSummary,
   getAuthenticatedUserFromRequest,
   getUsageSummaryForUser,
   hashToolInput,
@@ -63,6 +64,8 @@ function normalizeInput(input: Partial<CareerSwitchPlannerInput> & Record<string
   const userPostingText = asString(input.userPostingText)
   const useMarketEvidence =
     typeof input.useMarketEvidence === 'boolean' ? input.useMarketEvidence : true
+  const planVersion = asNullableString(input.planVersion)
+  const inputVersion = asNullableString(input.inputVersion)
 
   const currentRole = currentRoleText || asString(input.currentRole)
   const targetRole = recommendMode ? '' : targetRoleText || asString(input.targetRole)
@@ -90,7 +93,9 @@ function normalizeInput(input: Partial<CareerSwitchPlannerInput> & Record<string
     skills,
     educationLevel,
     workRegion,
-    timelineBucket
+    timelineBucket,
+    planVersion,
+    inputVersion
   }
 }
 
@@ -111,6 +116,49 @@ function regionFromWorkRegion(workRegion: string): 'CA' | 'US' | undefined {
   if (workRegion === 'ca' || workRegion === 'remote-ca') return 'CA'
   if (workRegion === 'us' || workRegion === 'remote-us') return 'US'
   return undefined
+}
+
+function collectV3MissingFields(report: Record<string, unknown> | null) {
+  if (!report) return ['report']
+
+  const missing: string[] = []
+  const asRecord = (value: unknown) =>
+    value && typeof value === 'object' ? (value as Record<string, unknown>) : null
+
+  const transitionMode = asRecord(report.transitionMode)
+  const transitionDifficulty = asRecord(transitionMode?.difficulty)
+  const transitionTimeline = asRecord(transitionMode?.timeline)
+  const transitionRoadmapGuide = asRecord(transitionMode?.roadmapGuide)
+  const transitionSections = asRecord(report.transitionSections)
+  const roadmapPlan = asRecord(transitionSections?.roadmapPlan)
+  const transitionReport = asRecord(report.transitionReport)
+  const transitionPlan = asRecord(transitionReport?.plan30_60_90)
+  const targetRequirements = asRecord(report.targetRequirements)
+  const suggestedCareers = Array.isArray(report.suggestedCareers)
+    ? (report.suggestedCareers as Array<Record<string, unknown>>)
+    : []
+  const firstCareer = suggestedCareers[0]
+  const firstCareerSalary = asRecord(asRecord(firstCareer?.salary)?.native)
+
+  if (typeof transitionDifficulty?.score !== 'number') missing.push('hero.difficulty')
+  if (
+    typeof transitionTimeline?.minMonths !== 'number' ||
+    typeof transitionTimeline?.maxMonths !== 'number'
+  ) {
+    missing.push('hero.timeline')
+  }
+  if (typeof firstCareerSalary?.low !== 'number') missing.push('market.entry_wage')
+  if (typeof firstCareerSalary?.high !== 'number') missing.push('market.top_earners')
+  if (!Array.isArray(targetRequirements?.certifications)) missing.push('training.certifications')
+  if (!Array.isArray(transitionRoadmapGuide?.phases)) missing.push('roadmap.phases')
+  if (
+    !Array.isArray(roadmapPlan?.fastestPathToApply) &&
+    !Array.isArray(transitionPlan?.fastestPathToApply)
+  ) {
+    missing.push('fastest_path.steps')
+  }
+
+  return Array.from(new Set(missing)).sort()
 }
 
 function buildRoleResolutionPayload(inputValue: string, resolution: ResolvedOccupation) {
@@ -234,6 +282,48 @@ function applyFreeTierOutputLimits(report: CareerPlannerAnalysis['report']) {
   return limitedReport
 }
 
+function applyGuestPreviewOutputLimits(report: CareerPlannerAnalysis['report']) {
+  return {
+    ...report,
+    resumeReframe: [],
+    linksResources: [],
+    transitionStructuredPlan: null,
+    transitionPlanScripts: null,
+    transitionPlanCacheMeta: null,
+    executionStrategy: {
+      ...report.executionStrategy,
+      whereYouStandNow: {
+        strengths: [],
+        missingMandatoryRequirements: [],
+        competitiveDisadvantages: []
+      },
+      realBlockers: {
+        requiredToApply: [],
+        requiredToCompete: []
+      },
+      transferableEdge: {
+        translations: []
+      },
+      plan90Day: {
+        ...report.executionStrategy.plan90Day,
+        month1: { ...report.executionStrategy.plan90Day.month1, actions: [] },
+        month2: { ...report.executionStrategy.plan90Day.month2, actions: [] },
+        month3: { ...report.executionStrategy.plan90Day.month3, actions: [] }
+      },
+      probabilityRealityCheck: {
+        difficulty: 'Sign in to unlock',
+        whatIncreasesOdds: [],
+        commonFailureModes: []
+      },
+      behavioralExecution: {
+        minimumWeeklyEffort: 'Sign in to unlock',
+        consistencyLooksLike: [],
+        whatNotToDo: []
+      }
+    }
+  } as CareerPlannerAnalysis['report']
+}
+
 async function persistReport(userId: string, payload: {
   input: ReturnType<typeof normalizeInput>
   score: number
@@ -328,31 +418,30 @@ export async function POST(request: Request) {
     }
 
     const user = await getAuthenticatedUserFromRequest(request)
-    if (!user) {
-      return NextResponse.json(
-        { error: 'AUTH_REQUIRED', message: 'Sign in to generate a career switch plan.' },
-        { status: 401 }
-      )
+    const isGuestPreview = !user
+    if (user) {
+      userIdForFailure = user.id
     }
-    userIdForFailure = user.id
 
     const payload = (await request.json()) as Partial<CareerSwitchPlannerInput> & Record<string, unknown>
     const input = normalizeInput(payload)
     inputHashForFailure = hashToolInput(input)
     const validationError = validateInput(input)
 
-    if (validationError) {
+    if (validationError && user) {
       await recordToolRun({
         userId: user.id,
         toolName: 'career-switch-planner',
         status: 'failed',
         inputHash: inputHashForFailure
       })
+    }
+    if (validationError) {
       return NextResponse.json({ error: 'INVALID_INPUT', message: validationError }, { status: 400 })
     }
 
-    const usageBefore = await getUsageSummaryForUser(user)
-    if (!usageBefore.canUse) {
+    const usageBefore = user ? await getUsageSummaryForUser(user) : getAnonymousUsageSummary()
+    if (user && !usageBefore.canUse) {
       await recordToolRun({
         userId: user.id,
         toolName: 'career-switch-planner',
@@ -433,7 +522,7 @@ export async function POST(request: Request) {
           : targetRoleResolution?.title || input.targetRole || input.targetRoleText
 
     const analysis = await generateCareerMapPlannerAnalysis({
-      userId: user.id,
+      userId: user?.id ?? 'anonymous-preview',
       currentRole: resolvedCurrentRoleTitle || 'Career transition',
       targetRole: resolvedTargetRoleTitle,
       currentOccupationId: currentRoleResolution.occupationId,
@@ -449,13 +538,16 @@ export async function POST(request: Request) {
       useMarketEvidence: input.useMarketEvidence
     })
 
-    const { summary, locked } = await consumeUsageForSuccessfulRun({
-      user,
-      toolName: 'career-switch-planner',
-      inputHash: inputHashForFailure
-    })
+    const usageResult = user
+      ? await consumeUsageForSuccessfulRun({
+          user,
+          toolName: 'career-switch-planner',
+          inputHash: inputHashForFailure
+        })
+      : { summary: getAnonymousUsageSummary(), locked: false as const }
+    const { summary, locked } = usageResult
 
-    if (locked) {
+    if (user && locked) {
       return NextResponse.json(
         {
           error: 'LOCKED',
@@ -466,9 +558,12 @@ export async function POST(request: Request) {
       )
     }
 
-    const finalReport = summary.plan === 'free'
+    const planLimitedReport = summary.plan === 'free'
       ? applyFreeTierOutputLimits(analysis.report)
       : analysis.report
+    const finalReport = isGuestPreview
+      ? applyGuestPreviewOutputLimits(planLimitedReport)
+      : planLimitedReport
     const transitionMode = generateTransitionPlan({
       currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText,
       targetRole: resolvedTargetRoleTitle || input.targetRole || input.targetRoleText,
@@ -508,21 +603,41 @@ export async function POST(request: Request) {
       resolvedTargetRoleTitle ||
       finalReport.suggestedCareers[0]?.title ||
       transitionMode.routes.primary.title
-    const transitionEnhancement = await getCachedOrGenerateTransitionEnhancement({
-      currentRole: input.currentRole || input.currentRoleText || resolvedCurrentRoleTitle || 'Career transition',
-      targetRole: enhancementTargetRole,
-      region: input.workRegion || input.location || 'Canada',
-      location: input.location,
-      experienceText: input.experienceText,
-      transitionMode,
-      report: finalReport
-    })
+    const transitionEnhancement = isGuestPreview
+      ? {
+          plan: null,
+          scripts: null,
+          cacheMeta: null
+        }
+      : await getCachedOrGenerateTransitionEnhancement({
+          currentRole: input.currentRole || input.currentRoleText || resolvedCurrentRoleTitle || 'Career transition',
+          targetRole: enhancementTargetRole,
+          region: input.workRegion || input.location || 'Canada',
+          location: input.location,
+          experienceText: input.experienceText,
+          transitionMode,
+          report: finalReport
+        })
+    const v3MissingFields = collectV3MissingFields({
+      ...finalReport,
+      transitionMode
+    } as Record<string, unknown>)
+    if (v3MissingFields.length > 0) {
+      console.warn('[career-switch-planner] missing_v3_fields', {
+        missing_v3_fields: v3MissingFields
+      })
+    }
     const reportWithResolution = {
       ...finalReport,
       transitionMode,
       transitionStructuredPlan: transitionEnhancement.plan,
       transitionPlanScripts: transitionEnhancement.scripts,
       transitionPlanCacheMeta: transitionEnhancement.cacheMeta,
+      previewLimited: isGuestPreview,
+      v3Diagnostics: {
+        missingFields: v3MissingFields,
+        generatedAt: new Date().toISOString()
+      },
       roleResolution: {
         current: buildRoleResolutionPayload(currentRoleInput, currentRoleResolution),
         target: input.recommendMode
@@ -542,18 +657,21 @@ export async function POST(request: Request) {
         }
       : analysis.legacy
 
-    await persistReport(user.id, {
-      input,
-      score: reportWithResolution.compatibilitySnapshot.score,
-      scoringSnapshot: analysis.scoringSnapshot,
-      report: reportWithResolution
-    })
+    if (user) {
+      await persistReport(user.id, {
+        input,
+        score: reportWithResolution.compatibilitySnapshot.score,
+        scoringSnapshot: analysis.scoringSnapshot,
+        report: reportWithResolution
+      })
+    }
 
     return NextResponse.json({
       ...finalLegacy,
       report: reportWithResolution,
       scoring: analysis.scoringSnapshot,
-      usage: summary
+      usage: summary,
+      previewLimited: isGuestPreview
     })
   } catch (error) {
     console.error('Career switch planner generation error:', error)
