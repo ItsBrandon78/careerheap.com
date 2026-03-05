@@ -348,7 +348,7 @@ export function PlannerIntakeWizard({
             </div>
 
             <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card md:p-5">
-              <div className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr] lg:items-start">
+              <div className="grid gap-5">
                 <div className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-card md:p-5">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
