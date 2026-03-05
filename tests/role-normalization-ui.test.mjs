@@ -51,18 +51,16 @@ test('scoreToLabel maps raw similarity to non-numeric confidence labels', () => 
 })
 
 test('role match UI uses standardized wording and never renders numeric confidence', () => {
-  const roleMatchSection = plannerClientSource.match(
-    /<h3 className="text-base font-bold text-text-primary">Role Match<\/h3>([\s\S]*?)\{plannerReport\?\.marketEvidence/s
+  const roleNormalizationCard = plannerClientSource.match(
+    /function RoleNormalizationCard[\s\S]*?function ReportSection/s
   )
-  assert.ok(roleMatchSection, 'Role Match section not found')
-  const roleMatchMarkup = roleMatchSection[1]
-
+  assert.ok(roleNormalizationCard, 'Role normalization card not found')
+  const roleMatchMarkup = roleNormalizationCard[0]
   assert.match(plannerClientSource, /Standardized as:/)
-  assert.doesNotMatch(roleMatchMarkup, /Matched to:/)
   assert.match(plannerClientSource, /Similar roles:/)
-  assert.doesNotMatch(plannerClientSource, /Closest:/)
-  assert.doesNotMatch(roleMatchMarkup, /Math\.round\(.+confidence/)
-  assert.doesNotMatch(roleMatchMarkup, /%\)/)
+  assert.doesNotMatch(roleMatchMarkup, /Matched to:/)
+  assert.doesNotMatch(roleMatchMarkup, /toFixed\(.+confidence/)
+  assert.doesNotMatch(roleMatchMarkup, /confidenceLabel\} \(\{/)
 })
 
 test('similar roles display is gated by non-Exact confidence', () => {

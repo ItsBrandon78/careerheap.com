@@ -35,9 +35,14 @@ const plannerClientPath = path.resolve(
   __dirname,
   '../app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx'
 )
+const dashboardPath = path.resolve(
+  __dirname,
+  '../components/career-switch-planner/PlannerDashboardV3.tsx'
+)
 
 const plannerSource = readFileSync(plannerPath, 'utf8')
 const plannerClientSource = readFileSync(plannerClientPath, 'utf8')
+const dashboardSource = readFileSync(dashboardPath, 'utf8')
 
 test('planner report includes executionStrategy contract and context wiring', () => {
   assert.match(plannerSource, /executionStrategy:/)
@@ -174,24 +179,17 @@ test('deterministic execution strategy enforces minimum actions and linked requi
   assert.doesNotMatch(json, /improve communication|develop skills|gain experience/i)
 })
 
-test('execution strategy UI is primary in transition mode and avoids percentage render in coaching block', () => {
-  assert.match(plannerClientSource, /Personalized execution strategy/)
-  assert.match(plannerClientSource, /1\) Where You Stand Right Now/)
-  assert.match(plannerClientSource, /2\) Real Blockers \(Entry Requirements\)/)
-  assert.match(plannerClientSource, /3\) Your Transferable Edge/)
-  assert.match(plannerClientSource, /4\) 90-Day Execution Plan/)
-  assert.match(plannerClientSource, /5\) Probability & Reality Check/)
-  assert.match(plannerClientSource, /6\) Behavioral Execution/)
-
-  const coachingBlock = plannerClientSource.match(
-    /Personalized execution strategy([\s\S]*?)\) : transitionReport \?/s
-  )
-  assert.ok(coachingBlock, 'Execution strategy block not found')
-  assert.doesNotMatch(coachingBlock[1], /frequencyPercentLabel|%/)
+test('legacy execution strategy block is removed and V3 dashboard sections are present', () => {
+  assert.match(plannerClientSource, /PlannerDashboardV3/)
+  assert.doesNotMatch(plannerClientSource, /Personalized execution strategy/)
+  assert.match(dashboardSource, /2\. Transition Difficulty Breakdown/)
+  assert.match(dashboardSource, /4\. Career Transition Roadmap/)
+  assert.match(dashboardSource, /5\. Fastest Path Strategy/)
+  assert.match(dashboardSource, /9\. Reality Check/)
+  assert.match(dashboardSource, /10\. Action Checklist/)
 })
 
 test('execution strategy month ordering keeps immediate blockers ahead of long-horizon gates', () => {
   assert.match(plannerSource, /month1RequirementKeys = uniqueStrings\(/)
   assert.match(plannerSource, /filter\(\(item\) => !isLongHorizonCredentialRequirement\(item\)\)/)
 })
-

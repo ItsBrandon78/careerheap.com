@@ -25,14 +25,15 @@ const dashboardSource = readFileSync(dashboardComponentPath, 'utf8')
 const intakeSource = readFileSync(intakeComponentPath, 'utf8')
 
 test('planner client wires V3 mode orchestration and edit drawer', () => {
-  assert.match(plannerClientSource, /NEXT_PUBLIC_PLANNER_V3_ENABLED/)
   assert.match(plannerClientSource, /const \[viewMode, setViewMode\]/)
   assert.match(plannerClientSource, /const \[isEditDrawerOpen, setIsEditDrawerOpen\]/)
   assert.match(plannerClientSource, /PlannerIntakeWizard/)
   assert.match(plannerClientSource, /PlannerDashboardV3/)
   assert.match(plannerClientSource, /setViewMode\('dashboard'\)/)
   assert.match(plannerClientSource, /setViewMode\('intake'\)/)
-  assert.match(plannerClientSource, /if \(plannerV3Enabled\)/)
+  assert.match(plannerClientSource, /const showDashboard = plannerState !== 'loading' && viewMode === 'dashboard' && hasPlannerResults/)
+  assert.doesNotMatch(plannerClientSource, /NEXT_PUBLIC_PLANNER_V3_ENABLED/)
+  assert.doesNotMatch(plannerClientSource, /if \(plannerV3Enabled\)/)
 })
 
 test('dashboard component includes required control actions and stale warning text', () => {
