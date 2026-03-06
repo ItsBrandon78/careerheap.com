@@ -1,12 +1,10 @@
 ﻿'use client'
 
-import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
+import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
-import ToolCard from '@/components/ToolCard'
 import {
   ToolHero
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
@@ -16,12 +14,6 @@ import {
   careerSwitchFaqs,
   careerSwitchMoreTools
 } from '@/lib/planner/content'
-import {
-  findExampleScenarioByIds,
-  pickRandomExampleScenarios,
-  type PlannerExampleScenario,
-  PLANNER_EXAMPLE_SCENARIOS
-} from '@/lib/planner/exampleScenarios'
 import {
   buildPlannerJobRecommendationCards,
   type PlannerJobRecommendationCard,
@@ -36,16 +28,8 @@ import {
 } from '@/lib/planner/types'
 import { buildPlannerDashboardV3Model, type PlannerViewMode } from '@/lib/planner/v3Dashboard'
 import {
-  dedupeBullets as sharedDedupeBullets,
-  excludeExistingBullets,
-  normalizeBulletKey
+  dedupeBullets as sharedDedupeBullets
 } from '@/lib/transition/dedupe'
-import {
-  scoreToLabel,
-  shouldShowSimilarRoles,
-  taxonomySourceLabel,
-  type RoleConfidenceLabel
-} from '@/lib/planner/roleNormalization'
 import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
 import { useAuth } from '@/lib/auth/context'
 import {
@@ -61,29 +45,6 @@ type UploadState = 'idle' | 'parsing' | 'success' | 'error'
 type OcrCapabilityMode = 'native' | 'fallback' | 'unavailable'
 type OcrCapabilityStatus = 'idle' | 'loading' | 'ready' | 'error'
 type WizardStep = 0 | 1 | 2
-type RoadmapTabKey = '0-30' | '30-90' | '3-12'
-type DashboardRoadmapItem = {
-  title: string
-  detail: string
-  bullets: string[]
-}
-type DashboardRoadmapTab = {
-  key: RoadmapTabKey
-  label: string
-  summary: string
-  items: DashboardRoadmapItem[]
-}
-type MissingHiringRequirement = {
-  key: string
-  kind: 'education' | 'credential'
-  title: string
-  detail: string
-  link: { label: string; url: string } | null
-}
-type BlockerFix = {
-  issue: string
-  fix: string
-}
 type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
@@ -756,9 +717,6 @@ type SubmittedPlannerSnapshot = {
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
 const FREE_LIMIT = 3
-const EXAMPLE_CARD_COUNT = 3
-const EXAMPLE_OPTIONS_STORAGE_KEY = 'career-switch-planner-example-options'
-const EXAMPLE_SELECTED_STORAGE_KEY = 'career-switch-planner-selected-example'
 const WIZARD_STEPS: Array<{
   id: WizardStep
   title: string
@@ -785,11 +743,6 @@ const WIZARD_STEPS: Array<{
   }
 ]
 const PLANNER_LOADING_STAGES = ['Parsing profile', 'Matching roles', 'Building plan', 'Finalizing']
-const ROADMAP_TABS: Array<{ key: RoadmapTabKey; label: string; summary: string }> = [
-  { key: '0-30', label: '0-30 Days', summary: 'Immediate traction and first proof.' },
-  { key: '30-90', label: '30-90 Days', summary: 'Stack consistency and market validation.' },
-  { key: '3-12', label: '3-12 Months', summary: 'Compounding proof, leverage, and readiness.' }
-]
 const FALLBACK_SKILL_SUGGESTIONS = [
   'Stakeholder management',
   'Electrical safety',
@@ -839,20 +792,6 @@ const INCOME_TARGET_OPTIONS: Array<{ value: IncomeTargetValue; label: string }> 
   { value: 'Not sure', label: 'Not sure' }
 ]
 
-const FRIENDLY_DATASET_NAMES: Record<string, string> = {
-  occupations: 'Occupation profiles',
-  occupation_skills: 'Skills graph',
-  occupation_requirements: 'Education and requirement profiles',
-  occupation_wages: 'Regional wage data',
-  trade_requirements: 'Official trade requirements',
-  fx_rates: 'FX rates',
-  job_queries: 'Employer query cache',
-  job_postings: 'Employer posting snapshots',
-  job_requirements: 'Employer requirements index',
-  user_posting: 'User-provided posting evidence',
-  onet_baseline: 'Baseline (O*NET)'
-}
-
 const GAP_LABEL_OVERRIDES: Record<string, string> = {
   'active listening': 'Site communication and instruction accuracy',
   speaking: 'Clear verbal communication on the job',
@@ -868,222 +807,6 @@ const GAP_LABEL_OVERRIDES: Record<string, string> = {
 function mapSkillGapLabel(value: string) {
   const key = value.trim().toLowerCase()
   return GAP_LABEL_OVERRIDES[key] ?? value
-}
-
-function evidenceChipClass(label: string) {
-  if (label.startsWith('User posting')) {
-    return 'border-success/30 bg-success/10 text-success'
-  }
-  if (label.startsWith('Employer evidence')) {
-    return 'border-accent/30 bg-accent/10 text-accent'
-  }
-  return 'border-warning/30 bg-warning-light text-warning'
-}
-
-function gapLevelLabel(level: 'met' | 'partial' | 'missing') {
-  if (level === 'met') return 'Met'
-  if (level === 'partial') return 'Partial'
-  return 'Missing'
-}
-
-function evidenceSourceCount(
-  evidence: Array<{ source: 'adzuna' | 'user_posting' | 'onet'; quote: string; postingId?: string; confidence: number }>
-) {
-  return new Set(evidence.map((item) => item.source)).size
-}
-
-function evidenceConfidenceLabel(
-  evidence: Array<{ source: 'adzuna' | 'user_posting' | 'onet'; quote: string; postingId?: string; confidence: number }>
-) {
-  if (!evidence.length) return null
-  const average =
-    evidence.reduce((sum, item) => sum + (Number.isFinite(item.confidence) ? item.confidence : 0), 0) /
-    evidence.length
-  return `${Math.round(Math.max(0, Math.min(1, average)) * 100)}% confidence`
-}
-
-function frequencyPercentLabel(value: number | null | undefined) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return 'N/A'
-  return `${Math.round(value)}%`
-}
-
-function roleConfidenceClass(label: RoleConfidenceLabel) {
-  if (label === 'Exact') return 'border-success/30 bg-success/10 text-success'
-  if (label === 'Close') return 'border-accent/30 bg-accent/10 text-accent'
-  if (label === 'Broad') return 'border-warning/30 bg-warning-light text-warning'
-  return 'border-warning/40 bg-warning-light text-warning'
-}
-
-function RoleNormalizationCard({
-  heading,
-  resolution
-}: {
-  heading: string
-  resolution: RoleResolutionMatch
-}) {
-  const matched = resolution.matched
-  const confidenceLabel = scoreToLabel(matched?.confidence ?? 0)
-  const showSimilar = shouldShowSimilarRoles(confidenceLabel) || (resolution.suggestions.length > 0 && confidenceLabel !== 'Exact')
-  const similarRoles = resolution.suggestions
-    .filter((item) => item.occupationId !== matched?.occupationId)
-    .slice(0, 3)
-  const sourceLabel = taxonomySourceLabel({
-    source: matched?.source ?? null,
-    region: matched?.region ?? null
-  })
-  const resolvedMeta = [matched?.stage, matched?.specialization]
-    .filter((item): item is string => Boolean(item && item.trim()))
-    .join(' | ')
-
-  return (
-    <div className="rounded-md border border-border-light p-3">
-      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">{heading}</p>
-      <div className="mt-2 space-y-2">
-        <p className="text-sm text-text-secondary">You entered: {resolution.input || 'Not provided'}</p>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-text-primary">
-          <span>
-            Standardized as:{' '}
-            <span className="font-semibold text-text-primary">
-              {matched?.title || 'Not resolved'}
-            </span>
-          </span>
-          <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-            {sourceLabel}
-          </span>
-          <span
-            className={`rounded-pill border px-2 py-0.5 text-[11px] font-medium ${roleConfidenceClass(confidenceLabel)}`}
-          >
-            {confidenceLabel}
-          </span>
-        </div>
-        {resolvedMeta ? (
-          <p className="text-xs text-text-tertiary">Stage / specialization: {resolvedMeta}</p>
-        ) : null}
-        {matched ? (
-          <p className="text-xs text-text-secondary">
-            Choose a different match if wrong.
-          </p>
-        ) : null}
-        {showSimilar && similarRoles.length > 0 ? (
-          <p className="text-xs text-text-tertiary">
-            Similar roles: {similarRoles.map((item) => item.title).join(' | ')}
-          </p>
-        ) : null}
-        {confidenceLabel === 'Unclear' ? (
-          <p className="text-xs text-text-secondary">
-            Want to be more specific? Try adding specialization (e.g., &#34;Residential electrician apprentice&#34;).
-          </p>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-function ReportSection({
-  title,
-  count,
-  defaultOpen = false,
-  children
-}: {
-  title: string
-  count: number
-  defaultOpen?: boolean
-  children: ReactNode
-}) {
-  return (
-    <details open={defaultOpen} className="rounded-md border border-border-light bg-bg-secondary p-3">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-text-primary">
-        <span>{title}</span>
-        <span className="text-xs font-medium text-text-tertiary">
-          {count} item{count === 1 ? '' : 's'}
-        </span>
-      </summary>
-      <div className="mt-3 space-y-2">{children}</div>
-    </details>
-  )
-}
-
-function difficultyToneClasses(label: 'Easy' | 'Moderate' | 'Hard' | 'Very Hard') {
-  if (label === 'Easy') return 'border-success/30 bg-success/10 text-success'
-  if (label === 'Moderate') return 'border-accent/30 bg-accent/10 text-accent'
-  if (label === 'Hard') return 'border-warning/30 bg-warning-light text-warning'
-  return 'border-error/30 bg-error-light text-error'
-}
-
-function routeToneClasses(kind: 'primary' | 'secondary' | 'contingency') {
-  if (kind === 'primary') return 'border-success/30 bg-success/10'
-  if (kind === 'secondary') return 'border-warning/30 bg-warning-light'
-  return 'border-error/25 bg-error-light'
-}
-
-function formatMoneyRange(low: number, high: number, unit: string, annualize = false) {
-  const isHourly = unit.toLowerCase().includes('/hour')
-  const showAnnualized = annualize && isHourly
-  const displayLow = showAnnualized ? low * 2080 : low
-  const displayHigh = showAnnualized ? high * 2080 : high
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: unit.startsWith('CAD') ? 'CAD' : 'USD',
-    maximumFractionDigits: 0
-  })
-  const suffix = showAnnualized ? ' / year est.' : isHourly ? ' / hr' : unit.toLowerCase().includes('/year') ? ' / yr' : ''
-  return `${formatter.format(displayLow)} - ${formatter.format(displayHigh)}${suffix}`
-}
-
-function buildTransitionChannelPriorities(routeTitle: string, routeReason: string) {
-  const text = `${routeTitle} ${routeReason}`.toLowerCase()
-
-  if (/\bapprentice\b|\btrade\b|\bunion\b|\bsponsor\b/.test(text)) {
-    return [
-      'Direct employer outreach: ask who handles helper, trainee, or apprenticeship intake.',
-      'Targeted applications: focus on entry routes that match the real pathway, not generic volume.',
-      'Pathway contacts: use unions, training authorities, and intake offices early if they matter.',
-      'Bridge work: use agency or adjacent site work only if it clearly creates experience or contacts.'
-    ]
-  }
-
-  if (/\blicens\b|\bboard\b|\beducation\b|\bsupervised\b/.test(text)) {
-    return [
-      'Licensing and admissions: move one formal requirement forward every week.',
-      'Practitioner outreach: use short conversations to confirm the right sequence before you spend money.',
-      'Adjacent support roles: stay close to the field while credentials are in motion.',
-      'Applications: do not push volume until the first formal gate is actually moving.'
-    ]
-  }
-
-  if (/\bportfolio\b|\bcase study\b|\bwork sample\b/.test(text)) {
-    return [
-      'Proof first: ship small work samples quickly instead of waiting for one perfect project.',
-      'Feedback loops: use practitioner feedback to tighten the next sample fast.',
-      'Targeted applications: apply where your current portfolio genuinely fits.',
-      'Warm outreach: ask for feedback and referrals, not just job status.'
-    ]
-  }
-
-  if (/\bcredential\b|\bcertificate\b|\blab\b/.test(text)) {
-    return [
-      'Learning path: keep one focused credential or study plan moving every week.',
-      'Practice: pair study with simple hands-on proof, not theory alone.',
-      'Targeted outreach: ask what proof matters most at the entry point.',
-      'Applications: start once the first proof is ready, then keep follow-ups measured.'
-    ]
-  }
-
-  if (/\boutcome\b|\bprogression\b|\bnext step\b/.test(text)) {
-    return [
-      'Positioning: lead with measurable wins that already match the next level.',
-      'Referrals: use managers, peers, and recruiters to shorten the jump.',
-      'Targeted applications: focus on scope fit, not title alone.',
-      'Internal leverage: use stretch work or cross-functional reps if external response is thin.'
-    ]
-  }
-
-  return [
-    'Targeted applications: focus on roles that actually match your current evidence.',
-    'Direct outreach: use short, specific messages instead of relying only on portals.',
-    'Proof actions: turn the top gap into one concrete example you can talk through.',
-    'Weekly review: keep only the channels that create real conversations.'
-  ]
 }
 
 function joinReadableList(values: string[]) {
@@ -1112,205 +835,6 @@ function normalizeRoadmapBullets(values: string[], max = 4) {
   )
 }
 
-function buildDashboardRoadmapTabs(input: {
-  plannerReport: PlannerReportPayload | null
-  transitionModeReport: NonNullable<PlannerReportPayload['transitionMode']> | null
-  targetRole: string
-  location: string
-}) {
-  const { plannerReport, transitionModeReport, targetRole, location } = input
-  if (!plannerReport || !transitionModeReport) return [] as DashboardRoadmapTab[]
-
-  if (transitionModeReport.roadmapGuide?.phases?.length === 3) {
-    return transitionModeReport.roadmapGuide.phases.map((phase, index) => ({
-      key: ROADMAP_TABS[index]?.key ?? '0-30',
-      label: phase.label,
-      summary: phase.focus,
-      items: phase.steps.map((step) => ({
-        title: step.title,
-        detail: step.whyItMatters,
-        bullets: normalizeRoadmapBullets([
-          `Time: ${step.timeRange}.`,
-          `Cost: ${step.costRange}.`,
-          step.prereqs.length > 0 ? `Prereqs: ${joinReadableList(step.prereqs.slice(0, 3))}.` : '',
-          ...step.proofChecklist.slice(0, 2)
-        ], 5)
-      }))
-    }))
-  }
-
-  const targetLabel =
-    targetRole.trim() || plannerReport.transitionReport?.marketSnapshot.role || 'this role'
-  const locationLabel =
-    plannerReport.transitionReport?.marketSnapshot.location || location.trim() || 'your area'
-  const targetRequirements = plannerReport.targetRequirements
-  const transitionSections = plannerReport.transitionSections
-  const marketSnapshot = plannerReport.transitionReport?.marketSnapshot
-  const commonSkills = normalizeRoadmapBullets([
-    ...(marketSnapshot?.topRequirements ?? []).map((item) => item.label),
-    ...(transitionSections?.coreHardSkills ?? []).map((item) => item.label)
-  ])
-  const commonTools = normalizeRoadmapBullets([
-    ...(marketSnapshot?.topTools ?? []).map((item) => item.label),
-    ...(transitionSections?.toolsPlatforms ?? []).map((item) => item.label)
-  ])
-  const entryTickets = normalizeRoadmapBullets([
-    ...(targetRequirements?.certifications ?? []),
-    ...(targetRequirements?.hardGates ?? [])
-  ])
-  const employerSignals = normalizeRoadmapBullets([
-    ...(targetRequirements?.employerSignals ?? []),
-    ...(transitionSections?.experienceSignals ?? []).map((item) => item.label)
-  ])
-  const firstSteps = normalizeRoadmapBullets(transitionModeReport.gaps.first3Steps)
-  const phaseThreeTargets = normalizeRoadmapBullets([
-    ...(transitionModeReport.plan90[2]?.weeklyTargets ?? []),
-    ...(transitionSections?.roadmapPlan.strongCandidatePath ?? [])
-  ])
-  const channelPriorities = normalizeRoadmapBullets(
-    buildTransitionChannelPriorities(
-      transitionModeReport.routes.primary.title,
-      transitionModeReport.routes.primary.reason
-    ),
-    3
-  )
-  const earningsSummary = transitionModeReport.earnings
-
-  return [
-    {
-      key: '0-30',
-      label: '0-30 Days',
-      summary: ROADMAP_TABS[0].summary,
-      items: [
-        {
-          title: `Confirm what ${targetLabel} employers expect first`,
-          detail: `Start with real requirements in ${locationLabel} before you spend money or spray applications.`,
-          bullets: normalizeRoadmapBullets([
-            commonSkills.length > 0
-              ? `Verify the top skills first: ${joinReadableList(commonSkills.slice(0, 3))}.`
-              : '',
-            commonTools.length > 0
-              ? `Check the common tools, workflow, or job tasks: ${joinReadableList(commonTools.slice(0, 3))}.`
-              : '',
-            targetRequirements?.education
-              ? `Baseline education: ${targetRequirements.education}.`
-              : '',
-            plannerReport.marketEvidence?.baselineOnly
-              ? 'Live market data is thin, so confirm the local sequence by speaking with real employers this week.'
-              : ''
-          ])
-        },
-        {
-          title: 'Lock in the real entry requirements',
-          detail: 'Get clear on the gates, tickets, and formal steps that make you look job-ready.',
-          bullets: normalizeRoadmapBullets([
-            entryTickets.length > 0
-              ? `Priority tickets or gates: ${joinReadableList(entryTickets.slice(0, 4))}.`
-              : '',
-            typeof targetRequirements?.apprenticeshipHours === 'number'
-              ? `Formal hour target to plan around: about ${targetRequirements.apprenticeshipHours.toLocaleString()} supervised hours.`
-              : '',
-            typeof targetRequirements?.examRequired === 'boolean'
-              ? targetRequirements.examRequired
-                ? 'Plan for an exam or qualification step later in the path.'
-                : 'This path does not show a mandatory exam in the current data.'
-              : '',
-            transitionModeReport.routes.primary.firstStep
-              ? `Immediate move: ${transitionModeReport.routes.primary.firstStep}.`
-              : ''
-          ])
-        },
-        {
-          title: 'Start direct outreach with a hiring question',
-          detail: 'Use early conversations to validate the entry route, not just the title.',
-          bullets: normalizeRoadmapBullets([
-            `Ask whether they are hiring for helper, trainee, apprentice, or entry-level starts in ${locationLabel}.`,
-            'Ask what a serious beginner needs in the first 30 days to get taken seriously.',
-            'Ask whether they prefer a follow-up by phone or email and who handles hiring.'
-          ])
-        }
-      ]
-    },
-    {
-      key: '30-90',
-      label: '30-90 Days',
-      summary: ROADMAP_TABS[1].summary,
-      items: [
-        {
-          title: 'Build the core skills employers mention most',
-          detail: 'Focus on the requirements that show up across postings and role evidence.',
-          bullets: normalizeRoadmapBullets([
-            ...commonSkills.slice(0, 4).map((item) => `Spend weekly time on ${item}.`),
-            ...(firstSteps.length === 0 ? ['Keep one measurable learning block moving every week.'] : [])
-          ])
-        },
-        {
-          title: 'Practice the tools, workflow, and safe habits',
-          detail: 'Turn theory into hands-on familiarity you can describe clearly in interviews.',
-          bullets: normalizeRoadmapBullets([
-            ...commonTools.slice(0, 3).map((item) => `Get hands-on repetition with ${item}.`),
-            ...((transitionSections?.toolsPlatforms ?? [])
-              .slice(0, 2)
-              .map((item) => item.quickProject)),
-            ...(commonTools.length === 0 ? ['Use a small practice project, shadow day, or lab session to build confidence.'] : [])
-          ])
-        },
-        {
-          title: 'Create proof that employers can trust',
-          detail: 'Package your progress into proof, references, and a better first conversation.',
-          bullets: normalizeRoadmapBullets([
-            ...firstSteps.slice(0, 3),
-            ...employerSignals.slice(0, 2).map((item) => `Show one concrete example tied to ${item}.`)
-          ])
-        }
-      ]
-    },
-    {
-      key: '3-12',
-      label: '3-12 Months',
-      summary: ROADMAP_TABS[2].summary,
-      items: [
-        {
-          title: targetRequirements?.regulated ? 'Track formal progression and required hours' : 'Build durable experience and stronger proof',
-          detail: targetRequirements?.regulated
-            ? 'Stay disciplined with the formal sequence so you do not lose time later.'
-            : 'Turn early proof into a track record employers can trust.',
-          bullets: normalizeRoadmapBullets([
-            typeof targetRequirements?.apprenticeshipHours === 'number'
-              ? `Track hours, schooling blocks, and supervisor sign-off against the ${targetRequirements.apprenticeshipHours.toLocaleString()} hour path.`
-              : '',
-            typeof targetRequirements?.examRequired === 'boolean' && targetRequirements.examRequired
-              ? 'Keep the exam or qualification step visible so your study and field work line up.'
-              : '',
-            ...phaseThreeTargets.slice(0, 3)
-          ])
-        },
-        {
-          title: 'Keep building paid-ready evidence',
-          detail: 'The goal is not generic activity. The goal is proof that maps to real hiring decisions.',
-          bullets: normalizeRoadmapBullets([
-            ...employerSignals.slice(0, 3).map((item) => `Collect examples that prove ${item}.`),
-            ...channelPriorities.slice(0, 2)
-          ])
-        },
-        {
-          title: 'Move toward stronger pay and better lanes',
-          detail: 'Once the base path is moving, use your proof to reach better-paying versions of the role.',
-          bullets: normalizeRoadmapBullets([
-            earningsSummary.length > 0
-              ? `Early stage pay in the current data: ${earningsSummary[0].stage} at ${earningsSummary[0].rangeLow}-${earningsSummary[0].rangeHigh} ${earningsSummary[0].unit}.`
-              : '',
-            earningsSummary.length > 1
-              ? `Later upside: ${earningsSummary[earningsSummary.length - 1].stage} at ${earningsSummary[earningsSummary.length - 1].rangeLow}-${earningsSummary[earningsSummary.length - 1].rangeHigh} ${earningsSummary[earningsSummary.length - 1].unit}.`
-              : '',
-            'Use better evidence, better referrals, and the right specialization to reach the higher end of the range.'
-          ])
-        }
-      ]
-    }
-  ]
-}
-
 function buildResumeTalkingPoints(input: {
   targetRole: string
   certifications: string[]
@@ -1335,226 +859,6 @@ function buildResumeTalkingPoints(input: {
       : '',
     'Use short, measurable statements that prove safety, reliability, learning speed, or hands-on readiness.'
   ])
-}
-
-function educationLevelRank(value: EducationLevelValue) {
-  switch (value) {
-    case 'No formal degree':
-      return 0
-    case 'High school':
-      return 1
-    case 'Trade certification':
-      return 2
-    case 'Apprenticeship':
-      return 3
-    case "Associate's":
-      return 4
-    case "Bachelor's":
-      return 5
-    case "Master's":
-      return 6
-    case 'Doctorate':
-      return 7
-    case 'Self-taught / portfolio-based':
-      return 0
-    default:
-      return 0
-  }
-}
-
-function inferRequiredEducationRank(value: string) {
-  const normalized = value.toLowerCase()
-  if (/(doctorate|phd|md|doctor\b)/.test(normalized)) return 7
-  if (/(master|mba)/.test(normalized)) return 6
-  if (/(bachelor|undergraduate|university degree|college degree)/.test(normalized)) return 5
-  if (/(associate|two-year)/.test(normalized)) return 4
-  if (/(apprenticeship)/.test(normalized)) return 3
-  if (/(trade school|trade certificate|trade certification|certificate program|certificate|certification|diploma)/.test(normalized)) {
-    return 2
-  }
-  if (/(high school|ged|grade 12|secondary school)/.test(normalized)) return 1
-  return null
-}
-
-function userLikelyMeetsEducationBaseline(
-  currentEducationLevel: EducationLevelValue,
-  requiredEducation: string
-) {
-  const requiredRank = inferRequiredEducationRank(requiredEducation)
-  if (requiredRank === null) return false
-  return educationLevelRank(currentEducationLevel) >= requiredRank
-}
-
-function isEducationRequirement(value: string) {
-  return /\b(high school|ged|grade 12|secondary school|diploma|degree|associate|bachelor|master|doctorate|phd|apprenticeship)\b/i.test(
-    value
-  )
-}
-
-function isCredentialRequirement(value: string) {
-  return /\b(cert|certificate|certification|license|licence|licensed|permit|registration|registered|ticket|training|first aid|cpr|whmis|osha|csts|working at heights|driver'?s license|red seal|qualification|exam)\b/i.test(
-    value
-  )
-}
-
-function findBestRequirementLink(
-  requirement: string,
-  links: Array<{ label: string; url: string }>
-) {
-  if (!requirement.trim() || links.length === 0) return null
-  const requirementKey = normalizeBulletKey(requirement)
-  const exactMatch = links.find((link) => {
-    const linkKey = normalizeBulletKey(link.label)
-    return linkKey.includes(requirementKey) || requirementKey.includes(linkKey)
-  })
-  if (exactMatch) return exactMatch
-
-  const ignoredTokens = new Set([
-    'required',
-    'preferred',
-    'entry',
-    'level',
-    'baseline',
-    'formal',
-    'training',
-    'education'
-  ])
-  const requirementTokens = requirementKey
-    .split(' ')
-    .map((token) => token.trim())
-    .filter((token) => token.length > 2 && !ignoredTokens.has(token))
-
-  let bestMatch: { link: { label: string; url: string }; score: number } | null = null
-  for (const link of links) {
-    const linkKey = normalizeBulletKey(link.label)
-    const score = requirementTokens.filter((token) => linkKey.includes(token)).length
-    if (score === 0) continue
-    if (!bestMatch || score > bestMatch.score) {
-      bestMatch = { link, score }
-    }
-  }
-
-  return bestMatch?.link ?? null
-}
-
-function buildMissingHiringRequirements(input: {
-  targetRequirements?: PlannerReportPayload['targetRequirements']
-  transitionReport: PlannerReportPayload['transitionReport'] | null
-  currentCertifications: string[]
-  educationLevel: EducationLevelValue
-  resourceLinks: Array<{ label: string; url: string }>
-}) {
-  const { targetRequirements, transitionReport, currentCertifications, educationLevel, resourceLinks } = input
-  if (!targetRequirements && !transitionReport) return [] as MissingHiringRequirement[]
-
-  const output: MissingHiringRequirement[] = []
-  const seen = new Set<string>()
-  const heldCertificationKeys = new Set(
-    currentCertifications.map((item) => normalizeBulletKey(item)).filter(Boolean)
-  )
-  const missingMustHaves = (transitionReport?.mustHaves ?? []).filter((item) => item.status === 'missing')
-
-  const pushRequirement = (
-    kind: MissingHiringRequirement['kind'],
-    title: string,
-    detail: string,
-    fallbackLookup?: string
-  ) => {
-    const key = `${kind}:${normalizeBulletKey(title)}`
-    if (!title.trim() || seen.has(key)) return
-    seen.add(key)
-    const link =
-      findBestRequirementLink(title, resourceLinks) ??
-      (fallbackLookup ? findBestRequirementLink(fallbackLookup, resourceLinks) : null)
-    output.push({
-      key,
-      kind,
-      title: title.trim(),
-      detail: detail.trim(),
-      link
-    })
-  }
-
-  if (targetRequirements?.education) {
-    const likelyMet = userLikelyMeetsEducationBaseline(educationLevel, targetRequirements.education)
-    if (!likelyMet) {
-      const matchingEducationMustHave = missingMustHaves.find((item) =>
-        isEducationRequirement(item.label)
-      )
-      pushRequirement(
-        'education',
-        targetRequirements.education,
-        matchingEducationMustHave?.howToGet ||
-          'Most employers treat this as a baseline screen before they interview.',
-        matchingEducationMustHave?.label
-      )
-    }
-  }
-
-  for (const item of targetRequirements?.certifications ?? []) {
-    if (heldCertificationKeys.has(normalizeBulletKey(item))) continue
-    const matchingMustHave = missingMustHaves.find((mustHave) => {
-      const mustHaveKey = normalizeBulletKey(mustHave.label)
-      const itemKey = normalizeBulletKey(item)
-      return mustHaveKey.includes(itemKey) || itemKey.includes(mustHaveKey)
-    })
-    pushRequirement(
-      'credential',
-      item,
-      matchingMustHave?.howToGet ||
-        'Most employers treat this as an early screen or job-ready requirement.',
-      matchingMustHave?.label
-    )
-  }
-
-  for (const item of targetRequirements?.hardGates ?? []) {
-    if (!isCredentialRequirement(item) && !isEducationRequirement(item)) continue
-    if (heldCertificationKeys.has(normalizeBulletKey(item))) continue
-    const matchingMustHave = missingMustHaves.find((mustHave) => {
-      const mustHaveKey = normalizeBulletKey(mustHave.label)
-      const itemKey = normalizeBulletKey(item)
-      return mustHaveKey.includes(itemKey) || itemKey.includes(mustHaveKey)
-    })
-    pushRequirement(
-      isEducationRequirement(item) ? 'education' : 'credential',
-      item,
-      matchingMustHave?.howToGet ||
-        'This shows up as a hard gate in the current market data, so close it early.',
-      matchingMustHave?.label
-    )
-  }
-
-  for (const item of missingMustHaves) {
-    if (!isCredentialRequirement(item.label) && !isEducationRequirement(item.label)) continue
-    if (heldCertificationKeys.has(normalizeBulletKey(item.label))) continue
-    pushRequirement(
-      isEducationRequirement(item.label) ? 'education' : 'credential',
-      item.label,
-      item.howToGet || 'Employers keep mentioning this as a real entry filter.',
-      item.label
-    )
-  }
-
-  return output.slice(0, 5)
-}
-
-function buildDraftFromExample(example: PlannerExampleScenario): PlannerFormDraft {
-  return {
-    currentRoleText: example.currentRole,
-    targetRoleText: example.targetRole,
-    currentRoleOccupationId: null,
-    targetRoleOccupationId: null,
-    recommendMode: false,
-    skills: example.skills,
-    experienceText: example.experienceText,
-    userPostingText: '',
-    useMarketEvidence: true,
-    educationLevel: example.educationLevel,
-    workRegion: example.workRegion,
-    locationText: example.locationText,
-    timelineBucket: example.timelineBucket,
-    incomeTarget: example.incomeTarget
-  }
 }
 
 function normalizeDraftField(value: string) {
@@ -1671,18 +975,6 @@ function toAutocompleteRegion(value: WorkRegionValue): 'US' | 'CA' | 'either' {
   return 'either'
 }
 
-function dedupeLinks(links: Array<{ label: string; url: string }>) {
-  const seen = new Set<string>()
-  const output: Array<{ label: string; url: string }> = []
-  for (const link of links) {
-    const key = `${link.label}|${link.url}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    output.push(link)
-  }
-  return output
-}
-
 function usageLabel(
   usage: ToolUsageResult | null,
   previewLocked: boolean,
@@ -1713,16 +1005,10 @@ export default function CareerSwitchPlannerPage({
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null)
   const [isGuestPreview, setIsGuestPreview] = useState(false)
   const [activeWizardStep, setActiveWizardStep] = useState<WizardStep>(0)
-  const [activeRoadmapTab, setActiveRoadmapTab] = useState<RoadmapTabKey>('0-30')
   const [loadingStageIndex, setLoadingStageIndex] = useState(0)
-  const [outreachToolkitOpen, setOutreachToolkitOpen] = useState(false)
-  const [copiedToolkitSection, setCopiedToolkitSection] = useState<string | null>(null)
-  const [isPrintMode, setIsPrintMode] = useState(false)
   const [resumeToolkitDraft, setResumeToolkitDraft] = useState('')
   const [callToolkitDraft, setCallToolkitDraft] = useState('')
   const [emailToolkitDraft, setEmailToolkitDraft] = useState('')
-  const [exampleOptions, setExampleOptions] = useState<PlannerExampleScenario[]>([])
-  const [selectedExampleId, setSelectedExampleId] = useState<string | null>(null)
   const [currentRoleText, setCurrentRoleText] = useState('')
   const [targetRoleText, setTargetRoleText] = useState('')
   const [currentRoleSelectedMatch, setCurrentRoleSelectedMatch] = useState<{
@@ -1781,11 +1067,9 @@ export default function CareerSwitchPlannerPage({
   })
   const [usage, setUsage] = useState<ToolUsageResult | null>(null)
   const [isUsageLoading, setIsUsageLoading] = useState(true)
-  const [earningsView, setEarningsView] = useState<'base' | 'annual'>('base')
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const plannerStageTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastJobRecommendationKeyRef = useRef('')
   const previewLocked = searchParams.get('locked') === '1'
   const proPreview = searchParams.get('propreview') === '1'
@@ -1825,9 +1109,6 @@ export default function CareerSwitchPlannerPage({
       }
       if (plannerStageTimerRef.current) {
         clearInterval(plannerStageTimerRef.current)
-      }
-      if (copyResetTimerRef.current) {
-        clearTimeout(copyResetTimerRef.current)
       }
     }
   }, [])
@@ -1869,49 +1150,6 @@ export default function CareerSwitchPlannerPage({
       window.cancelAnimationFrame(frame)
     }
   }, [plannerResult, plannerState])
-
-  useEffect(() => {
-    const handleBeforePrint = () => setIsPrintMode(true)
-    const handleAfterPrint = () => setIsPrintMode(false)
-
-    window.addEventListener('beforeprint', handleBeforePrint)
-    window.addEventListener('afterprint', handleAfterPrint)
-
-    return () => {
-      window.removeEventListener('beforeprint', handleBeforePrint)
-      window.removeEventListener('afterprint', handleAfterPrint)
-    }
-  }, [])
-
-  useEffect(() => {
-    try {
-      const storedIds = typeof window !== 'undefined'
-        ? window.localStorage.getItem(EXAMPLE_OPTIONS_STORAGE_KEY)
-        : null
-      const storedSelectedId = typeof window !== 'undefined'
-        ? window.localStorage.getItem(EXAMPLE_SELECTED_STORAGE_KEY)
-        : null
-      const parsedIds = storedIds ? JSON.parse(storedIds) : null
-      const restoredExamples = Array.isArray(parsedIds)
-        ? findExampleScenarioByIds(parsedIds.filter((item) => typeof item === 'string'))
-        : []
-
-      if (restoredExamples.length === EXAMPLE_CARD_COUNT) {
-        setExampleOptions(restoredExamples)
-      } else {
-        setExampleOptions(pickRandomExampleScenarios(EXAMPLE_CARD_COUNT))
-      }
-
-      if (
-        storedSelectedId &&
-        PLANNER_EXAMPLE_SCENARIOS.some((item) => item.id === storedSelectedId)
-      ) {
-        setSelectedExampleId(storedSelectedId)
-      }
-    } catch {
-      setExampleOptions(pickRandomExampleScenarios(EXAMPLE_CARD_COUNT))
-    }
-  }, [])
 
   const hasPaidPlan = plan === 'pro' || plan === 'lifetime'
   const isProUser =
@@ -2265,7 +1503,6 @@ export default function CareerSwitchPlannerPage({
   }
 
   const handlePrintReport = () => {
-    setIsPrintMode(true)
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         window.print()
@@ -2273,18 +1510,11 @@ export default function CareerSwitchPlannerPage({
     })
   }
 
-  const handleCopyToolkitSection = async (key: string, value: string) => {
+  const handleCopyToolkitSection = async (_key: string, value: string) => {
     if (!value.trim() || typeof navigator === 'undefined' || !navigator.clipboard) return
 
     try {
       await navigator.clipboard.writeText(value)
-      setCopiedToolkitSection(key)
-      if (copyResetTimerRef.current) {
-        clearTimeout(copyResetTimerRef.current)
-      }
-      copyResetTimerRef.current = setTimeout(() => {
-        setCopiedToolkitSection(null)
-      }, 1800)
     } catch {
       // ignore clipboard failures
     }
@@ -2341,9 +1571,6 @@ export default function CareerSwitchPlannerPage({
 
     setInputError('')
     setPlannerReport(null)
-    setOutreachToolkitOpen(false)
-    setCopiedToolkitSection(null)
-    setActiveRoadmapTab('0-30')
     setJobRecommendationStatus('idle')
     setJobRecommendationItems([])
     setJobRecommendationMessage('')
@@ -2514,7 +1741,6 @@ export default function CareerSwitchPlannerPage({
       setPlannerReport(data?.report ?? null)
       setIsGuestPreview(Boolean(data?.previewLimited || data?.report?.previewLimited || !user))
       setRoleSelectionPrompt(null)
-      setEarningsView('base')
       const resolvedCurrentRole =
         data?.report?.roleResolution?.current?.matched?.rawInputTitle?.trim() ||
         draft.currentRoleText.trim() ||
@@ -2550,21 +1776,6 @@ export default function CareerSwitchPlannerPage({
     }
   }
 
-  const shuffleExampleOptions = () => {
-    const nextExamples = pickRandomExampleScenarios(EXAMPLE_CARD_COUNT)
-    setSelectedExampleId(null)
-    setExampleOptions(nextExamples)
-    try {
-      window.localStorage.removeItem(EXAMPLE_SELECTED_STORAGE_KEY)
-      window.localStorage.setItem(
-        EXAMPLE_OPTIONS_STORAGE_KEY,
-        JSON.stringify(nextExamples.map((item) => item.id))
-      )
-    } catch {
-      // ignore local storage write failures
-    }
-  }
-
   const handleStartNewPlan = () => {
     setCurrentRoleText('')
     setTargetRoleText('')
@@ -2583,9 +1794,6 @@ export default function CareerSwitchPlannerPage({
     setIsEditDrawerOpen(false)
     setLastGeneratedAt(null)
     setActiveWizardStep(0)
-    setActiveRoadmapTab('0-30')
-    setOutreachToolkitOpen(false)
-    setCopiedToolkitSection(null)
     setResumeToolkitDraft('')
     setCallToolkitDraft('')
     setEmailToolkitDraft('')
@@ -2610,52 +1818,6 @@ export default function CareerSwitchPlannerPage({
       experience: false,
       skills: false,
       education: false
-    })
-    setSelectedExampleId(null)
-
-    try {
-      window.localStorage.removeItem(EXAMPLE_SELECTED_STORAGE_KEY)
-    } catch {
-      // ignore local storage failures
-    }
-  }
-
-  const handleGenerateExampleOptions = () => {
-    shuffleExampleOptions()
-  }
-
-  const applyExampleScenario = async (example: PlannerExampleScenario) => {
-    const draft = buildDraftFromExample(example)
-    setSelectedExampleId(example.id)
-    setCurrentRoleText(draft.currentRoleText)
-    setTargetRoleText(draft.targetRoleText)
-    setCurrentRoleSelectedMatch(null)
-    setTargetRoleSelectedMatch(null)
-    setExperienceText(draft.experienceText)
-    setSkills(draft.skills)
-    setWorkRegion(draft.workRegion)
-    setLocationText(draft.locationText)
-    setLocationTouched(true)
-    setTimelineBucket(draft.timelineBucket)
-    setEducationLevel(draft.educationLevel)
-    setIncomeTarget(draft.incomeTarget)
-    setUserPostingText(draft.userPostingText)
-    setUseMarketEvidence(marketEvidenceAvailable && draft.useMarketEvidence)
-    dismissDetectedResumeData()
-    setRoleSelectionPrompt(null)
-    setInputError('')
-    try {
-      window.localStorage.setItem(EXAMPLE_SELECTED_STORAGE_KEY, example.id)
-      window.localStorage.setItem(
-        EXAMPLE_OPTIONS_STORAGE_KEY,
-        JSON.stringify(exampleOptions.length > 0 ? exampleOptions.map((item) => item.id) : [example.id])
-      )
-    } catch {
-      // ignore local storage write failures
-    }
-    await handleGeneratePlan({
-      ...draft,
-      useMarketEvidence: marketEvidenceAvailable && draft.useMarketEvidence
     })
   }
 
@@ -2843,19 +2005,8 @@ export default function CareerSwitchPlannerPage({
   }
 
   const primaryCareer = plannerReport?.suggestedCareers?.[0] ?? null
-  const transitionResourceLinks = dedupeLinks([
-    ...((primaryCareer?.officialLinks ?? []).filter((link) => link?.url && link?.label)),
-    ...((plannerReport?.targetRequirements?.sources ?? []).filter((link) => link?.url && link?.label)),
-    ...((plannerReport?.linksResources ?? [])
-      .filter((link) => link.type === 'official' && link.url && link.label)
-      .map((link) => ({ label: link.label, url: link.url })))
-  ]).slice(0, 8)
-  const transitionReport = plannerReport?.transitionReport ?? null
-  const executionStrategy = plannerReport?.executionStrategy ?? null
   const transitionModeReport = plannerReport?.transitionMode ?? null
-  const transitionStructuredPlan = plannerReport?.transitionStructuredPlan ?? null
   const transitionPlanScripts = plannerReport?.transitionPlanScripts ?? null
-  const transitionPlanCacheMeta = plannerReport?.transitionPlanCacheMeta ?? null
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
   const targetRoleResolution = plannerReport?.roleResolution?.target ?? null
   const heroCurrentRoleLabel =
@@ -2870,55 +2021,9 @@ export default function CareerSwitchPlannerPage({
     lastSubmittedSnapshot?.targetRole?.trim() ||
     targetRoleText.trim() ||
     'Target role'
-  const primaryRouteTitle = transitionModeReport
-    ? transitionModeReport.routes.primary.title
-        .replace(/^Primary route:\s*/i, '')
-        .replace(/^Primary:\s*/i, '')
-        .trim()
-    : ''
-  const secondaryRouteTitle = transitionModeReport
-    ? transitionModeReport.routes.secondary.title
-        .replace(/^Secondary route:\s*/i, '')
-        .replace(/^Secondary:\s*/i, '')
-        .trim()
-    : ''
-  const contingencyRouteTitle = transitionModeReport
-    ? transitionModeReport.routes.contingency.title
-        .replace(/^Contingency route:\s*/i, '')
-        .replace(/^Contingency:\s*/i, '')
-        .trim()
-    : ''
-  const beforeHireRequirements =
-    transitionStructuredPlan?.narrative_sections?.credentials_you_need?.[0]?.bullets?.slice(0, 3) ??
-    transitionStructuredPlan?.required_certifications?.slice(0, 3) ??
-    []
-  const next7DayActions =
-    transitionModeReport?.roadmapGuide?.next7Days?.slice(0, 3) ??
-    transitionModeReport?.gaps.first3Steps?.slice(0, 3) ??
-    []
   const transitionQuickWins = transitionModeReport
     ? sharedDedupeBullets(
         transitionModeReport.gaps.strengths.filter((item) => !isPersonalIdentifier(item)),
-        4
-      )
-    : []
-  const transitionPrimaryGaps = transitionModeReport
-    ? sharedDedupeBullets(
-        transitionModeReport.gaps.missing.filter((item) => !isPersonalIdentifier(item)),
-        4
-      )
-    : []
-  const transitionSkillMapStrengths = transitionModeReport
-    ? excludeExistingBullets(
-        transitionModeReport.gaps.strengths.filter((item) => !isPersonalIdentifier(item)),
-        transitionQuickWins,
-        4
-      )
-    : []
-  const transitionSkillMapMissing = transitionModeReport
-    ? excludeExistingBullets(
-        transitionModeReport.gaps.missing.filter((item) => !isPersonalIdentifier(item)),
-        transitionPrimaryGaps,
         4
       )
     : []
@@ -2927,14 +2032,6 @@ export default function CareerSwitchPlannerPage({
     explicitSkills: skills,
     explicitCertifications: resumeStructuredSnapshot.certifications
   })
-  const missingHiringRequirements = buildMissingHiringRequirements({
-    targetRequirements: plannerReport?.targetRequirements,
-    transitionReport,
-    currentCertifications: currentProfileSignals.certifications,
-    educationLevel,
-    resourceLinks: transitionResourceLinks
-  })
-  const proofBuilderDefinition = transitionModeReport?.definitions?.proofBuilder ?? null
   const resumeTalkingPointSkills = normalizeRoadmapBullets([
     ...(plannerReport?.transitionReport?.marketSnapshot.topRequirements ?? []).map((item) => item.label),
     ...(plannerReport?.transitionSections?.coreHardSkills ?? []).map((item) => item.label)
@@ -2950,94 +2047,8 @@ export default function CareerSwitchPlannerPage({
     firstSteps: transitionModeReport?.gaps.first3Steps ?? [],
     commonSkills: resumeTalkingPointSkills
   })
-  const transitionChannelPriorities = transitionModeReport
-    ? buildTransitionChannelPriorities(
-        transitionModeReport.routes.primary.title,
-        transitionModeReport.routes.primary.reason
-      )
-    : []
-  const employerRedFlags = executionStrategy
-    ? sharedDedupeBullets(
-        executionStrategy.whereYouStandNow.competitiveDisadvantages
-          .map((item) => item.reason || item.label)
-          .filter(Boolean),
-        4
-      )
-    : []
-  const criticalGapDetails = executionStrategy
-    ? sharedDedupeBullets(
-        executionStrategy.whereYouStandNow.missingMandatoryRequirements
-          .map((item) => item.reason || item.label)
-          .filter(Boolean),
-        4
-      )
-    : []
-  const mergedBlockerFixes: BlockerFix[] = (() => {
-    const pairs: BlockerFix[] = []
-    const seen = new Set<string>()
-    const mitigations = transitionModeReport?.reality.mitigations ?? []
-
-    const pushPair = (issue: string, fix: string) => {
-      const normalizedIssue = normalizeBulletKey(issue)
-      if (!normalizedIssue || seen.has(normalizedIssue)) return
-      seen.add(normalizedIssue)
-      pairs.push({
-        issue: issue.trim(),
-        fix: fix.trim()
-      })
-    }
-
-    for (const item of missingHiringRequirements) {
-      pushPair(item.title, item.detail || 'Close this requirement early to avoid getting filtered out.')
-    }
-
-    criticalGapDetails.forEach((issue, index) => {
-      pushPair(
-        issue,
-        mitigations[index] ||
-          transitionPrimaryGaps[index] ||
-          'Turn this into one concrete weekly action with visible proof.'
-      )
-    })
-
-    employerRedFlags.forEach((issue, index) => {
-      pushPair(
-        issue,
-        mitigations[index] || 'Adjust your channel mix and tighten positioning based on real employer feedback.'
-      )
-    })
-
-    if (pairs.length === 0) {
-      transitionPrimaryGaps.slice(0, 4).forEach((issue, index) => {
-        pushPair(
-          issue,
-          mitigations[index] || 'Schedule one concrete step this week and save proof that it moved.'
-        )
-      })
-    }
-
-    return pairs.slice(0, 4)
-  })()
-  const roadmapTabs = buildDashboardRoadmapTabs({
-    plannerReport,
-    transitionModeReport,
-    targetRole: targetRoleText.trim() || lastSubmittedSnapshot?.targetRoleInput || '',
-    location: locationText.trim()
-  })
-  const activeRoadmap = roadmapTabs.find((item) => item.key === activeRoadmapTab) ?? roadmapTabs[0] ?? null
-  const activeWizardMeta = WIZARD_STEPS[activeWizardStep]
   const canGoBackWizard = activeWizardStep > 0
   const canGoNextWizard = activeWizardStep < WIZARD_STEPS.length - 1
-  const recommendedRoleSections = plannerReport
-    ? buildRecommendedRoleSections(
-        plannerReport.suggestedCareers,
-        currentRoleText.trim() || lastSubmittedSnapshot?.currentRoleInput || '',
-        currentRoleResolution?.matched?.occupationId ?? currentRoleSelectedMatch?.occupationId ?? null,
-        targetRoleText.trim() || lastSubmittedSnapshot?.targetRoleInput || '',
-        targetRoleResolution?.matched?.occupationId ?? targetRoleSelectedMatch?.occupationId ?? null,
-        currentRoleResolution?.suggestions.map((item) => ({ title: item.title, code: item.code })) ?? []
-      )
-    : []
   const assistiveSuggestedTargetSections = buildRecommendedRoleSections(
     plannerReport?.suggestedCareers ?? [],
     currentRoleText.trim() || lastSubmittedSnapshot?.currentRoleInput || '',
@@ -3059,17 +2070,6 @@ export default function CareerSwitchPlannerPage({
             suggestedTargetShuffle % assistiveSuggestedTargetPool.length
           )
         ].slice(0, 8)
-  const canAnnualizeEarnings = transitionModeReport?.earnings.some((stage) =>
-    stage.unit.toLowerCase().includes('/hour')
-  ) ?? false
-  const fullQualificationTimeline =
-    plannerReport?.careerPathwayProfile?.timeline?.time_to_full_qualification
-  const fullQualificationNote =
-    typeof fullQualificationTimeline?.min_months === 'number' &&
-    typeof fullQualificationTimeline?.max_months === 'number'
-      ? `Full qualification is typically ${fullQualificationTimeline.min_months}-${fullQualificationTimeline.max_months} months.`
-      : null
-  const weeklyPriorities = (plannerReport?.transitionSections?.roadmapPlan.zeroToTwoWeeks ?? []).slice(0, 2)
   const currentDraftSignature = buildPlannerDraftSignature(
     {
       currentRoleText,
@@ -3145,86 +2145,11 @@ export default function CareerSwitchPlannerPage({
       console.warn('[career-switch-planner] missing_v3_fields', v3DashboardModel.missingFields)
     }
   }, [v3DashboardModel.missingFields])
-  const friendlyDatasetNames = (plannerReport?.dataTransparency.datasetsUsed ?? [])
-    .map((dataset) => FRIENDLY_DATASET_NAMES[dataset] ?? dataset.replaceAll('_', ' '))
-  const wageSourceDateSummary = Array.from(
-    new Set(
-      (plannerReport?.suggestedCareers ?? [])
-        .map((career) =>
-          career.salary.native?.sourceName && career.salary.native?.asOfDate
-            ? `${career.salary.native.sourceName} (${career.salary.native.asOfDate})`
-            : null
-        )
-        .filter((item): item is string => Boolean(item))
-    )
-  )
   const generatedResumeToolkitText = outreachResumeBullets.map((item) => `- ${item}`).join('\n')
   const generatedCallToolkitText =
     transitionPlanScripts?.call ?? transitionModeReport?.execution.outreachTemplates.call ?? ''
   const generatedEmailToolkitText =
     transitionPlanScripts?.email ?? transitionModeReport?.execution.outreachTemplates.email ?? ''
-  const isToolkitExpanded = outreachToolkitOpen || isPrintMode
-  const renderMissingHiringRequirementsCard = (className: string) => {
-    if (missingHiringRequirements.length === 0) return null
-
-    return (
-      <div className={className}>
-        <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-          Still likely missing
-        </p>
-        <p className="mt-2 text-sm font-semibold text-text-primary">
-          Education or credentials most employers screen for first
-        </p>
-        <p className="mt-1 text-sm text-text-secondary">
-          Close these early so you do not get filtered out before a real conversation.
-        </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {missingHiringRequirements.map((item) => (
-            <div
-              key={item.key}
-              className="rounded-xl border border-border-light bg-surface p-3"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                {item.kind === 'education' ? 'Education baseline' : 'Required credential'}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-text-primary">{item.title}</p>
-              <p className="mt-1 text-xs leading-[1.6] text-text-secondary">{item.detail}</p>
-              {item.link ? (
-                <a
-                  href={item.link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex text-xs font-semibold text-accent hover:text-accent/80"
-                >
-                  Where to get it
-                </a>
-              ) : null}
-            </div>
-          ))}
-        </div>
-        {!missingHiringRequirements.some((item) => item.link) && transitionResourceLinks.length > 0 ? (
-          <div className="mt-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-              Official sources
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {transitionResourceLinks.slice(0, 3).map((link) => (
-                <a
-                  key={`missing-requirement-link-${link.label}-${link.url}`}
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-pill border border-border-light bg-surface px-3 py-1 text-xs font-medium text-text-primary hover:border-accent/20 hover:text-accent"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
-    )
-  }
 
   useEffect(() => {
     if (!user || !isTransitionMode) return
@@ -3245,11 +2170,6 @@ export default function CareerSwitchPlannerPage({
     locationText,
     plannerReport?.transitionReport?.marketSnapshot.location
   ])
-
-  useEffect(() => {
-    if (!transitionModeReport) return
-    setActiveRoadmapTab('0-30')
-  }, [transitionModeReport])
 
   useEffect(() => {
     setResumeToolkitDraft(generatedResumeToolkitText)

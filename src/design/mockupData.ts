@@ -51,30 +51,6 @@ export interface BlogSummary {
   readTime: string
 }
 
-export const homepageBlogs: BlogSummary[] = [
-  {
-    slug: 'resume-mistakes-cost-interviews',
-    category: 'Career Tips',
-    title: '10 Resume Mistakes That Cost You Interviews',
-    date: 'Feb 12, 2026',
-    readTime: '5 min read'
-  },
-  {
-    slug: 'tell-me-about-yourself-2026',
-    category: 'Interviews',
-    title: "How to Answer 'Tell Me About Yourself' in 2026",
-    date: 'Feb 8, 2026',
-    readTime: '7 min read'
-  },
-  {
-    slug: 'ai-cover-letters-work',
-    category: 'Tools',
-    title: 'AI Cover Letters: Do They Actually Work?',
-    date: 'Feb 3, 2026',
-    readTime: '4 min read'
-  }
-]
-
 export interface PricingPlan {
   name: string
   price: string
@@ -306,5 +282,3 @@ export const blogPostTemplates: BlogPostTemplate[] = [
     ]
   }
 ]
-
-export const blogPostBySlug = new Map(blogPostTemplates.map((post) => [post.slug, post]))

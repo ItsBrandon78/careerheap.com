@@ -601,7 +601,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         badge: missingFallbackFields.includes('training.certifications') ? 'Estimate' : undefined
       },
       salaryPotential: {
-        value: salaryPotential || 'Based on typical regional ranges',
+        value: salaryPotential || 'Regional baseline estimate',
         badge: !salaryPotential ? 'Estimate' : undefined
       }
     },

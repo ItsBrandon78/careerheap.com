@@ -58,10 +58,6 @@ export function parseUsesRemainingOverride(value: string | null): number | null 
   return rounded
 }
 
-export function getFreeUsageLimit() {
-  return FREE_LIFETIME_LIMIT
-}
-
 export function getAnonymousUsageSummary(): UsageSummary {
   return {
     plan: 'free',
@@ -132,10 +128,6 @@ export function consumeSummaryOverride(summary: UsageSummary) {
     used: nextUsed,
     byTool: summary.byTool
   })
-}
-
-export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
-  return getAuthenticatedUserFromRequest()
 }
 
 export async function getAuthenticatedUserFromRequest(

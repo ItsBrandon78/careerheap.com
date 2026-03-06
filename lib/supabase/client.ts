@@ -1,10 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { getSupabasePublicKey, getSupabasePublicUrl, isSupabasePublicEnvConfigured } from '@/lib/supabase/publicEnv'
 
-export function isSupabaseConfigured() {
-  return isSupabasePublicEnvConfigured()
-}
-
 export function createClient() {
   const url = getSupabasePublicUrl()
   const anonKey = getSupabasePublicKey()

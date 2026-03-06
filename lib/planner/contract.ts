@@ -106,12 +106,6 @@ export interface CareerMapPlannerOutput {
   linksResources: CareerMapResourceLink[]
 }
 
-export function getCareerMapScoreBand(score: number): 'strong' | 'moderate' | 'weak' {
-  if (score >= 75) return 'strong'
-  if (score >= 50) return 'moderate'
-  return 'weak'
-}
-
 export function validateCareerMapScoreWeights(
   weights: Record<string, number> = CAREER_MAP_SCORE_WEIGHTS
 ): string[] {

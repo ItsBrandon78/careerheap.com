@@ -523,18 +523,4 @@ export function aggregateRequirements(items: ExtractedRequirement[]) {
     })
 }
 
-export function extractRequirementsFromPostings(
-  postings: PostingRequirementInput[],
-  source: RequirementEvidenceSource = 'adzuna'
-) {
-  const extracted = postings.flatMap((posting) =>
-    extractRequirementsFromText({
-      source,
-      text: posting.description,
-      postingId: posting.postingId
-    })
-  )
-
-  return aggregateRequirements(extracted)
-}
 

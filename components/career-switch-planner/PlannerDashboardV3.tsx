@@ -233,7 +233,7 @@ export function PlannerDashboardV3({
             <p className="mt-3 max-w-[80ch] text-[15px] leading-[1.55] text-text-secondary">
               {model.hero.insight}
             </p>
-            <div className="mt-5 grid gap-2 md:grid-cols-5">
+            <div className="mx-auto mt-5 grid w-full max-w-tool gap-2 md:grid-cols-5">
               {[
                 {
                   label: 'Difficulty Score',
@@ -259,13 +259,19 @@ export function PlannerDashboardV3({
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-lg border border-border bg-bg-secondary p-3"
+                  className="flex min-h-[78px] flex-col justify-between rounded-lg border border-border bg-bg-secondary px-3 py-2"
                 >
-                  <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                  <p className="text-[10px] font-semibold uppercase tracking-[1.2px] text-text-tertiary">
                     {item.label}
                   </p>
-                  <p className={`mt-2 text-xl font-bold ${item.valueClass}`}>{item.metric.value}</p>
-                  <div className="mt-2">
+                  <p
+                    className={`mt-1 break-words text-[31px] font-bold leading-[1.05] md:text-[33px] ${item.valueClass} ${
+                      item.metric.value.length > 18 ? 'text-[17px] leading-[1.25] md:text-[19px]' : ''
+                    }`}
+                  >
+                    {item.metric.value}
+                  </p>
+                  <div className="mt-1">
                     <FallbackTag value={item.metric} />
                   </div>
                 </div>

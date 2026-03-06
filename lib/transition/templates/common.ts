@@ -45,14 +45,6 @@ export function progressionLabel(context: TransitionPlanContext) {
   return context.relationship === 'within_career_progression' ? 'next step in this career' : roleLabel(context)
 }
 
-export function buildDefaultInternalResources() {
-  return [
-    { label: 'CareerHeap Blog', url: '/blog' },
-    { label: 'Career Tools', url: '/tools' },
-    { label: 'Run This Plan Again', url: '/tools/career-switch-planner' }
-  ] as const
-}
-
 export function mergeResourceLists(
   primary: TransitionResource[],
   fallback: TransitionResource[],
