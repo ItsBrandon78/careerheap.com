@@ -18,12 +18,38 @@ import {
   getAuthenticatedUserFromRequest,
   getUsageSummaryForUser,
   hashToolInput,
-  recordToolRun
+  recordToolRun,
+  type UsageSummary
 } from '@/lib/server/toolUsage'
 import { generateTransitionPlan } from '@/lib/transition/generatePlan'
 import { getCachedOrGenerateTransitionEnhancement } from '@/lib/server/transitionPlanEnhancer'
 
 export const dynamic = 'force-dynamic'
+
+function isLocalhostDevRequest(request: Request) {
+  if (process.env.NODE_ENV === 'production') return false
+  const hostHeader = request.headers.get('host')?.trim().toLowerCase() ?? ''
+  const host = hostHeader.split(':')[0]
+  return (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host === '::1' ||
+    host === '[::1]'
+  )
+}
+
+function localDevUnlimitedUsageSummary(): UsageSummary {
+  return {
+    plan: 'pro',
+    isUnlimited: true,
+    canUse: true,
+    used: 0,
+    limit: 3,
+    usesRemaining: null,
+    byTool: {}
+  }
+}
 
 function asString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
@@ -418,7 +444,8 @@ export async function POST(request: Request) {
     }
 
     const user = await getAuthenticatedUserFromRequest(request)
-    const isGuestPreview = !user
+    const localUnsignedBypass = isLocalhostDevRequest(request) && !user
+    const isGuestPreview = !user && !localUnsignedBypass
     if (user) {
       userIdForFailure = user.id
     }
@@ -440,7 +467,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'INVALID_INPUT', message: validationError }, { status: 400 })
     }
 
-    const usageBefore = user ? await getUsageSummaryForUser(user) : getAnonymousUsageSummary()
+    const usageBefore = user
+      ? await getUsageSummaryForUser(user)
+      : localUnsignedBypass
+        ? localDevUnlimitedUsageSummary()
+        : getAnonymousUsageSummary()
     if (user && !usageBefore.canUse) {
       await recordToolRun({
         userId: user.id,

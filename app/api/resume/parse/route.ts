@@ -19,6 +19,19 @@ import { classifyResumeSignals } from '@/lib/server/resumeClassifierLlm'
 
 export const runtime = 'nodejs'
 
+function isLocalhostDevRequest(request: Request) {
+  if (process.env.NODE_ENV === 'production') return false
+  const hostHeader = request.headers.get('host')?.trim().toLowerCase() ?? ''
+  const host = hostHeader.split(':')[0]
+  return (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host === '::1' ||
+    host === '[::1]'
+  )
+}
+
 const OCR_MAX_PAGES = 5
 const OCR_TIMEOUT_MS = 20_000
 const REDACTED_RESUME_PLACEHOLDER = '[redacted by default]'
@@ -380,7 +393,8 @@ export async function POST(req: Request) {
     }
 
     const user = await getAuthenticatedUserFromRequest(req)
-    if (!user) {
+    const localUnsignedBypass = isLocalhostDevRequest(req) && !user
+    if (!user && !localUnsignedBypass) {
       return NextResponse.json(
         {
           ok: false,
@@ -391,8 +405,10 @@ export async function POST(req: Request) {
       )
     }
 
-    const usage = await getUsageSummaryForUser(user)
-    if (usage.plan === 'free') {
+    const usage = user
+      ? await getUsageSummaryForUser(user)
+      : { plan: 'pro' as const }
+    if (usage.plan === 'free' && !localUnsignedBypass) {
       return NextResponse.json(
         {
           ok: false,
@@ -466,21 +482,23 @@ export async function POST(req: Request) {
       }
     }
 
-    const admin = createAdminClient()
     let resumeRow: { id?: string } | null = null
-    try {
-      const { data } = await admin
-        .from('resumes')
-        .insert({
-          user_id: user.id,
-          raw_text: REDACTED_RESUME_PLACEHOLDER,
-          parsed_data: structured
-        })
-        .select('id')
-        .maybeSingle()
-      resumeRow = data ?? null
-    } catch {
-      resumeRow = null
+    if (user) {
+      const admin = createAdminClient()
+      try {
+        const { data } = await admin
+          .from('resumes')
+          .insert({
+            user_id: user.id,
+            raw_text: REDACTED_RESUME_PLACEHOLDER,
+            parsed_data: structured
+          })
+          .select('id')
+          .maybeSingle()
+        resumeRow = data ?? null
+      } catch {
+        resumeRow = null
+      }
     }
 
     return NextResponse.json({

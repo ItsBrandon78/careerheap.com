@@ -60,6 +60,34 @@ function singularTitleKey(value: string) {
   return key.replace(/\b([a-z]{4,})s\b/g, '$1')
 }
 
+function roleTitleSimilarity(candidateTitle: string, targetTitle: string | null | undefined) {
+  const candidate = singularTitleKey(candidateTitle)
+  const target = singularTitleKey(targetTitle ?? '')
+  if (!candidate || !target) return 0
+  if (candidate === target) return 100
+
+  let score = 0
+  if (candidate.includes(target) || target.includes(candidate)) {
+    score += 40
+  }
+
+  const candidateTokens = new Set(candidate.split(/\s+/).filter(Boolean))
+  const targetTokens = new Set(target.split(/\s+/).filter(Boolean))
+  for (const token of candidateTokens) {
+    if (targetTokens.has(token)) {
+      score += 12
+    }
+  }
+
+  const [candidateHead] = candidate.split(/\s+/)
+  const [targetHead] = target.split(/\s+/)
+  if (candidateHead && targetHead && candidateHead === targetHead) {
+    score += 8
+  }
+
+  return score
+}
+
 function isSameRoleTitle(candidate: string, ...comparisons: Array<string | null | undefined>) {
   const key = titleKey(candidate)
   const singularKey = singularTitleKey(candidate)
@@ -185,7 +213,13 @@ export function buildRecommendedTargetSections(input: BuildRecommendedTargetSect
 
   const closest = filteredCareers
     .slice()
-    .sort((left, right) => Number(right.score ?? 0) - Number(left.score ?? 0))
+    .sort((left, right) => {
+      const similarityDelta =
+        roleTitleSimilarity(right.title, input.targetRoleInput) -
+        roleTitleSimilarity(left.title, input.targetRoleInput)
+      if (similarityDelta !== 0) return similarityDelta
+      return Number(right.score ?? 0) - Number(left.score ?? 0)
+    })
     .slice(0, 3)
     .map((career) => {
       usedKeys.add(singularTitleKey(career.title))

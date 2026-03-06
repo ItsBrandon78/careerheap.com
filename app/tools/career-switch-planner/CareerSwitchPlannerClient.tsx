@@ -1024,7 +1024,7 @@ export default function CareerSwitchPlannerPage({
     matchedBy: string
   } | null>(null)
   const recommendMode = false
-  const [showSuggestedTargets, setShowSuggestedTargets] = useState(false)
+  const [showSuggestedTargets, setShowSuggestedTargets] = useState(true)
   const [suggestedTargetShuffle, setSuggestedTargetShuffle] = useState(0)
   const [skills, setSkills] = useState<string[]>([])
   const [experienceText, setExperienceText] = useState('')
@@ -1067,6 +1067,7 @@ export default function CareerSwitchPlannerPage({
   })
   const [usage, setUsage] = useState<ToolUsageResult | null>(null)
   const [isUsageLoading, setIsUsageLoading] = useState(true)
+  const [isLocalhostDev, setIsLocalhostDev] = useState(false)
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const plannerStageTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -1081,6 +1082,18 @@ export default function CareerSwitchPlannerPage({
     if (uses) qp.set('uses', uses)
     return qp.toString()
   }, [searchParams])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const host = window.location.hostname.trim().toLowerCase()
+    setIsLocalhostDev(
+      host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host === '0.0.0.0' ||
+        host === '::1' ||
+        host === '[::1]'
+    )
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -1151,10 +1164,14 @@ export default function CareerSwitchPlannerPage({
     }
   }, [plannerResult, plannerState])
 
-  const hasPaidPlan = plan === 'pro' || plan === 'lifetime'
+  const localUnsignedBypass = isLocalhostDev && !user
+  const effectivePlan = localUnsignedBypass ? 'pro' : plan
+  const hasPaidPlan = effectivePlan === 'pro' || effectivePlan === 'lifetime'
   const isProUser =
     proPreview || hasPaidPlan || usage?.plan === 'pro' || usage?.plan === 'lifetime'
-  const isLocked = previewLocked || (!hasPaidPlan && (usage ? !usage.canUse : false))
+  const isLocked =
+    previewLocked ||
+    (!localUnsignedBypass && !hasPaidPlan && (usage ? !usage.canUse : false))
   const hasMinimumRequiredInput =
     currentRoleText.trim().length > 0 || experienceText.trim().length > 0 || skills.length >= 3
   const roleAutocompleteRegion = toAutocompleteRegion(workRegion)
@@ -1739,7 +1756,7 @@ export default function CareerSwitchPlannerPage({
 
       setPlannerResult(toPlannerResultView(plannerResultPayload))
       setPlannerReport(data?.report ?? null)
-      setIsGuestPreview(Boolean(data?.previewLimited || data?.report?.previewLimited || !user))
+      setIsGuestPreview(Boolean(data?.previewLimited || data?.report?.previewLimited || (!user && !localUnsignedBypass)))
       setRoleSelectionPrompt(null)
       const resolvedCurrentRole =
         data?.report?.roleResolution?.current?.matched?.rawInputTitle?.trim() ||
@@ -1781,7 +1798,7 @@ export default function CareerSwitchPlannerPage({
     setTargetRoleText('')
     setCurrentRoleSelectedMatch(null)
     setTargetRoleSelectedMatch(null)
-    setShowSuggestedTargets(false)
+    setShowSuggestedTargets(true)
     setSkills([])
     setExperienceText('')
     setUserPostingText('')
@@ -2057,9 +2074,14 @@ export default function CareerSwitchPlannerPage({
     targetRoleResolution?.matched?.occupationId ?? targetRoleSelectedMatch?.occupationId ?? null,
     currentRoleResolution?.suggestions.map((item) => ({ title: item.title, code: item.code })) ?? []
   )
-  const assistiveSuggestedTargetPool = assistiveSuggestedTargetSections.flatMap((section) => section.roles)
+  const closestSuggestedTargetPool =
+    assistiveSuggestedTargetSections.find((section) => section.title === 'Closest matches')?.roles ?? []
+  const assistiveSuggestedTargetPool =
+    closestSuggestedTargetPool.length > 0
+      ? closestSuggestedTargetPool
+      : assistiveSuggestedTargetSections.flatMap((section) => section.roles)
   const assistiveSuggestedTargets =
-    assistiveSuggestedTargetPool.length <= 8
+    assistiveSuggestedTargetPool.length <= 2
       ? assistiveSuggestedTargetPool
       : [
           ...assistiveSuggestedTargetPool.slice(
@@ -2069,7 +2091,7 @@ export default function CareerSwitchPlannerPage({
             0,
             suggestedTargetShuffle % assistiveSuggestedTargetPool.length
           )
-        ].slice(0, 8)
+        ].slice(0, 2)
   const currentDraftSignature = buildPlannerDraftSignature(
     {
       currentRoleText,
@@ -2107,7 +2129,7 @@ export default function CareerSwitchPlannerPage({
   const hasPendingResumeReview = Boolean(
     pendingResumeSkills.length > 0 || pendingResumeCertifications.length > 0 || pendingResumeRoleCandidate
   )
-  const generateButtonLabel = user
+  const generateButtonLabel = user || localUnsignedBypass
     ? hasDraftChanges
       ? 'Generate Updated Plan'
       : hasPlannerResults
@@ -2353,7 +2375,7 @@ export default function CareerSwitchPlannerPage({
     <>
       <ToolHero className="print-hidden pb-12 pt-16">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge className="gap-1.5">{usageLabel(usage, previewLocked, plan)}</Badge>
+          <Badge className="gap-1.5">{usageLabel(usage, previewLocked, effectivePlan)}</Badge>
           <Badge className="gap-1.5">Province-aware</Badge>
           <Badge className="gap-1.5">Resume Upload (Pro)</Badge>
         </div>
