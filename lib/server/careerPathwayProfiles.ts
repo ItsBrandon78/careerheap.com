@@ -26,6 +26,34 @@ type CareerRoleRow = {
   jurisdiction_region: string | null
 }
 
+type StarterCertBundleItem = {
+  type: string
+  name: string
+  details: string
+  source_title: string
+  source_url: string
+  provider: string
+}
+
+type TradeFamily =
+  | 'construction'
+  | 'industrial'
+  | 'utility'
+  | 'motive_power'
+  | 'service'
+
+const TRADE_TITLE_ALIASES: Array<{ match: RegExp; title: string; tradeCode?: string }> = [
+  { match: /\bapprentice electrician\b/i, title: 'Electrician Construction and Maintenance', tradeCode: '309A' },
+  { match: /^\belectrician\b$/i, title: 'Electrician Construction and Maintenance', tradeCode: '309A' },
+  { match: /\bindustrial electrician\b/i, title: 'Industrial Electrician', tradeCode: '442A' },
+  { match: /\bapprentice plumber\b/i, title: 'Plumber', tradeCode: '306A' },
+  { match: /^\bplumber\b$/i, title: 'Plumber', tradeCode: '306A' },
+  { match: /\bmillwright\b/i, title: 'Industrial Mechanic Millwright', tradeCode: '433A' },
+  { match: /\bhvac\b|\brefrigeration\b|\bac mechanic\b/i, title: 'Refrigeration and Air Conditioning Systems Mechanic', tradeCode: '313A' },
+  { match: /\bpowerline\b/i, title: 'Powerline Technician', tradeCode: '434A' },
+  { match: /\bcarpenter\b/i, title: 'General Carpenter', tradeCode: '403A' },
+]
+
 const REGION_ALIASES: Array<{ code: string; patterns: string[] }> = [
   { code: 'ON', patterns: ['ontario'] },
   { code: 'BC', patterns: ['british columbia'] },
@@ -42,11 +70,170 @@ const REGION_ALIASES: Array<{ code: string; patterns: string[] }> = [
   { code: 'NU', patterns: ['nunavut'] }
 ]
 
+const OFFICIAL_SOURCE_URLS = {
+  whmis: 'https://www.ccohs.ca/oshanswers/chemicals/whmis_ghs/general.html',
+  workingAtHeights: 'https://www.ontario.ca/page/training-working-heights',
+  workerAwareness: 'https://www.ontario.ca/document/worker-health-and-safety-awareness-workbook',
+  lockout: 'https://www.ccohs.ca/oshanswers/safety_haz/lockout.html',
+  firstAid: 'https://www.wsib.ca/en/businesses/health-and-safety/first-aid-program',
+  confinedSpace: 'https://www.ccohs.ca/oshanswers/hsprograms/confinedspace.html'
+} as const
+
+const TRADE_FAMILY_STARTER_CERT_BUNDLES: Record<TradeFamily, StarterCertBundleItem[]> = {
+  construction: [
+    {
+      type: 'health_safety',
+      name: 'Working at Heights',
+      details: 'Required on Ontario construction projects where fall hazards are present.',
+      source_title: 'Ontario Working at Heights training',
+      source_url: OFFICIAL_SOURCE_URLS.workingAtHeights,
+      provider: 'Approved Ontario training provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Worker Health and Safety Awareness',
+      details: 'Ontario baseline worker awareness training used across construction entry routes.',
+      source_title: 'Ontario Worker Health and Safety Awareness workbook',
+      source_url: OFFICIAL_SOURCE_URLS.workerAwareness,
+      provider: 'Ontario workplace safety awareness source'
+    },
+    {
+      type: 'health_safety',
+      name: 'WHMIS',
+      details: 'Common hazardous materials training expected on many job sites and maintenance crews.',
+      source_title: 'CCOHS WHMIS guidance',
+      source_url: OFFICIAL_SOURCE_URLS.whmis,
+      provider: 'Employer or approved Canadian training provider'
+    }
+  ],
+  industrial: [
+    {
+      type: 'health_safety',
+      name: 'Lockout Tagout (LOTO)',
+      details: 'Frequently required when servicing industrial equipment and energized machinery.',
+      source_title: 'CCOHS Lockout / Tagout guidance',
+      source_url: OFFICIAL_SOURCE_URLS.lockout,
+      provider: 'Employer or industrial safety training provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Worker Health and Safety Awareness',
+      details: 'Ontario baseline worker awareness training for industrial and maintenance sites.',
+      source_title: 'Ontario Worker Health and Safety Awareness workbook',
+      source_url: OFFICIAL_SOURCE_URLS.workerAwareness,
+      provider: 'Ontario workplace safety awareness source'
+    },
+    {
+      type: 'health_safety',
+      name: 'WHMIS',
+      details: 'Hazardous materials training is a common baseline for factory and maintenance environments.',
+      source_title: 'CCOHS WHMIS guidance',
+      source_url: OFFICIAL_SOURCE_URLS.whmis,
+      provider: 'Employer or approved Canadian training provider'
+    }
+  ],
+  utility: [
+    {
+      type: 'health_safety',
+      name: 'Confined Space Entry',
+      details: 'Often required where utility, infrastructure, pit, vault, or enclosed-space work appears.',
+      source_title: 'CCOHS confined spaces guidance',
+      source_url: OFFICIAL_SOURCE_URLS.confinedSpace,
+      provider: 'Employer or confined-space training provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Standard First Aid',
+      details: 'Field crews commonly need first-aid coverage for remote or infrastructure work.',
+      source_title: 'WSIB first aid program',
+      source_url: OFFICIAL_SOURCE_URLS.firstAid,
+      provider: 'WSIB-approved first aid provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Worker Health and Safety Awareness',
+      details: 'Ontario baseline worker awareness training for utility and field-entry roles.',
+      source_title: 'Ontario Worker Health and Safety Awareness workbook',
+      source_url: OFFICIAL_SOURCE_URLS.workerAwareness,
+      provider: 'Ontario workplace safety awareness source'
+    }
+  ],
+  motive_power: [
+    {
+      type: 'health_safety',
+      name: 'Lockout Tagout (LOTO)',
+      details: 'Useful for powered equipment service, diagnostics, and safe isolation routines.',
+      source_title: 'CCOHS Lockout / Tagout guidance',
+      source_url: OFFICIAL_SOURCE_URLS.lockout,
+      provider: 'Employer or industrial safety training provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'WHMIS',
+      details: 'Common baseline for shop chemicals, lubricants, and hazardous products.',
+      source_title: 'CCOHS WHMIS guidance',
+      source_url: OFFICIAL_SOURCE_URLS.whmis,
+      provider: 'Employer or approved Canadian training provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Worker Health and Safety Awareness',
+      details: 'Ontario worker awareness training commonly expected in shop and yard environments.',
+      source_title: 'Ontario Worker Health and Safety Awareness workbook',
+      source_url: OFFICIAL_SOURCE_URLS.workerAwareness,
+      provider: 'Ontario workplace safety awareness source'
+    }
+  ],
+  service: [
+    {
+      type: 'health_safety',
+      name: 'WHMIS',
+      details: 'A practical baseline when the role involves chemicals, cleaning products, or food-safety environments.',
+      source_title: 'CCOHS WHMIS guidance',
+      source_url: OFFICIAL_SOURCE_URLS.whmis,
+      provider: 'Employer or approved Canadian training provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Standard First Aid',
+      details: 'Often useful where customer-facing or site-support work benefits from certified first-aid coverage.',
+      source_title: 'WSIB first aid program',
+      source_url: OFFICIAL_SOURCE_URLS.firstAid,
+      provider: 'WSIB-approved first aid provider'
+    },
+    {
+      type: 'health_safety',
+      name: 'Worker Health and Safety Awareness',
+      details: 'Ontario baseline worker awareness training for entry-level regulated work settings.',
+      source_title: 'Ontario Worker Health and Safety Awareness workbook',
+      source_url: OFFICIAL_SOURCE_URLS.workerAwareness,
+      provider: 'Ontario workplace safety awareness source'
+    }
+  ]
+}
+
 function normalizeText(value: string | null | undefined) {
   return String(value ?? '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
+}
+
+function applyTradeAlias(args: LookupArgs): LookupArgs {
+  const targetRole = String(args.targetRole ?? '').trim()
+  if (!targetRole) return args
+
+  for (const alias of TRADE_TITLE_ALIASES) {
+    if (alias.match.test(targetRole)) {
+      return {
+        ...args,
+        targetRole: `${alias.title}${alias.tradeCode ? ` (${alias.tradeCode})` : ''}`,
+        tradeCode: args.tradeCode ?? alias.tradeCode ?? null,
+      }
+    }
+  }
+
+  return args
 }
 
 function similarity(left: string, right: string) {
@@ -73,6 +260,56 @@ function extractProvinceCode(region: string | null | undefined) {
     }
   }
   return null
+}
+
+function inferTradeFamily(profile: CareerPathwayProfile): TradeFamily | null {
+  if (profile.meta.pathway_type !== 'trade_apprenticeship') return null
+
+  const tradeCode = normalizeText(profile.meta.codes.trade_code)
+  const title = normalizeText(profile.meta.title)
+
+  if (/(309a|306a|403a|313a)/.test(tradeCode) || /(electric|plumb|carpent|refrigeration|air conditioning|hvac)/.test(title)) {
+    return 'construction'
+  }
+
+  if (/(442a|433a)/.test(tradeCode) || /(industrial|millwright|machin|welder|tool and die|boiler|instrument)/.test(title)) {
+    return 'industrial'
+  }
+
+  if (/(434a)/.test(tradeCode) || /(powerline|utility|infrastructure|elevator)/.test(title)) {
+    return 'utility'
+  }
+
+  if (/(310|421a|truck|automotive|heavy equipment|agricultural equipment|motorcycle|auto body|small engine)/.test(tradeCode) || /(automotive|truck|heavy equipment|motorcycle|auto body|small engine)/.test(title)) {
+    return 'motive_power'
+  }
+
+  return 'service'
+}
+
+function applyStarterCertBundle(profile: CareerPathwayProfile): CareerPathwayProfile {
+  const family = inferTradeFamily(profile)
+  if (!family) return profile
+
+  const existingBundle = Array.isArray(profile.requirements.starter_cert_bundle)
+    ? profile.requirements.starter_cert_bundle
+    : []
+  if (existingBundle.length >= 3) return profile
+
+  const bundle = TRADE_FAMILY_STARTER_CERT_BUNDLES[family]
+  const seen = new Set(existingBundle.map((item) => normalizeText(item.name)))
+  const mergedBundle = [
+    ...existingBundle,
+    ...bundle.filter((item) => !seen.has(normalizeText(item.name)))
+  ]
+
+  return CareerPathwayProfileSchema.parse({
+    ...profile,
+    requirements: {
+      ...profile.requirements,
+      starter_cert_bundle: mergedBundle
+    }
+  })
 }
 
 function scoreRoleMatch(row: CareerRoleRow, args: LookupArgs) {
@@ -226,7 +463,9 @@ async function fetchProfileFromDb(args: LookupArgs): Promise<CareerPathwayProfil
 export async function getCareerPathwayProfile(
   args: LookupArgs
 ): Promise<CareerPathwayProfile | null> {
-  const databaseProfile = await fetchProfileFromDb(args)
-  if (databaseProfile) return databaseProfile
-  return matchBuiltInProfile(args)
+  const lookupArgs = applyTradeAlias(args)
+  const databaseProfile = await fetchProfileFromDb(lookupArgs)
+  if (databaseProfile) return applyStarterCertBundle(databaseProfile)
+  const builtInProfile = matchBuiltInProfile(lookupArgs)
+  return builtInProfile ? applyStarterCertBundle(builtInProfile) : null
 }

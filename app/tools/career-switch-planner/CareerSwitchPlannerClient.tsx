@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react'
+import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
@@ -14,11 +14,6 @@ import {
   careerSwitchFaqs,
   careerSwitchMoreTools
 } from '@/lib/planner/content'
-import {
-  buildPlannerJobRecommendationCards,
-  type PlannerJobRecommendationCard,
-  type PlannerJobRecommendationInput
-} from '@/lib/planner/jobRecommendations'
 import { extractProfileSignals, isPersonalIdentifier } from '@/lib/planner/profileSignals'
 import { buildRecommendedTargetSections } from '@/lib/planner/recommendedTargets'
 import {
@@ -33,6 +28,7 @@ import {
 import { useToolUsage, type ToolUsageResult } from '@/lib/hooks/useToolUsage'
 import { useAuth } from '@/lib/auth/context'
 import {
+  CANADA_PROVINCES,
   DEFAULT_PROVINCE,
   getStoredProvince,
   toProvinceLocation,
@@ -45,7 +41,8 @@ type UploadState = 'idle' | 'parsing' | 'success' | 'error'
 type OcrCapabilityMode = 'native' | 'fallback' | 'unavailable'
 type OcrCapabilityStatus = 'idle' | 'loading' | 'ready' | 'error'
 type WizardStep = 0 | 1 | 2
-type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
+type LegacyWorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
+type WorkRegionValue = ProvinceCode | LegacyWorkRegionValue
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
   | 'No formal degree'
@@ -130,8 +127,6 @@ type PlannerFormDraft = {
   timelineBucket: TimelineBucketValue
   incomeTarget: IncomeTargetValue
 }
-
-type JobRecommendationStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error'
 
 type PlannerReportPayload = {
   compatibilitySnapshot: {
@@ -714,6 +709,19 @@ type SubmittedPlannerSnapshot = {
   timelineBucket: TimelineBucketValue
 }
 
+type PlannerLoopProgressState = {
+  checkedTaskIds: Record<string, boolean>
+  expandedPhaseIds: string[]
+  completedTrainingIds: Record<string, boolean>
+  outreachTracker: {
+    sent: string
+    replies: string
+    positiveReplies: string
+    nextFollowUpDate: string
+  }
+  updatedAt?: string | null
+}
+
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx']
 const FREE_LIMIT = 3
@@ -739,7 +747,7 @@ const WIZARD_STEPS: Array<{
     id: 2,
     title: 'Constraints',
     eyebrow: 'Step 3 of 3',
-    helper: 'Add location, timing, and market preferences before generating.'
+    helper: 'Set province, timing, and market evidence before generating.'
   }
 ]
 const PLANNER_LOADING_STAGES = ['Parsing profile', 'Matching roles', 'Building plan', 'Finalizing']
@@ -756,13 +764,12 @@ const FALLBACK_SKILL_SUGGESTIONS = [
   'Documentation'
 ]
 
-const WORK_REGION_OPTIONS: Array<{ value: WorkRegionValue; label: string }> = [
-  { value: 'ca', label: 'Canada (default)' },
-  { value: 'remote-ca', label: 'Remote (Canada)' },
-  { value: 'either', label: 'Open to either (Canada/US)' },
-  { value: 'us', label: 'United States (optional)' },
-  { value: 'remote-us', label: 'Remote (US)' }
-]
+const WORK_REGION_OPTIONS: Array<{ value: WorkRegionValue; label: string }> = CANADA_PROVINCES.map(
+  (province) => ({
+    value: province.code,
+    label: province.label
+  })
+)
 
 const TIMELINE_OPTIONS: Array<{ value: TimelineBucketValue; label: string }> = [
   { value: 'immediate', label: 'Immediate (0-30 days)' },
@@ -932,15 +939,6 @@ function buildRecommendedRoleSections(
   })
 }
 
-function buildJobRecommendationCards(
-  jobs: PlannerJobRecommendationInput[],
-  targetRole: string,
-  location: string,
-  signals: string[] = []
-) {
-  return buildPlannerJobRecommendationCards(jobs, targetRole, location, signals)
-}
-
 function scrollToSection(id: string) {
   const node = document.getElementById(id)
   if (!node) return
@@ -961,18 +959,51 @@ function mergeUniqueCaseInsensitive(base: string[], incoming: string[]) {
   return next
 }
 
-function toLocationFromWorkRegion(value: WorkRegionValue) {
-  if (value === 'ca') return 'Canada'
-  if (value === 'remote-us') return 'Remote (US)'
-  if (value === 'remote-ca') return 'Remote (Canada)'
-  if (value === 'either') return 'Open to either (Canada/US)'
-  return 'United States'
+function isProvinceWorkRegion(value: string): value is ProvinceCode {
+  return CANADA_PROVINCES.some((province) => province.code === value)
 }
 
-function toAutocompleteRegion(value: WorkRegionValue): 'US' | 'CA' | 'either' {
-  if (value === 'ca' || value === 'remote-ca') return 'CA'
-  if (value === 'us' || value === 'remote-us') return 'US'
-  return 'either'
+function normalizeWorkRegionToProvince(
+  value: WorkRegionValue | string,
+  fallback: ProvinceCode = DEFAULT_PROVINCE
+): ProvinceCode {
+  const normalized = value.trim().toUpperCase()
+  if (isProvinceWorkRegion(normalized)) {
+    return normalized
+  }
+  return fallback
+}
+
+function toAutocompleteRegion(): 'CA' {
+  return 'CA'
+}
+
+function normalizeRoleSuggestionKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\b([a-z]{4,})s\b/g, '$1')
+}
+
+function roleSuggestionConfidenceToDifficulty(confidence?: number) {
+  const score = typeof confidence === 'number' ? confidence : 0
+  if (score >= 0.85) return 'easy'
+  if (score >= 0.72) return 'moderate'
+  return 'hard'
+}
+
+function roleSuggestionConfidenceToTimeline(confidence?: number) {
+  const score = typeof confidence === 'number' ? confidence : 0
+  if (score >= 0.85) return '1-3 months'
+  if (score >= 0.72) return '3-6 months'
+  return '6-12 months'
+}
+
+function toReadableMatchReason(matchedBy?: string) {
+  if (!matchedBy) return 'role similarity'
+  return matchedBy.replace(/_/g, ' ')
 }
 
 function usageLabel(
@@ -1003,14 +1034,32 @@ export default function CareerSwitchPlannerPage({
   const [viewMode, setViewMode] = useState<PlannerViewMode>('intake')
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false)
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null)
+  const [savedPlannerReportId, setSavedPlannerReportId] = useState<string | null>(null)
+  const [plannerServerProgressState, setPlannerServerProgressState] = useState<PlannerLoopProgressState | null>(null)
+  const [plannerServerProgressHydrated, setPlannerServerProgressHydrated] = useState(false)
+  const [savePlanState, setSavePlanState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [isGuestPreview, setIsGuestPreview] = useState(false)
   const [activeWizardStep, setActiveWizardStep] = useState<WizardStep>(0)
   const [loadingStageIndex, setLoadingStageIndex] = useState(0)
   const [resumeToolkitDraft, setResumeToolkitDraft] = useState('')
   const [callToolkitDraft, setCallToolkitDraft] = useState('')
   const [emailToolkitDraft, setEmailToolkitDraft] = useState('')
+  const [outreachTracker, setOutreachTracker] = useState({
+    sent: '',
+    replies: '',
+    positiveReplies: '',
+    nextFollowUpDate: ''
+  })
   const [currentRoleText, setCurrentRoleText] = useState('')
   const [targetRoleText, setTargetRoleText] = useState('')
+  const [targetRoleAssistiveSuggestions, setTargetRoleAssistiveSuggestions] = useState<
+    Array<{
+      title: string
+      difficulty: string
+      transitionTime: string
+      why: string[]
+    }>
+  >([])
   const [currentRoleSelectedMatch, setCurrentRoleSelectedMatch] = useState<{
     occupationId: string
     title: string
@@ -1031,9 +1080,12 @@ export default function CareerSwitchPlannerPage({
   const [inputError, setInputError] = useState('')
   const [plannerResult, setPlannerResult] = useState<PlannerResultView | null>(null)
   const [plannerReport, setPlannerReport] = useState<PlannerReportPayload | null>(null)
-  const [jobRecommendationStatus, setJobRecommendationStatus] = useState<JobRecommendationStatus>('idle')
-  const [jobRecommendationItems, setJobRecommendationItems] = useState<PlannerJobRecommendationCard[]>([])
-  const [jobRecommendationMessage, setJobRecommendationMessage] = useState('')
+  const [plannerLoopProgressState, setPlannerLoopProgressState] = useState<{
+    checkedTaskIds: Record<string, boolean>
+    expandedPhaseIds: string[]
+    completedTrainingIds: Record<string, boolean>
+    updatedAt: string
+  } | null>(null)
   const [roleSelectionPrompt, setRoleSelectionPrompt] = useState<RoleSelectionPrompt | null>(null)
   const [lastSubmittedSnapshot, setLastSubmittedSnapshot] = useState<SubmittedPlannerSnapshot | null>(null)
   const [lastSubmittedDraftSignature, setLastSubmittedDraftSignature] = useState<string | null>(null)
@@ -1052,7 +1104,7 @@ export default function CareerSwitchPlannerPage({
   const [ocrCapabilityStatus, setOcrCapabilityStatus] = useState<OcrCapabilityStatus>('idle')
   const [ocrCapabilities, setOcrCapabilities] = useState<ResumeOcrCapabilities | null>(null)
   const [selectedProvince, setSelectedProvince] = useState<ProvinceCode>(DEFAULT_PROVINCE)
-  const [workRegion, setWorkRegion] = useState<WorkRegionValue>('ca')
+  const [workRegion, setWorkRegion] = useState<WorkRegionValue>(DEFAULT_PROVINCE)
   const [locationText, setLocationText] = useState(toProvinceLocation(DEFAULT_PROVINCE))
   const [locationTouched, setLocationTouched] = useState(false)
   const [timelineBucket, setTimelineBucket] = useState<TimelineBucketValue>('1-3 months')
@@ -1071,7 +1123,6 @@ export default function CareerSwitchPlannerPage({
 
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const plannerStageTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const lastJobRecommendationKeyRef = useRef('')
   const previewLocked = searchParams.get('locked') === '1'
   const proPreview = searchParams.get('propreview') === '1'
   const usageQuery = useMemo(() => {
@@ -1169,22 +1220,20 @@ export default function CareerSwitchPlannerPage({
   const hasPaidPlan = effectivePlan === 'pro' || effectivePlan === 'lifetime'
   const isProUser =
     proPreview || hasPaidPlan || usage?.plan === 'pro' || usage?.plan === 'lifetime'
+  const canPersistPlannerLoop = Boolean(
+    user && (hasPaidPlan || usage?.plan === 'pro' || usage?.plan === 'lifetime')
+  )
   const isLocked =
     previewLocked ||
     (!localUnsignedBypass && !hasPaidPlan && (usage ? !usage.canUse : false))
   const hasMinimumRequiredInput =
     currentRoleText.trim().length > 0 || experienceText.trim().length > 0 || skills.length >= 3
-  const roleAutocompleteRegion = toAutocompleteRegion(workRegion)
-  const isTransitionMode = Boolean(
-    lastSubmittedSnapshot?.targetRole && !lastSubmittedSnapshot?.recommendMode
-  )
+  const roleAutocompleteRegion = toAutocompleteRegion()
 
   useEffect(() => {
     const nextProvince = getStoredProvince()
     setSelectedProvince(nextProvince)
-    setWorkRegion((current) =>
-      current === 'us' || current === 'remote-us' ? current : 'ca'
-    )
+    setWorkRegion(nextProvince)
     if (!locationTouched) {
       setLocationText(toProvinceLocation(nextProvince))
     }
@@ -1194,9 +1243,7 @@ export default function CareerSwitchPlannerPage({
       if (typeof next !== 'string') return
       const normalized = (next.trim().toUpperCase() || DEFAULT_PROVINCE) as ProvinceCode
       setSelectedProvince(normalized)
-      setWorkRegion((current) =>
-        current === 'us' || current === 'remote-us' ? current : 'ca'
-      )
+      setWorkRegion(normalized)
       if (!locationTouched) {
         setLocationText(toProvinceLocation(normalized))
       }
@@ -1210,13 +1257,75 @@ export default function CareerSwitchPlannerPage({
 
   useEffect(() => {
     if (!locationTouched) {
-      setLocationText(
-        workRegion === 'ca'
-          ? toProvinceLocation(selectedProvince)
-          : toLocationFromWorkRegion(workRegion)
-      )
+      setLocationText(toProvinceLocation(selectedProvince))
     }
   }, [locationTouched, selectedProvince, workRegion])
+
+  useEffect(() => {
+    const query = targetRoleText.trim()
+    if (query.length < 2) {
+      setTargetRoleAssistiveSuggestions([])
+      return
+    }
+
+    const controller = new AbortController()
+    const searchParams = new URLSearchParams({ q: query, limit: '8' })
+    searchParams.set('region', roleAutocompleteRegion)
+
+    void fetch(`/api/career-map/occupations?${searchParams.toString()}`, {
+      cache: 'no-store',
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as
+          | {
+              items?: Array<{
+                title?: string
+                confidence?: number
+                matchedBy?: string
+              }>
+            }
+          | null
+
+        if (!response.ok || !Array.isArray(data?.items)) {
+          setTargetRoleAssistiveSuggestions([])
+          return
+        }
+
+        const targetKey = normalizeRoleSuggestionKey(query)
+        const currentKey = normalizeRoleSuggestionKey(currentRoleText)
+        const seen = new Set<string>()
+        const nextSuggestions = data.items
+          .map((item) => {
+            const title = typeof item.title === 'string' ? item.title.trim() : ''
+            const key = normalizeRoleSuggestionKey(title)
+            if (!title || !key || key === targetKey || key === currentKey || seen.has(key)) {
+              return null
+            }
+            seen.add(key)
+            return {
+              title,
+              difficulty: roleSuggestionConfidenceToDifficulty(item.confidence),
+              transitionTime: roleSuggestionConfidenceToTimeline(item.confidence),
+              why: [
+                `Close to "${query}" based on ${toReadableMatchReason(item.matchedBy)} matching.`
+              ]
+            }
+          })
+          .filter((item): item is NonNullable<typeof item> => Boolean(item))
+          .slice(0, 6)
+
+        setTargetRoleAssistiveSuggestions(nextSuggestions)
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setTargetRoleAssistiveSuggestions([])
+      })
+
+    return () => {
+      controller.abort()
+    }
+  }, [targetRoleText, currentRoleText, roleAutocompleteRegion])
 
   useEffect(() => {
     if (!isProUser) {
@@ -1364,9 +1473,7 @@ export default function CareerSwitchPlannerPage({
     try {
       const formData = new FormData()
       formData.append('file', file)
-      if (roleAutocompleteRegion === 'US' || roleAutocompleteRegion === 'CA') {
-        formData.append('regionHint', roleAutocompleteRegion)
-      }
+      formData.append('regionHint', roleAutocompleteRegion)
       const authHeaders = await getSupabaseAuthHeaders()
       const headers =
         typeof authHeaders.Authorization === 'string'
@@ -1527,14 +1634,39 @@ export default function CareerSwitchPlannerPage({
     })
   }
 
-  const handleCopyToolkitSection = async (_key: string, value: string) => {
-    if (!value.trim() || typeof navigator === 'undefined' || !navigator.clipboard) return
+  const handleExportPlan = () => {
+    if (typeof window === 'undefined' || !plannerReport) return
 
-    try {
-      await navigator.clipboard.writeText(value)
-    } catch {
-      // ignore clipboard failures
+    const exportPayload = {
+      reportId: savedPlannerReportId,
+      generatedAt: lastGeneratedAt,
+      currentRole: heroCurrentRoleLabel,
+      targetRole: heroTargetRoleLabel,
+      locationText,
+      timelineBucket,
+      plannerResult,
+      plannerReport,
+      progress: plannerLoopProgressState
+        ? {
+            ...plannerLoopProgressState,
+            outreachTracker
+          }
+        : null
     }
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+      type: 'application/json;charset=utf-8'
+    })
+    const url = window.URL.createObjectURL(blob)
+    const link = window.document.createElement('a')
+    const safeCurrentRole = heroCurrentRoleLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const safeTargetRole = heroTargetRoleLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    link.href = url
+    link.download = `career-switch-plan-${safeCurrentRole}-to-${safeTargetRole}.json`
+    window.document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
   }
 
   const handleGeneratePlan = async (override?: Partial<PlannerFormDraft>) => {
@@ -1582,16 +1714,12 @@ export default function CareerSwitchPlannerPage({
 
     if (!draft.locationText.trim()) {
       setActiveWizardStep(2)
-      setInputError('Add your target location to generate market evidence.')
+      setInputError('Select a province to generate market evidence.')
       return
     }
 
     setInputError('')
     setPlannerReport(null)
-    setJobRecommendationStatus('idle')
-    setJobRecommendationItems([])
-    setJobRecommendationMessage('')
-    lastJobRecommendationKeyRef.current = ''
     setPlannerState('loading')
 
     try {
@@ -1667,6 +1795,7 @@ export default function CareerSwitchPlannerPage({
             resumeReframes?: CareerSwitchPlannerResult['resumeReframes']
             recommendedRoles?: CareerSwitchPlannerResult['recommendedRoles']
             report?: PlannerReportPayload
+            reportId?: string | null
             usage?: ToolUsageResult
             previewLimited?: boolean
             error?: string
@@ -1756,6 +1885,9 @@ export default function CareerSwitchPlannerPage({
 
       setPlannerResult(toPlannerResultView(plannerResultPayload))
       setPlannerReport(data?.report ?? null)
+      setSavedPlannerReportId(typeof data?.reportId === 'string' ? data.reportId : null)
+      setPlannerServerProgressState(null)
+      setPlannerLoopProgressState(null)
       setIsGuestPreview(Boolean(data?.previewLimited || data?.report?.previewLimited || (!user && !localUnsignedBypass)))
       setRoleSelectionPrompt(null)
       const resolvedCurrentRole =
@@ -1805,6 +1937,10 @@ export default function CareerSwitchPlannerPage({
     setInputError('')
     setPlannerResult(null)
     setPlannerReport(null)
+    setSavedPlannerReportId(null)
+    setPlannerServerProgressState(null)
+    setPlannerServerProgressHydrated(false)
+    setPlannerLoopProgressState(null)
     setIsGuestPreview(false)
     setPlannerState('idle')
     setViewMode('intake')
@@ -1814,10 +1950,12 @@ export default function CareerSwitchPlannerPage({
     setResumeToolkitDraft('')
     setCallToolkitDraft('')
     setEmailToolkitDraft('')
-    setJobRecommendationStatus('idle')
-    setJobRecommendationItems([])
-    setJobRecommendationMessage('')
-    lastJobRecommendationKeyRef.current = ''
+    setOutreachTracker({
+      sent: '',
+      replies: '',
+      positiveReplies: '',
+      nextFollowUpDate: ''
+    })
     setRoleSelectionPrompt(null)
     setLastSubmittedSnapshot(null)
     setLastSubmittedDraftSignature(null)
@@ -1911,117 +2049,6 @@ export default function CareerSwitchPlannerPage({
     })
   }
 
-  const handleFetchJobRecommendations = async (options?: { forceRefresh?: boolean }) => {
-    const role = (targetRoleText.trim() || primaryCareer?.title || lastSubmittedSnapshot?.targetRole || '').trim()
-    const location = locationText.trim() || plannerReport?.transitionReport?.marketSnapshot.location || ''
-
-    if (!role || !location || !user) {
-      setJobRecommendationStatus('empty')
-      setJobRecommendationItems([])
-      setJobRecommendationMessage('Add a target role and location to pull live job matches.')
-      return
-    }
-
-    setJobRecommendationStatus('loading')
-    setJobRecommendationMessage('')
-
-    try {
-      const authHeaders = await getSupabaseAuthHeaders()
-      const requestHeaders: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      if (typeof authHeaders.Authorization === 'string') {
-        requestHeaders.Authorization = authHeaders.Authorization
-      }
-
-      const response = await fetch('/api/jobs/ingest', {
-        method: 'POST',
-        headers: requestHeaders,
-        body: JSON.stringify({
-          role,
-          location,
-          country: workRegion === 'ca' || workRegion === 'remote-ca' ? 'ca' : 'us',
-          useAdzuna: useMarketEvidence,
-          userPostingText: userPostingText.trim(),
-          forceRefresh: Boolean(options?.forceRefresh)
-        })
-      })
-
-      const data = (await response.json().catch(() => null)) as
-        | {
-            error?: string
-            message?: string
-            jobs?: Array<{
-              id?: string
-              title?: string
-              company?: string
-              location?: string
-              description?: string
-              sourceUrl?: string
-            }>
-            postingsCount?: number
-            baselineOnly?: boolean
-          }
-        | null
-
-      if (!response.ok) {
-        throw new Error(data?.message || 'Unable to load job recommendations right now.')
-      }
-
-      const jobs = Array.isArray(data?.jobs)
-        ? data.jobs
-            .map((item) => {
-              const candidate = item as Record<string, unknown>
-              return {
-                id: typeof candidate.id === 'string' ? candidate.id : '',
-                title: typeof candidate.title === 'string' ? candidate.title : '',
-                company: typeof candidate.company === 'string' ? candidate.company : 'Unknown company',
-                location: typeof candidate.location === 'string' ? candidate.location : location,
-                description: typeof candidate.description === 'string' ? candidate.description : '',
-                sourceUrl: typeof candidate.sourceUrl === 'string' ? candidate.sourceUrl : ''
-              }
-            })
-            .filter((item) => item.id && item.title)
-        : []
-
-      if (jobs.length === 0) {
-        setJobRecommendationStatus('empty')
-        setJobRecommendationItems([])
-        setJobRecommendationMessage(
-          data?.baselineOnly
-            ? 'Live job data is thin right now. Try refreshing, widening the location, or pasting a specific posting.'
-            : 'No job matches came back yet. Try a broader title, a nearby city, or refresh the search.'
-        )
-        return
-      }
-
-      const cards = buildJobRecommendationCards(
-        jobs,
-        role,
-        location,
-        plannerReport?.targetRequirements?.employerSignals ?? []
-      )
-      setJobRecommendationItems(cards)
-      setJobRecommendationStatus('success')
-      setJobRecommendationMessage('')
-    } catch (error) {
-      setJobRecommendationStatus('error')
-      setJobRecommendationItems([])
-      setJobRecommendationMessage(
-        error instanceof Error ? error.message : 'Unable to load job recommendations right now.'
-      )
-    }
-  }
-
-  const handleUseJobRecommendation = async (job: PlannerJobRecommendationCard) => {
-    setUserPostingText(job.description)
-    await handleGeneratePlan({
-      userPostingText: job.description,
-      targetRoleText: targetRoleText.trim() || job.title
-    })
-  }
-
-  const primaryCareer = plannerReport?.suggestedCareers?.[0] ?? null
   const transitionModeReport = plannerReport?.transitionMode ?? null
   const transitionPlanScripts = plannerReport?.transitionPlanScripts ?? null
   const currentRoleResolution = plannerReport?.roleResolution?.current ?? null
@@ -2077,9 +2104,11 @@ export default function CareerSwitchPlannerPage({
   const closestSuggestedTargetPool =
     assistiveSuggestedTargetSections.find((section) => section.title === 'Closest matches')?.roles ?? []
   const assistiveSuggestedTargetPool =
-    closestSuggestedTargetPool.length > 0
-      ? closestSuggestedTargetPool
-      : assistiveSuggestedTargetSections.flatMap((section) => section.roles)
+    targetRoleAssistiveSuggestions.length > 0
+      ? targetRoleAssistiveSuggestions
+      : closestSuggestedTargetPool.length > 0
+        ? closestSuggestedTargetPool
+        : assistiveSuggestedTargetSections.flatMap((section) => section.roles)
   const assistiveSuggestedTargets =
     assistiveSuggestedTargetPool.length <= 2
       ? assistiveSuggestedTargetPool
@@ -2161,6 +2190,81 @@ export default function CareerSwitchPlannerPage({
       lastGeneratedAt
     ]
   )
+  const plannerLoopStorageKey = useMemo(() => {
+    if (!hasPlannerResults || !canPersistPlannerLoop || !user?.id) return null
+    const signature = lastSubmittedDraftSignature || currentDraftSignature || 'draft'
+    const generated = lastGeneratedAt || 'latest'
+    return `career-switch-planner-v3-progress:${user.id}:${signature}:${generated}`
+  }, [
+    canPersistPlannerLoop,
+    currentDraftSignature,
+    hasPlannerResults,
+    lastGeneratedAt,
+    lastSubmittedDraftSignature,
+    user?.id
+  ])
+  useEffect(() => {
+    let cancelled = false
+
+    async function hydrateServerProgress() {
+      if (!canPersistPlannerLoop || !savedPlannerReportId) {
+        setPlannerServerProgressState(null)
+        setPlannerServerProgressHydrated(true)
+        return
+      }
+
+      setPlannerServerProgressHydrated(false)
+      try {
+        const authHeaders = await getSupabaseAuthHeaders()
+        const response = await fetch(
+          `/api/tools/career-switch-planner/progress?reportId=${encodeURIComponent(savedPlannerReportId)}`,
+          {
+            method: 'GET',
+            cache: 'no-store',
+            headers: authHeaders
+          }
+        )
+        const data = (await response.json().catch(() => null)) as
+          | { progress?: PlannerLoopProgressState | null }
+          | null
+
+        if (cancelled) return
+        const nextProgress = data?.progress && typeof data.progress === 'object' ? data.progress : null
+        setPlannerServerProgressState(nextProgress)
+        setPlannerLoopProgressState(
+          nextProgress
+            ? {
+                checkedTaskIds: nextProgress.checkedTaskIds ?? {},
+                expandedPhaseIds: nextProgress.expandedPhaseIds ?? [],
+                completedTrainingIds: nextProgress.completedTrainingIds ?? {},
+                updatedAt: nextProgress.updatedAt ?? new Date().toISOString()
+              }
+            : null
+        )
+        if (nextProgress?.outreachTracker) {
+          setOutreachTracker({
+            sent: nextProgress.outreachTracker.sent ?? '',
+            replies: nextProgress.outreachTracker.replies ?? '',
+            positiveReplies: nextProgress.outreachTracker.positiveReplies ?? '',
+            nextFollowUpDate: nextProgress.outreachTracker.nextFollowUpDate ?? ''
+          })
+        }
+      } catch {
+        if (!cancelled) {
+          setPlannerServerProgressState(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setPlannerServerProgressHydrated(true)
+        }
+      }
+    }
+
+    void hydrateServerProgress()
+    return () => {
+      cancelled = true
+    }
+  }, [canPersistPlannerLoop, savedPlannerReportId])
   useEffect(() => {
     if (v3DashboardModel.missingFields.length === 0) return
     if (process.env.NODE_ENV !== 'production') {
@@ -2174,68 +2278,207 @@ export default function CareerSwitchPlannerPage({
     transitionPlanScripts?.email ?? transitionModeReport?.execution.outreachTemplates.email ?? ''
 
   useEffect(() => {
-    if (!user || !isTransitionMode) return
-    const role = (targetRoleText.trim() || primaryCareer?.title || lastSubmittedSnapshot?.targetRole || '').trim()
-    const location = (locationText.trim() || plannerReport?.transitionReport?.marketSnapshot.location || '').trim()
-    if (!role || !location) return
-
-    const requestKey = `${role}|${location}`
-    if (lastJobRecommendationKeyRef.current === requestKey) return
-    lastJobRecommendationKeyRef.current = requestKey
-    void handleFetchJobRecommendations()
-  }, [
-    user,
-    isTransitionMode,
-    targetRoleText,
-    primaryCareer?.title,
-    lastSubmittedSnapshot?.targetRole,
-    locationText,
-    plannerReport?.transitionReport?.marketSnapshot.location
-  ])
-
-  useEffect(() => {
     setResumeToolkitDraft(generatedResumeToolkitText)
     setCallToolkitDraft(generatedCallToolkitText)
     setEmailToolkitDraft(generatedEmailToolkitText)
   }, [generatedResumeToolkitText, generatedCallToolkitText, generatedEmailToolkitText])
 
-  const handleDownloadOutreachTemplate = () => {
-    const payload = [
-      'Career Switch Planner Outreach Toolkit',
-      '',
-      'Resume prompt:',
-      resumeToolkitDraft || '-',
-      '',
-      'Email template:',
-      emailToolkitDraft || '-',
-      '',
-      'Call script:',
-      callToolkitDraft || '-'
-    ].join('\n')
+  useEffect(() => {
+    if (!canPersistPlannerLoop || !plannerLoopStorageKey || typeof window === 'undefined') {
+      setOutreachTracker({
+        sent: '',
+        replies: '',
+        positiveReplies: '',
+        nextFollowUpDate: ''
+      })
+      return
+    }
 
-    const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'career-switch-planner-toolkit.txt'
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
+    if (plannerServerProgressState?.outreachTracker) {
+      setOutreachTracker({
+        sent: plannerServerProgressState.outreachTracker.sent ?? '',
+        replies: plannerServerProgressState.outreachTracker.replies ?? '',
+        positiveReplies: plannerServerProgressState.outreachTracker.positiveReplies ?? '',
+        nextFollowUpDate: plannerServerProgressState.outreachTracker.nextFollowUpDate ?? ''
+      })
+      return
+    }
 
-  const handleSavePlanSnapshot = () => {
     try {
-      window.localStorage.setItem(
-        'career-switch-planner-v3-last-plan',
-        JSON.stringify({
-          generatedAt: lastGeneratedAt,
-          currentRole: heroCurrentRoleLabel,
-          targetRole: heroTargetRoleLabel,
-          locationText,
-          timelineBucket
+      const raw = window.localStorage.getItem(`${plannerLoopStorageKey}:outreach`)
+      if (!raw) {
+        setOutreachTracker({
+          sent: '',
+          replies: '',
+          positiveReplies: '',
+          nextFollowUpDate: ''
         })
-      )
+        return
+      }
+
+      const parsed = JSON.parse(raw) as Partial<typeof outreachTracker>
+      setOutreachTracker({
+        sent: typeof parsed.sent === 'string' ? parsed.sent : '',
+        replies: typeof parsed.replies === 'string' ? parsed.replies : '',
+        positiveReplies: typeof parsed.positiveReplies === 'string' ? parsed.positiveReplies : '',
+        nextFollowUpDate: typeof parsed.nextFollowUpDate === 'string' ? parsed.nextFollowUpDate : ''
+      })
+    } catch {
+      setOutreachTracker({
+        sent: '',
+        replies: '',
+        positiveReplies: '',
+        nextFollowUpDate: ''
+      })
+    }
+  }, [canPersistPlannerLoop, plannerLoopStorageKey, plannerServerProgressState])
+
+  useEffect(() => {
+    if (!canPersistPlannerLoop || !plannerLoopStorageKey || typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(`${plannerLoopStorageKey}:outreach`, JSON.stringify(outreachTracker))
     } catch {
       // ignore storage failures
+    }
+  }, [canPersistPlannerLoop, outreachTracker, plannerLoopStorageKey])
+
+  const handleOutreachTrackerChange = useCallback(
+    (key: 'sent' | 'replies' | 'positiveReplies' | 'nextFollowUpDate', value: string) => {
+      setOutreachTracker((previous) => ({
+        ...previous,
+        [key]: key === 'nextFollowUpDate' ? value : value.replace(/[^\d]/g, '')
+      }))
+    },
+    []
+  )
+
+  useEffect(() => {
+    if (!canPersistPlannerLoop || !savedPlannerReportId || !plannerServerProgressHydrated || !plannerLoopProgressState) {
+      return
+    }
+
+    const timeout = window.setTimeout(async () => {
+      try {
+        const authHeaders = await getSupabaseAuthHeaders()
+        await fetch('/api/tools/career-switch-planner/progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+          body: JSON.stringify({
+            reportId: savedPlannerReportId,
+            progress: {
+              ...plannerLoopProgressState,
+              outreachTracker
+            }
+          })
+        })
+      } catch {
+        // ignore autosave failures
+      }
+    }, 600)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [
+    canPersistPlannerLoop,
+    outreachTracker,
+    plannerLoopProgressState,
+    plannerServerProgressHydrated,
+    savedPlannerReportId
+  ])
+
+  const handleSavePlanSnapshot = async () => {
+    if (typeof window === 'undefined') return
+
+    setSavePlanState('saving')
+    try {
+      const savedPlanEntry = {
+        reportId: savedPlannerReportId,
+        generatedAt: lastGeneratedAt,
+        currentRole: heroCurrentRoleLabel,
+        targetRole: heroTargetRoleLabel,
+        locationText,
+        timelineBucket,
+        savedAt: new Date().toISOString(),
+        previewLimited: isGuestPreview,
+        plan: effectivePlan,
+        progress: plannerLoopProgressState
+          ? {
+              ...plannerLoopProgressState,
+              outreachTracker
+            }
+          : {
+              checkedTaskIds: {},
+              expandedPhaseIds: [],
+              completedTrainingIds: {},
+              outreachTracker,
+              updatedAt: new Date().toISOString()
+            },
+        report:
+          user && savedPlannerReportId
+            ? null
+            : {
+                plannerResult,
+                plannerReport
+              }
+      }
+
+      window.localStorage.setItem(
+        'career-switch-planner-v3-last-plan',
+        JSON.stringify(savedPlanEntry)
+      )
+
+      const existingRaw = window.localStorage.getItem('career-switch-planner-v3-saved-plans')
+      const existing = existingRaw ? (JSON.parse(existingRaw) as Array<Record<string, unknown>>) : []
+      const saveKey = savedPlannerReportId || `${heroCurrentRoleLabel}:${heroTargetRoleLabel}:${lastGeneratedAt || 'latest'}`
+      const filtered = existing.filter((item) => String(item.key ?? '') !== saveKey)
+      filtered.unshift({
+        key: saveKey,
+        ...savedPlanEntry
+      })
+      window.localStorage.setItem(
+        'career-switch-planner-v3-saved-plans',
+        JSON.stringify(filtered.slice(0, 12))
+      )
+
+      if (canPersistPlannerLoop && plannerServerProgressHydrated && savedPlannerReportId) {
+        const authHeaders = await getSupabaseAuthHeaders()
+        const response = await fetch('/api/tools/career-switch-planner/progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders
+          },
+          body: JSON.stringify({
+            reportId: savedPlannerReportId,
+            progress: {
+              ...(plannerLoopProgressState ?? {
+                checkedTaskIds: {},
+                expandedPhaseIds: [],
+                completedTrainingIds: {},
+                updatedAt: new Date().toISOString()
+              }),
+              outreachTracker
+            }
+          })
+        })
+        if (!response.ok) {
+          throw new Error('Server progress save failed')
+        }
+      }
+
+      setSavePlanState('saved')
+      window.setTimeout(() => {
+        setSavePlanState((previous) => (previous === 'saved' ? 'idle' : previous))
+      }, 2000)
+    } catch {
+      setSavePlanState('error')
+      window.setTimeout(() => {
+        setSavePlanState((previous) => (previous === 'error' ? 'idle' : previous))
+      }, 2500)
     }
   }
 
@@ -2321,7 +2564,6 @@ export default function CareerSwitchPlannerPage({
         confidence: suggestion.confidence ?? 0,
         matchedBy: suggestion.matchedBy ?? 'fallback'
       })
-      advanceWizardAfterRoleSelection(currentRoleText, suggestion.title)
     },
     onToggleSuggestedTargets: () => setShowSuggestedTargets((previous) => !previous),
     onShuffleSuggestedTargets: () => setSuggestedTargetShuffle((previous) => previous + 1),
@@ -2344,7 +2586,14 @@ export default function CareerSwitchPlannerPage({
     onRemovePendingResumeCertification: (value: string) =>
       setPendingResumeCertifications((previous) => previous.filter((item) => item !== value)),
     onSetEducationLevel: setEducationLevel,
-    onSetWorkRegion: setWorkRegion,
+    onSetWorkRegion: (value: WorkRegionValue) => {
+      const normalizedProvince = normalizeWorkRegionToProvince(value, selectedProvince)
+      setWorkRegion(normalizedProvince)
+      setSelectedProvince(normalizedProvince)
+      if (!locationTouched) {
+        setLocationText(toProvinceLocation(normalizedProvince))
+      }
+    },
     onSetTimelineBucket: setTimelineBucket,
     onSetIncomeTarget: setIncomeTarget,
     onSetLocationText: (value: string) => {
@@ -2366,26 +2615,32 @@ export default function CareerSwitchPlannerPage({
   const showDashboard = plannerState !== 'loading' && viewMode === 'dashboard' && hasPlannerResults
   const useWidePlannerShell = plannerState === 'loading' || showDashboard
   const plannerShellMaxWidthClass = showDashboard
-    ? 'max-w-wide'
+    ? 'max-w-[1260px]'
     : useWidePlannerShell
       ? 'max-w-content'
       : 'max-w-tool'
 
   return (
     <>
-      <ToolHero className="print-hidden pb-12 pt-16">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge className="gap-1.5">{usageLabel(usage, previewLocked, effectivePlan)}</Badge>
-          <Badge className="gap-1.5">Province-aware</Badge>
-          <Badge className="gap-1.5">Resume Upload (Pro)</Badge>
-        </div>
-        <h1 className="max-w-[760px] text-[40px] font-bold leading-tight text-text-primary md:text-[48px]">
-          Career Switch Planner
-        </h1>
-        <p className="max-w-[720px] text-base leading-[1.7] text-text-secondary md:text-lg">
-          Build a structured Canadian transition roadmap with clearer timelines, province-aware context, and practical weekly next steps.
-        </p>
-      </ToolHero>
+      {!showDashboard ? (
+        <ToolHero className="print-hidden pb-12 pt-16">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Badge className="gap-1 !px-2 !py-0.5 !text-[11px]">{usageLabel(usage, previewLocked, effectivePlan)}</Badge>
+            <Badge className="gap-1 !border-border-light !bg-surface !px-2 !py-0.5 !text-[11px] !font-medium !text-text-tertiary">
+              Province-aware
+            </Badge>
+            <Badge className="gap-1 !border-border-light !bg-surface !px-2 !py-0.5 !text-[11px] !font-medium !text-text-tertiary">
+              Resume Upload (Pro)
+            </Badge>
+          </div>
+          <h1 className="max-w-[760px] text-[40px] font-bold leading-tight text-text-primary md:text-[48px]">
+            Career Switch Planner
+          </h1>
+          <p className="max-w-[720px] text-base leading-[1.7] text-text-secondary md:text-lg">
+            Build a structured Canadian transition roadmap with clearer timelines, province-aware context, and practical weekly next steps.
+          </p>
+        </ToolHero>
+      ) : null}
 
       <section
         className={`px-4 ${showDashboard ? 'bg-bg-secondary pb-20 pt-12' : 'pb-16 pt-8'} ${useWidePlannerShell ? 'lg:px-[170px]' : 'lg:px-[340px]'}`}
@@ -2448,25 +2703,48 @@ export default function CareerSwitchPlannerPage({
                 model={v3DashboardModel}
                 hasDraftChanges={hasDraftChanges}
                 isGuestPreview={isGuestPreview}
+                progressStorageKey={plannerLoopStorageKey}
+                allowLocalProgressFallback={
+                  Boolean(canPersistPlannerLoop && plannerServerProgressHydrated && !plannerServerProgressState)
+                }
+                initialProgressState={
+                  plannerServerProgressState
+                    ? {
+                        checkedTaskIds: plannerServerProgressState.checkedTaskIds ?? {},
+                        expandedPhaseIds: plannerServerProgressState.expandedPhaseIds ?? [],
+                        completedTrainingIds: plannerServerProgressState.completedTrainingIds ?? {}
+                      }
+                    : null
+                }
                 faqItems={careerSwitchFaqs}
                 relatedTools={careerSwitchMoreTools}
                 resumeToolkitDraft={resumeToolkitDraft}
                 emailToolkitDraft={emailToolkitDraft}
                 callToolkitDraft={callToolkitDraft}
+                outreachTracker={outreachTracker}
                 onEditInputs={() => setIsEditDrawerOpen(true)}
                 onRegenerate={() => void handleGeneratePlan()}
                 onStartNewPlan={handleStartNewPlan}
                 onSelectAlternativeRole={(title) =>
                 void handlePlanRecommendedRole(title, { autoGenerate: true, nextStep: 2 })
               }
-              onCopyEmail={() => void handleCopyToolkitSection('email', emailToolkitDraft)}
-              onCopyResumePrompt={() =>
-                void handleCopyToolkitSection('resume', resumeToolkitDraft)
-              }
-              onDownloadTemplate={handleDownloadOutreachTemplate}
-              onExportPlan={handlePrintReport}
+              onResumeToolkitDraftChange={setResumeToolkitDraft}
+              onEmailToolkitDraftChange={setEmailToolkitDraft}
+              onCallToolkitDraftChange={setCallToolkitDraft}
+              onOutreachTrackerChange={handleOutreachTrackerChange}
+              onProgressStateChange={setPlannerLoopProgressState}
+              onExportPlan={handleExportPlan}
               onDownloadPdf={handlePrintReport}
-              onSavePlan={handleSavePlanSnapshot}
+              onSavePlan={() => void handleSavePlanSnapshot()}
+              savePlanLabel={
+                savePlanState === 'saving'
+                  ? 'Saving...'
+                  : savePlanState === 'saved'
+                    ? 'Saved'
+                    : savePlanState === 'error'
+                      ? 'Retry Save'
+                      : 'Save Plan'
+              }
             />
           ) : (
             <PlannerIntakeWizard {...intakeWizardProps} />

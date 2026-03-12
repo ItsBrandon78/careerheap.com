@@ -23,6 +23,12 @@ import {
 } from '@/lib/server/toolUsage'
 import { generateTransitionPlan } from '@/lib/transition/generatePlan'
 import { getCachedOrGenerateTransitionEnhancement } from '@/lib/server/transitionPlanEnhancer'
+import { getPlannerSourceEnrichment } from '@/lib/server/plannerSourceEnrichment'
+import {
+  applyTransitionPriorsToReport,
+  getTransitionPriorContext,
+  persistPlannerGenerationSnapshot
+} from '@/lib/server/plannerLearning'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,11 +73,28 @@ function asStringArray(value: unknown) {
     .filter(Boolean)
 }
 
+const PROVINCE_LABELS: Record<string, string> = {
+  ON: 'Ontario',
+  BC: 'British Columbia',
+  AB: 'Alberta',
+  SK: 'Saskatchewan',
+  MB: 'Manitoba',
+  QC: 'Quebec',
+  NB: 'New Brunswick',
+  NS: 'Nova Scotia',
+  PE: 'Prince Edward Island',
+  NL: 'Newfoundland and Labrador',
+  YT: 'Yukon',
+  NT: 'Northwest Territories',
+  NU: 'Nunavut'
+}
+
 function locationFromWorkRegion(workRegion: string) {
-  if (workRegion === 'ca' || workRegion === 'remote-ca') return 'Canada'
-  if (workRegion === 'remote-us') return 'Remote (US)'
-  if (workRegion === 'either') return 'Open to either (Canada/US)'
-  return 'United States'
+  const normalized = workRegion.trim().toUpperCase()
+  if (PROVINCE_LABELS[normalized]) {
+    return `${PROVINCE_LABELS[normalized]}, Canada`
+  }
+  return 'Canada'
 }
 
 function normalizeInput(input: Partial<CareerSwitchPlannerInput> & Record<string, unknown>) {
@@ -138,10 +161,10 @@ function validateInput(input: ReturnType<typeof normalizeInput>) {
   return null
 }
 
-function regionFromWorkRegion(workRegion: string): 'CA' | 'US' | undefined {
-  if (workRegion === 'ca' || workRegion === 'remote-ca') return 'CA'
-  if (workRegion === 'us' || workRegion === 'remote-us') return 'US'
-  return undefined
+function regionFromWorkRegion(workRegion: string): 'CA' | undefined {
+  const normalized = workRegion.trim().toUpperCase()
+  if (PROVINCE_LABELS[normalized]) return 'CA'
+  return 'CA'
 }
 
 function collectV3MissingFields(report: Record<string, unknown> | null) {
@@ -355,7 +378,7 @@ async function persistReport(userId: string, payload: {
   score: number
   scoringSnapshot: unknown
   report: unknown
-}) {
+}): Promise<string | null> {
   const admin = createAdminClient()
   const reportRecord =
     payload.report && typeof payload.report === 'object'
@@ -383,7 +406,7 @@ async function persistReport(userId: string, payload: {
   }
 
   try {
-    const { error } = await admin.from('career_map_reports').insert({
+    const { data, error } = await admin.from('career_map_reports').insert({
       ...careerMapInsert,
       transition_structured_plan:
         reportRecord?.transitionStructuredPlan &&
@@ -400,7 +423,11 @@ async function persistReport(userId: string, payload: {
         typeof reportRecord.transitionPlanCacheMeta === 'object'
           ? reportRecord.transitionPlanCacheMeta
           : null
-    })
+    }).select('id').single()
+
+    if (!error) {
+      return typeof data?.id === 'string' ? data.id : null
+    }
 
     if (error) {
       const legacy = await admin.from('career_map_reports').insert(careerMapInsert)
@@ -409,6 +436,7 @@ async function persistReport(userId: string, payload: {
   } catch {
     // ignore if table is unavailable in older schema
   }
+  return null
 }
 
 export async function POST(request: Request) {
@@ -592,9 +620,24 @@ export async function POST(request: Request) {
     const planLimitedReport = summary.plan === 'free'
       ? applyFreeTierOutputLimits(analysis.report)
       : analysis.report
+    const plannerTargetRole =
+      resolvedTargetRoleTitle ||
+      input.targetRole ||
+      input.targetRoleText ||
+      planLimitedReport.suggestedCareers[0]?.title ||
+      'Career transition'
+    const transitionPriors = await getTransitionPriorContext({
+      currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText || 'Career transition',
+      targetRole: plannerTargetRole,
+      location: input.location || locationFromWorkRegion(input.workRegion) || 'Canada'
+    }).catch(() => null)
+    const priorAdjustedReport = applyTransitionPriorsToReport(
+      planLimitedReport as unknown as Record<string, unknown>,
+      transitionPriors
+    ) as CareerPlannerAnalysis['report']
     const finalReport = isGuestPreview
-      ? applyGuestPreviewOutputLimits(planLimitedReport)
-      : planLimitedReport
+      ? applyGuestPreviewOutputLimits(priorAdjustedReport)
+      : priorAdjustedReport
     const transitionMode = generateTransitionPlan({
       currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText,
       targetRole: resolvedTargetRoleTitle || input.targetRole || input.targetRoleText,
@@ -643,14 +686,58 @@ export async function POST(request: Request) {
       : await getCachedOrGenerateTransitionEnhancement({
           currentRole: input.currentRole || input.currentRoleText || resolvedCurrentRoleTitle || 'Career transition',
           targetRole: enhancementTargetRole,
-          region: input.workRegion || input.location || 'Canada',
+          region: input.location || locationFromWorkRegion(input.workRegion) || 'Canada',
           location: input.location,
           experienceText: input.experienceText,
           transitionMode,
           report: finalReport
         })
-    const v3MissingFields = collectV3MissingFields({
+    const sourceEnrichment = await getPlannerSourceEnrichment({
+      report: finalReport,
+      location: input.location || locationFromWorkRegion(input.workRegion) || 'Canada',
+      currentRole: resolvedCurrentRoleTitle || input.currentRole || input.currentRoleText || 'Career transition',
+      targetRole: enhancementTargetRole
+    })
+    console.info('[career-switch-planner] source_enrichment', {
+      targetRole: enhancementTargetRole,
+      location: input.location || locationFromWorkRegion(input.workRegion) || 'Canada',
+      profileSlug: finalReport.careerPathwayProfile?.meta.slug ?? null,
+      trainingSourcePath: sourceEnrichment.sourcePath.training,
+      wageSourcePath: sourceEnrichment.sourcePath.wage,
+      cacheHit: sourceEnrichment.cache.hit,
+      cacheExpiresAt: sourceEnrichment.cache.expiresAt
+    })
+    const wageFallback = sourceEnrichment.wageFallback
+    const enrichedSuggestedCareers =
+      wageFallback && Array.isArray(finalReport.suggestedCareers) && finalReport.suggestedCareers.length > 0
+        ? finalReport.suggestedCareers.map((career, index) =>
+            index === 0 && !(career.salary?.native?.low || career.salary?.native?.median || career.salary?.native?.high)
+              ? {
+                  ...career,
+                  salary: {
+                    ...career.salary,
+                    native: {
+                      currency: wageFallback.currency,
+                      low: wageFallback.low,
+                      median: wageFallback.median,
+                      high: wageFallback.high,
+                      sourceName: wageFallback.sourceName,
+                      sourceUrl: wageFallback.sourceUrl ?? null,
+                      asOfDate: wageFallback.asOfDate,
+                      region: wageFallback.region ?? undefined
+                    }
+                  }
+                }
+              : career
+          )
+        : finalReport.suggestedCareers
+    const enrichedReport = {
       ...finalReport,
+      suggestedCareers: enrichedSuggestedCareers,
+      sourceEnrichment
+    }
+    const v3MissingFields = collectV3MissingFields({
+      ...enrichedReport,
       transitionMode
     } as Record<string, unknown>)
     if (v3MissingFields.length > 0) {
@@ -659,7 +746,7 @@ export async function POST(request: Request) {
       })
     }
     const reportWithResolution = {
-      ...finalReport,
+      ...enrichedReport,
       transitionMode,
       transitionStructuredPlan: transitionEnhancement.plan,
       transitionPlanScripts: transitionEnhancement.scripts,
@@ -688,18 +775,34 @@ export async function POST(request: Request) {
         }
       : analysis.legacy
 
+    let savedReportId: string | null = null
     if (user) {
-      await persistReport(user.id, {
+      savedReportId = await persistReport(user.id, {
         input,
         score: reportWithResolution.compatibilitySnapshot.score,
         scoringSnapshot: analysis.scoringSnapshot,
         report: reportWithResolution
       })
+      if (savedReportId) {
+        await persistPlannerGenerationSnapshot({
+          reportId: savedReportId,
+          userId: user.id,
+          input,
+          report: reportWithResolution as unknown as Record<string, unknown>,
+          sourceEnrichment
+        }).catch((snapshotError) => {
+          console.warn('[career-switch-planner] generation_snapshot_failed', {
+            reportId: savedReportId,
+            message: snapshotError instanceof Error ? snapshotError.message : String(snapshotError)
+          })
+        })
+      }
     }
 
     return NextResponse.json({
       ...finalLegacy,
       report: reportWithResolution,
+      reportId: savedReportId,
       scoring: analysis.scoringSnapshot,
       usage: summary,
       previewLimited: isGuestPreview

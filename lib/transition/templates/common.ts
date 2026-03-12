@@ -5,9 +5,9 @@ import type {
   TransitionResource
 } from '@/lib/transition/types'
 
-export const PROOF_BUILDER_TERM = 'Proof Builder'
+export const PROOF_BUILDER_TERM = 'Readiness Example'
 export const PROOF_BUILDER_DEFINITION =
-  'Proof Builder = one safe, focused work sample or practice artifact you can show in interviews, plus 3 short bullets explaining what you did and what it proves.'
+  'Readiness Example = one safe, focused work sample or practice artifact you can show in interviews, plus 3 short bullets explaining what you did and why it matters.'
 
 export function defineOnce(definitions: Record<string, string>, key: string, value: string) {
   if (!definitions[key]) {

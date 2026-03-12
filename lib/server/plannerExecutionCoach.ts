@@ -182,7 +182,7 @@ function roleVolumeDefaults(roleFamily: ExecutionRoleFamily) {
       applications: '10 tailored applications/week',
       outreach: '12 targeted outreach messages/week',
       learning: '5 technical drills/week',
-      proof: '1 shipped proof artifact/week'
+      proof: '1 shipped work sample/week'
     }
   }
   if (roleFamily === 'healthcare') {
@@ -191,7 +191,7 @@ function roleVolumeDefaults(roleFamily: ExecutionRoleFamily) {
       applications: '8 role-specific applications/week',
       outreach: '10 employer follow-ups/week',
       learning: '4 competency refresh sessions/week',
-      proof: '1 compliance-ready proof packet/week'
+      proof: '1 compliance-ready verification packet/week'
     }
   }
   if (roleFamily === 'creative') {
@@ -226,7 +226,7 @@ function roleVolumeDefaults(roleFamily: ExecutionRoleFamily) {
     applications: '10 targeted applications/week',
     outreach: '10 targeted outreach messages/week',
     learning: '4 role-specific practice sessions/week',
-    proof: '1 measurable proof artifact/week'
+    proof: '1 measurable readiness example/week'
   }
 }
 
@@ -354,7 +354,7 @@ function ensureActionMinimum(options: {
       },
       {
         id: 'month2-interview',
-        task: 'Run structured interview drills using your new proof artifacts.',
+        task: 'Run structured interview drills using your new work samples and readiness examples.',
         volumeTarget: '3 mock interview sessions/week',
         learningTarget: 'Improve clarity on task, action, and measurable result',
         proofTarget: 'Keep a story bank with role-specific examples',
@@ -608,7 +608,7 @@ export function buildDeterministicExecutionStrategy(
       ],
       commonFailureModes: [
         'Applying passively through portals with no direct outreach.',
-        'Spending time on low-impact learning without proof artifacts.',
+        'Spending time on low-impact learning without work samples or verification items.',
         'Skipping follow-up after first contact or first rejection.'
       ]
     },
@@ -616,7 +616,7 @@ export function buildDeterministicExecutionStrategy(
       minimumWeeklyEffort: `${volume.weeklyTime} for 12 consecutive weeks.`,
       consistencyLooksLike: [
         'Block execution time on your calendar before discretionary tasks.',
-        'Track applications, outreach, and proof artifacts every weekday.',
+        'Track applications, outreach, and readiness examples every weekday.',
         'Review blockers weekly and adjust next-week actions immediately.'
       ],
       whatNotToDo: [

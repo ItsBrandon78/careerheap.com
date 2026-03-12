@@ -15,6 +15,17 @@ const CareerPathwayRequirementItemSchema = z
   })
   .strict()
 
+const CareerPathwayStarterCertItemSchema = z
+  .object({
+    type: z.string().min(1),
+    name: z.string().min(1),
+    details: z.string().min(1),
+    source_title: z.string().min(1),
+    source_url: z.string().min(1),
+    provider: z.string().min(1)
+  })
+  .strict()
+
 const CareerPathwayMilestoneSchema = z
   .object({
     title: z.string().min(1),
@@ -94,6 +105,7 @@ export const CareerPathwayProfileSchema = z
       .object({
         must_have: z.array(CareerPathwayRequirementItemSchema),
         nice_to_have: z.array(CareerPathwayRequirementItemSchema),
+        starter_cert_bundle: z.array(CareerPathwayStarterCertItemSchema).optional(),
         tools_or_gear: z.array(z.string().min(1))
       })
       .strict(),

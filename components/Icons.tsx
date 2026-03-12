@@ -49,6 +49,8 @@ export function ToolGlyph({
     | 'zap'
     | 'target'
     | 'shield'
+    | 'book-open'
+    | 'badge-check'
   className?: string
 }) {
   if (kind === 'resume') {
@@ -108,6 +110,46 @@ export function ToolGlyph({
     return (
       <svg viewBox="0 0 20 20" fill="none" className={className} aria-hidden="true">
         <path d="M10 3.5 15.5 6v4.2c0 3-2.1 5.6-5.5 6.8-3.4-1.2-5.5-3.8-5.5-6.8V6L10 3.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      </svg>
+    )
+  }
+  if (kind === 'book-open') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
+        <path
+          d="M2.2 3.2h4.2c1.4 0 2.6.5 3.6 1.4v7.3c-1-.9-2.2-1.4-3.6-1.4H2.2V3.2Z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M13.8 3.2H9.6c-1.4 0-2.6.5-3.6 1.4v7.3c1-.9 2.2-1.4 3.6-1.4h4.2V3.2Z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+  if (kind === 'badge-check') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
+        <path
+          d="M8 2.3 9.5 3l1.6-.1.8 1.4 1.4.8-.1 1.6.7 1.5-.7 1.5.1 1.6-1.4.8-.8 1.4-1.6-.1-1.5.7-1.5-.7-1.6.1-.8-1.4-1.4-.8.1-1.6L1.7 8l.7-1.5-.1-1.6 1.4-.8.8-1.4L6.1 3 8 2.3Z"
+          stroke="currentColor"
+          strokeWidth="1.45"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="m5.5 8.2 1.5 1.5 3.3-3.3"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     )
   }

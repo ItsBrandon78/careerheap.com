@@ -1,9 +1,11 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import type { ProvinceCode } from '@/lib/client/provinceSession'
 import {
   DetectedSectionsChips,
   DropzoneUpload,
@@ -17,7 +19,8 @@ import {
 
 type WizardStep = 0 | 1 | 2
 
-type WorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
+type LegacyWorkRegionValue = 'us' | 'ca' | 'remote-us' | 'remote-ca' | 'either'
+type WorkRegionValue = ProvinceCode | LegacyWorkRegionValue
 type TimelineBucketValue = 'immediate' | '1-3 months' | '3-6 months' | '6-12+ months'
 type EducationLevelValue =
   | 'No formal degree'
@@ -36,6 +39,9 @@ type IncomeTargetValue =
   | '$100k+'
   | '$150k+'
   | 'Not sure'
+
+// Single-switch compact polish for Step 2. Set to false to fully revert.
+const COMPACT_STEP2_POLISH = true
 
 interface RoleSelectionPrompt {
   role: 'current' | 'target'
@@ -224,10 +230,49 @@ export function PlannerIntakeWizard({
   onGenerate
 }: PlannerIntakeWizardProps) {
   const activeWizardMeta = wizardSteps[activeWizardStep]
+  const [showEmployerEvidenceDetails, setShowEmployerEvidenceDetails] = useState(false)
+  const stepTwoComplete =
+    skills.length >= 3 || experienceText.trim().length >= 40 || uploadState === 'success'
+  const hasLocation =
+    locationText.trim().length > 0 || workRegionOptions.some((option) => option.value === workRegion)
+  const hasPostingText = userPostingText.trim().length > 0
+  const canGenerateFromStepThree = hasMinimumRequiredInput && hasLocation
+  const selectedProvinceLabel =
+    workRegionOptions.find((option) => option.value === workRegion)?.label || 'Selected province'
+  const resolvedLocationLabel = locationText.trim() || `${selectedProvinceLabel}, Canada`
+  const nonFinalStepHelperText = hasDraftChanges
+    ? 'Current report stays visible until you regenerate.'
+    : COMPACT_STEP2_POLISH
+      ? 'Generate unlocks on Step 3 after constraints review.'
+      : 'The final generate button appears after you review constraints.'
+  const finalStepHelperText = hasDraftChanges
+    ? 'Current report stays visible until you regenerate.'
+    : COMPACT_STEP2_POLISH
+      ? 'Review constraints, then generate.'
+      : 'The final generate button appears after you review constraints.'
+
+  useEffect(() => {
+    if (hasPostingText) {
+      setShowEmployerEvidenceDetails(true)
+    }
+  }, [hasPostingText])
+
+  const handleNextClick = () => {
+    onNext()
+    if (activeWizardStep === 1 && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+  const handleGenerateClick = () => {
+    onGenerate()
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   return (
     <Card className="border border-border-light p-6 md:p-8">
-      <div className="space-y-5 pb-24">
+      <div className="space-y-4 pb-24 md:pb-8">
         <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card md:p-5 lg:sticky lg:top-3 lg:z-20 lg:backdrop-blur-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -339,17 +384,28 @@ export function PlannerIntakeWizard({
         ) : null}
 
         {activeWizardStep === 1 ? (
-          <div className="planner-animate-in space-y-5">
-            <div className="space-y-1">
-              <h2 className="text-base font-bold text-text-primary">Background details</h2>
+          <div className={`planner-animate-in ${COMPACT_STEP2_POLISH ? 'space-y-3' : 'space-y-4'}`}>
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-base font-bold text-text-primary">Background details</h2>
+                {stepTwoComplete ? <Badge variant="success">Step 2 complete</Badge> : null}
+              </div>
               <p className="text-sm text-text-secondary">
                 Add your strongest, measurable signals to improve targeting and roadmap quality.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card md:p-5">
-              <div className="grid gap-5">
-                <div className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-card md:p-5">
+            <div
+              className={`rounded-2xl border border-border-light bg-bg-secondary shadow-card ${
+                COMPACT_STEP2_POLISH ? 'p-3' : 'p-4'
+              }`}
+            >
+              <div className={`grid ${COMPACT_STEP2_POLISH ? 'gap-3' : 'gap-4'}`}>
+                <div
+                  className={`rounded-xl border border-border bg-surface shadow-card ${
+                    COMPACT_STEP2_POLISH ? 'space-y-2.5 p-3' : 'space-y-3 p-4'
+                  }`}
+                >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                       Core profile signals
@@ -358,7 +414,11 @@ export function PlannerIntakeWizard({
                       Skills and quantified outcomes are weighted most heavily in planner confidence.
                     </p>
                   </div>
-                  <p className="rounded-md border border-border-light bg-bg-secondary px-3 py-2 text-xs leading-[1.6] text-text-secondary">
+                  <p
+                    className={`rounded-md border border-border-light bg-bg-secondary px-3 text-xs leading-[1.6] text-text-secondary ${
+                      COMPACT_STEP2_POLISH ? 'py-1.5' : 'py-2'
+                    }`}
+                  >
                     Tip: add 8-15 role-relevant skills first, then include 2-4 measurable accomplishments.
                   </p>
 
@@ -373,7 +433,11 @@ export function PlannerIntakeWizard({
                     onChange={onSkillsChange}
                   />
 
-                  <label className="flex flex-col gap-1.5 rounded-xl border border-border-light bg-bg-secondary p-3 md:p-4">
+                  <label
+                    className={`flex flex-col gap-1.5 rounded-xl border border-border-light bg-bg-secondary ${
+                      COMPACT_STEP2_POLISH ? 'p-2.5' : 'p-3'
+                    }`}
+                  >
                     <span className="text-[13px] font-semibold text-text-primary">
                       Add measurable accomplishments (optional)
                     </span>
@@ -382,7 +446,9 @@ export function PlannerIntakeWizard({
                       value={experienceText}
                       onChange={(event) => onExperienceTextChange(event.target.value)}
                       placeholder="Example: Led onboarding for 12 teammates, reduced ramp time by 18%, and improved retention by 14%."
-                      className="min-h-[160px] w-full resize-y overflow-x-hidden rounded-md border border-border-light bg-surface p-3 text-sm leading-[1.75] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                      className={`w-full resize-y overflow-x-hidden rounded-md border border-border-light bg-surface p-3 text-sm leading-[1.75] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none ${
+                        COMPACT_STEP2_POLISH ? 'min-h-[120px]' : 'min-h-[144px]'
+                      }`}
                     />
                     <span className="text-xs text-text-tertiary">
                       Numbers help (team size, $ impact, time saved, % improved).
@@ -390,7 +456,11 @@ export function PlannerIntakeWizard({
                   </label>
                 </div>
 
-                <div className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-card md:p-5">
+                <div
+                  className={`rounded-xl border border-border bg-surface shadow-card ${
+                    COMPACT_STEP2_POLISH ? 'space-y-2.5 p-3' : 'space-y-3 p-4'
+                  }`}
+                >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                       Resume and credential signals
@@ -400,7 +470,11 @@ export function PlannerIntakeWizard({
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-border-light bg-surface p-4 shadow-card">
+                  <div
+                    className={`rounded-xl border border-border-light bg-surface shadow-card ${
+                      COMPACT_STEP2_POLISH ? 'p-3' : 'p-4'
+                    }`}
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <p className="text-sm font-semibold text-text-primary">Resume Upload (Pro)</p>
                       <Badge variant={ocrBadge.variant}>{ocrBadge.label}</Badge>
@@ -443,7 +517,11 @@ export function PlannerIntakeWizard({
                             </p>
                             <DetectedSectionsChips detected={detectedSections} />
                             {hasPendingResumeReview ? (
-                              <div className="rounded-md border border-border-light bg-surface p-3">
+                              <div
+                                className={`rounded-md border border-border-light bg-surface ${
+                                  COMPACT_STEP2_POLISH ? 'p-2.5' : 'p-3'
+                                }`}
+                              >
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
                                     Resume detections ready
@@ -456,12 +534,20 @@ export function PlannerIntakeWizard({
                                     {resumeReviewExpanded ? 'Hide review' : 'Review details'}
                                   </button>
                                 </div>
-                                <p className="mt-1 text-sm text-text-secondary">
+                                <p
+                                  className={`mt-1 text-text-secondary ${
+                                    COMPACT_STEP2_POLISH ? 'text-xs leading-[1.5]' : 'text-sm'
+                                  }`}
+                                >
                                   {pendingResumeSkills.length} skills,{' '}
                                   {pendingResumeCertifications.length} certifications
                                   {pendingResumeRoleCandidate ? ', and 1 role candidate' : ''} detected.
                                 </p>
-                                <div className="mt-3 flex flex-wrap gap-2">
+                                <div
+                                  className={`flex flex-wrap ${
+                                    COMPACT_STEP2_POLISH ? 'mt-2 gap-1.5' : 'mt-3 gap-2'
+                                  }`}
+                                >
                                   <Button size="sm" onClick={onApplyDetectedResumeData}>
                                     Apply detected data
                                   </Button>
@@ -507,48 +593,59 @@ export function PlannerIntakeWizard({
         ) : null}
 
         {activeWizardStep === 2 ? (
-          <div className="planner-animate-in space-y-3">
-            <h2 className="text-base font-bold text-text-primary">Constraints and preferences</h2>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[13px] font-semibold text-text-primary">Target location</span>
-              <input
-                type="text"
-                value={locationText}
-                onChange={(event) => onSetLocationText(event.target.value)}
-                placeholder="City, region, or country (e.g., Toronto, ON)"
-                className="w-full rounded-md border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
-              />
-              <span className="text-xs text-text-tertiary">
-                Required for market-demand matching and employer-evidence requirements.
-              </span>
-            </label>
-            <div className="grid gap-3 md:grid-cols-3">
-              <SelectField
-                id="planner-work-region"
-                label="Work Region"
-                value={workRegion}
-                onChange={(value) => onSetWorkRegion(value as WorkRegionValue)}
-                options={workRegionOptions}
-              />
-              <SelectField
-                id="planner-timeline"
-                label="Timeline"
-                value={timelineBucket}
-                onChange={(value) => onSetTimelineBucket(value as TimelineBucketValue)}
-                options={timelineOptions}
-              />
-              <SelectField
-                id="planner-income-target"
-                label="Income Target"
-                value={incomeTarget}
-                onChange={(value) => onSetIncomeTarget(value as IncomeTargetValue)}
-                options={incomeTargetOptions}
-              />
+          <div className="planner-animate-in space-y-2.5">
+            <div className="space-y-1.5">
+              <h2 className="text-base font-bold text-text-primary">Constraints and evidence</h2>
+              <p className="text-sm leading-[1.65] text-text-secondary">
+                Confirm your constraints, then generate the plan.
+              </p>
             </div>
 
-            <div className="rounded-md border border-border bg-bg-secondary p-4">
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-2 rounded-pill border border-border-light bg-bg-secondary px-3 py-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">Required</span>
+                <span className={`text-sm font-semibold ${canGenerateFromStepThree ? 'text-success' : 'text-warning'}`}>
+                  {canGenerateFromStepThree ? 'Ready' : 'Needs location'}
+                </span>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-pill border border-border-light bg-bg-secondary px-3 py-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">Timeline</span>
+                <span className="text-sm font-semibold text-text-primary">{timelineBucket}</span>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-pill border border-border-light bg-bg-secondary px-3 py-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">Evidence</span>
+                <span className="text-sm font-semibold text-text-primary">
+                  {hasPostingText ? 'Posting attached' : useMarketEvidence ? 'Live market evidence' : 'Manual only'}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border-light bg-surface p-4 shadow-card">
+              <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Required for generation</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <SelectField
+                  id="planner-timeline"
+                  label="Timeline"
+                  value={timelineBucket}
+                  onChange={(value) => onSetTimelineBucket(value as TimelineBucketValue)}
+                  options={timelineOptions}
+                />
+                <SelectField
+                  id="planner-work-region"
+                  label="Province"
+                  value={workRegion}
+                  onChange={(value) => onSetWorkRegion(value as WorkRegionValue)}
+                  options={workRegionOptions}
+                />
+              </div>
+              <p className="mt-2 text-xs leading-[1.55] text-text-tertiary">
+                Location is derived from province for matching: {resolvedLocationLabel}.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-text-primary">4) Employer Evidence</p>
+                <p className="text-sm font-semibold text-text-primary">Employer Evidence (optional)</p>
                 {marketEvidenceAvailable ? (
                   <Toggle
                     checked={useMarketEvidence}
@@ -559,20 +656,39 @@ export function PlannerIntakeWizard({
                   <Badge variant="warning">Market evidence unavailable</Badge>
                 )}
               </div>
-              <p className="mt-2 text-xs text-text-tertiary">
-                Paste a target posting for highest-fidelity requirements. If you leave this blank,
-                market evidence searches live postings for your target role and location.
+              <p className="mt-2 text-xs leading-[1.6] text-text-tertiary">
+                {hasPostingText
+                  ? 'Posting text added. We will prioritize direct requirement matching in this run.'
+                  : 'No posting text added. We will use market evidence and your inputs to infer requirements.'}
               </p>
-              <label className="mt-3 flex flex-col gap-1.5">
-                <span className="text-[13px] font-semibold text-text-primary">Paste target job posting (optional)</span>
-                <textarea
-                  rows={5}
-                  value={userPostingText}
-                  onChange={(event) => onSetUserPostingText(event.target.value)}
-                  placeholder="Paste full requirements section from a posting."
-                  className="w-full rounded-md border border-border bg-surface p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
-                />
-              </label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1 px-0 text-accent hover:bg-transparent hover:text-accent-hover"
+                onClick={() => setShowEmployerEvidenceDetails((prev) => !prev)}
+              >
+                {showEmployerEvidenceDetails ? 'Hide details' : 'Show details'}
+              </Button>
+              {showEmployerEvidenceDetails ? (
+                <>
+                  <p className="mt-3 text-xs leading-[1.6] text-text-tertiary">
+                    Paste a target posting for highest-fidelity requirements. If you leave this blank,
+                    market evidence searches live postings for your target role and location.
+                  </p>
+                  <label className="mt-3 flex flex-col gap-1.5">
+                    <span className="text-[13px] font-semibold text-text-primary">
+                      Paste target job posting (optional)
+                    </span>
+                    <textarea
+                      rows={5}
+                      value={userPostingText}
+                      onChange={(event) => onSetUserPostingText(event.target.value)}
+                      placeholder="Paste full requirements section from a posting."
+                      className="w-full rounded-md border border-border bg-surface p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
+                    />
+                  </label>
+                </>
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -638,45 +754,72 @@ export function PlannerIntakeWizard({
         </Card>
       ) : null}
 
-      <div className="sticky bottom-0 z-30 -mx-6 mt-6 border-t border-border-light bg-surface/95 px-6 pb-2 pt-4 backdrop-blur md:-mx-8 md:px-8">
-        <div
-          className={`flex flex-col gap-3 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 md:px-4 ${
-            activeWizardStep === 2 ? 'md:flex-row md:items-center md:justify-between' : ''
-          }`}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            {canGoBackWizard ? (
-              <Button variant="ghost" onClick={onBack}>
-                Back
-              </Button>
-            ) : null}
-            {canGoNextWizard ? (
-              <Button variant="outline" onClick={onNext}>
-                Next
-              </Button>
-            ) : null}
-            {hasAnyDraftInput ? (
-              <Button variant="ghost" onClick={onStartNewPlan} disabled={plannerState === 'loading'}>
-                Start New Plan
-              </Button>
-            ) : null}
-            <p className="text-xs text-text-tertiary">
-              {hasDraftChanges
-                ? 'The current report stays visible until you run the updated plan.'
-                : 'The final generate button appears after you review constraints.'}
-            </p>
+      <div className="sticky bottom-2 z-30 mt-2 md:static md:bottom-auto">
+        {activeWizardStep === 2 ? (
+          <div className="space-y-2">
+            <p className="text-center text-xs text-text-tertiary">{finalStepHelperText}</p>
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 shadow-card md:px-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {canGoBackWizard ? (
+                  <Button variant="ghost" onClick={onBack}>
+                    Back
+                  </Button>
+                ) : null}
+                {hasAnyDraftInput ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-border-light text-text-secondary hover:border-border hover:bg-surface hover:text-text-primary"
+                    onClick={onStartNewPlan}
+                    disabled={plannerState === 'loading'}
+                  >
+                    Start New Plan
+                  </Button>
+                ) : null}
+              </div>
+              <div className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto"
+                  onClick={handleGenerateClick}
+                  isLoading={plannerState === 'loading'}
+                  disabled={plannerState === 'loading'}
+                >
+                  {generateButtonLabel}
+                </Button>
+              </div>
+            </div>
           </div>
-          {activeWizardStep === 2 ? (
-            <Button
-              size="lg"
-              onClick={onGenerate}
-              isLoading={plannerState === 'loading'}
-              disabled={plannerState === 'loading'}
-            >
-              {generateButtonLabel}
-            </Button>
-          ) : null}
-        </div>
+        ) : (
+          <div className="grid gap-3 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 shadow-card md:grid-cols-[auto_1fr_auto] md:items-center md:px-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {canGoBackWizard ? (
+                <Button variant="ghost" onClick={onBack}>
+                  Back
+                </Button>
+              ) : null}
+              {hasAnyDraftInput ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-border-light text-text-secondary hover:border-border hover:bg-surface hover:text-text-primary"
+                  onClick={onStartNewPlan}
+                  disabled={plannerState === 'loading'}
+                >
+                  Start New Plan
+                </Button>
+              ) : null}
+            </div>
+            <p className="text-center text-xs text-text-tertiary">{nonFinalStepHelperText}</p>
+            <div className="flex justify-start md:justify-end">
+              {canGoNextWizard ? (
+                <Button onClick={handleNextClick}>
+                  Next
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   )

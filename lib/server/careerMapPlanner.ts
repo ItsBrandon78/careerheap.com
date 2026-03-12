@@ -117,6 +117,7 @@ export interface MatchBreakdown {
 interface RankedMatch {
   occupationId: string
   title: string
+  nocCode: string | null
   region: CountryCode
   score: number
   roleProximity: number
@@ -590,6 +591,17 @@ function byKey<T>(rows: T[], selector: (row: T) => string) {
   return grouped
 }
 
+function extractNocCode(codes: Record<string, unknown> | null | undefined) {
+  if (!codes) return null
+  const candidates = [codes['noc_2021'], codes['noc'], codes['noc_code'], codes['code']]
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim()
+    }
+  }
+  return null
+}
+
 function extractMetric(text: string) {
   return text.match(/\b\d+%|\$\d[\d,]*|\b\d{2,}\b/)?.[0] ?? null
 }
@@ -657,7 +669,7 @@ function phaseRoadmap(options: {
         time_estimate_hours: 6,
         difficulty: 'medium',
         why_it_matters: `${roleTitle} is gated by formal entry requirements in most regions.`,
-        action: `Confirm ${licensingTarget} requirements for your location, start registration, and save proof of progress in your transition tracker.`
+        action: `Confirm ${licensingTarget} requirements for your location, start registration, and save verification of progress in your transition tracker.`
       })
     } else {
       items.push({
@@ -678,7 +690,7 @@ function phaseRoadmap(options: {
       time_estimate_hours: 10,
       difficulty: 'medium',
       why_it_matters: `${primaryGap} appears in top-matched role requirements.`,
-      action: `Complete one practical task proving ${primaryGap} for ${roleTitle}, then publish a shareable proof-of-work artifact with measurable outcomes.`
+      action: `Complete one practical task showing ${primaryGap} for ${roleTitle}, then publish a shareable work sample with measurable outcomes.`
     })
 
     if (topEmployerSignal) {
@@ -775,6 +787,48 @@ function splitRequirementSentences(text: string | null | undefined) {
     .split(/[.;]\s+/)
     .map((segment) => segment.trim())
     .filter((segment) => segment.length >= 24)
+}
+
+const PROVINCE_ALIASES: Array<{ code: string; patterns: string[] }> = [
+  { code: 'ON', patterns: ['ontario', ' on '] },
+  { code: 'BC', patterns: ['british columbia', ' bc '] },
+  { code: 'AB', patterns: ['alberta', ' ab '] },
+  { code: 'SK', patterns: ['saskatchewan', ' sk '] },
+  { code: 'MB', patterns: ['manitoba', ' mb '] },
+  { code: 'QC', patterns: ['quebec', ' qc '] },
+  { code: 'NB', patterns: ['new brunswick', ' nb '] },
+  { code: 'NS', patterns: ['nova scotia', ' ns '] },
+  { code: 'PE', patterns: ['prince edward island', ' pe '] },
+  { code: 'NL', patterns: ['newfoundland', ' labrador', ' nl '] },
+  { code: 'YT', patterns: ['yukon', ' yt '] },
+  { code: 'NT', patterns: ['northwest territories', ' nt '] },
+  { code: 'NU', patterns: ['nunavut', ' nu '] }
+]
+
+function inferProvinceCode(location: string | undefined) {
+  const normalized = ` ${normalizeText(location)} `
+  for (const candidate of PROVINCE_ALIASES) {
+    if (candidate.patterns.some((pattern) => normalized.includes(pattern))) {
+      return candidate.code
+    }
+  }
+  return null
+}
+
+function pickBestOccupationWage(
+  wages: OccupationWageRow[],
+  country: CountryCode,
+  preferredProvince: string | null
+) {
+  if (wages.length === 0) return null
+  const sorted = [...wages].sort((left, right) => right.last_updated.localeCompare(left.last_updated))
+  if (preferredProvince) {
+    const exact = sorted.find((row) => row.region === preferredProvince)
+    if (exact) return exact
+  }
+  const national = sorted.find((row) => row.region === `${country}-NAT`)
+  if (national) return national
+  return sorted[0]
 }
 
 function normalizeGateSignalLabel(value: string) {
@@ -944,7 +998,7 @@ function pickEmployerSignals(options: {
   })
 
   const skillSignals = options.matchedSkills.slice(0, 3).map((skill) =>
-    `Hiring teams usually expect proof you can apply ${skill} in real projects.`
+    `Hiring teams usually expect evidence that you can apply ${skill} in real projects.`
   )
   const gapSignals = options.missingSkills.slice(0, 2).map((gap) =>
     `You should show evidence for ${gap.skillName} before interviews.`
@@ -1232,7 +1286,7 @@ function requirementHowToGet(requirement: AggregatedRequirement) {
     if (isLongHorizonCredentialRequirement(requirement)) {
       return 'Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.'
     }
-    return 'Review regional regulator requirements, start application, and keep proof of status updates.'
+    return 'Review regional regulator requirements, start application, and keep status verification ready.'
   }
   if (requirement.type === 'tool') {
     return 'Practice with a scoped project that produces an artifact you can show in interviews.'
@@ -1243,7 +1297,7 @@ function requirementHowToGet(requirement: AggregatedRequirement) {
   if (requirement.type === 'soft_signal') {
     return 'Document concrete examples with outcomes instead of generic claims.'
   }
-  return 'Complete one role-specific task and publish measurable proof of the result.'
+  return 'Complete one role-specific task and publish a measurable work sample.'
 }
 
 function requirementEstimatedTime(requirement: AggregatedRequirement) {
@@ -1312,7 +1366,7 @@ function buildTransitionRoadmapStep(options: {
     id: options.id,
     goal,
     actions: [
-      `Close ${goal.toLowerCase()} with one measurable proof artifact.`,
+      `Close ${goal.toLowerCase()} with one measurable readiness example.`,
       'Add the result to your resume bullets and interview story bank.'
     ],
     linkedRequirements
@@ -1602,6 +1656,7 @@ function mergeCuratedTargetRequirements(args: {
 export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput): Promise<CareerPlannerAnalysis> {
   const supabase = createAdminClient()
   const country = inferCountry(input.location)
+  const preferredProvince = country === 'CA' ? inferProvinceCode(input.location) : null
   const timeline = parseTimeline(input.timeline)
   const selectedCurrentOccupationId = input.currentOccupationId?.trim() || null
   const selectedTargetOccupationId = input.targetOccupationId?.trim() || null
@@ -1885,7 +1940,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     )
 
     const wageRows = wages.get(occupation.id) ?? []
-    const wage = wageRows.find((row) => row.region === `${country}-NAT`) ?? wageRows[0] ?? null
+    const wage = pickBestOccupationWage(wageRows, country, preferredProvince)
     const topReasons = [
       skillOverlap >= 0.6 ? 'Strong weighted skill overlap with this occupation.' : `Largest gap is ${prioritizedMissingSkills[0]?.skillName ?? 'specialized skill depth'}.`,
       experienceSimilarity >= 0.55 ? 'Experience adjacency indicates a realistic transition path.' : 'Title similarity is moderate; transition is possible with focused positioning.',
@@ -1895,6 +1950,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     const rankedMatch: RankedMatch = {
       occupationId: occupation.id,
       title: occupation.title,
+      nocCode: extractNocCode(occupation.codes),
       region: occupation.region,
       score,
       roleProximity,
@@ -2076,12 +2132,38 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   )
   const usesBaselineFallback = baselineFallbackRequirements.length > 0
   const careerPathwayProfile = best
-    ? await getCareerPathwayProfile({
-        occupationId: best.occupationId,
-        targetRole: input.targetRole || best.title,
-        region: input.location || country,
-        tradeCode: best.tradeRequirement?.tradeCode ?? null
-      })
+    ? await (async () => {
+        const region = input.location || country
+        const attempts = [
+          {
+            occupationId: best.occupationId,
+            targetRole: input.targetRole || best.title,
+            region,
+            tradeCode: best.tradeRequirement?.tradeCode ?? null,
+            nocCode: best.nocCode
+          },
+          {
+            occupationId: best.occupationId,
+            targetRole: best.title,
+            region,
+            tradeCode: best.tradeRequirement?.tradeCode ?? null,
+            nocCode: best.nocCode
+          },
+          {
+            targetRole: input.targetRole || best.title,
+            region,
+            tradeCode: best.tradeRequirement?.tradeCode ?? null,
+            nocCode: best.nocCode
+          }
+        ]
+
+        for (const attempt of attempts) {
+          const profile = await getCareerPathwayProfile(attempt)
+          if (profile) return profile
+        }
+
+        return null
+      })()
     : null
 
   const gateRequirements = allRequirements.filter((item) => item.type === 'gate')
@@ -2116,7 +2198,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     (best?.regulated ? 'licensing requirements' : 'role-specific project evidence')
   const secondaryGap =
     missingRequirements[1]?.requirement.label ??
-    'interview-ready proof of measurable outcomes'
+    'interview-ready evidence of measurable outcomes'
   const roadmap = phaseRoadmap({
     bucket: timeline,
     roleTitle: best?.title ?? 'target role',
@@ -2268,7 +2350,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     })),
     oneToThreeMonths: roadmapMissing.slice(3, 6).map((item, index) => ({
       id: `r-1-3-${index + 1}`,
-      action: `Build repeatable proof for ${item.requirement.label.toLowerCase()} with measurable outcomes.`,
+      action: `Build repeatable evidence for ${item.requirement.label.toLowerCase()} with measurable outcomes.`,
       tiedRequirement: item.requirement.label
     })),
     threeToTwelveMonths: roadmapMissing.slice(6, 9).map((item, index) => ({
@@ -2281,7 +2363,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       .map((item) => `Close ${item.requirement.label.toLowerCase()} with one interview-ready artifact.`),
     strongCandidatePath: roadmapMissing
       .slice(0, 6)
-      .map((item) => `Build depth in ${item.requirement.label.toLowerCase()} and attach measurable proof.`)
+      .map((item) => `Build depth in ${item.requirement.label.toLowerCase()} and attach measurable evidence.`)
   }
 
   const dedupeRequirements = (items: AggregatedRequirement[]) => {
@@ -2463,7 +2545,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       buildTransitionRoadmapStep({
         id: `d90-${index + 1}`,
         requirements: [requirement],
-        fallbackGoal: 'Convert proof into durable interview signal'
+        fallbackGoal: 'Convert readiness evidence into durable interview signal'
       })
     )
 
@@ -2483,7 +2565,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     buildTransitionRoadmapStep({
       id: `strong-${index + 1}`,
       requirements: [requirement],
-      fallbackGoal: 'Increase competitiveness with stronger proof'
+      fallbackGoal: 'Increase competitiveness with stronger evidence'
     })
   )
 
@@ -2616,7 +2698,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       reason:
         requirement.type === 'gate'
           ? 'This apply gate still needs a verified credential or registration step.'
-          : 'This apply requirement still needs one clear proof example before you look competitive.'
+          : 'This apply requirement still needs one clear work sample or verification item before you look competitive.'
     }))
   const competitiveDisadvantages: ExecutionStandGap[] = requiredToCompeteKeys
     .map((key) => requirementByKey.get(key))
@@ -2626,7 +2708,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       normalized_key: requirement.normalized_key,
       label: requirement.label,
       blockerClass: blockerClassFromRequirement(requirement),
-      reason: 'This hiring signal still needs stronger proof from your background, a project, or a recent example.'
+      reason: 'This hiring signal still needs stronger evidence from your background, a project, or a recent example.'
     }))
 
   const executionRequirements: ExecutionContextRequirement[] = contextualRequirements.map((requirement) => ({
@@ -2675,9 +2757,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       marketSnapshot: {
         role: evidenceResult.query?.role ?? evidenceRole,
         location: evidenceResult.query?.location ?? evidenceLocation,
-        summaryLine: careerPathwayProfile
-          ? `${careerPathwayProfile.snapshot.one_liner} Verified against curated pathway data and ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`
-          : `Based on ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`,
+        summaryLine: `Based on ${evidenceResult.postingsCount} recent postings in ${(evidenceResult.query?.location ?? evidenceLocation) || 'your region'}.`,
         topRequirements: allRequirements
         .filter((item) => item.type !== 'tool')
         .sort(sortByFrequency)

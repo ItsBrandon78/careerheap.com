@@ -15,13 +15,20 @@ const dashboardComponentPath = path.resolve(
   __dirname,
   '../components/career-switch-planner/PlannerDashboardV3.tsx'
 )
+const dashboardSectionsPath = path.resolve(
+  __dirname,
+  '../components/career-switch-planner/PlannerDashboardSections.tsx'
+)
 const intakeComponentPath = path.resolve(
   __dirname,
   '../components/career-switch-planner/PlannerIntakeWizard.tsx'
 )
 
 const plannerClientSource = readFileSync(plannerClientPath, 'utf8')
-const dashboardSource = readFileSync(dashboardComponentPath, 'utf8')
+const dashboardSource = [
+  readFileSync(dashboardComponentPath, 'utf8'),
+  readFileSync(dashboardSectionsPath, 'utf8'),
+].join('\n')
 const intakeSource = readFileSync(intakeComponentPath, 'utf8')
 
 test('planner client wires V3 mode orchestration and edit drawer', () => {
@@ -34,6 +41,7 @@ test('planner client wires V3 mode orchestration and edit drawer', () => {
   assert.match(plannerClientSource, /const showDashboard = plannerState !== 'loading' && viewMode === 'dashboard' && hasPlannerResults/)
   assert.doesNotMatch(plannerClientSource, /NEXT_PUBLIC_PLANNER_V3_ENABLED/)
   assert.doesNotMatch(plannerClientSource, /if \(plannerV3Enabled\)/)
+  assert.equal((plannerClientSource.match(/async function hydrateServerProgress/g) ?? []).length, 1)
 })
 
 test('dashboard component includes required control actions and stale warning text', () => {
@@ -41,9 +49,17 @@ test('dashboard component includes required control actions and stale warning te
   assert.match(dashboardSource, /Regenerate with Changes/)
   assert.match(dashboardSource, /Start New Plan/)
   assert.match(dashboardSource, /This report is from previous inputs\./)
-  assert.match(dashboardSource, /Action Panel and Next Best Move/)
+  assert.match(dashboardSource, /10\. Progress Dashboard/)
+  assert.match(dashboardSource, /Execution/)
+  assert.match(dashboardSource, /progressStorageKey/)
   assert.match(dashboardSource, /Preview Limit/)
   assert.match(dashboardSource, /Sign In to Unlock Full Report/)
+  assert.match(dashboardSource, /11\. Alternative Career Paths/)
+  assert.match(dashboardSource, /Generate this path/)
+  assert.doesNotMatch(dashboardSource, /Alternative Paths and Compare Mode/)
+  assert.match(dashboardSource, /Positive Replies/)
+  assert.doesNotMatch(dashboardSource, /Positive Rate/)
+  assert.match(dashboardSource, /aria-label=\{`Show full \$\{item\.label\.toLowerCase\(\)\} detail`\}/)
 })
 
 test('intake component keeps 3-step flow controls and step-3 generation gating', () => {

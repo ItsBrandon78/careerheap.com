@@ -81,6 +81,37 @@ function getUsageOverrideSearch() {
   return query ? `?${query}` : ''
 }
 
+function getLocalQaAuthOverride() {
+  if (typeof window === 'undefined') return null
+  const host = window.location.hostname
+  if (host !== 'localhost' && host !== '127.0.0.1') return null
+  if (!window.location.pathname.startsWith('/tools')) return null
+
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('qaUser') !== '1') return null
+
+  const plan = normalizePlan(params.get('plan'))
+  const used = Number.parseInt(params.get('uses') ?? '0', 10)
+  const normalizedUsed = Number.isFinite(used) ? Math.max(0, Math.min(3, used)) : 0
+
+  return {
+    user: {
+      id: 'qa-local-user',
+      email: 'qa-local-user@careerheap.local'
+    } as User,
+    plan,
+    usage: {
+      plan,
+      isUnlimited: plan === 'pro' || plan === 'lifetime',
+      canUse: plan === 'pro' || plan === 'lifetime' ? true : normalizedUsed < 3,
+      used: normalizedUsed,
+      limit: 3,
+      usesRemaining: plan === 'pro' || plan === 'lifetime' ? null : Math.max(0, 3 - normalizedUsed),
+      byTool: {}
+    } as UsageSummary
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [plan, setPlan] = useState<PlanType>('free')
@@ -140,6 +171,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const applySession = useCallback(
     async (session: Session | null) => {
+      const qaOverride = getLocalQaAuthOverride()
+      if (qaOverride) {
+        setUser(qaOverride.user)
+        setPlan(qaOverride.plan)
+        setSubscriptionStatus('qa-local')
+        setUsage(qaOverride.usage)
+        setIsLoading(false)
+        return
+      }
+
       const nextUser = session?.user ?? null
       setUser(nextUser)
       const nextPlan = await loadProfilePlan(nextUser)
