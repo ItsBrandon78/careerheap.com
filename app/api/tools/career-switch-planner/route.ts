@@ -26,7 +26,12 @@ import {
   type UsageSummary
 } from '@/lib/server/toolUsage'
 import { generateTransitionPlan } from '@/lib/transition/generatePlan'
-import { getCachedOrGenerateTransitionEnhancement } from '@/lib/server/transitionPlanEnhancer'
+import {
+  getCachedOrGenerateTransitionEnhancement,
+  type TransitionPlanCacheMeta,
+  type TransitionPlanScripts,
+  type TransitionStructuredPlan
+} from '@/lib/server/transitionPlanEnhancer'
 import {
   getPlannerSourceEnrichment,
   type PlannerSourceEnrichment
@@ -36,7 +41,7 @@ import {
   getTransitionPriorContext,
   persistPlannerGenerationSnapshot
 } from '@/lib/server/plannerLearning'
-import type { PlannerReportSource } from '@/lib/transition/types'
+import type { PlannerReportSource, TransitionModeReport } from '@/lib/transition/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -712,6 +717,100 @@ function sanitizeTransitionScriptsForCareerPath(
     call: clean(scripts.call),
     email: clean(scripts.email)
   }
+}
+
+function compatibilityLevelFromDifficultyScore(
+  difficultyScore: number
+): TransitionStructuredPlan['compatibility_level'] {
+  if (difficultyScore <= 4.5) return 'High'
+  if (difficultyScore <= 7.5) return 'Medium'
+  return 'Low'
+}
+
+function buildTransitionEnhancementFallback(args: {
+  currentRole: string
+  targetRole: string
+  region: string
+  transitionMode: TransitionModeReport
+}) {
+  const { currentRole, targetRole, region, transitionMode } = args
+  const nowIso = new Date().toISOString()
+
+  const timelineEstimate =
+    transitionMode.timeline.minMonths === transitionMode.timeline.maxMonths
+      ? `${transitionMode.timeline.minMonths} months`
+      : `${transitionMode.timeline.minMonths}-${transitionMode.timeline.maxMonths} months`
+  const finalEarning = transitionMode.earnings[transitionMode.earnings.length - 1]
+  const salaryProjection = `${finalEarning.rangeLow}-${finalEarning.rangeHigh} ${finalEarning.unit}`
+  const missing = transitionMode.gaps.missing.slice(0, 4)
+  const strengths = transitionMode.gaps.strengths.slice(0, 4)
+  const firstSteps = transitionMode.gaps.first3Steps.slice(0, 3)
+  const startFromZero = (
+    transitionMode.roadmapGuide?.next7Days?.slice(0, 4).filter(Boolean) ?? firstSteps
+  ).slice(0, 4)
+  const routeSteps = [
+    transitionMode.routes.primary.firstStep,
+    transitionMode.routes.secondary.firstStep,
+    transitionMode.routes.contingency.firstStep
+  ]
+    .filter(Boolean)
+    .slice(0, 4)
+
+  const plan: TransitionStructuredPlan = {
+    summary: `This transition from ${currentRole} to ${targetRole} is achievable with consistent weekly execution and role-specific proof.`,
+    compatibility_level: compatibilityLevelFromDifficultyScore(transitionMode.difficulty.score),
+    timeline_estimate: timelineEstimate,
+    required_certifications: routeSteps.length > 0 ? routeSteps : ['Confirm role requirements for your province'],
+    required_experience: missing.length > 0 ? missing : ['Build role-relevant experience signals'],
+    action_steps: firstSteps.length > 0 ? firstSteps : ['Start with one concrete requirement this week'],
+    salary_projection: `Expected range at progression: ${salaryProjection}`,
+    narrative_sections: {
+      intro: `You are moving toward ${targetRole} in ${region}. Prioritize requirement fit, then execution rhythm.`,
+      skills_you_build: [
+        {
+          title: 'Core capability build',
+          summary: `Build the top role-aligned capabilities required for ${targetRole}.`,
+          bullets:
+            missing.length > 0 ? missing.slice(0, 3) : ['Develop role-specific technical fundamentals']
+        }
+      ],
+      credentials_you_need: [
+        {
+          title: 'Requirement checkpoints',
+          summary: 'Confirm and complete the highest-leverage qualification checkpoints first.',
+          bullets: routeSteps.length > 0 ? routeSteps : ['Validate province-specific requirements']
+        }
+      ],
+      soft_skills_that_matter:
+        strengths.length > 0 ? strengths : ['Reliability', 'Communication', 'Follow-through'],
+      why_this_path_can_pay_off: [
+        `Timeline estimate: ${timelineEstimate}.`,
+        `Compensation can progress toward ${salaryProjection}.`
+      ],
+      start_from_zero:
+        startFromZero.length > 0 ? startFromZero : ['Complete one requirement and one outreach step this week']
+    }
+  }
+
+  const scripts: TransitionPlanScripts = {
+    call:
+      transitionMode.execution.outreachTemplates.call ||
+      `Hi, I'm transitioning from ${currentRole} to ${targetRole}. I'd value your advice on the next practical step.`,
+    email:
+      transitionMode.execution.outreachTemplates.email ||
+      `Subject: Transitioning to ${targetRole}\n\nHi, I am moving from ${currentRole} to ${targetRole} and would appreciate guidance on the strongest next step.`,
+    source: 'deterministic'
+  }
+
+  const cacheMeta: TransitionPlanCacheMeta = {
+    version: 'transition-plan-route-fallback-v1',
+    generatedAt: nowIso,
+    region,
+    experienceLevelBucket: 'unknown',
+    cacheHit: false
+  }
+
+  return { plan, scripts, cacheMeta }
 }
 
 function applyFreeTierOutputLimits(report: CareerPlannerAnalysis['report']) {
@@ -1613,11 +1712,14 @@ export async function POST(request: Request) {
               transitionMode,
               report: finalReport
             }),
-          fallback: () => ({
-            plan: null,
-            scripts: null,
-            cacheMeta: null
-          }),
+          fallback: () =>
+            buildTransitionEnhancementFallback({
+              currentRole:
+                input.currentRole || input.currentRoleText || resolvedCurrentRoleTitle || 'Career transition',
+              targetRole: enhancementTargetRole,
+              region: input.location || locationFromWorkRegion(input.workRegion) || 'Canada',
+              transitionMode
+            }),
           failures: stageFailures
         })
     const sourceEnrichment = await runStageWithFallback({
