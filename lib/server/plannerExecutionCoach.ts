@@ -991,27 +991,33 @@ async function callExecutionCoachLlm(
     }
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(20_000)
-  })
-
-  if (!response.ok) return null
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string | null } }>
-  }
-  const content = data.choices?.[0]?.message?.content
-  if (!content || typeof content !== 'string') return null
-
   try {
-    const parsed = JSON.parse(content) as unknown
-    return parseExecutionStrategy(parsed)
-  } catch {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20_000)
+    })
+
+    if (!response.ok) return null
+    const data = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string | null } }>
+    }
+    const content = data.choices?.[0]?.message?.content
+    if (!content || typeof content !== 'string') return null
+
+    try {
+      const parsed = JSON.parse(content) as unknown
+      return parseExecutionStrategy(parsed)
+    } catch {
+      return null
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn('[planner-execution-coach] llm_fallback_to_deterministic', { message })
     return null
   }
 }

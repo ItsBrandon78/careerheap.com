@@ -13,6 +13,7 @@ import {
   OutreachSection,
   ProgressDashboardSection,
   RelatedToolsSection,
+  ResourcesSection,
   RoadmapSection,
   RealityCheckSection,
   SkillsEvidenceSection,
@@ -85,6 +86,40 @@ function taskMatches(task: PlannerDashboardTask, pattern: RegExp) {
   return pattern.test(task.label.toLowerCase());
 }
 
+function deriveSuggestedOutreachTarget(
+  phase:
+    | PlannerDashboardV3Model['roadmap']['phases'][number]
+    | null,
+  tasks: PlannerDashboardTask[]
+) {
+  if (!phase) return '8 targeted outreach messages'
+
+  const phaseText = [phase.title, phase.summary, phase.outcome, ...tasks.map((task) => task.label)]
+    .join(' ')
+    .toLowerCase()
+
+  const explicitTargetMatch = phaseText.match(
+    /\b(\d{1,2})\s+(targeted outreach messages|sponsor-ready employers|outreach check-ins)\b/
+  )
+  if (explicitTargetMatch) {
+    return `${explicitTargetMatch[1]} ${explicitTargetMatch[2]}`
+  }
+
+  if (/\b(job search|outreach|follow[- ]?up|application|apply|interview)\b/.test(phaseText)) {
+    return '20 targeted outreach messages'
+  }
+
+  if (/\b(sponsor|registration|entry route|entry and sponsorship|helper|labourer|laborer|contractor|employer)\b/.test(phaseText)) {
+    return '10 sponsor-ready employers'
+  }
+
+  if (/\b(training|school|credential|qualification|exam|certif|hours|apprenticeship loop)\b/.test(phaseText)) {
+    return '5 outreach check-ins'
+  }
+
+  return '8 targeted outreach messages'
+}
+
 export function PlannerDashboardV3({
   model,
   hasDraftChanges,
@@ -134,16 +169,8 @@ export function PlannerDashboardV3({
     [roadmapPhases, roadmapTasks]
   );
   const defaultExpandedPhaseIds = useMemo(
-    () => {
-      const persistedPhaseDefaults = model.progress.phases
-        .filter((phase) => !phase.collapsed)
-        .map((phase) => phase.id);
-
-      return persistedPhaseDefaults.length > 0
-        ? persistedPhaseDefaults
-        : roadmapPhases.filter((phase) => phase.expandedByDefault).map((phase) => phase.id);
-    },
-    [model.progress.phases, roadmapPhases]
+    () => roadmapPhases.map((phase) => phase.id),
+    [roadmapPhases]
   );
   const defaultCheckedTaskIds = useMemo(
     () =>
@@ -516,6 +543,21 @@ export function PlannerDashboardV3({
       ),
     [checkedTaskIds, completionForTasks, expandedPhaseIds, phaseTaskMap, roadmapPhases]
   );
+  const activeRoadmapPhase =
+    roadmapPhases.find((phase) => {
+      const phaseState = phaseStats.get(phase.id)
+      return phaseState && !phaseState.completed
+    }) ??
+    roadmapPhases[roadmapPhases.length - 1] ??
+    null
+  const suggestedOutreachTarget = useMemo(
+    () =>
+      deriveSuggestedOutreachTarget(
+        activeRoadmapPhase,
+        activeRoadmapPhase ? phaseStats.get(activeRoadmapPhase.id)?.tasks ?? [] : []
+      ),
+    [activeRoadmapPhase, phaseStats]
+  )
   const lastTaskDeltaLabel =
     lastTaskDelta === null
       ? null
@@ -588,9 +630,7 @@ export function PlannerDashboardV3({
               <OutreachSection
                 readinessChecks={readinessChecks}
                 outreachTracker={outreachTracker}
-                suggestedOutreachTarget={
-                  `${Math.max(10, Math.round(liveProgressToOffer * 0.45) + 8)} targeted outreach messages`
-                }
+                suggestedOutreachTarget={suggestedOutreachTarget}
                 resumeToolkitDraft={resumeToolkitDraft}
                 emailToolkitDraft={emailToolkitDraft}
                 callToolkitDraft={callToolkitDraft}
@@ -610,6 +650,7 @@ export function PlannerDashboardV3({
                 checkedTaskIds={checkedTaskIds}
               />
               <AlternativesSection model={model} onSelectAlternativeRole={onSelectAlternativeRole} />
+              <ResourcesSection resources={model.resources} />
               <TrustFaqSection faqItems={faqItems} methodology={model.methodology} />
               <RelatedToolsSection relatedTools={relatedTools} />
             </>

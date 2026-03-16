@@ -1,5 +1,5 @@
 import { extractProfileSignals, isPersonalIdentifier } from '@/lib/planner/profileSignals'
-import { selectPlanTemplate } from '@/lib/transition/selectTemplate'
+import { selectPlanRoute } from '@/lib/transition/selectTemplate'
 import {
   compressSimilarBullets as sharedCompressSimilarBullets,
   dedupeBullets as sharedDedupeBullets,
@@ -8,6 +8,7 @@ import {
 import { buildCredentialedRoleTemplate } from '@/lib/transition/templates/credentialedRole'
 import { buildExperienceLadderRoleTemplate } from '@/lib/transition/templates/experienceLadderRole'
 import { buildGeneralRoleTemplate } from '@/lib/transition/templates/generalRole'
+import { buildHealthcareLicensedTemplate } from '@/lib/transition/templates/healthcareLicensed'
 import { buildPortfolioRoleTemplate } from '@/lib/transition/templates/portfolioRole'
 import { roleLabel } from '@/lib/transition/templates/common'
 import { buildRegulatedProfessionTemplate } from '@/lib/transition/templates/regulatedProfession'
@@ -1431,6 +1432,10 @@ function buildRoadmapGuide(
 }
 
 function buildTemplateOutput(context: TransitionPlanContext) {
+  if (context.careerPathType === 'HEALTHCARE_LICENSED') {
+    return buildHealthcareLicensedTemplate(context)
+  }
+
   const builders: Record<PlanTemplateKey, (value: TransitionPlanContext) => TemplateOutput> = {
     regulated_trade: buildRegulatedTradeTemplate,
     regulated_profession: buildRegulatedProfessionTemplate,
@@ -1594,7 +1599,11 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
     targetResolution
   )
   const targetProfile = buildOccupationProfile(input, relationship)
-  const templateKey = selectPlanTemplate(targetProfile, input.location, targetResolution?.stage ?? null)
+  const { careerPathType, templateKey } = selectPlanRoute(
+    targetProfile,
+    input.location,
+    targetResolution?.stage ?? null
+  )
   const signals = deriveSignals(input, targetProfile, templateKey)
 
   const context: TransitionPlanContext = {
@@ -1605,6 +1614,7 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
     education: input.education ?? '',
     incomeTarget: input.incomeTarget ?? '',
     report: input.report,
+    careerPathType,
     templateKey,
     relationship,
     currentResolution,
@@ -1678,6 +1688,8 @@ export function generateTransitionPlan(input: GenerateTransitionPlanInput): Tran
   const roadmapGuide = buildRoadmapGuide(context, templateOutput.plan90, safeFirst3Steps)
 
   return TransitionModeSchema.parse({
+    careerPathType,
+    templateKey,
     definitions: templateOutput.definitions,
     difficulty,
     timeline,

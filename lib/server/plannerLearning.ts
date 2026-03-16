@@ -38,6 +38,7 @@ type GenerationSnapshotArgs = {
     sourcePath?: {
       training?: string
       wage?: string
+      certifications?: string
     }
   } | null
 }
@@ -497,7 +498,6 @@ export async function aggregateTransitionPriors() {
       addCount(bucket.firstTaskCounts, completedLabels)
       addCount(bucket.blockerCounts, blockers)
       addCount(bucket.trainingCounts, trainingTitles)
-      addCount(bucket.trainingCounts, completedTrainingLabels)
       addCount(bucket.trainingCounts, completedTrainingLabels)
       if (typeof outreachTarget === 'number') bucket.outreachTargets.push(outreachTarget)
       if (sourceCoverage.trainingSourcePath === 'curated_profile') bucket.trainingCuratedHits += 1

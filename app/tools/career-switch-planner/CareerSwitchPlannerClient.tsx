@@ -1821,8 +1821,8 @@ export default function CareerSwitchPlannerPage({
       }
 
       if (
-        response.status === 409 &&
-        data?.error === 'ROLE_SELECTION_REQUIRED' &&
+        (response.status === 409 && data?.error === 'ROLE_SELECTION_REQUIRED' ||
+          response.status === 422 && data?.error === 'UNMAPPED_ROLE') &&
         (data.role === 'current' || data.role === 'target') &&
         Array.isArray(data.alternatives)
       ) {
@@ -2613,12 +2613,7 @@ export default function CareerSwitchPlannerPage({
   } satisfies ComponentProps<typeof PlannerIntakeWizard>
 
   const showDashboard = plannerState !== 'loading' && viewMode === 'dashboard' && hasPlannerResults
-  const useWidePlannerShell = plannerState === 'loading' || showDashboard
-  const plannerShellMaxWidthClass = showDashboard
-    ? 'max-w-[1260px]'
-    : useWidePlannerShell
-      ? 'max-w-content'
-      : 'max-w-tool'
+  const plannerShellMaxWidthClass = 'max-w-[1260px]'
 
   return (
     <>
@@ -2642,62 +2637,62 @@ export default function CareerSwitchPlannerPage({
         </ToolHero>
       ) : null}
 
-      <section
-        className={`px-4 ${showDashboard ? 'bg-bg-secondary pb-20 pt-12' : 'pb-16 pt-8'} ${useWidePlannerShell ? 'lg:px-[170px]' : 'lg:px-[340px]'}`}
-      >
+      <section className={`px-4 pb-20 pt-12 lg:px-[170px] ${showDashboard ? 'bg-bg-secondary' : ''}`}>
         <div className={`mx-auto w-full ${plannerShellMaxWidthClass}`}>
           {plannerState === 'loading' ? (
-            <Card className="planner-animate-in p-5" aria-live="polite">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                    Building your transition report
-                  </p>
-                  <h3 className="mt-2 text-lg font-bold text-text-primary">We are assembling the plan in stages</h3>
-                  <p className="mt-2 max-w-[56ch] text-sm leading-[1.7] text-text-secondary">
-                    Matching, scoring, and roadmap generation run in sequence so the report lands in one clean pass.
-                  </p>
+            <div className="mx-auto w-full max-w-content">
+              <Card className="planner-animate-in p-5" aria-live="polite">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                      Building your transition report
+                    </p>
+                    <h3 className="mt-2 text-lg font-bold text-text-primary">We are assembling the plan in stages</h3>
+                    <p className="mt-2 max-w-[56ch] text-sm leading-[1.7] text-text-secondary">
+                      Matching, scoring, and roadmap generation run in sequence so the report lands in one clean pass.
+                    </p>
+                  </div>
+                  <Badge variant="default">
+                    {Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length)} / {PLANNER_LOADING_STAGES.length}
+                  </Badge>
                 </div>
-                <Badge variant="default">
-                  {Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length)} / {PLANNER_LOADING_STAGES.length}
-                </Badge>
-              </div>
-              <div className="mt-5 h-2 rounded-pill bg-surface">
-                <div
-                  className="h-full rounded-pill bg-accent transition-all duration-300"
-                  style={{
-                    width: `${(Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length) / PLANNER_LOADING_STAGES.length) * 100}%`
-                  }}
-                />
-              </div>
-              <div className="mt-5 grid gap-3 md:grid-cols-4">
-                {PLANNER_LOADING_STAGES.map((stage, index) => {
-                  const isComplete = index < loadingStageIndex
-                  const isActive = index === loadingStageIndex
+                <div className="mt-5 h-2 rounded-pill bg-surface">
+                  <div
+                    className="h-full rounded-pill bg-accent transition-all duration-300"
+                    style={{
+                      width: `${(Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length) / PLANNER_LOADING_STAGES.length) * 100}%`
+                    }}
+                  />
+                </div>
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  {PLANNER_LOADING_STAGES.map((stage, index) => {
+                    const isComplete = index < loadingStageIndex
+                    const isActive = index === loadingStageIndex
 
-                  return (
-                    <div
-                      key={stage}
-                      className={`rounded-xl border p-4 transition-colors ${
-                        isActive
-                          ? 'border-accent bg-surface'
-                          : isComplete
-                            ? 'border-success/20 bg-success/10'
-                            : 'border-border-light bg-bg-secondary'
-                      }`}
-                    >
-                      <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                        Step {index + 1}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold text-text-primary">{stage}</p>
-                      <p className="mt-2 text-xs text-text-secondary">
-                        {isActive ? 'In progress now.' : isComplete ? 'Completed.' : 'Queued next.'}
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
-            </Card>
+                    return (
+                      <div
+                        key={stage}
+                        className={`rounded-xl border p-4 transition-colors ${
+                          isActive
+                            ? 'border-accent bg-surface'
+                            : isComplete
+                              ? 'border-success/20 bg-success/10'
+                              : 'border-border-light bg-bg-secondary'
+                        }`}
+                      >
+                        <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                          Step {index + 1}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-text-primary">{stage}</p>
+                        <p className="mt-2 text-xs text-text-secondary">
+                          {isActive ? 'In progress now.' : isComplete ? 'Completed.' : 'Queued next.'}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Card>
+            </div>
           ) : showDashboard ? (
               <PlannerDashboardV3
                 model={v3DashboardModel}
@@ -2747,7 +2742,9 @@ export default function CareerSwitchPlannerPage({
               }
             />
           ) : (
-            <PlannerIntakeWizard {...intakeWizardProps} />
+            <div className="mx-auto w-full max-w-tool">
+              <PlannerIntakeWizard {...intakeWizardProps} />
+            </div>
           )}
         </div>
       </section>

@@ -102,7 +102,11 @@ test('V3 dashboard mapper prefers trade starter cert bundle when trade profile c
           {
             path_name: 'Ontario apprenticeship route',
             who_its_for: 'Career switchers',
-            steps: ['Get hired by a sponsor employer', 'Register apprenticeship'],
+            steps: [
+              'Target electrical labourer and maintenance helper roles first',
+              'Get hired by a sponsor employer',
+              'Register apprenticeship'
+            ],
             time_to_first_job_weeks: { min: 2, max: 16 }
           }
         ],
@@ -151,7 +155,11 @@ test('V3 dashboard mapper prefers trade starter cert bundle when trade profile c
           common_failure_points: ['No sponsor']
         },
         skills: { core: ['Safety'], tools_tech: [], soft_skills: ['Reliability'] },
-        resources: { official: [], training: [], job_search: [] },
+        resources: {
+          official: [{ title: 'Skilled Trades Ontario overview', url: 'https://www.skilledtradesontario.ca/' }],
+          training: [{ title: 'Ontario Working at Heights training', url: 'https://www.ontario.ca/page/training-working-heights' }],
+          job_search: [{ title: 'Ontario apprenticeship pathway', url: 'https://www.ontario.ca/page/start-apprenticeship' }]
+        },
         sources: []
       },
       targetRequirements: {
@@ -163,7 +171,22 @@ test('V3 dashboard mapper prefers trade starter cert bundle when trade profile c
         regulated: true,
         sources: []
       },
-      sourceEnrichment: {}
+      sourceEnrichment: {
+        entryRoles: [
+          {
+            title: 'Electrical Labourer',
+            sourceUrl: 'https://www.jobbank.gc.ca',
+            sourceLabel: 'Job Bank',
+            sourceType: 'verified'
+          },
+          {
+            title: 'Maintenance Helper',
+            sourceUrl: 'https://www.jobbank.gc.ca',
+            sourceLabel: 'Job Bank',
+            sourceType: 'verified'
+          }
+        ]
+      }
     },
     plannerResult: null,
     currentRole: 'Sous Chef',
@@ -177,5 +200,78 @@ test('V3 dashboard mapper prefers trade starter cert bundle when trade profile c
   assert.equal(
     model.training.courses.slice(0, 3).map((course) => course.name).join(' | '),
     'WHMIS | Working at Heights | Worker Health and Safety Awareness'
+  )
+  assert.equal(model.hero.title, 'Sous Chef -> Apprentice Electrician')
+  assert.equal(model.hero.mappedPathLabel, 'Mapped to Ontario pathway: Electrician (309A)')
+  assert.equal(model.summaryBar.targetRole, 'Apprentice Electrician')
+  assert.equal(model.fastestPath.headline, 'Ontario apprenticeship path from sponsorship to qualification')
+  assert.equal(
+    model.fastestPath.steps.map((step) => step.label).join(' | '),
+    'Entry Route | Sponsorship | Registration | Apprenticeship Loop'
+  )
+  assert.match(model.fastestPath.steps[0].detail, /Electrical Labourer|Maintenance Helper/)
+  assert.ok(
+    model.skillTransfer.evidenceRequired.some((item) => item.includes('Secure sponsorship and register the apprenticeship pathway'))
+  )
+  assert.ok(
+    model.skillTransfer.largestGap.length > 0
+  )
+  assert.ok(model.training.tradeFacts.some((fact) => fact.label === 'First Field Entry'))
+  assert.ok(model.training.tradeFacts.some((fact) => fact.label === 'Full Qualification'))
+  assert.equal(model.training.courses[0].priorityLabel, 'Get first')
+  assert.ok(model.training.costStack.some((item) => item.label === 'Starter certifications and training'))
+  assert.ok(model.resources.cards.length > 0)
+})
+
+test('V3 dashboard mapper uses source enrichment certification cards when target requirements are sparse', () => {
+  const mapperModule = loadTranspiledTsModule(mapperPath)
+  const { buildPlannerDashboardV3Model } = mapperModule
+
+  const model = buildPlannerDashboardV3Model({
+    report: {
+      targetRequirements: {
+        certifications: [],
+        hardGates: [],
+        employerSignals: [],
+        apprenticeshipHours: null,
+        examRequired: false,
+        regulated: false,
+        sources: []
+      },
+      sourceEnrichment: {
+        certificationCards: [
+          {
+            name: 'CPNRE',
+            provider: 'College of Nurses',
+            sourceUrl: 'https://www.cno.org/',
+            sourceLabel: 'College of Nurses of Ontario',
+            sourceType: 'verified'
+          },
+          {
+            name: 'BLS Provider',
+            provider: 'Heart & Stroke',
+            sourceUrl: 'https://www.heartandstroke.ca/',
+            sourceLabel: 'Heart & Stroke',
+            sourceType: 'verified'
+          }
+        ]
+      }
+    },
+    plannerResult: null,
+    currentRole: 'Cashier',
+    targetRole: 'Licensed Practical Nurse',
+    locationText: 'Ontario, Canada',
+    timelineBucket: '1-3 months',
+    skillsCount: 2,
+    lastGeneratedAt: null
+  })
+
+  assert.ok(
+    model.training.courses.some((course) => course.name === 'CPNRE'),
+    'Expected CPNRE from source enrichment certification cards'
+  )
+  assert.ok(
+    model.training.courses.some((course) => course.name === 'BLS Provider'),
+    'Expected BLS Provider from source enrichment certification cards'
   )
 })

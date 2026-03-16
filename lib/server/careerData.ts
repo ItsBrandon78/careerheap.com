@@ -1,10 +1,143 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { inferRoleFamilyConstraintFromCanonical } from '@/lib/occupations/canonicalRoleRegistry'
 
 const DEFAULT_LIMIT = 6
 const MAX_LIMIT = 20
 export const ROLE_MATCH_THRESHOLD = 0.72
 const MIN_ROLE_SUGGESTION_CONFIDENCE = 0.18
 const ROLE_STOP_TOKENS = new Set(['and', 'or', 'of', 'the', 'except', 'system'])
+const GENERIC_ROLE_TOKENS = new Set([
+  'assistant',
+  'associate',
+  'coordinator',
+  'director',
+  'lead',
+  'manager',
+  'officer',
+  'operator',
+  'representative',
+  'specialist',
+  'supervisor',
+  'technician',
+  'worker',
+  'administrator',
+  'admin',
+  'clerk'
+])
+
+type RoleFamilyConstraint = {
+  id: string
+  patterns: RegExp[]
+  allowedKeywords: string[]
+  blockedKeywords?: string[]
+  minKeywordMatches?: number
+  source?: 'canonical' | 'legacy'
+}
+
+const ROLE_FAMILY_CONSTRAINTS: RoleFamilyConstraint[] = [
+  {
+    id: 'ux_designer',
+    patterns: [/\bux\b/, /\buser experience\b/, /\bui\b/, /\binteraction\b/, /\bproduct designer\b/, /\bweb designer\b/],
+    allowedKeywords: ['ux', 'ui', 'user experience', 'interaction', 'product design', 'web design', 'digital design', 'graphic design'],
+    blockedKeywords: ['computer engineer', 'electrical engineer', 'mechanical engineer'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'customer_success_manager',
+    patterns: [/\bcustomer success\b/, /\bclient success\b/, /\bcustomer experience manager\b/, /\bcx manager\b/],
+    allowedKeywords: [
+      'customer success',
+      'client success',
+      'customer experience',
+      'customer support lead',
+      'customer service representatives',
+      'customer information services',
+      'customer and information services representatives',
+      'managers in customer and personal services',
+      'saas'
+    ],
+    blockedKeywords: [
+      'financial service',
+      'financial services',
+      'bank',
+      'banking',
+      'credit',
+      'loan',
+      'insurance',
+      'branch'
+    ],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'operations_coordinator',
+    patterns: [/\boperations coordinator\b/, /\boperations analyst\b/, /\bproject coordinator\b/, /\blogistics coordinator\b/, /\badministrative operations\b/],
+    allowedKeywords: ['operations coordinator', 'operations analyst', 'project coordinator', 'logistics', 'supply chain', 'program coordinator', 'administrative operations'],
+    blockedKeywords: [
+      'facility maintenance',
+      'building operations',
+      'property operations',
+      'construction manager',
+      'construction managers'
+    ],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'healthcare_nurse',
+    patterns: [/\bregistered nurse\b/, /\blicensed practical nurse\b/, /\bpractical nurse\b/, /\brn\b/, /\blpn\b/, /\brpn\b/],
+    allowedKeywords: ['registered nurse', 'practical nurse', 'nurse', 'clinical', 'patient care', 'healthcare', 'hospital'],
+    blockedKeywords: ['trades', 'electrician', 'plumber', 'facility maintenance'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'healthcare_dental_hygienist',
+    patterns: [/\bdental hygienist\b/, /\bhygienist\b/],
+    allowedKeywords: ['dental hygienist', 'dental', 'oral health', 'periodontal', 'hygiene'],
+    blockedKeywords: ['nursing supervisor', 'trades', 'electrician', 'facility maintenance'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'healthcare_pharmacy_technician',
+    patterns: [/\bpharmacy technician\b/, /\bpharmacy tech\b/],
+    allowedKeywords: ['pharmacy technician', 'pharmacy', 'dispensary', 'medication', 'healthcare'],
+    blockedKeywords: ['financial service', 'trades', 'electrician', 'facility maintenance'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'hr_family',
+    patterns: [/\bhuman resources?\b/, /\bhr\b/, /\brecruit(ment|er)?\b/, /\btalent\b/],
+    allowedKeywords: ['human resources', 'hr', 'recruit', 'talent', 'people operations', 'personnel'],
+    blockedKeywords: ['nursing', 'trades', 'electrician'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'accounting_family',
+    patterns: [/\baccountant\b/, /\bbookkeeper\b/, /\bbook keeping\b/, /\bcpa\b/],
+    allowedKeywords: ['accountant', 'bookkeeper', 'accounting', 'payroll', 'accounts payable', 'accounts receivable'],
+    blockedKeywords: ['trades', 'electrician', 'nursing'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'tech_software_family',
+    patterns: [/\bsoftware developer\b/, /\bsoftware engineer\b/, /\bweb developer\b/, /\bfrontend\b/, /\bbackend\b/],
+    allowedKeywords: ['software developer', 'software engineer', 'web developer', 'frontend', 'backend', 'full stack'],
+    blockedKeywords: ['computer engineer except software', 'facility maintenance', 'trades'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'tech_data_family',
+    patterns: [/\bdata scientist\b/, /\bdata analyst\b/, /\bmachine learning\b/, /\bai engineer\b/],
+    allowedKeywords: ['data scientist', 'data analyst', 'machine learning', 'business intelligence', 'analytics'],
+    blockedKeywords: ['facility maintenance', 'trades', 'nursing'],
+    minKeywordMatches: 1
+  },
+  {
+    id: 'tech_cyber_family',
+    patterns: [/\bcybersecurity\b/, /\bsecurity analyst\b/, /\bsoc analyst\b/],
+    allowedKeywords: ['cybersecurity', 'security analyst', 'soc analyst', 'information security', 'security operations'],
+    blockedKeywords: ['facility maintenance', 'trades', 'nursing'],
+    minKeywordMatches: 1
+  }
+]
 
 type OccupationRow = {
   id: string
@@ -253,6 +386,24 @@ function tokenOverlapRatio(queryTokens: string[], candidateTokens: string[]) {
   return shared / queryTokens.length
 }
 
+function tokenPrefixOverlapRatio(queryTokens: string[], candidateTokens: string[]) {
+  if (queryTokens.length === 0 || candidateTokens.length === 0) return 0
+  let shared = 0
+  for (const queryToken of queryTokens) {
+    if (
+      candidateTokens.some(
+        (candidateToken) =>
+          candidateToken === queryToken ||
+          candidateToken.startsWith(queryToken) ||
+          queryToken.startsWith(candidateToken)
+      )
+    ) {
+      shared += 1
+    }
+  }
+  return shared / queryTokens.length
+}
+
 function countMeaningfulExtraTokens(queryTokens: string[], candidateTokens: string[]) {
   const querySet = new Set(queryTokens)
   return candidateTokens.filter(
@@ -277,8 +428,120 @@ function qualifierMismatchPenalty(queryTokens: string[], candidateTokens: string
   ) {
     penalty += 0.12
   }
+  if (candidateSet.has('assistant') && !querySet.has('assistant')) penalty += 0.16
+  if (candidateSet.has('manager') && !querySet.has('manager')) penalty += 0.08
+  if (candidateSet.has('director') && !querySet.has('director')) penalty += 0.1
+  if (candidateSet.has('supervisor') && !querySet.has('supervisor')) penalty += 0.09
 
   return penalty
+}
+
+function extractAnchorTokens(input: string) {
+  return Array.from(
+    new Set(
+      tokenizeRoleText(input).filter(
+        (token) => !ROLE_STOP_TOKENS.has(token) && !GENERIC_ROLE_TOKENS.has(token)
+      )
+    )
+  )
+}
+
+function candidateMatchesAnchorToken(anchor: string, candidateTexts: string[]) {
+  return candidateTexts.some((text) => {
+    const tokens = tokenizeRoleText(text)
+    if (tokens.includes(anchor) || text.includes(anchor)) return true
+    if (anchor === 'hr') return /\bhuman resources?\b/.test(text)
+    if (anchor === 'ux') return /\buser experience\b/.test(text)
+    if (anchor === 'practical') return /\blicensed practical nurse\b|\bpractical nurse\b/.test(text)
+    if (anchor === 'rn') return /\bregistered nurse\b/.test(text)
+    if (anchor === 'qa') return /\bquality assurance\b/.test(text)
+    return false
+  })
+}
+
+function hasRoleAnchorMatch(input: string, row: OccupationSearchIndexRow) {
+  const anchors = extractAnchorTokens(input)
+  if (anchors.length === 0) return true
+  const candidateTexts = [normalizeRoleText(row.title), ...row.aliases.map((alias) => normalizeRoleText(alias))]
+  return anchors.some((anchor) => candidateMatchesAnchorToken(anchor, candidateTexts))
+}
+
+function inferRoleFamilyConstraint(input: string) {
+  const canonicalConstraint = inferRoleFamilyConstraintFromCanonical(input)
+  if (canonicalConstraint) {
+    return {
+      id: canonicalConstraint.id,
+      patterns: [],
+      allowedKeywords: canonicalConstraint.allowedKeywords,
+      blockedKeywords: canonicalConstraint.blockedKeywords,
+      minKeywordMatches: canonicalConstraint.minKeywordMatches,
+      source: 'canonical' as const
+    } satisfies RoleFamilyConstraint
+  }
+
+  const normalized = normalizeRoleText(input)
+  const matched = ROLE_FAMILY_CONSTRAINTS.find((constraint) =>
+    constraint.patterns.some((pattern) => pattern.test(normalized))
+  )
+
+  return matched
+    ? {
+        ...matched,
+        source: 'legacy' as const
+      }
+    : null
+}
+
+function countKeywordMatches(text: string, keywords: string[]) {
+  return keywords.filter((keyword) => text.includes(keyword)).length
+}
+
+function passesRoleFamilyConstraint(
+  constraint: RoleFamilyConstraint | null,
+  row: OccupationSearchIndexRow
+) {
+  if (!constraint) return true
+  const candidateText = normalizeRoleText(`${row.title} ${row.aliases.join(' ')}`)
+  const blocked = constraint.blockedKeywords?.some((keyword) => candidateText.includes(keyword)) ?? false
+  if (blocked) return false
+  const matches = countKeywordMatches(candidateText, constraint.allowedKeywords)
+  return matches >= (constraint.minKeywordMatches ?? 1)
+}
+
+function meaningfulRoleTokens(value: string) {
+  return tokenizeRoleText(value).filter((token) => !ROLE_STOP_TOKENS.has(token))
+}
+
+function hasStrongLexicalRoleAlignment(queryTitle: string, candidateTitle: string) {
+  const queryTokens = meaningfulRoleTokens(queryTitle)
+  const candidateTokens = meaningfulRoleTokens(candidateTitle)
+  if (queryTokens.length === 0 || candidateTokens.length === 0) return false
+  const candidateSet = new Set(candidateTokens)
+  const overlap = queryTokens.filter((token) => candidateSet.has(token)).length
+  const requiredOverlap = Math.max(1, Math.ceil(queryTokens.length * 0.6))
+  return overlap >= requiredOverlap
+}
+
+function fallbackCandidatesWhenConstraintMisses(
+  queryTitle: string,
+  ranked: Array<{
+    row: OccupationSearchIndexRow
+    confidence: number
+    matchedBy: RoleMatchType
+  }>
+) {
+  const lexicalMatches = ranked.filter(
+    (item) =>
+      hasStrongLexicalRoleAlignment(queryTitle, item.row.title) ||
+      item.row.aliases.some((alias) => hasStrongLexicalRoleAlignment(queryTitle, alias))
+  )
+  if (lexicalMatches.length > 0) return lexicalMatches
+
+  return ranked.filter(
+    (item) =>
+      item.confidence >= ROLE_MATCH_THRESHOLD - 0.1 &&
+      hasRoleAnchorMatch(queryTitle, item.row)
+  )
 }
 
 function pickBetterMatch<T extends string>(
@@ -298,6 +561,7 @@ function scoreRoleCandidate(query: string, row: OccupationSearchIndexRow) {
   const titleCompact = compactRoleText(row.title)
   const titleTokens = tokenizeRoleText(row.title)
   const aliasNorm = row.aliases.map((alias) => normalizeRoleText(alias))
+  const titlePrefixOverlap = tokenPrefixOverlapRatio(queryTokens, titleTokens)
 
   let best: { confidence: number; matchedBy: RoleMatchType } | null = null
 
@@ -325,9 +589,9 @@ function scoreRoleCandidate(query: string, row: OccupationSearchIndexRow) {
     const baseScore = normalizedQuery.includes(titleNorm) ? 0.9 : 0.76
     best = pickBetterMatch(best, {
       confidence: clamp(
-        baseScore + titleOverlap * 0.08 - extraTokens * 0.07 - qualifierPenalty,
+        baseScore + Math.max(titleOverlap, titlePrefixOverlap) * 0.12 - extraTokens * 0.07 - qualifierPenalty,
         0.35,
-        0.93
+        0.95
       ),
       matchedBy: 'title_contains'
     })
@@ -337,14 +601,15 @@ function scoreRoleCandidate(query: string, row: OccupationSearchIndexRow) {
     if (alias.includes(normalizedQuery) || normalizedQuery.includes(alias)) {
       const aliasTokens = tokenizeRoleText(alias)
       const aliasOverlap = tokenOverlapRatio(queryTokens, aliasTokens)
+      const aliasPrefixOverlap = tokenPrefixOverlapRatio(queryTokens, aliasTokens)
       const extraTokens = countMeaningfulExtraTokens(queryTokens, aliasTokens)
       const qualifierPenalty = qualifierMismatchPenalty(queryTokens, aliasTokens)
       const baseScore = normalizedQuery.includes(alias) ? 0.88 : 0.74
       best = pickBetterMatch(best, {
         confidence: clamp(
-          baseScore + aliasOverlap * 0.08 - extraTokens * 0.06 - qualifierPenalty,
+          baseScore + Math.max(aliasOverlap, aliasPrefixOverlap) * 0.12 - extraTokens * 0.06 - qualifierPenalty,
           0.34,
-          0.9
+          0.94
         ),
         matchedBy: 'alias_contains'
       })
@@ -352,18 +617,45 @@ function scoreRoleCandidate(query: string, row: OccupationSearchIndexRow) {
   }
 
   const titleTokenOverlap = tokenOverlapRatio(queryTokens, titleTokens)
+  const titleExtraTokens = countMeaningfulExtraTokens(queryTokens, titleTokens)
+  const titleQualifierPenalty = qualifierMismatchPenalty(queryTokens, titleTokens)
   if (titleTokenOverlap > 0) {
     best = pickBetterMatch(best, {
-      confidence: Math.min(0.45 + titleTokenOverlap * 0.45, 0.84),
+      confidence: clamp(0.45 + titleTokenOverlap * 0.45 - titleExtraTokens * 0.05 - titleQualifierPenalty, 0.2, 0.84),
+      matchedBy: 'token_overlap'
+    })
+  }
+
+  if (titlePrefixOverlap > 0) {
+    best = pickBetterMatch(best, {
+      confidence: clamp(
+        0.48 + titlePrefixOverlap * 0.4 - titleExtraTokens * 0.05 - titleQualifierPenalty,
+        0.22,
+        0.9
+      ),
       matchedBy: 'token_overlap'
     })
   }
 
   for (const alias of row.aliases) {
-    const aliasOverlap = tokenOverlapRatio(queryTokens, tokenizeRoleText(alias))
+    const aliasTokens = tokenizeRoleText(alias)
+    const aliasOverlap = tokenOverlapRatio(queryTokens, aliasTokens)
+    const aliasPrefixOverlap = tokenPrefixOverlapRatio(queryTokens, aliasTokens)
+    const aliasExtraTokens = countMeaningfulExtraTokens(queryTokens, aliasTokens)
+    const aliasQualifierPenalty = qualifierMismatchPenalty(queryTokens, aliasTokens)
     if (aliasOverlap > 0) {
       best = pickBetterMatch(best, {
-        confidence: Math.min(0.5 + aliasOverlap * 0.4, 0.9),
+        confidence: clamp(0.5 + aliasOverlap * 0.4 - aliasExtraTokens * 0.05 - aliasQualifierPenalty, 0.2, 0.9),
+        matchedBy: 'token_overlap'
+      })
+    }
+    if (aliasPrefixOverlap > 0) {
+      best = pickBetterMatch(best, {
+        confidence: clamp(
+          0.52 + aliasPrefixOverlap * 0.38 - aliasExtraTokens * 0.05 - aliasQualifierPenalty,
+          0.22,
+          0.93
+        ),
         matchedBy: 'token_overlap'
       })
     }
@@ -442,6 +734,37 @@ export async function resolveOccupationInput(options: {
   const normalizedInput = options.input.trim()
   const limit = clampLimit(options.limit)
   const index = await getOccupationSearchIndex(options.region)
+  return resolveOccupationInputFromIndex({
+    input: normalizedInput,
+    index,
+    limit
+  })
+}
+
+export function resolveOccupationInputFromIndex(options: {
+  input: string
+  index: Array<{
+    id: string
+    title: string
+    region: 'CA' | 'US'
+    codes?: Record<string, unknown> | null
+    source?: string | null
+    last_updated?: string | null
+    aliases?: string[]
+  }>
+  limit?: number
+}) {
+  const normalizedInput = options.input.trim()
+  const limit = clampLimit(options.limit)
+  const index: OccupationSearchIndexRow[] = options.index.map((row) => ({
+    id: row.id,
+    title: row.title,
+    region: row.region,
+    codes: row.codes ?? null,
+    source: row.source ?? null,
+    last_updated: row.last_updated ?? null,
+    aliases: row.aliases ?? toAliases(row.codes ?? null)
+  }))
   const special = pickSpecialOccupation(normalizedInput, index)
   const ranked = filterRankedAlternativesForInput(
     normalizedInput,
@@ -764,34 +1087,6 @@ async function getSkillSearchIndex() {
   return rows
 }
 
-function normalizeResolverSource(row: OccupationRow): ResolverSource {
-  const sourceText = String(row.source ?? '').toLowerCase()
-  if (sourceText.includes('onet') || row.region === 'US') return 'O*NET'
-  if (sourceText.includes('noc') || row.region === 'CA') return 'NOC'
-  return 'internal'
-}
-
-function extractOccupationCode(row: OccupationRow) {
-  const codes: Record<string, unknown> = row.codes ?? {}
-  const candidates = [
-    codes['soc'],
-    codes['soc_code'],
-    codes['onet_code'],
-    codes['onet_soc'],
-    codes['noc'],
-    codes['noc_code'],
-    codes['code']
-  ]
-
-  for (const candidate of candidates) {
-    if (typeof candidate === 'string' && candidate.trim()) {
-      return candidate.trim()
-    }
-  }
-
-  return row.id
-}
-
 function buildOccupationSuggestion(
   row: OccupationSearchIndexRow,
   confidence: number,
@@ -811,8 +1106,10 @@ function buildOccupationSuggestion(
 
 function rankOccupationCandidates(input: string, index: OccupationSearchIndexRow[]) {
   const normalizedInput = input.trim()
+  const familyConstraint = inferRoleFamilyConstraint(normalizedInput)
+  const rejectedByConstraint = new Set<string>()
 
-  return index
+  const ranked = index
     .map((row) => {
       const match = scoreRoleCandidate(normalizedInput, row)
       return {
@@ -822,7 +1119,24 @@ function rankOccupationCandidates(input: string, index: OccupationSearchIndexRow
       }
     })
     .filter((item) => item.confidence >= MIN_ROLE_SUGGESTION_CONFIDENCE)
-    .sort((left, right) => {
+    .filter((item) => hasRoleAnchorMatch(normalizedInput, item.row))
+
+  const constrained = familyConstraint
+    ? ranked.filter((item) => {
+        const passes = passesRoleFamilyConstraint(familyConstraint, item.row)
+        if (!passes) rejectedByConstraint.add(item.row.title)
+        return passes
+      })
+    : ranked
+
+  const effective =
+    familyConstraint && constrained.length === 0 && familyConstraint.source === 'canonical'
+      ? fallbackCandidatesWhenConstraintMisses(normalizedInput, ranked)
+      : familyConstraint && constrained.length > 0
+        ? constrained
+        : ranked
+
+  return effective.sort((left, right) => {
       if (right.confidence !== left.confidence) {
         return right.confidence - left.confidence
       }
@@ -915,6 +1229,18 @@ function pickSpecialOccupation(input: string, index: OccupationSearchIndexRow[])
   return preferElectricianPathway(input, index) ?? preferSousChefPathway(input, index)
 }
 
+function isHumanResourcesIntent(normalizedInput: string) {
+  return /\bhr\b/.test(normalizedInput) || /\bhuman\s+res/.test(normalizedInput)
+}
+
+function isHumanResourcesTitle(value: string) {
+  return /\bhuman resources?\b/.test(value) || /\bhr\b/.test(value)
+}
+
+function hasHumanResourcesAlias(row: OccupationSearchIndexRow) {
+  return row.aliases.some((alias) => isHumanResourcesTitle(normalizeRoleText(alias)))
+}
+
 function filterRankedAlternativesForInput(
   input: string,
   ranked: Array<{
@@ -940,6 +1266,20 @@ function filterRankedAlternativesForInput(
     })
     if (chefOnly.length > 0) {
       return chefOnly
+    }
+  }
+
+  if (isHumanResourcesIntent(normalized)) {
+    const hrTitleMatches = ranked.filter((item) =>
+      isHumanResourcesTitle(normalizeRoleText(item.row.title))
+    )
+    if (hrTitleMatches.length > 0) {
+      return hrTitleMatches
+    }
+
+    const hrAliasMatches = ranked.filter((item) => hasHumanResourcesAlias(item.row))
+    if (hrAliasMatches.length > 0) {
+      return hrAliasMatches
     }
   }
 

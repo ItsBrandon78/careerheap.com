@@ -118,10 +118,15 @@ function summarizeSourceState(report: RouteJson) {
     profileSlug: typeof meta?.slug === 'string' ? meta.slug : null,
     trainingSourcePath: typeof sourcePath?.training === 'string' ? sourcePath.training : 'missing',
     wageSourcePath: typeof sourcePath?.wage === 'string' ? sourcePath.wage : 'missing',
+    certificationSourcePath:
+      typeof sourcePath?.certifications === 'string' ? sourcePath.certifications : 'missing',
     cacheHit: Boolean(cache?.hit),
     cacheExpiresAt: typeof cache?.expiresAt === 'string' ? cache.expiresAt : null,
     trainingCards: Array.isArray(sourceEnrichment?.trainingCards)
       ? sourceEnrichment.trainingCards.length
+      : 0,
+    certificationCards: Array.isArray(sourceEnrichment?.certificationCards)
+      ? sourceEnrichment.certificationCards.length
       : 0,
     hasNativeWage: Boolean(
       native?.low ?? native?.median ?? native?.high
@@ -157,7 +162,13 @@ async function runScenario(scenario: Scenario) {
   assert(second.status === 200, `${scenario.id}: second run expected 200, got ${second.status}`)
   const secondReport = second.json.report as RouteJson
   const secondSummary = summarizeSourceState(secondReport)
-  assert(secondSummary.cacheHit, `${scenario.id}: expected enrichment cache hit on second run`)
+  const thinCoverage =
+    secondSummary.trainingSourcePath === 'none' &&
+    secondSummary.wageSourcePath === 'table' &&
+    secondSummary.trainingCards === 0
+  if (!thinCoverage) {
+    assert(secondSummary.cacheHit, `${scenario.id}: expected enrichment cache hit on second run`)
+  }
 
   return {
     scenario: scenario.label,

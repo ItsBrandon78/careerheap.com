@@ -1,21 +1,15 @@
 import type { TemplateOutput, TransitionPlanContext } from '@/lib/transition/types'
 import {
   buildBaseTemplateOutput,
-  defineOnce,
   makePhase,
-  PROOF_BUILDER_DEFINITION,
-  PROOF_BUILDER_TERM,
   roleLabel
 } from '@/lib/transition/templates/common'
 
 export function buildRegulatedTradeTemplate(context: TransitionPlanContext): TemplateOutput {
-  const definitions: Record<string, string> = {}
-  defineOnce(definitions, 'proofBuilder', PROOF_BUILDER_DEFINITION)
   const target = roleLabel(context)
   const isCanada = context.targetResolution?.region === 'CA'
 
   return buildBaseTemplateOutput(context, {
-    definitions,
     routes: {
       primary: {
         title: 'Primary route: helper to registered apprenticeship',
@@ -43,10 +37,10 @@ export function buildRegulatedTradeTemplate(context: TransitionPlanContext): Tem
         [
           `Confirm the minimum entry requirements for ${target} in your area: education baseline, physical demands, and any safety prerequisites.`,
           'Choose a lane: union apprenticeship, non-union apprenticeship, or a short pre-apprenticeship bridge.',
-          `Create 1 ${PROOF_BUILDER_TERM} using safe demo-board or simulation practice so you can show you take training seriously.`,
+          'Create one role-relevant practice sample (safe demo, simulation, or guided lab) so employers can see training momentum.',
           'Send 15 direct outreach messages to employers and training contacts.'
         ],
-        ['15 outreach messages', '3 pathway options compared', `1 ${PROOF_BUILDER_TERM}`, '1 entry requirement checklist'],
+        ['15 outreach messages', '3 pathway options compared', '1 practice sample', '1 entry requirement checklist'],
         8
       ),
       makePhase(
@@ -84,7 +78,7 @@ export function buildRegulatedTradeTemplate(context: TransitionPlanContext): Tem
         '15 direct outreach messages',
         '10 targeted applications',
         '2 conversations with pathway contacts',
-        `1 ${PROOF_BUILDER_TERM}`
+        '1 role-relevant practice sample'
       ],
       outreachTemplates: {
         call: `Hi, I am moving into ${target} and I am looking for the right entry point. I am open to helper, trainee, or apprentice starts. I am already working on the first training steps and I can move quickly. Who handles entry-level hiring or apprenticeship intake?`,

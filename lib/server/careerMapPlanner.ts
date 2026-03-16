@@ -2807,7 +2807,11 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     certifications: uniqueStrings(
       mandatoryGateRequirements
         .map((item) => item.label)
-        .filter((item) => /certif|license|licence|registration|clearance|red seal/i.test(item))
+        .filter((item) =>
+          /certif|license|licence|registration|clearance|red seal|exam|cpnre|nclex|board|designation|permit|accredit|cpr|bls|acls|first aid|whmis|loto/i.test(
+            item
+          )
+        )
     ).slice(0, 8),
     hardGates: mandatoryGateRequirements.map((item) => item.label).slice(0, 8),
     employerSignals: experienceSignals.map((item) => item.label).slice(0, 8),

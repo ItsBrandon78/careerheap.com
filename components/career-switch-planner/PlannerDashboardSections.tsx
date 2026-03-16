@@ -237,11 +237,11 @@ export function SkillsEvidenceSection({ model }: { model: PlannerDashboardV3Mode
         </div>
       </div>
       <div className="mt-3 rounded-xl border border-accent/25 bg-accent-light px-[14px] py-3 text-[13px] font-bold text-accent">
-        Largest gap and required evidence: {model.skillTransfer.largestGap}
+        Largest gap and bridge action: {model.skillTransfer.largestGap}
       </div>
       <div className="mt-3 rounded-xl border border-border-light bg-surface p-3">
         <p className="text-[12px] font-bold tracking-[0.4px] text-accent">
-          Evidence Required Before Applying
+          Actions Before Applying
         </p>
         <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.7] text-text-secondary">
           {model.skillTransfer.evidenceRequired.map((item, index) => (
@@ -518,7 +518,7 @@ export function FastestPathSection({
         5. Fastest Path with Risk Controls
       </p>
       <p className="mt-2 text-[18px] font-bold text-text-primary">
-        Shortest realistic route to first field entry
+        {model.fastestPath.headline}
       </p>
       {model.fastestPath.tradeFacts.length > 0 ? (
         <div className="mt-3 grid gap-2 md:grid-cols-4">
@@ -686,11 +686,24 @@ export function TrainingSection({
               <div className="inline-flex h-5 w-5 items-center justify-center text-accent">
                 <ToolGlyph kind={card.iconKind} className="h-[18px] w-[18px]" />
               </div>
-              {completedTrainingIds[card.id] ? (
-                <span className="rounded-pill border border-success/35 bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">
-                  Completed
+              <div className="flex flex-wrap items-center justify-end gap-1">
+                <span
+                  className={`rounded-pill border px-2 py-0.5 text-[10px] font-bold ${
+                    card.priorityLabel === 'Get first'
+                      ? 'border-accent/20 bg-accent-light text-accent'
+                      : card.priorityLabel === 'Useful next'
+                        ? 'border-border bg-bg-secondary text-text-secondary'
+                        : 'border-warning/25 bg-warning-light text-warning'
+                  }`}
+                >
+                  {card.priorityLabel}
                 </span>
-              ) : null}
+                {completedTrainingIds[card.id] ? (
+                  <span className="rounded-pill border border-success/35 bg-success/10 px-2 py-0.5 text-[10px] font-bold text-success">
+                    Completed
+                  </span>
+                ) : null}
+              </div>
             </div>
             <p className="mt-3 text-[14px] font-bold text-text-primary">{card.name}</p>
             <div className="mt-2 space-y-1 text-[12px] font-semibold leading-[1.7] text-text-secondary">
@@ -726,6 +739,43 @@ export function TrainingSection({
   );
 }
 
+export function ResourcesSection({
+  resources,
+}: {
+  resources: PlannerDashboardV3Model['resources'];
+}) {
+  return (
+    <SectionCard className="bg-surface">
+      <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">13. Resources</p>
+      {resources.cards.length > 0 ? (
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {resources.cards.map((item) => (
+            <div key={`${item.title}-${item.url}`} className="rounded-[10px] border border-border-light bg-bg-secondary p-3">
+              <p className="text-[14px] font-bold text-text-primary">{item.title}</p>
+              <p className="mt-2 text-[11px] font-semibold text-text-tertiary">{item.domain}</p>
+              <p className="mt-1 text-[11px] font-semibold leading-[1.6] text-text-secondary">{item.sourceLabel}</p>
+              <Link
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex text-[11px] font-bold text-accent transition hover:text-accent/80"
+              >
+                Open resource
+              </Link>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 rounded-[10px] border border-border-light bg-bg-secondary p-3">
+          <p className="text-[12px] font-semibold text-text-secondary">
+            No sourced resources are attached to this pathway yet.
+          </p>
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 export function MarketSnapshotSection({
   model,
 }: {
@@ -748,53 +798,53 @@ export function MarketSnapshotSection({
       <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">
         7. Local Market Data (Source Stamped)
       </p>
-      <div className="mt-4 grid gap-[10px] md:grid-cols-5">
-        {marketCards.map((item, idx) => {
-          const shortenedValue = shortenMarketCardValue(item.label, item.metric.value);
-          const canExpand =
-            item.label === 'Typical Hiring Requirements' && shortenedValue !== item.metric.value.trim();
+        <div className="mt-4 grid gap-[10px] md:grid-cols-5">
+          {marketCards.map((item, idx) => {
+            const shortenedValue = shortenMarketCardValue(item.label, item.metric.value);
+            const canExpand =
+              item.label === 'Typical Hiring Requirements' && shortenedValue !== item.metric.value.trim();
 
-          return (
-          <div
-            key={`${item.label}-${idx}`}
-            className="rounded-[10px] border border-border-light bg-bg-secondary p-3"
-          >
-            <p className="min-h-[28px] text-[11px] font-bold uppercase tracking-[1.1px] text-text-tertiary">
-              {item.label}
-            </p>
-            <div className="mt-1">
-              {canExpand ? (
-                <button
-                  type="button"
-                  title={item.metric.value}
-                  aria-expanded={expandedRequirementText === item.metric.value}
+            return (
+            <div
+              key={`${item.label}-${idx}`}
+              className="rounded-[10px] border border-border-light bg-bg-secondary px-3 py-[13px]"
+            >
+              <p className="min-h-[26px] text-[11px] font-bold uppercase tracking-[1.1px] text-text-tertiary">
+                {item.label}
+              </p>
+              <div className="mt-2">
+                {canExpand ? (
+                  <button
+                    type="button"
+                    title={item.metric.value}
+                    aria-expanded={expandedRequirementText === item.metric.value}
                   aria-label={`Show full ${item.label.toLowerCase()} detail`}
                   onClick={() =>
                     setExpandedRequirementText((previous) =>
                       previous === item.metric.value ? null : item.metric.value
                     )
                   }
-                  className={`w-full text-left break-words font-bold ${
-                    item.label === 'Local Demand' || item.label === 'Typical Hiring Requirements'
-                      ? 'text-[18px] leading-[1.1]'
-                      : 'text-[21px] leading-[1.15]'
-                  } ${
+                    className={`w-full text-left break-words font-bold ${
+                      item.label === 'Local Demand' || item.label === 'Typical Hiring Requirements'
+                        ? 'text-[18px] leading-[1.1]'
+                        : 'text-[21px] leading-[1.15]'
+                    } ${
                     item.label === 'Local Demand' ? 'text-success' : 'text-text-primary'
                   }`}
                 >
                   {shortenedValue}
                 </button>
               ) : (
-                <p
-                  title={item.metric.value}
-                  className={`break-words font-bold ${
-                  item.label === 'Local Demand' || item.label === 'Typical Hiring Requirements'
-                    ? 'text-[18px] leading-[1.1]'
-                    : 'text-[21px] leading-[1.15]'
-                } ${
-                  item.label === 'Local Demand' ? 'text-success' : 'text-text-primary'
-                }`}
-                >
+                  <p
+                    title={item.metric.value}
+                    className={`break-words font-bold ${
+                    item.label === 'Local Demand' || item.label === 'Typical Hiring Requirements'
+                      ? 'text-[18px] leading-[1.12]'
+                      : 'text-[21px] leading-[1.15]'
+                  } ${
+                    item.label === 'Local Demand' ? 'text-success' : 'text-text-primary'
+                  }`}
+                  >
                   {shortenedValue}
                 </p>
               )}
@@ -877,6 +927,15 @@ export function OutreachSection({
   })()
   const sentCount = Number.parseInt(outreachTracker.sent || '0', 10)
   const safeSentCount = Number.isFinite(sentCount) && sentCount >= 0 ? sentCount : 0
+  const repliesCount = Number.parseInt(outreachTracker.replies || '0', 10)
+  const safeRepliesCount = Number.isFinite(repliesCount) && repliesCount >= 0 ? repliesCount : 0
+  const positiveCount = Number.parseInt(outreachTracker.positiveReplies || '0', 10)
+  const safePositiveCount = Number.isFinite(positiveCount) && positiveCount >= 0 ? positiveCount : 0
+  const hasOutreachActivity =
+    safeSentCount > 0 ||
+    safeRepliesCount > 0 ||
+    safePositiveCount > 0 ||
+    Boolean(outreachTracker.nextFollowUpDate)
   const outreachProgressPercent =
     suggestedTargetCount > 0 ? Math.min(100, Math.round((safeSentCount / suggestedTargetCount) * 100)) : 0
 
@@ -895,7 +954,9 @@ export function OutreachSection({
         <div className="mt-2 flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <div
-              className={`flex min-h-[52px] items-center rounded-[10px] border border-border bg-bg-secondary px-4 ${accentClass}`}
+              className={`flex min-h-[52px] items-center rounded-[10px] border border-border bg-bg-secondary px-4 ${
+                safeValue === 0 ? 'text-text-tertiary' : accentClass
+              }`}
             >
               <span className="text-[28px] font-bold leading-none tabular-nums">{safeValue}</span>
             </div>
@@ -929,7 +990,7 @@ export function OutreachSection({
         8. Outreach Toolkit and CRM
       </p>
       <p className="mt-2 text-[13px] font-semibold text-text-secondary">
-        Templates plus live outreach tracking for response and follow-up quality.
+        Manual outreach tracker plus editable scripts.
       </p>
       <div className="mt-4 rounded-xl border border-border-light bg-bg-secondary p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -981,13 +1042,13 @@ export function OutreachSection({
               Outreach Progress
             </p>
             <p className="text-[11px] font-bold text-text-secondary">
-              {safeSentCount}/{suggestedTargetCount || 0} sent
+              {hasOutreachActivity ? `${safeSentCount}/${suggestedTargetCount || 0} sent` : 'No outreach logged yet'}
             </p>
           </div>
           <div className="mt-2 h-2 rounded-full bg-bg-secondary">
             <div
               className="h-2 rounded-full bg-accent transition-[width]"
-              style={{ width: `${outreachProgressPercent}%` }}
+              style={{ width: `${hasOutreachActivity ? outreachProgressPercent : 0}%` }}
             />
           </div>
         </div>
@@ -1100,6 +1161,9 @@ export function ProgressDashboardSection({
   return (
     <SectionCard className="bg-bg-secondary">
       <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">10. Progress Dashboard</p>
+      <p className="mt-2 text-[12px] font-semibold text-text-secondary">
+        Derived from your roadmap and certification progress, not employer response data.
+      </p>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {[
           {
@@ -1119,8 +1183,8 @@ export function ProgressDashboardSection({
             metric: nextCompletion > 0 ? `${nextCompletion}% weighted complete` : 'Queued next',
             body:
               nextTasks.filter((task) => !checkedTaskIds[task.id]).length > 0
-                ? 'Job Search remains queued behind the final training checkpoint.'
-                : 'Next-stage checkpoints are now fully lined up.',
+                ? 'Next-stage work stays queued until the current phase closes.'
+                : 'Next-stage checkpoints are lined up.',
             nudge:
               nextTasks.find((task) => !checkedTaskIds[task.id])?.label ||
               'Next-stage work is already unblocked.',
@@ -1224,7 +1288,7 @@ export function TrustFaqSection({
   return (
     <SectionCard className="bg-surface">
       <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">
-        13. Trust, Methodology and FAQ
+        14. Trust, Methodology and FAQ
       </p>
       <div className="mt-4 rounded-xl border border-border-light bg-bg-secondary p-3">
         <p className="text-[12px] font-bold tracking-[0.4px] text-accent">How This Score Is Computed</p>
@@ -1251,7 +1315,7 @@ export function RelatedToolsSection({
 }) {
   return (
     <SectionCard className="bg-bg-secondary">
-      <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">14. Related Tools</p>
+      <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">15. Related Tools</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="rounded-pill border border-accent/20 bg-accent-light px-[10px] py-1 text-[11px] font-bold text-accent">
           Resume Analyzer

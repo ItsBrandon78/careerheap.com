@@ -4,6 +4,12 @@ export type PlannerViewMode = 'intake' | 'dashboard'
 
 export type FallbackBadge = 'Needs data' | 'Estimate' | 'Add your info'
 export type SourceType = 'verified' | 'derived' | 'estimate'
+type DashboardCareerPathType =
+  | 'TRADES'
+  | 'HEALTHCARE_LICENSED'
+  | 'PROFESSIONAL_LICENSED'
+  | 'TECH'
+  | 'GENERAL'
 
 export interface DashboardFallbackValue<T> {
   value: T
@@ -70,6 +76,7 @@ export interface PlannerDashboardV3Model {
   }
   hero: {
     title: string
+    mappedPathLabel?: string
     insight: string
     scenarioModes: Array<{ label: string; active: boolean }>
     difficulty: DashboardFallbackValue<string>
@@ -97,6 +104,7 @@ export interface PlannerDashboardV3Model {
     phases: PlannerDashboardRoadmapPhase[]
   }
   fastestPath: {
+    headline: string
     steps: Array<{ label: string; detail: string }>
     strongestPath: Array<{ label: string; detail: string }>
     tradeFacts: Array<{ label: string; value: string }>
@@ -106,6 +114,7 @@ export interface PlannerDashboardV3Model {
       id: string
       name: string
       provider: string
+      priorityLabel: 'Get first' | 'Useful next' | 'Later-stage'
       length?: string | null
       cost?: string | null
       modality?: string | null
@@ -118,6 +127,14 @@ export interface PlannerDashboardV3Model {
     }>
     costStack: Array<DashboardFallbackValue<string> & { label: string }>
     tradeFacts: Array<{ label: string; value: string }>
+  }
+  resources: {
+    cards: Array<{
+      title: string
+      url: string
+      domain: string
+      sourceLabel: string
+    }>
   }
   marketSnapshot: {
     entryWage: DashboardFallbackValue<string>
@@ -254,16 +271,80 @@ function toStableTrainingId(value: string, fallbackIndex = 0) {
   return normalized ? `training-${normalized}` : `training-item-${fallbackIndex + 1}`
 }
 
-function stepLabelFromTradeText(value: string, index: number) {
-  const normalized = cleanGeneratedLabel(value).toLowerCase()
-  if (/(helper|labourer|laborer|pre-apprentice|entry)/.test(normalized)) return 'Entry Route'
-  if (/(sponsor|contractor|union shop|employer)/.test(normalized)) return 'Sponsorship'
-  if (/(register|agreement|skilled trades ontario|apprenticeship agreement)/.test(normalized)) {
-    return 'Registration'
+function inferCareerPathTypeFromReport(
+  report:
+    | {
+        transitionMode?: {
+          careerPathType?: string | null
+          templateKey?: string | null
+        } | null
+        targetRequirements?: {
+          education?: string | null
+          certifications?: string[] | null
+          hardGates?: string[] | null
+          employerSignals?: string[] | null
+          apprenticeshipHours?: number | null
+        } | null
+        suggestedCareers?: Array<{ title?: string | null }> | null
+        careerPathwayProfile?: {
+          meta?: {
+            pathway_type?: string | null
+            codes?: {
+              trade_code?: string | null
+            } | null
+          } | null
+        } | null
+      }
+    | null
+    | undefined
+): DashboardCareerPathType {
+  const explicit = report?.transitionMode?.careerPathType
+  if (
+    explicit === 'TRADES' ||
+    explicit === 'HEALTHCARE_LICENSED' ||
+    explicit === 'PROFESSIONAL_LICENSED' ||
+    explicit === 'TECH' ||
+    explicit === 'GENERAL'
+  ) {
+    return explicit
   }
-  if (/(hour|on-the-job|school|in-school|level)/.test(normalized)) return 'Apprenticeship Loop'
-  if (/(exam|certificate of qualification|red seal|qualification)/.test(normalized)) return 'Qualification'
-  return `Step ${index + 1}`
+
+  const templateKey = report?.transitionMode?.templateKey
+  if (templateKey === 'regulated_trade') return 'TRADES'
+  if (templateKey === 'portfolio_role') return 'TECH'
+  if (templateKey === 'regulated_profession') {
+    const regulatedText = cleanGeneratedLabel(
+      [
+        report?.suggestedCareers?.[0]?.title,
+        report?.targetRequirements?.education,
+        ...(Array.isArray(report?.targetRequirements?.certifications) ? report.targetRequirements.certifications : []),
+        ...(Array.isArray(report?.targetRequirements?.hardGates) ? report.targetRequirements.hardGates : []),
+        ...(Array.isArray(report?.targetRequirements?.employerSignals) ? report.targetRequirements.employerSignals : [])
+      ]
+        .filter(Boolean)
+        .join(' ')
+    ).toLowerCase()
+
+    if (
+      /\b(nurse|licensed practical nurse|registered practical nurse|registered nurse|lpn|rpn|rn|clinical|patient care|nursing|cpnre|nclex)\b/.test(
+        regulatedText
+      )
+    ) {
+      return 'HEALTHCARE_LICENSED'
+    }
+
+    return 'PROFESSIONAL_LICENSED'
+  }
+
+  if (
+    report?.careerPathwayProfile?.meta?.pathway_type === 'trade_apprenticeship' ||
+    Boolean(report?.careerPathwayProfile?.meta?.codes?.trade_code) ||
+    Boolean(report?.targetRequirements?.apprenticeshipHours)
+  ) {
+    return 'TRADES'
+  }
+
+  return 'GENERAL'
 }
 
 function normalizeLocalDemandLabel(summaryLine: string | null | undefined, location: string) {
@@ -288,6 +369,24 @@ function normalizeRequirementTheme(value: string) {
   return cleaned
 }
 
+function toCompactRequirementTheme(value: string) {
+  const normalized = normalizeRequirementTheme(value).toLowerCase()
+  if (!normalized) return ''
+  if (/\b(licen|certif|registration|regulator|exam)\b/.test(normalized)) return 'Licensing + certification'
+  if (/\b(clinical|placement|patient care|care)\b/.test(normalized)) return 'Clinical readiness'
+  if (/\b(portfolio|case study|github|project)\b/.test(normalized)) return 'Portfolio + proof'
+  if (/\b(apprentice|hours|journey|red seal|trade)\b/.test(normalized)) return 'Trade pathway steps'
+
+  const tokens = normalized
+    .split(/\s+/)
+    .filter((token) => token.length > 2)
+    .slice(0, 3)
+  if (tokens.length === 0) return ''
+  return tokens
+    .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+    .join(' ')
+}
+
 function buildHiringRequirementsSummary(
   items: Array<{ label?: string }> | undefined,
   count: number
@@ -298,7 +397,7 @@ function buildHiringRequirementsSummary(
 
   const themes = uniqueNormalizedStrings(
     items
-      .map((item) => normalizeRequirementTheme(String(item?.label ?? '')))
+      .map((item) => toCompactRequirementTheme(String(item?.label ?? '')))
       .filter(Boolean)
   ).slice(0, 2)
 
@@ -307,10 +406,10 @@ function buildHiringRequirementsSummary(
   }
 
   if (themes.length === 1) {
-    return `Most common signal: ${themes[0]}`
+    return themes[0]
   }
 
-  return `${themes[0]} and ${themes[1]} recur most often`
+  return `${themes[0]} + ${themes[1]}`
 }
 
 type StarterCertificationCandidate = {
@@ -453,13 +552,27 @@ function cleanGeneratedLabel(value: string) {
     .replace(/\bproof artifact\b/gi, 'verification item')
     .replace(/\bproof project\b/gi, 'practical work sample')
     .replace(/\bproof\b/gi, 'readiness example')
+    .replace(/\borcompletion\b/gi, 'or completion')
+    .replace(/\bapplications applications\b/gi, 'applications')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
-function sourceBadgeForType(sourceType: SourceType): FallbackBadge | undefined {
-  if (sourceType === 'estimate') return 'Estimate'
-  return undefined
+function sanitizePlannerCopy(value: string, careerPathType: DashboardCareerPathType) {
+  const cleaned = cleanGeneratedLabel(value)
+  if (careerPathType === 'TRADES') return cleaned
+
+  return cleaned
+    .replace(/\bunion apprenticeship\b/gi, 'entry pathway')
+    .replace(/\bapprenticeship\b/gi, careerPathType === 'HEALTHCARE_LICENSED' ? 'training pathway' : 'entry pathway')
+    .replace(/\b(sponsor-ready|sponsor)\s+employer(s)?\b/gi, 'target employer$2')
+    .replace(/\bskilled trades ontario\b/gi, 'provincial regulator')
+    .replace(/\bcertificate of qualification\b/gi, 'required licensing exam')
+    .replace(/\bred seal\b/gi, 'required licensing exam')
+    .replace(/\bjourneyperson\b|\bjourneyman\b/gi, 'fully qualified professional')
+    .replace(/\btrade certification\b/gi, 'required certification')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function inferPhaseOutcome(title: string, summary: string, actions: string[]) {
@@ -477,22 +590,237 @@ function inferPhaseOutcome(title: string, summary: string, actions: string[]) {
 }
 
 function toRoleDisplay(value: string) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .map((token) => {
+      if (!token) return token
+      if (/^[A-Z0-9/()+-]+$/.test(token)) return token
+      const normalized = token.toLowerCase()
+      return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+    })
+    .join(' ')
+}
+
+function toCanonicalRoleDisplay(value: string) {
   const normalized = value.trim().toLowerCase()
   if (normalized === 'apprentice electrician') return 'Electrician (309A)'
   if (normalized === 'electrician construction and maintenance') return 'Electrician (309A)'
   if (normalized === 'industrial electrician') return 'Industrial Electrician (442A)'
   if (normalized === 'apprentice plumber' || normalized === 'plumber') return 'Plumber (306A)'
   if (normalized === 'general carpenter' || normalized === 'carpenter') return 'General Carpenter (403A)'
-  return value
+  return toRoleDisplay(value)
+}
+
+type TradeTargetStage = 'entry' | 'apprentice' | 'licensed' | 'general'
+
+function inferTradeTargetStage(value: string): TradeTargetStage {
+  const normalized = cleanGeneratedLabel(value).toLowerCase()
+  if (/(journeyperson|journeyman|licensed|red seal|master)/.test(normalized)) return 'licensed'
+  if (/(pre-apprentice|helper|labourer|laborer|entry[\s-]?level)/.test(normalized)) return 'entry'
+  if (/apprentice/.test(normalized)) return 'apprentice'
+  return 'general'
+}
+
+function buildMappedTradePathLabel(args: {
+  profile: NonNullable<DashboardMapperInput['report']>['careerPathwayProfile'] | null | undefined
+  fallbackCanonicalRole: string
+  fallbackTradeCode?: string | null
+}) {
+  const tradeCode = cleanGeneratedLabel(
+    String(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((args.profile as any)?.meta?.codes?.trade_code as string | null | undefined) ??
+        args.fallbackTradeCode ??
+        ''
+    )
+  )
     .trim()
-    .split(/\s+/)
-    .map((token) => {
-      if (!token) return token
-      if (/^[A-Z0-9/+-]+$/.test(token)) return token
-      const normalized = token.toLowerCase()
-      return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+    .toUpperCase()
+  const fallback = tradeCode
+    ? `${args.fallbackCanonicalRole.replace(/\s+\([^)]+\)$/g, '').trim()} (${tradeCode})`
+    : args.fallbackCanonicalRole
+  const rawTitle = cleanGeneratedLabel(
+    String(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((args.profile as any)?.meta?.title as string | null | undefined) ?? ''
+    )
+  )
+    .replace(/\s*-\s*(Ontario|Canada)\s*$/i, '')
+    .trim()
+
+  if (!rawTitle) return fallback
+
+  const multiParenMatch = rawTitle.match(/^(.+?)\s+\(([^)]+)\)\s+\(([^)]+)\)$/)
+  if (multiParenMatch) {
+    const code = multiParenMatch[3].trim().toUpperCase()
+    if (code) return `${multiParenMatch[1].trim()} (${code})`
+  }
+
+  const singleParenMatch = rawTitle.match(/^(.+?)\s+\(([^)]+)\)$/)
+  if (singleParenMatch) {
+    const code = singleParenMatch[2].trim().toUpperCase()
+    if (/^\d+[A-Z]?$/i.test(code)) return `${singleParenMatch[1].trim()} (${code})`
+  }
+
+  if (tradeCode && !rawTitle.includes(`(${tradeCode})`)) {
+    return `${rawTitle} (${tradeCode})`
+  }
+
+  return rawTitle
+}
+
+function formatListForSentence(values: string[]) {
+  if (values.length === 0) return ''
+  if (values.length === 1) return values[0]
+  if (values.length === 2) return `${values[0]} or ${values[1]}`
+  return `${values.slice(0, -1).join(', ')}, or ${values[values.length - 1]}`
+}
+
+function buildEntryBridgeAction(args: {
+  isTradeApprenticeship: boolean
+  whoHires: string[]
+  entryRoles: string[]
+  targetDisplayRole: string
+}) {
+  if (args.isTradeApprenticeship) {
+    if (args.entryRoles.length > 0) {
+      return `Bridge through entry roles such as ${formatListForSentence(args.entryRoles.slice(0, 3))}.`
+    }
+    if (args.whoHires.length > 0) {
+      return `Bridge through helper or apprentice-entry work with ${formatListForSentence(
+        args.whoHires.slice(0, 3)
+      )}.`
+    }
+    return `Bridge through helper or apprentice-entry work before aiming for the full ${args.targetDisplayRole} pathway.`
+  }
+
+  return `Bridge through adjacent entry-level work before aiming for the full ${args.targetDisplayRole} role.`
+}
+
+function extractCertificationName(value: string) {
+  const cleaned = cleanGeneratedLabel(value).trim()
+  for (const candidate of STARTER_CERTIFICATION_PATTERNS) {
+    if (candidate.pattern.test(cleaned)) return candidate.name
+  }
+  return cleaned
+}
+
+function actionifyRequirement(args: {
+  value: string
+  targetDisplayRole: string
+  locationText: string
+  careerPathType: DashboardCareerPathType
+  isTradeApprenticeship: boolean
+  whoHires: string[]
+  entryRoles: string[]
+}) {
+  const cleaned = sanitizePlannerCopy(args.value, args.careerPathType).trim()
+  if (!cleaned) return ''
+  const normalized = cleaned.toLowerCase()
+
+  if (/(experience|years? of .*experience|role-relevant experience)/.test(normalized)) {
+    return buildEntryBridgeAction({
+      isTradeApprenticeship: args.isTradeApprenticeship,
+      whoHires: args.whoHires,
+      entryRoles: args.entryRoles,
+      targetDisplayRole: args.targetDisplayRole
     })
-    .join(' ')
+  }
+
+  if (/(register|apprenticeship agreement|training agreement|skilled trades ontario)/.test(normalized)) {
+    if (args.isTradeApprenticeship) {
+      return `Secure sponsorship and register the apprenticeship pathway in ${
+        args.locationText || 'your province'
+      }.`
+    }
+    return args.careerPathType === 'HEALTHCARE_LICENSED'
+      ? `Confirm registration steps with the provincial nursing or healthcare regulator in ${
+          args.locationText || 'your province'
+        }.`
+      : `Confirm required registration steps with the relevant regulator in ${
+          args.locationText || 'your province'
+        }.`
+  }
+
+  if (/(certificate of qualification|red seal|certifying exam|qualification exam|\bexam\b)/.test(normalized)) {
+    if (args.isTradeApprenticeship) {
+      return 'Plan for the Certificate of Qualification / Red Seal exam after the required hours and school levels are complete.'
+    }
+    return args.careerPathType === 'HEALTHCARE_LICENSED'
+      ? 'Prepare for the required licensing exam and final regulator registration step.'
+      : 'Prepare for the required certification or licensing exam before broad applications.'
+  }
+
+  if (/(hours|on-the-job|in-school|school levels|curriculum)/.test(normalized)) {
+    return args.isTradeApprenticeship
+      ? 'Confirm the on-the-job hour target and in-school training levels before you commit to the pathway.'
+      : args.careerPathType === 'HEALTHCARE_LICENSED'
+        ? `Confirm clinical placement hours and supervised training requirements before applying broadly to ${args.targetDisplayRole} roles.`
+      : `Confirm the required training sequence before you apply broadly to ${args.targetDisplayRole} roles.`
+  }
+
+  if (/(license|licensing|certification requirements|regional licensing)/.test(normalized)) {
+    return `Confirm licensing and certification requirements in ${args.locationText || 'your province'} before applying broadly.`
+  }
+
+  if (
+    /(whmis|working at heights|first aid|cpr|worker health and safety awareness|fall protection|lockout|loto|confined space|elevated work platform|csts)/.test(
+      normalized
+    )
+  ) {
+    return `Complete ${extractCertificationName(cleaned)} if it appears in target employer requirements.`
+  }
+
+  if (/(plc|controls|wiring|motor|hydraulic|pneumat|automation|maintenance)/.test(normalized)) {
+    return `Build supervised exposure to ${cleaned.toLowerCase()} through starter training or adjacent entry work.`
+  }
+
+  return sentenceCase(sanitizePlannerCopy(cleaned, args.careerPathType))
+}
+
+function summarizeGapAction(args: {
+  gapLabel: string
+  targetDisplayRole: string
+  locationText: string
+  careerPathType: DashboardCareerPathType
+  isTradeApprenticeship: boolean
+  whoHires: string[]
+  entryRoles: string[]
+}) {
+  return actionifyRequirement({
+    value: args.gapLabel,
+    targetDisplayRole: args.targetDisplayRole,
+    locationText: args.locationText,
+    careerPathType: args.careerPathType,
+    isTradeApprenticeship: args.isTradeApprenticeship,
+    whoHires: args.whoHires,
+    entryRoles: args.entryRoles
+  })
+}
+
+function buildTradeEvidenceFallback(args: {
+  locationText: string
+  whoHires: string[]
+  entryRoles: string[]
+  apprenticeshipHours?: number | null
+}) {
+  const provinceText = args.locationText?.trim() || 'Ontario'
+  const employerTargets =
+    args.whoHires.length > 0 ? formatListForSentence(args.whoHires.slice(0, 3)) : 'sponsor-ready trade employers'
+  const entryTargets =
+    args.entryRoles.length > 0
+      ? formatListForSentence(args.entryRoles.slice(0, 3))
+      : 'helper, labourer, or apprentice-entry openings'
+
+  return [
+    `Target ${entryTargets} with ${employerTargets}.`,
+    `Secure sponsorship and register the apprenticeship pathway in ${provinceText}.`,
+    'Complete the starter safety certifications employers screen for first.',
+    args.apprenticeshipHours && Number.isFinite(args.apprenticeshipHours)
+      ? `Plan for ${formatHours(args.apprenticeshipHours)} of apprenticeship training and in-school levels.`
+      : 'Plan for the apprenticeship work-and-school rotation before qualification.'
+  ]
 }
 
 function formatHours(value: number | null | undefined) {
@@ -500,15 +828,98 @@ function formatHours(value: number | null | undefined) {
   return `${value.toLocaleString()} hours`
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function estimateTrainingCost(report: any | null) {
-  const certifications = Array.isArray(report?.targetRequirements?.certifications)
-    ? report.targetRequirements.certifications.length
-    : 0
+function formatQualificationWindow(profile: DashboardMapperInput['report']['careerPathwayProfile'] | null | undefined) {
+  const minMonths = profile?.timeline?.time_to_full_qualification?.min_months
+  const maxMonths = profile?.timeline?.time_to_full_qualification?.max_months
+  if (
+    typeof minMonths !== 'number' ||
+    typeof maxMonths !== 'number' ||
+    !Number.isFinite(minMonths) ||
+    !Number.isFinite(maxMonths)
+  ) {
+    return null
+  }
 
-  if (certifications >= 3) return '$2k-$6k'
-  if (certifications >= 1) return '$1k-$4k'
-  return '$1k-$4k'
+  const minYears = minMonths / 12
+  const maxYears = maxMonths / 12
+  if (Math.abs(minYears - Math.round(minYears)) < 0.01 && Math.abs(maxYears - Math.round(maxYears)) < 0.01) {
+    return `${Math.round(minYears)}-${Math.round(maxYears)} years`
+  }
+
+  return `${minMonths}-${maxMonths} months`
+}
+
+function trainingPriorityLabel(args: {
+  name: string
+  sourceType: SourceType
+  fromStarterBundle: boolean
+  employableWindow: string | null
+}) {
+  const normalized = cleanGeneratedLabel(args.name).toLowerCase()
+  if (args.fromStarterBundle) return 'Get first' as const
+  if (/(whmis|working at heights|first aid|cpr|worker health and safety awareness|fall protection|lockout|loto|confined space|elevated work platform|csts)/.test(normalized)) {
+    return 'Get first' as const
+  }
+  if (/(school|level|curriculum|apprenticeship|qualification|red seal|certificate of qualification|journey|journeyperson|exam)/.test(normalized)) {
+    return 'Later-stage' as const
+  }
+  if (args.sourceType === 'estimate' && !args.employableWindow) return 'Later-stage' as const
+  return 'Useful next' as const
+}
+
+function buildResourcesCards(args: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  report: any | null
+  pathwayProfile: DashboardMapperInput['report']['careerPathwayProfile'] | null | undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  trainingCourses: Array<any>
+}) {
+  const cards: Array<{ title: string; url: string; domain: string; sourceLabel: string }> = []
+  const seen = new Set<string>()
+
+  const pushCard = (title: string, url: string | null | undefined, sourceLabel: string) => {
+    const cleanUrl = typeof url === 'string' ? url.trim() : ''
+    if (!cleanUrl || seen.has(cleanUrl)) return
+    seen.add(cleanUrl)
+    cards.push({
+      title: cleanGeneratedLabel(title) || 'Resource',
+      url: cleanUrl,
+      domain: providerNameFromUrl(cleanUrl),
+      sourceLabel
+    })
+  }
+
+  const reportLinks = Array.isArray(args.report?.linksResources) ? args.report.linksResources : []
+  reportLinks.forEach((link: { label?: string; url?: string; type?: string }) => {
+    pushCard(link?.label ?? 'Resource', link?.url ?? null, link?.type === 'official' ? 'Official pathway source' : 'Curated pathway source')
+  })
+
+  const profileOfficial = Array.isArray(args.pathwayProfile?.resources?.official)
+    ? args.pathwayProfile.resources.official
+    : []
+  profileOfficial.forEach((link: { title?: string; url?: string }) => {
+    pushCard(link?.title ?? 'Official pathway guidance', link?.url ?? null, 'Official pathway source')
+  })
+
+  const profileTraining = Array.isArray(args.pathwayProfile?.resources?.training)
+    ? args.pathwayProfile.resources.training
+    : []
+  profileTraining.forEach((link: { title?: string; url?: string }) => {
+    pushCard(link?.title ?? 'Training directory', link?.url ?? null, 'Training source')
+  })
+
+  const profileJobSearch = Array.isArray(args.pathwayProfile?.resources?.job_search)
+    ? args.pathwayProfile.resources.job_search
+    : []
+  profileJobSearch.forEach((link: { title?: string; url?: string }) => {
+    pushCard(link?.title ?? 'Job search source', link?.url ?? null, 'Employer or market source')
+  })
+
+  args.trainingCourses.forEach((course: { name?: string; sourceUrl?: string | null; sourceLabel?: string }) => {
+    pushCard(course?.name ?? 'Training source', course?.sourceUrl ?? null, course?.sourceLabel ?? 'Training source')
+  })
+
+  return cards.slice(0, 3)
 }
 
 function salaryRangeToLabel(low: number | null | undefined, high: number | null | undefined, currency: string) {
@@ -585,10 +996,12 @@ function providerNameFromUrl(url: string) {
 
 function buildTradeFastestPath(args: {
   profile: NonNullable<DashboardMapperInput['report']>['careerPathwayProfile']
-  targetRole: string
+  targetDisplayRole: string
   locationText: string
   examRequired: boolean
   apprenticeshipHours: number | null
+  stage: TradeTargetStage
+  entryRoles: string[]
 }) {
   const entryPath = Array.isArray(args.profile?.entry_paths) ? args.profile.entry_paths[0] : null
   const timelinePhases = Array.isArray(args.profile?.timeline?.phases) ? args.profile.timeline.phases : []
@@ -601,13 +1014,58 @@ function buildTradeFastestPath(args: {
   const whoHires = Array.isArray(args.profile?.snapshot?.who_hires)
     ? args.profile.snapshot.who_hires.filter(Boolean)
     : []
+  const entrySteps = (entryPath?.steps ?? []).map((step: string) => sentenceCase(step)).filter(Boolean)
+  const apprenticeshipLoopPhase = timelinePhases.find((phase: { phase: string }) =>
+    /(training|apprenticeship|school)/i.test(String(phase.phase ?? ''))
+  )
+  const qualificationPhase = timelinePhases.find((phase: { phase: string }) =>
+    /(credential|qualification|exam|cert)/i.test(String(phase.phase ?? ''))
+  )
+  const startPhase = timelinePhases.find((phase: { phase: string }) => /(start|entry|sponsor)/i.test(String(phase.phase ?? '')))
+  const startMilestones = Array.isArray(startPhase?.milestones) ? startPhase.milestones : []
+  const sponsorStep =
+    entrySteps.find((step: string) => /(sponsor|contractor|union shop|employer)/i.test(step)) ||
+    (whoHires.length > 0
+      ? `Target sponsor-ready employers such as ${whoHires.slice(0, 3).join(', ')}.`
+      : `Secure an employer willing to sponsor your ${args.targetDisplayRole} entry path.`)
+  const registrationDetail =
+    entrySteps.find((step: string) => /(register|agreement|skilled trades ontario|training agreement)/i.test(step)) ||
+    mustHave
+      .map((item: { details?: string; name?: string }) => sentenceCase(String(item?.details || item?.name || '')))
+      .find((step: string) => /(skilled trades ontario|register|training agreement|apprenticeship)/i.test(step)) ||
+    `Register the apprenticeship pathway in ${args.locationText || 'your province'} once sponsorship is secured.`
+  const loopDetail =
+    entrySteps.find((step: string) => /(hour|on-the-job|school|in-school|level)/i.test(step)) ||
+    apprenticeshipLoopPhase?.milestones
+      ?.map((item: { done_when?: string; title?: string }) => sentenceCase(item.done_when || item.title || ''))
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' ') ||
+    (args.apprenticeshipHours
+      ? `Accumulate ${args.apprenticeshipHours.toLocaleString()} apprenticeship hours while completing each required in-school training level.`
+      : 'Accumulate on-the-job hours while completing each in-school training level.')
+  const qualificationDetail =
+    qualificationPhase?.milestones?.[0]
+      ? sentenceCase(qualificationPhase.milestones[0].done_when || qualificationPhase.milestones[0].title)
+      : args.examRequired
+        ? 'Write the Certificate of Qualification / Red Seal exam after the required hours and school levels are complete.'
+        : 'Complete the final qualification milestone once your apprenticeship hours and school levels are complete.'
+  const entryRouteDetail =
+    startMilestones
+      .map((item: { done_when?: string; title?: string }) => sentenceCase(item.done_when || item.title || ''))
+      .find((detail: string) => /(helper|apprentice|entry|offer)/i.test(detail)) ||
+    (args.entryRoles.length > 0
+      ? `Start by targeting entry roles such as ${formatListForSentence(args.entryRoles.slice(0, 3))}.`
+      : whoHires.length > 0
+      ? `Start by targeting apprentice-entry roles with ${whoHires.slice(0, 3).join(', ')}.`
+      : `Start by targeting apprentice-entry employers for ${args.targetDisplayRole} in ${args.locationText || 'your province'}.`)
 
-  const fastestSteps = (entryPath?.steps ?? [])
-    .slice(0, 4)
-    .map((step: string, index: number) => ({
-      label: stepLabelFromTradeText(step, index),
-      detail: sentenceCase(step)
-    }))
+  const fastestSteps = [
+    { label: 'Entry Route', detail: entryRouteDetail },
+    { label: 'Sponsorship', detail: sponsorStep },
+    { label: 'Registration', detail: registrationDetail },
+    { label: 'Apprenticeship Loop', detail: loopDetail }
+  ]
 
   const requirementNames = mustHave
     .map((item: { name: string }) => sentenceCase(item.name))
@@ -615,12 +1073,6 @@ function buildTradeFastestPath(args: {
   const supportNames = niceToHave
     .map((item: { name: string }) => sentenceCase(item.name))
     .filter(Boolean)
-  const apprenticeshipLoopPhase = timelinePhases.find((phase: { phase: string }) =>
-    /(training|apprenticeship|school)/i.test(String(phase.phase ?? ''))
-  )
-  const qualificationPhase = timelinePhases.find((phase: { phase: string }) =>
-    /(credential|qualification|exam|cert)/i.test(String(phase.phase ?? ''))
-  )
 
   const strongestSteps: Array<{ label: string; detail: string }> = []
 
@@ -635,45 +1087,46 @@ function buildTradeFastestPath(args: {
 
   if (whoHires.length > 0) {
     strongestSteps.push({
-      label: 'Target Employers',
+      label: 'Sponsor-Ready Employers',
       detail: `Focus first on sponsor-ready employers such as ${whoHires.slice(0, 3).join(', ')}.`
     })
   }
 
-  if (requirementNames.length > 0) {
+  if (requirementNames.length > 0 || registrationDetail) {
     strongestSteps.push({
-      label: 'Program Requirements',
-      detail: `Confirm the formal apprenticeship requirements for ${args.targetRole} in ${
-        args.locationText || 'your province'
-      }: ${requirementNames.slice(0, 2).join('; ')}.`
+      label: 'Registration Requirements',
+      detail:
+        requirementNames.length > 0
+          ? `Confirm the formal apprenticeship requirements for ${args.targetDisplayRole} in ${
+              args.locationText || 'your province'
+            }: ${requirementNames.slice(0, 2).join('; ')}.`
+          : registrationDetail
     })
   }
 
-  if (apprenticeshipLoopPhase?.milestones?.length) {
+  if (apprenticeshipLoopPhase?.milestones?.length || args.apprenticeshipHours) {
     strongestSteps.push({
       label: 'Hours And School',
-      detail: apprenticeshipLoopPhase.milestones
-        .slice(0, 2)
-        .map((item: { done_when: string; title: string }) => sentenceCase(item.done_when || item.title))
-        .join(' ')
-    })
-  } else if (args.apprenticeshipHours) {
-    strongestSteps.push({
-      label: 'Hours And School',
-      detail: `Track progress toward ${args.apprenticeshipHours.toLocaleString()} apprenticeship hours and complete each required in-school training level.`
+      detail: loopDetail
     })
   }
 
-  if (args.examRequired) {
+  if (args.examRequired || qualificationPhase?.milestones?.length) {
     strongestSteps.push({
       label: 'Qualification',
-      detail: qualificationPhase?.milestones?.[0]
-        ? sentenceCase(qualificationPhase.milestones[0].done_when || qualificationPhase.milestones[0].title)
-        : 'Prepare for the Certificate of Qualification / Red Seal exam once your hours and school levels are complete.'
+      detail: qualificationDetail
     })
   }
 
+  const headline =
+    args.stage === 'licensed'
+      ? 'Ontario trade qualification path'
+      : args.stage === 'apprentice'
+        ? 'Ontario apprenticeship path from sponsorship to qualification'
+        : 'Ontario trade entry path'
+
   return {
+    headline,
     fastestSteps: fastestSteps.slice(0, 4),
     strongestSteps: strongestSteps.slice(0, 4)
   }
@@ -736,8 +1189,10 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const roleTargetRaw =
     input.targetRole.trim() || input.report?.suggestedCareers?.[0]?.title || 'Target role'
   const roleCurrent = toRoleDisplay(roleCurrentRaw)
-  const roleTarget = toRoleDisplay(roleTargetRaw)
-  const transitionLabel = `${roleCurrent} -> ${roleTarget}`
+  const roleTargetDisplay = toRoleDisplay(roleTargetRaw)
+  const roleTargetCanonical = toCanonicalRoleDisplay(roleTargetRaw)
+  const tradeTargetStage = inferTradeTargetStage(roleTargetRaw)
+  const transitionLabel = `${roleCurrent} -> ${roleTargetDisplay}`
 
   const compatibilityScore =
     typeof input.report?.compatibilitySnapshot?.score === 'number'
@@ -890,11 +1345,13 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           label,
           progress: skillGaps.find((item) => item.label === label)?.progress ?? Math.max(25, 55 - index * 10)
         }))
-      : [
+        : [
           { label: 'Role-specific technical fundamentals', progress: 30 },
           { label: 'Credential-aligned safety evidence', progress: 35 },
           { label: 'Employer-ready work samples', progress: 40 }
         ]
+
+  const careerPathType = inferCareerPathTypeFromReport(input.report)
 
   const roadmapFromGuide = Array.isArray(input.report?.transitionMode?.roadmapGuide?.phases)
     ? input.report.transitionMode.roadmapGuide.phases
@@ -1017,6 +1474,13 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     typeof input.report?.targetRequirements?.examRequired === 'boolean'
       ? input.report.targetRequirements.examRequired
       : /^yes$/i.test(String(sourceTradeFacts?.certifyingExam ?? ''))
+  const mappedTradePathLabel = careerPathType === 'TRADES' && pathwayProfile
+    ? buildMappedTradePathLabel({
+        profile: pathwayProfile,
+        fallbackCanonicalRole: roleTargetCanonical,
+        fallbackTradeCode: sourceTradeFacts?.tradeCode
+      })
+    : null
 
   const fastestPathSource =
     (input.report?.transitionSections?.roadmapPlan?.fastestPathToApply as string[] | undefined) ??
@@ -1024,54 +1488,46 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       ?.map((item) => String(item.goal ?? '').trim())
 
   const isTradeApprenticeship =
-    pathwayProfile?.meta?.pathway_type === 'trade_apprenticeship' ||
-    Boolean(
-      (pathwayProfile?.meta?.codes?.trade_code as string | null | undefined) ??
-        sourceTradeFacts?.tradeCode ??
-        input.report?.targetRequirements?.apprenticeshipHours
+    careerPathType === 'TRADES' &&
+    (
+      pathwayProfile?.meta?.pathway_type === 'trade_apprenticeship' ||
+      Boolean(
+        (pathwayProfile?.meta?.codes?.trade_code as string | null | undefined) ??
+          sourceTradeFacts?.tradeCode ??
+          input.report?.targetRequirements?.apprenticeshipHours
+      )
     )
-
-  const tradeFastestPath =
-    isTradeApprenticeship && pathwayProfile
-      ? buildTradeFastestPath({
-          profile: pathwayProfile,
-          targetRole: roleTarget,
-          locationText: input.locationText || 'your province',
-          examRequired,
-          apprenticeshipHours
-        })
-      : null
-
-  const fastestPath =
-    tradeFastestPath && tradeFastestPath.fastestSteps.length > 0
-      ? tradeFastestPath.fastestSteps
-      : Array.isArray(fastestPathSource) && fastestPathSource.length > 0
-        ? fastestPathSource.slice(0, 4).map((item, index) => ({
-            label: `Month ${index + 1}`,
-            detail: item
-          }))
-        : [
-            { label: 'Month 1', detail: 'Complete baseline credential and contact 20 target employers.' },
-            { label: 'Month 2', detail: 'Enroll in core technical foundations course.' },
-            { label: 'Month 3-4', detail: 'Secure apprenticeship or entry-track sponsorship.' }
-          ]
-
-  pushIfMissing(missingFields, 'fastest_path.steps', !fastestPathSource || fastestPathSource.length === 0)
 
   const certificationNames = uniqueNormalizedStrings(
     ((input.report?.targetRequirements?.certifications as string[] | undefined) ?? [])
-      .map((item) => cleanGeneratedLabel(String(item ?? '')))
+      .map((item) => sanitizePlannerCopy(String(item ?? ''), careerPathType))
       .filter(Boolean)
   ).slice(0, 3)
   const hardGateCourseNames = uniqueNormalizedStrings(
     ((input.report?.targetRequirements?.hardGates as string[] | undefined) ?? [])
-      .map((item) => cleanGeneratedLabel(String(item ?? '')))
+      .map((item) => sanitizePlannerCopy(String(item ?? ''), careerPathType))
       .filter((item) => /\b(cert|license|licen|registration|safety|exam|cpr|whmis|csts)\b/i.test(item))
   ).slice(0, 3)
-  const trainingNames = uniqueNormalizedStrings([...certificationNames, ...hardGateCourseNames]).slice(0, 3)
+  const sourceCertificationNames = uniqueNormalizedStrings(
+    (Array.isArray(input.report?.sourceEnrichment?.certificationCards)
+      ? input.report.sourceEnrichment.certificationCards
+      : []
+    )
+      .map((item: { name?: string }) => sanitizePlannerCopy(String(item?.name ?? ''), careerPathType))
+      .filter(Boolean)
+  ).slice(0, 3)
+  const trainingNames = uniqueNormalizedStrings([
+    ...certificationNames,
+    ...hardGateCourseNames,
+    ...sourceCertificationNames
+  ]).slice(0, 3)
   const enrichedTrainingCards =
     Array.isArray(input.report?.sourceEnrichment?.trainingCards)
       ? input.report.sourceEnrichment.trainingCards
+      : []
+  const enrichedCertificationCards =
+    Array.isArray(input.report?.sourceEnrichment?.certificationCards)
+      ? input.report.sourceEnrichment.certificationCards
       : []
   const filteredEnrichedTrainingCards = enrichedTrainingCards
     .map((card: {
@@ -1084,7 +1540,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       sourceLabel?: string
       sourceType?: SourceType
     }) => ({
-      name: cleanGeneratedLabel(String(card?.name ?? '').trim()),
+      name: sanitizePlannerCopy(String(card?.name ?? '').trim(), careerPathType),
       provider: String(card?.provider ?? 'Official provider listing').trim(),
       length: card?.length ?? null,
       cost: card?.cost ?? null,
@@ -1094,26 +1550,112 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       sourceLabel: String(card?.sourceLabel ?? 'Official source').trim()
     }))
     .filter((card: { name: string }) => !isGenericTrainingCardName(card.name))
+  const normalizedCertificationCards = enrichedCertificationCards
+    .map((card: {
+      name?: string
+      provider?: string
+      sourceUrl?: string | null
+      sourceLabel?: string
+      sourceType?: SourceType
+    }) => ({
+      name: sanitizePlannerCopy(String(card?.name ?? '').trim(), careerPathType),
+      provider: String(card?.provider ?? 'Official requirement source').trim(),
+      sourceUrl: card?.sourceUrl ?? null,
+      sourceType: card?.sourceType ?? 'verified',
+      sourceLabel: String(card?.sourceLabel ?? 'Official source').trim()
+    }))
+    .filter((card: { name: string }) => card.name.length > 0)
   const profileTrainingLinks = Array.isArray(pathwayProfile?.resources?.training)
     ? pathwayProfile.resources.training
     : []
   const profileOfficialLinks = Array.isArray(pathwayProfile?.resources?.official)
     ? pathwayProfile.resources.official
     : []
-  const marketSnapshot = input.report?.transitionReport?.marketSnapshot
-  const tradeFacts = [
-    apprenticeshipHours ? { label: 'Total Apprenticeship', value: formatHours(apprenticeshipHours) ?? '' } : null,
-    onTheJobHours ? { label: 'On-the-job', value: formatHours(onTheJobHours) ?? '' } : null,
-    inSchoolHours ? { label: 'In-school', value: formatHours(inSchoolHours) ?? '' } : null,
-    examRequired ? { label: 'Certifying Exam', value: 'Required in Ontario' } : null,
-    sourceTradeFacts?.academicStandard
-      ? { label: 'Academic Standard', value: sourceTradeFacts.academicStandard }
-      : null
-  ].filter((item): item is { label: string; value: string } => Boolean(item)).slice(0, 4)
+  const whoHires = Array.isArray(pathwayProfile?.snapshot?.who_hires)
+    ? pathwayProfile.snapshot.who_hires.filter(Boolean).map((item: string) => sentenceCase(item))
+    : []
   const employableWindow =
     pathwayProfile?.timeline?.time_to_employable?.min_weeks && pathwayProfile?.timeline?.time_to_employable?.max_weeks
       ? `${pathwayProfile.timeline.time_to_employable.min_weeks}-${pathwayProfile.timeline.time_to_employable.max_weeks} weeks`
       : null
+  const enrichedEntryRoles = Array.isArray(input.report?.sourceEnrichment?.entryRoles)
+    ? input.report.sourceEnrichment.entryRoles
+        .map((item: { title?: string }) => cleanGeneratedLabel(String(item?.title ?? '')))
+        .filter(Boolean)
+    : []
+  const profileEntryRoles = Array.isArray(pathwayProfile?.entry_paths)
+    ? pathwayProfile.entry_paths
+        .flatMap((entryPath: { steps?: string[] }) => (Array.isArray(entryPath?.steps) ? entryPath.steps : []))
+        .map((step: string) => cleanGeneratedLabel(String(step ?? '')))
+        .filter((step: string) => /\b(helper|labourer|laborer|pre-apprentice|maintenance|assistant|apprentice)\b/i.test(step))
+        .map((step: string) =>
+          sentenceCase(
+            step
+              .replace(/\b(get hired by|target|apply to|secure|start with)\b/gi, '')
+              .replace(/\b(a|an|the)\b/gi, ' ')
+              .replace(/\s+/g, ' ')
+              .trim()
+          )
+        )
+        .filter(Boolean)
+    : []
+  const entryRoles =
+    careerPathType === 'TRADES'
+      ? uniqueNormalizedStrings([...enrichedEntryRoles, ...profileEntryRoles]).slice(0, 3)
+      : []
+  const marketSnapshot = input.report?.transitionReport?.marketSnapshot
+  const fullQualificationWindow = formatQualificationWindow(pathwayProfile)
+  const tradeFacts =
+    careerPathType === 'TRADES'
+      ? [
+          employableWindow ? { label: 'First Field Entry', value: employableWindow } : null,
+          fullQualificationWindow ? { label: 'Full Qualification', value: fullQualificationWindow } : null,
+          apprenticeshipHours ? { label: 'Total Apprenticeship', value: formatHours(apprenticeshipHours) ?? '' } : null,
+          examRequired ? { label: 'Certifying Exam', value: 'Required in Ontario' } : null,
+          sourceTradeFacts?.academicStandard
+            ? { label: 'Academic Standard', value: sourceTradeFacts.academicStandard }
+            : onTheJobHours || inSchoolHours
+              ? {
+                  label: 'Hours Mix',
+                  value: [formatHours(onTheJobHours), formatHours(inSchoolHours)].filter(Boolean).join(' on-site / ')
+                }
+              : null
+        ].filter((item): item is { label: string; value: string } => Boolean(item)).slice(0, 4)
+      : []
+  const tradeFastestPath =
+    isTradeApprenticeship && pathwayProfile
+      ? buildTradeFastestPath({
+          profile: pathwayProfile,
+          targetDisplayRole: roleTargetDisplay,
+          locationText: input.locationText || 'your province',
+          examRequired,
+          apprenticeshipHours,
+          stage: tradeTargetStage,
+          entryRoles
+        })
+      : null
+
+  const fastestPath =
+    tradeFastestPath && tradeFastestPath.fastestSteps.length > 0
+      ? tradeFastestPath.fastestSteps
+      : Array.isArray(fastestPathSource) && fastestPathSource.length > 0
+        ? fastestPathSource.slice(0, 4).map((item, index) => ({
+            label: `Month ${index + 1}`,
+            detail: sanitizePlannerCopy(item, careerPathType)
+          }))
+        : careerPathType === 'TRADES'
+          ? [
+              { label: 'Month 1', detail: 'Complete baseline credential and contact 20 target employers.' },
+              { label: 'Month 2', detail: 'Enroll in core technical foundations course.' },
+              { label: 'Month 3-4', detail: 'Secure apprenticeship or entry-track sponsorship.' }
+            ]
+          : [
+              { label: 'Month 1', detail: 'Confirm top requirements and tailor your resume to the target role.' },
+              { label: 'Month 2', detail: 'Complete one role-relevant learning milestone and publish one concrete work example.' },
+              { label: 'Month 3-4', detail: 'Run targeted applications and follow-ups until interview activity is steady.' }
+            ]
+
+  pushIfMissing(missingFields, 'fastest_path.steps', !fastestPathSource || fastestPathSource.length === 0)
   const starterCertifications = collectStarterCertifications({
     hardGates: ((input.report?.targetRequirements?.hardGates as string[] | undefined) ?? []).map((item) =>
       cleanGeneratedLabel(String(item ?? ''))
@@ -1135,12 +1677,38 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       : [],
     sourceUrl: profileOfficialLinks[0]?.url ?? null
   })
+  const starterCertificationsWithBackfill = (() => {
+    if (starterCertifications.length >= 3) return starterCertifications.slice(0, 3)
+    if (normalizedCertificationCards.length === 0) return starterCertifications.slice(0, 3)
+
+    const seen = new Set(
+      starterCertifications.map((item) =>
+        cleanGeneratedLabel(item.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+      )
+    )
+    const merged = [...starterCertifications]
+    for (const card of normalizedCertificationCards) {
+      if (merged.length >= 3) break
+      const key = cleanGeneratedLabel(card.name).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      merged.push({
+        name: card.name,
+        sourceLabel: card.sourceLabel,
+        sourceType: card.sourceType,
+        sourceUrl: card.sourceUrl ?? null,
+        provider: card.provider
+      })
+    }
+    return merged.slice(0, 3)
+  })()
   const trainingCourses: PlannerDashboardV3Model['training']['courses'] =
-    starterCertifications.length > 0
-      ? starterCertifications.map((item, index) => ({
+    starterCertificationsWithBackfill.length > 0
+      ? starterCertificationsWithBackfill.map((item, index) => ({
           id: toStableTrainingId(item.name, index),
           name: item.name,
           provider: item.provider,
+          priorityLabel: 'Get first' as const,
           length: null,
           cost: null,
           modality: null,
@@ -1163,7 +1731,37 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           sourceLabel: string
         }, index: number) => ({
           ...card,
-          id: toStableTrainingId(card.name, index)
+          id: toStableTrainingId(card.name, index),
+          priorityLabel: trainingPriorityLabel({
+            name: card.name,
+            sourceType: card.sourceType,
+            fromStarterBundle: false,
+            employableWindow
+          })
+        }))
+      : normalizedCertificationCards.length > 0
+      ? normalizedCertificationCards.slice(0, 3).map((card: {
+          name: string
+          provider: string
+          sourceUrl?: string | null
+          sourceType: SourceType
+          sourceLabel: string
+        }, index: number) => ({
+          id: toStableTrainingId(card.name, index),
+          name: card.name,
+          provider: card.provider,
+          priorityLabel: trainingPriorityLabel({
+            name: card.name,
+            sourceType: card.sourceType,
+            fromStarterBundle: false,
+            employableWindow
+          }),
+          length: null,
+          cost: null,
+          modality: null,
+          sourceUrl: card.sourceUrl ?? null,
+          sourceType: card.sourceType,
+          sourceLabel: card.sourceLabel
         }))
       : profileTrainingLinks.length > 0
       ? profileTrainingLinks.slice(0, 3).map((link: { title?: string; url?: string }, index: number) => ({
@@ -1173,6 +1771,12 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           ),
           name: cleanGeneratedLabel(String(link?.title ?? '').trim()) || trainingNames[index] || `Training option ${index + 1}`,
           provider: link?.url ? providerNameFromUrl(String(link.url)) : 'Official provider listing',
+          priorityLabel: trainingPriorityLabel({
+            name: cleanGeneratedLabel(String(link?.title ?? '').trim()) || trainingNames[index] || `Training option ${index + 1}`,
+            sourceType: 'verified',
+            fromStarterBundle: false,
+            employableWindow
+          }),
           length: index === 0 ? employableWindow : null,
           cost: null,
           sourceUrl: link?.url ?? null,
@@ -1189,6 +1793,12 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
                 : index === 0
                   ? 'Province-approved provider directory'
                   : 'Confirm with local provider',
+            priorityLabel: trainingPriorityLabel({
+              name,
+              sourceType: index === 0 ? 'derived' : 'estimate',
+              fromStarterBundle: false,
+              employableWindow
+            }),
             length: /\b(cpr|first aid|whmis|csts)\b/i.test(name) ? '1-5 days' : null,
             cost: /\b(cpr|first aid|whmis|csts)\b/i.test(name) ? '$120-$300' : null,
             sourceUrl: profileOfficialLinks[index]?.url ?? null,
@@ -1205,6 +1815,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
               id: toStableTrainingId('Confirm regional licensing and certification requirements', 0),
               name: 'Confirm regional licensing and certification requirements',
               provider: 'Province regulator or approved provider directory',
+              priorityLabel: 'Useful next' as const,
               length: null,
               cost: null,
               sourceType: 'estimate' as const,
@@ -1236,16 +1847,19 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const checklistImmediate =
     (input.report?.transitionSections?.roadmapPlan?.zeroToTwoWeeks as Array<{ action?: string }> | undefined)
       ?.map((item) => String(item.action ?? '').trim())
+      .map((item) => sanitizePlannerCopy(item, careerPathType))
       .filter(Boolean)
       .slice(0, 4) ?? []
   const checklistShortTerm =
     (input.report?.transitionSections?.roadmapPlan?.oneToThreeMonths as Array<{ action?: string }> | undefined)
       ?.map((item) => String(item.action ?? '').trim())
+      .map((item) => sanitizePlannerCopy(item, careerPathType))
       .filter(Boolean)
       .slice(0, 4) ?? []
   const checklistLongTerm =
     (input.report?.transitionSections?.roadmapPlan?.threeToTwelveMonths as Array<{ action?: string }> | undefined)
       ?.map((item) => String(item.action ?? '').trim())
+      .map((item) => sanitizePlannerCopy(item, careerPathType))
       .filter(Boolean)
       .slice(0, 4) ?? []
 
@@ -1253,7 +1867,58 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const shortFallback = ['Run weekly outreach cadence', 'Build two practical work samples', 'Track interviews and feedback']
   const longFallback = ['Stabilize in role with 30/60/90 milestones', 'Build next-level specialization plan']
 
-  const roadmapTasks: PlannerDashboardTask[] = roadmapPhases.flatMap((phase) =>
+  const displayRoadmapPhases = isTradeApprenticeship
+    ? roadmapPhases.map((phase, index) => {
+        if (index === 0) {
+          return {
+            ...phase,
+            title: 'Entry And Sponsorship',
+            summary: entryRoles.length > 0
+              ? `Target ${formatListForSentence(entryRoles)} and secure a sponsor-ready employer.`
+              : 'Target entry doors and secure a sponsor-ready employer.',
+            outcome: 'You know your entry doors, your first employers, and the sponsorship path.'
+          }
+        }
+        if (index === 1) {
+          return {
+            ...phase,
+            title: 'Registration And School Planning',
+            summary: 'Register the apprenticeship path and confirm your first in-school training blocks.',
+            outcome: 'Your apprenticeship registration and first school requirements are clear.'
+          }
+        }
+        if (index === 2) {
+          return {
+            ...phase,
+            title: 'Hours And School Loop',
+            summary: apprenticeshipHours
+              ? `Accumulate ${formatHours(apprenticeshipHours) ?? 'apprenticeship hours'} while progressing through school levels.`
+              : 'Accumulate apprenticeship hours while progressing through school levels.',
+            outcome: 'You are progressing through the work-and-school loop that leads to qualification.'
+          }
+        }
+        return {
+          ...phase,
+          title: 'Qualification Milestone',
+          summary: examRequired
+            ? 'Finish the required hours and prepare for the Certificate of Qualification / Red Seal exam.'
+            : 'Finish the required hours and complete the final qualification milestone.',
+          outcome: 'You are positioned for the final qualification step and long-run journeyperson wages.'
+        }
+      })
+    : roadmapPhases.map((phase) => ({
+        ...phase,
+        title: sanitizePlannerCopy(phase.title, careerPathType),
+        summary: sanitizePlannerCopy(phase.summary, careerPathType),
+        outcome: sanitizePlannerCopy(phase.outcome, careerPathType),
+        actions: phase.actions.map((action) => sanitizePlannerCopy(action, careerPathType)),
+        resources: phase.resources.map((resource) => ({
+          ...resource,
+          label: sanitizePlannerCopy(resource.label, careerPathType)
+        }))
+      }))
+
+  const roadmapTasks: PlannerDashboardTask[] = displayRoadmapPhases.flatMap((phase) =>
     normalizeRoadmapActions(phase.actions)
       .slice(0, 3)
       .map((label, actionIndex) => {
@@ -1263,14 +1928,14 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           id: toTaskId(phase.id, label, actionIndex),
           phaseId: phase.id,
           category,
-          label: cleanGeneratedLabel(label),
+          label: sanitizePlannerCopy(label, careerPathType),
           checked: false,
           weight: TASK_CATEGORY_META[category].weight
         }
       })
   )
 
-  const phaseProgress: PlannerDashboardPhaseProgress[] = roadmapPhases.map((phase) => {
+  const phaseProgress: PlannerDashboardPhaseProgress[] = displayRoadmapPhases.map((phase) => {
     const phaseTasks = roadmapTasks.filter((task) => task.phaseId === phase.id)
     const completionRatio =
       phaseTasks.length > 0
@@ -1299,7 +1964,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       ?.slice(0, 4)
       .map((item) => ({
         occupationId: String(item.occupationId ?? item.title ?? 'alt-role'),
-        title: String(item.title ?? 'Alternative role'),
+        title: sanitizePlannerCopy(String(item.title ?? 'Alternative role'), careerPathType),
         difficulty: String(item.difficulty ?? 'moderate'),
         timeline: String(item.transitionTime ?? '3-9 months'),
         salary: {
@@ -1317,7 +1982,10 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           sourceLabel: item?.salary?.native?.sourceName || 'Regional estimate',
           updatedAt: item?.salary?.native?.asOfDate || undefined
         },
-        reason: String(item?.topReasons?.[0] ?? 'Alternative route with a different risk and timeline profile.')
+        reason: sanitizePlannerCopy(
+          String(item?.topReasons?.[0] ?? 'Alternative route with a different risk and timeline profile.'),
+          careerPathType
+        )
       })) ?? []
 
   pushIfMissing(missingFields, 'alternatives.cards', alternatives.length === 0)
@@ -1334,31 +2002,6 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     impactPoints: Math.round(((item.score - 50) / 50) * item.weight)
   }))
 
-  const evidenceRequiredSource = [
-    ...(Array.isArray(input.report?.targetRequirements?.hardGates) ? input.report.targetRequirements.hardGates : []),
-    ...(Array.isArray(input.report?.targetRequirements?.certifications)
-      ? input.report.targetRequirements.certifications
-      : [])
-    ,
-    ...(Array.isArray(input.report?.transitionReport?.marketSnapshot?.topRequirements)
-      ? input.report.transitionReport.marketSnapshot.topRequirements
-          .slice(0, 3)
-          .map((item: { label?: string }) => item?.label ?? '')
-      : [])
-  ]
-    .map((item) => cleanGeneratedLabel(String(item ?? '').trim()))
-    .filter(Boolean)
-    .slice(0, 6)
-  const evidenceRequired =
-    uniqueNormalizedStrings(evidenceRequiredSource).length > 0
-      ? uniqueNormalizedStrings(evidenceRequiredSource).slice(0, 4)
-      : [
-          'Safety certification status confirmed',
-          'One practical work sample tied to the target role',
-          'Resume version tailored to role language',
-          'Two references prepared for employer calls'
-        ]
-
   const strongestPathSource =
     (input.report?.transitionSections?.roadmapPlan?.strongCandidatePath as string[] | undefined)?.filter(Boolean) ??
     []
@@ -1368,20 +2011,114 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       : strongestPathSource.length > 0
         ? strongestPathSource.slice(0, 4).map((item, index) => ({
             label: `Month ${index + 1}`,
-            detail: cleanGeneratedLabel(item)
+            detail: sanitizePlannerCopy(item, careerPathType)
           }))
-        : [
-            { label: 'Month 1', detail: 'Stack certifications and publish one credible readiness example.' },
-            { label: 'Month 2', detail: 'Refine resume narrative to apprenticeship job language and outcomes.' },
-            { label: 'Month 3-4', detail: 'Push high-frequency outreach and convert active leads to interviews.' }
-          ]
+        : careerPathType === 'TRADES'
+          ? [
+              { label: 'Month 1', detail: 'Stack certifications and publish one credible readiness example.' },
+              { label: 'Month 2', detail: 'Refine resume narrative to apprenticeship job language and outcomes.' },
+              { label: 'Month 3-4', detail: 'Push high-frequency outreach and convert active leads to interviews.' }
+            ]
+          : [
+              { label: 'Month 1', detail: 'Strengthen your resume with measurable role-relevant outcomes.' },
+              { label: 'Month 2', detail: 'Build depth in the top missing skill and collect one manager-ready reference.' },
+              { label: 'Month 3-4', detail: 'Increase outreach quality and convert warm leads into interviews.' }
+            ]
 
-  const fallbackCards: PlannerDashboardAlternative[] = [
-    { occupationId: 'hvac-tech', title: 'HVAC Technician', difficulty: 'moderate', timeline: '4-9 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Lower barrier regulated-trade route with similar hands-on expectations.' },
-    { occupationId: 'construction-supervisor', title: 'Construction Supervisor', difficulty: 'moderate', timeline: '6-12 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Uses coordination and site discipline if you already lead reliably.' },
-    { occupationId: 'operations-manager', title: 'Operations Manager', difficulty: 'hard', timeline: '6-12 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Stronger fit if your experience is more process and team leadership than trade entry.' },
-    { occupationId: 'logistics-coordinator', title: 'Logistics Coordinator', difficulty: 'moderate', timeline: '3-6 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Faster transition if you need a lower-friction bridge role first.' }
+
+
+  const evidenceRequiredSource = [
+    ...(Array.isArray(input.report?.targetRequirements?.hardGates) ? input.report.targetRequirements.hardGates : []),
+    ...(Array.isArray(input.report?.targetRequirements?.certifications)
+      ? input.report.targetRequirements.certifications
+      : []),
+    ...(Array.isArray(pathwayProfile?.requirements?.must_have)
+      ? pathwayProfile.requirements.must_have.flatMap((item: { name?: string; details?: string }) => [
+          item?.name ?? '',
+          item?.details ?? ''
+        ])
+      : []),
+    ...(Array.isArray(input.report?.transitionReport?.marketSnapshot?.topRequirements)
+      ? input.report.transitionReport.marketSnapshot.topRequirements
+          .slice(0, 3)
+          .map((item: { label?: string }) => item?.label ?? '')
+      : [])
   ]
+    .map((item) => sanitizePlannerCopy(String(item ?? '').trim(), careerPathType))
+    .filter(Boolean)
+    .slice(0, 6)
+  const evidenceRequired =
+    uniqueNormalizedStrings(evidenceRequiredSource).length > 0
+      ? uniqueNormalizedStrings(evidenceRequiredSource)
+          .map((item) =>
+            actionifyRequirement({
+              value: item,
+              targetDisplayRole: roleTargetDisplay,
+              locationText: input.locationText,
+              careerPathType,
+              isTradeApprenticeship,
+              whoHires,
+              entryRoles
+            })
+          )
+          .filter(Boolean)
+          .slice(0, 4)
+      : isTradeApprenticeship
+        ? buildTradeEvidenceFallback({
+            locationText: input.locationText,
+            whoHires,
+            entryRoles,
+            apprenticeshipHours: input.report?.targetRequirements?.apprenticeshipHours
+          }).slice(0, 4)
+        : displayRoadmapPhases
+            .flatMap((phase) => phase.actions)
+            .map((item) =>
+              actionifyRequirement({
+                value: item,
+                targetDisplayRole: roleTargetDisplay,
+                locationText: input.locationText,
+                careerPathType,
+                isTradeApprenticeship,
+                whoHires,
+                entryRoles
+              })
+            )
+            .filter(Boolean)
+            .slice(0, 4)
+
+  const fallbackCardsByPath: Record<DashboardCareerPathType, PlannerDashboardAlternative[]> = {
+    TRADES: [
+      { occupationId: 'hvac-tech', title: 'HVAC Technician', difficulty: 'moderate', timeline: '4-9 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Lower-friction regulated trade route with similar hands-on expectations.' },
+      { occupationId: 'construction-supervisor', title: 'Construction Supervisor', difficulty: 'moderate', timeline: '6-12 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Leverages coordination and field discipline if you already lead reliably.' },
+      { occupationId: 'millwright', title: 'Industrial Mechanic (Millwright)', difficulty: 'hard', timeline: '6-12 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Adjacent technical pathway with strong demand in industrial settings.' },
+      { occupationId: 'maintenance-technician', title: 'Maintenance Technician', difficulty: 'moderate', timeline: '4-8 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Bridge role that builds relevant troubleshooting and preventive maintenance evidence.' }
+    ],
+    HEALTHCARE_LICENSED: [
+      { occupationId: 'personal-support-worker', title: 'Personal Support Worker', difficulty: 'moderate', timeline: '3-8 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Builds direct care exposure while moving through healthcare prerequisites.' },
+      { occupationId: 'medical-office-assistant', title: 'Medical Office Assistant', difficulty: 'moderate', timeline: '3-6 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Lower-friction bridge into regulated healthcare environments.' },
+      { occupationId: 'pharmacy-technician', title: 'Pharmacy Technician', difficulty: 'hard', timeline: '6-12 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Alternative regulated healthcare route with clear credential sequencing.' },
+      { occupationId: 'healthcare-unit-clerk', title: 'Healthcare Unit Clerk', difficulty: 'moderate', timeline: '3-7 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Entry route that strengthens healthcare workflow and documentation experience.' }
+    ],
+    PROFESSIONAL_LICENSED: [
+      { occupationId: 'bookkeeper', title: 'Bookkeeper', difficulty: 'moderate', timeline: '3-6 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Bridge role that builds direct exposure to core professional workflows.' },
+      { occupationId: 'operations-coordinator', title: 'Operations Coordinator', difficulty: 'moderate', timeline: '3-8 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Faster route if your current strengths are process and stakeholder coordination.' },
+      { occupationId: 'compliance-analyst', title: 'Compliance Analyst', difficulty: 'hard', timeline: '6-12 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Adjacent path when licensing or regulatory requirements are central.' },
+      { occupationId: 'project-coordinator', title: 'Project Coordinator', difficulty: 'moderate', timeline: '3-8 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Structured coordination role that builds transferable planning and reporting credibility.' }
+    ],
+    TECH: [
+      { occupationId: 'qa-analyst', title: 'QA Analyst', difficulty: 'moderate', timeline: '3-8 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Strong bridge into technical teams with lower initial barrier than full software roles.' },
+      { occupationId: 'support-analyst', title: 'IT Support Analyst', difficulty: 'moderate', timeline: '2-6 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Builds systems and troubleshooting evidence that converts into broader tech paths.' },
+      { occupationId: 'data-analyst', title: 'Junior Data Analyst', difficulty: 'hard', timeline: '4-10 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Alternative analytical route with transferable reporting and tooling overlap.' },
+      { occupationId: 'business-systems-analyst', title: 'Business Systems Analyst', difficulty: 'hard', timeline: '5-10 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Good bridge when you combine process experience with technical system fluency.' }
+    ],
+    GENERAL: [
+      { occupationId: 'operations-coordinator', title: 'Operations Coordinator', difficulty: 'moderate', timeline: '3-8 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Uses process discipline and communication strengths in structured teams.' },
+      { occupationId: 'customer-success', title: 'Customer Success Specialist', difficulty: 'moderate', timeline: '2-6 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Leverages client communication and retention-oriented experience.' },
+      { occupationId: 'logistics-coordinator', title: 'Logistics Coordinator', difficulty: 'moderate', timeline: '3-6 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Practical bridge role with clear hiring channels and measurable workflows.' },
+      { occupationId: 'administrative-assistant', title: 'Administrative Assistant', difficulty: 'moderate', timeline: '1-4 months', salary: { value: 'Regional estimate unavailable', badge: 'Estimate' as const, sourceType: 'estimate', sourceLabel: 'Regional estimate' }, reason: 'Reliable short-run bridge role while building targeted evidence for your next move.' }
+    ]
+  }
+  const fallbackCards: PlannerDashboardAlternative[] = fallbackCardsByPath[careerPathType] ?? fallbackCardsByPath.GENERAL
   const alternativeCards = alternatives.length > 0 ? alternatives : fallbackCards
   const compareA = alternativeCards[0] ?? fallbackCards[0]
   const compareB = alternativeCards[1] ?? fallbackCards[1]
@@ -1394,6 +2131,57 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const parsedTrainingCostRanges = trainingCourses
     .map((course) => parseCostRange(course.cost))
     .filter((range): range is { min: number; max: number } => Boolean(range))
+  const sourcedTrainingRange =
+    parsedTrainingCostRanges.length > 0
+      ? {
+          min: parsedTrainingCostRanges.reduce((sum, range) => sum + range.min, 0),
+          max: parsedTrainingCostRanges.reduce((sum, range) => sum + range.max, 0)
+        }
+      : null
+  const hasOntarioExamFee = isTradeApprenticeship && selectedProvince === 'ON' && examRequired
+  const trainingCostStack: PlannerDashboardV3Model['training']['costStack'] = []
+
+  if (sourcedTrainingRange) {
+    trainingCostStack.push({
+      label: 'Starter certifications and training',
+      value: formatCurrencyRange(sourcedTrainingRange.min, sourcedTrainingRange.max, 'CAD').replace(/^CA\$/i, '$'),
+      sourceType: 'verified',
+      sourceLabel: 'Summed from sourced training cards'
+    })
+  } else {
+    trainingCostStack.push({
+      label: 'Starter certifications and training',
+      value: 'Confirm with provider',
+      badge: 'Needs data',
+      sourceType: 'estimate',
+      sourceLabel: 'No provider pricing is attached to this pathway yet'
+    })
+  }
+
+  if (hasOntarioExamFee) {
+    trainingCostStack.push({
+      label: 'Certifying exam fee',
+      value: '$150 + HST',
+      sourceType: 'verified',
+      sourceLabel: 'Skilled Trades Ontario certifying exam fee'
+    })
+  }
+
+  const heroTrainingCost = sourcedTrainingRange
+    ? formatCurrencyRange(
+        sourcedTrainingRange.min + (hasOntarioExamFee ? 150 : 0),
+        sourcedTrainingRange.max + (hasOntarioExamFee ? 150 : 0),
+        'CAD'
+      ).replace(/^CA\$/i, '$')
+    : hasOntarioExamFee
+      ? '$150+'
+      : 'Confirm with provider'
+  const heroTrainingCostSourceType: SourceType = sourcedTrainingRange || hasOntarioExamFee ? 'verified' : 'estimate'
+  const resourceCards = buildResourcesCards({
+    report: input.report,
+    pathwayProfile,
+    trainingCourses
+  })
 
   return {
     missingFields: missingFallbackFields,
@@ -1407,7 +2195,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     },
     summaryBar: {
       currentRole: roleCurrent,
-      targetRole: roleTarget,
+      targetRole: roleTargetDisplay,
       location: input.locationText.trim() || 'Not set',
       timeline: input.timelineBucket,
       skillsCount: input.skillsCount,
@@ -1415,8 +2203,13 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     },
     hero: {
       title: transitionLabel,
+      mappedPathLabel:
+        mappedTradePathLabel &&
+        cleanGeneratedLabel(mappedTradePathLabel).toLowerCase() !== cleanGeneratedLabel(roleTargetDisplay).toLowerCase()
+          ? `Mapped to Ontario pathway: ${mappedTradePathLabel}`
+          : undefined,
       insight:
-        input.report?.transitionStructuredPlan?.summary ||
+        sanitizePlannerCopy(input.report?.transitionStructuredPlan?.summary || '', careerPathType) ||
         'A realistic switch with strong upside. Your highest-leverage moves are completing credentials quickly and maintaining weekly outreach consistency.',
       scenarioModes: [
         { label: 'Fastest', active: true },
@@ -1433,9 +2226,11 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         value: timelineLabel,
         badge: missingFallbackFields.includes('hero.timeline') ? 'Estimate' : undefined,
         sourceType: missingFallbackFields.includes('hero.timeline') ? 'estimate' : 'derived',
-        sourceLabel: missingFallbackFields.includes('hero.timeline')
-          ? 'Timeline bucket estimate'
-          : 'Transition roadmap and requirements'
+        sourceLabel: isTradeApprenticeship
+          ? `Time to first field entry${fullQualificationWindow ? `; full qualification typically ${fullQualificationWindow}` : ''}`
+          : missingFallbackFields.includes('hero.timeline')
+            ? 'Timeline bucket estimate'
+            : 'Transition roadmap and requirements'
       },
       probability: {
         value: `${clampPercent(compatibilityScore)}%`,
@@ -1443,15 +2238,20 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         sourceLabel: 'Planner compatibility model'
       },
       trainingCost: {
-        value: estimateTrainingCost(input.report),
-        badge: sourceBadgeForType('estimate'),
-        sourceType: 'estimate',
+        value: heroTrainingCost,
+        badge:
+          heroTrainingCostSourceType === 'estimate'
+            ? 'Needs data'
+            : sourcedTrainingRange
+              ? undefined
+              : 'Estimate',
+        sourceType: heroTrainingCostSourceType,
         sourceLabel:
-          profileTrainingLinks.length > 0
-            ? 'Official training source coverage is partial; totals remain estimated'
-            : trainingNames.length > 0
-              ? 'Training requirement estimate'
-              : 'Certification count estimate'
+          sourcedTrainingRange
+            ? 'Summed from sourced training cards'
+            : hasOntarioExamFee
+              ? 'Skilled Trades Ontario certifying exam fee only'
+              : 'Confirm provider pricing for this pathway'
       },
       salaryPotential: {
         value: salaryPotential || 'Province wage data unavailable',
@@ -1468,60 +2268,54 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         : 'Estimated from overall compatibility score',
       items: difficultyItems,
       explanation:
-        input.report?.transitionMode?.difficulty?.why?.[0] ||
+        sanitizePlannerCopy(input.report?.transitionMode?.difficulty?.why?.[0] || '', careerPathType) ||
         'Biggest barrier is proving role-specific readiness quickly; biggest advantage is transferable execution discipline.',
       driverImpactRows,
       primaryBarrier:
-        required[0]?.label || 'Technical theory and certification sequencing are the slowest moving constraints.',
+        summarizeGapAction({
+          gapLabel: required[0]?.label || 'Technical theory and certification sequencing are the slowest moving constraints.',
+          targetDisplayRole: roleTargetDisplay,
+          locationText: input.locationText,
+          careerPathType,
+          isTradeApprenticeship,
+          whoHires,
+          entryRoles
+        }),
       coreAdvantage:
-        transferable[0]?.label || 'Operational reliability and shift discipline map well to employer expectations.'
+        sanitizePlannerCopy(transferable[0]?.label || '', careerPathType) ||
+        'Operational reliability and shift discipline map well to employer expectations.'
     },
     skillTransfer: {
       transferable,
       required,
-      largestGap: required[0]?.label || 'Role-specific technical evidence',
+      largestGap:
+        summarizeGapAction({
+          gapLabel: required[0]?.label || 'Role-specific technical evidence',
+          targetDisplayRole: roleTargetDisplay,
+          locationText: input.locationText,
+          careerPathType,
+          isTradeApprenticeship,
+          whoHires,
+          entryRoles
+        }) || 'Role-specific technical evidence',
       evidenceRequired
     },
     roadmap: {
-      phases: roadmapPhases
+      phases: displayRoadmapPhases
     },
     fastestPath: {
+      headline: tradeFastestPath?.headline || 'Shortest realistic route to first field entry',
       steps: fastestPath,
       strongestPath,
       tradeFacts
     },
     training: {
       courses: trainingCourses,
-      costStack: [
-        {
-          label: 'Training',
-          value: parsedTrainingCostRanges.length > 0
-            ? formatCurrencyRange(
-                parsedTrainingCostRanges.reduce((sum, range) => sum + range.min, 0),
-                parsedTrainingCostRanges.reduce((sum, range) => sum + range.max, 0),
-                'CAD'
-              )
-            : estimateTrainingCost(input.report),
-          badge: 'Estimate',
-          sourceType: 'estimate',
-          sourceLabel: 'Training card totals'
-        },
-        {
-          label: 'Tools and PPE',
-          value: '$250-$750',
-          badge: 'Estimate',
-          sourceType: 'estimate',
-          sourceLabel: 'Trade starter-cost estimate'
-        },
-        {
-          label: 'Exam and admin fees',
-          value: '$75-$250',
-          badge: 'Estimate',
-          sourceType: 'estimate',
-          sourceLabel: 'Province fee estimate'
-        }
-      ],
+      costStack: trainingCostStack,
       tradeFacts
+    },
+    resources: {
+      cards: resourceCards
     },
     marketSnapshot: {
       entryWage: {
@@ -1563,7 +2357,11 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         (entryWage || midWage || topEarners ? 'Regional wage dataset' : 'Regional estimate'),
       demandSourceLabel:
         marketSnapshot?.summaryLine || hiringReqCount > 0
-          ? 'Employer evidence'
+          ? isTradeApprenticeship
+            ? tradeTargetStage === 'apprentice'
+              ? 'Employer evidence across apprentice-entry and trade-family roles'
+              : 'Employer evidence across trade-family roles'
+            : 'Employer evidence'
           : 'Needs stronger source coverage'
     },
     outreach: {
@@ -1580,9 +2378,11 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         value: timelineLabel,
         badge: missingFallbackFields.includes('hero.timeline') ? 'Estimate' : undefined,
         sourceType: missingFallbackFields.includes('hero.timeline') ? 'estimate' : 'derived',
-        sourceLabel: missingFallbackFields.includes('hero.timeline')
-          ? 'Timeline bucket estimate'
-          : 'Transition roadmap and requirements'
+        sourceLabel: isTradeApprenticeship
+          ? `Time to first field entry${fullQualificationWindow ? `; full qualification typically ${fullQualificationWindow}` : ''}`
+          : missingFallbackFields.includes('hero.timeline')
+            ? 'Timeline bucket estimate'
+            : 'Transition roadmap and requirements'
       },
       competitionLevel: {
         value:
@@ -1593,7 +2393,9 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         sourceLabel: probabilityRealityCheck?.difficulty ? 'Execution strategy assessment' : 'Planner estimate'
       },
       financialTradeoff: {
-        value: reality?.barriers?.[0] || 'Short-term income tradeoff may be required while you build entry evidence.',
+        value:
+          sanitizePlannerCopy(reality?.barriers?.[0] || '', careerPathType) ||
+          'Short-term income tradeoff may be required while you build entry evidence.',
         badge: !reality?.barriers?.[0] ? 'Estimate' : undefined,
         sourceType: reality?.barriers?.[0] ? 'derived' : 'estimate',
         sourceLabel: reality?.barriers?.[0] ? 'Transition reality analysis' : 'Planner estimate'
@@ -1657,8 +2459,12 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       timeline: timelineLabel,
       nextSteps: roadmapTasks.filter((task) => !task.checked).map((task) => task.label).slice(0, 4),
       nextBestAction:
-        input.report?.bottleneck?.nextAction ||
-        input.report?.transitionMode?.gaps?.first3Steps?.[0] ||
+        sanitizePlannerCopy(
+          input.report?.bottleneck?.nextAction ||
+            input.report?.transitionMode?.gaps?.first3Steps?.[0] ||
+            '',
+          careerPathType
+        ) ||
         'Follow up with 5 warm employers this week and log outcomes.',
       progressToOffer: weightedPercent
     },
@@ -1675,12 +2481,18 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         `Difficulty and probability: ${hasDifficultyBreakdownSource ? 'planner compatibility breakdown' : 'derived planner estimate'}`,
         `Wages: ${effectiveWageSource?.sourceName?.trim() || 'regional wage estimate'}`,
         `Demand and hiring requirements: ${
-          marketSnapshot?.summaryLine || hiringReqCount > 0 ? 'employer evidence' : 'limited source coverage'
+          marketSnapshot?.summaryLine || hiringReqCount > 0
+            ? isTradeApprenticeship
+              ? tradeTargetStage === 'apprentice'
+                ? 'employer evidence across apprentice-entry and trade-family roles'
+                : 'employer evidence across trade-family roles'
+              : 'employer evidence'
+            : 'limited source coverage'
         }`,
         `Training recommendations: ${
-          profileTrainingLinks.length > 0
-            ? 'official training links with provider confirmation still needed'
-            : trainingNames.length > 0
+          trainingCourses.some((course) => course.sourceType === 'verified')
+            ? 'official or provider-backed training sources'
+            : trainingCourses.some((course) => course.sourceType === 'derived')
               ? 'target requirements with provider confirmation needed'
               : 'estimated from target requirements'
         }`

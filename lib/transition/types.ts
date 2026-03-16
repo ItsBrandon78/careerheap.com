@@ -9,6 +9,13 @@ export type PlanTemplateKey =
   | 'experience_ladder_role'
   | 'general_role'
 
+export type CareerPathType =
+  | 'TRADES'
+  | 'HEALTHCARE_LICENSED'
+  | 'PROFESSIONAL_LICENSED'
+  | 'TECH'
+  | 'GENERAL'
+
 export const TransitionRouteSchema = z
   .object({
     title: z.string().min(1),
@@ -66,6 +73,21 @@ export const TransitionDefinitionsSchema = z.record(z.string(), z.string())
 
 export const TransitionModeSchema = z
   .object({
+    careerPathType: z.enum([
+      'TRADES',
+      'HEALTHCARE_LICENSED',
+      'PROFESSIONAL_LICENSED',
+      'TECH',
+      'GENERAL'
+    ]),
+    templateKey: z.enum([
+      'regulated_trade',
+      'regulated_profession',
+      'credentialed_role',
+      'portfolio_role',
+      'experience_ladder_role',
+      'general_role'
+    ]),
     definitions: TransitionDefinitionsSchema.optional(),
     difficulty: z
       .object({
@@ -342,6 +364,7 @@ export type TransitionPlanContext = {
   education: string
   incomeTarget: string
   report: PlannerReportSource
+  careerPathType: CareerPathType
   templateKey: PlanTemplateKey
   relationship: TransitionRelationship
   currentResolution: OccupationResolutionSummary | null

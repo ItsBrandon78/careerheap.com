@@ -35,6 +35,34 @@ function MetricFallbackPill({
   )
 }
 
+function isLongMetricLayout(
+  label: string,
+  metric: DashboardFallbackValue<string>
+) {
+  if (!metric.badge) return false
+  if (label === 'Salary Potential' || label === 'Training Cost') return true
+  return metric.value.length > 14 || /\s/.test(metric.value)
+}
+
+function formatMetricDisplay(
+  label: string,
+  metric: DashboardFallbackValue<string>
+) {
+  const rawValue = metric.value.replace(/CA\$/gi, '$').replace(/-\$/g, '-')
+
+  if (label === 'Training Cost' && metric.sourceType === 'estimate' && !/\$|\d/.test(rawValue)) {
+    return {
+      value: 'Est.',
+      showBadge: false
+    }
+  }
+
+  return {
+    value: rawValue,
+    showBadge: Boolean(metric.badge)
+  }
+}
+
 export function PlannerCommandCenter({
   hero,
   selectedScenario,
@@ -69,20 +97,27 @@ export function PlannerCommandCenter({
   ] as const
 
   return (
-    <Card className="!rounded-2xl !border-border-light bg-surface p-7 shadow-card">
-      <div className="flex flex-col gap-[14px]">
+    <Card className="!rounded-2xl !border-border-light bg-surface px-6 pt-6 pb-4 shadow-card">
+      <div className="flex flex-col gap-3">
         <p className="text-[11px] font-semibold tracking-[0.6px] text-text-secondary">Command Center</p>
-        <div className="flex w-full flex-col gap-2">
-          <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-accent">Transition Focus</p>
-          <h2 className="w-full whitespace-pre-line text-3xl font-bold leading-[1.08] text-text-primary md:text-[40px]">
-            {hero.title
-              .replace(' \u2192 ', ' \u2192\n')
-              .replace(' -> ', ' \u2192\n')
-              .replace(/\s+to\s+/i, ' \u2192\n')}
-          </h2>
-          <p className="w-full max-w-[80ch] text-[15px] font-medium leading-[1.55] text-text-secondary">
-            {hero.insight}
-          </p>
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex w-full flex-col gap-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.6px] text-accent">Transition Focus</p>
+            <h2 className="w-full whitespace-pre-line text-3xl font-bold leading-[1.08] text-text-primary md:text-[40px]">
+              {hero.title
+                .replace(' \u2192 ', ' \u2192\n')
+                .replace(' -> ', ' \u2192\n')
+                .replace(/\s+to\s+/i, ' \u2192\n')}
+            </h2>
+            {hero.mappedPathLabel ? (
+              <p className="w-full max-w-[80ch] text-[12px] font-semibold leading-[1.5] text-text-tertiary">
+                {hero.mappedPathLabel}
+              </p>
+            ) : null}
+            <p className="w-full max-w-[80ch] text-[15px] font-medium leading-[1.55] text-text-secondary">
+              {hero.insight}
+            </p>
+          </div>
           <div className="flex flex-wrap gap-2">
             {hero.scenarioModes.map((mode, idx) => (
               <button
@@ -102,11 +137,10 @@ export function PlannerCommandCenter({
             ))}
           </div>
         </div>
-        <div className="grid w-full grid-cols-2 gap-[10px] lg:[grid-template-columns:repeat(5,168px)] lg:justify-between">
+        <div className="grid w-full grid-cols-2 gap-[10px] lg:grid-cols-5">
           {metrics.map((item, idx) => {
-            const isSalaryEstimate =
-              item.label === 'Salary Potential' && item.metric.badge === 'Estimate'
-            const displayValue = isSalaryEstimate ? item.metric.value.replace(/-\$/g, '-') : item.metric.value
+            const useLongMetricLayout = isLongMetricLayout(item.label, item.metric)
+            const { value: displayValue, showBadge } = formatMetricDisplay(item.label, item.metric)
 
             return (
               <div
@@ -116,19 +150,19 @@ export function PlannerCommandCenter({
                 <p className="text-[11px] font-semibold leading-none tracking-[0.45px] text-text-secondary">
                   {item.label}
                 </p>
-                <div className={`flex ${isSalaryEstimate ? 'flex-col items-start gap-1' : 'items-end gap-1'}`}>
+                <div className={`flex ${useLongMetricLayout ? 'flex-col items-start gap-1' : 'items-end gap-1'}`}>
                   <p
                     className={`min-w-0 ${
-                      isSalaryEstimate
+                      useLongMetricLayout
                         ? 'whitespace-normal break-words text-[17px] leading-[1.05]'
                         : 'flex-1 whitespace-nowrap text-[20px] leading-[1.1]'
                     } font-bold tracking-[-0.01em] ${item.valueClass}`}
                   >
                     {displayValue}
                   </p>
-                  {item.metric.badge ? (
+                  {showBadge ? (
                     <div className="shrink-0">
-                      <MetricFallbackPill value={item.metric} compact={isSalaryEstimate} />
+                      <MetricFallbackPill value={item.metric} compact={useLongMetricLayout} />
                     </div>
                   ) : null}
                 </div>

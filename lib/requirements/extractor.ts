@@ -62,7 +62,11 @@ const NAMED_GATE_PATTERNS: Array<{ pattern: RegExp; name: (match: RegExpMatchArr
   { pattern: /\bcsts\b/gi, name: () => 'CSTS certification' },
   { pattern: /\bfirst aid\b/gi, name: () => 'First Aid certification' },
   { pattern: /\b(?:cpr\/bls|cpr|bls|acls)\b/gi, name: (match) => `${match[0].toUpperCase()} certification` },
+  { pattern: /\bcpnre\b/gi, name: () => 'CPNRE pass status' },
   { pattern: /\bnclex(?:-rn)?\b/gi, name: (match) => `${match[0].toUpperCase()} pass status` },
+  { pattern: /\b(college of nurses of ontario|cno)\b/gi, name: () => 'CNO registration' },
+  { pattern: /\b(cpa(?:\s+[a-z]+)?|chartered professional accountant)\b/gi, name: () => 'CPA designation' },
+  { pattern: /\b(peng|p\.eng|professional engineer)\b/gi, name: () => 'P.Eng. registration' },
   { pattern: /\bsecurity clearance\b/gi, name: () => 'security clearance' },
   { pattern: /\b(food handler|servsafe|haccp)\b/gi, name: (match) => `${match[1]} certification` },
   {
@@ -276,6 +280,15 @@ function gateLabels(segment: string) {
   const policy = canonicalizePolicyGateLabel(segment)
   if (policy) return [policy]
 
+  if (/cpnre/i.test(segment)) {
+    return ['Pass the CPNRE exam before role entry']
+  }
+  if (/nclex(?:-rn)?/i.test(segment)) {
+    return ['Pass the NCLEX-RN exam before role entry']
+  }
+  if (/\b(college of nurses of ontario|cno)\b/i.test(segment) && /registration/i.test(segment)) {
+    return ['Complete CNO registration before role entry']
+  }
   if (/security clearance/i.test(segment)) {
     return ['Obtain required security clearance for role eligibility']
   }

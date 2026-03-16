@@ -55,6 +55,10 @@ const PHONE_PATTERN =
 const ADDRESS_PATTERN = /\b(?:street|st\.|avenue|ave\.|road|rd\.|drive|dr\.|boulevard|blvd\.|lane|ln\.)\b/i
 const TITLE_CASE_NAME_PATTERN =
   /^(?:[A-Z][a-z]+(?:[A-Z][a-z]+)*)(?:\s+[A-Z][a-z]+(?:[A-Z][a-z]+)*){1,2}$/
+const ORGANIZATION_SUFFIX_PATTERN =
+  /\b(?:inc|corp|corporation|ltd|limited|llc|plc|university|college|hospital|clinic|school)\b/i
+const PERSONAL_NAME_FRAGMENT_PATTERN =
+  /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b/
 
 function cleanWhitespace(value: string) {
   return value.trim().replace(/\s+/g, ' ')
@@ -115,6 +119,12 @@ export function isPersonalIdentifier(value: string) {
   if (EMAIL_PATTERN.test(trimmed) || URL_PATTERN.test(trimmed) || PHONE_PATTERN.test(trimmed)) return true
   if (ADDRESS_PATTERN.test(trimmed)) return true
   if (TITLE_CASE_NAME_PATTERN.test(trimmed)) return true
+  if (
+    PERSONAL_NAME_FRAGMENT_PATTERN.test(trimmed) &&
+    (trimmed.includes('|') || ORGANIZATION_SUFFIX_PATTERN.test(trimmed))
+  ) {
+    return true
+  }
   if (LOCATION_LINE_PATTERN.test(trimmed) && trimmed.split(/\s+/).length <= 4) return true
   return false
 }
@@ -153,6 +163,8 @@ function normalizeSkill(value: string) {
   const cleaned = sanitizeLine(value)
   if (!cleaned || isPersonalIdentifier(cleaned)) return ''
   if (cleaned.length < 3) return ''
+  if (cleaned.split(/\s+/).length > 6) return ''
+  if (/[|]/.test(cleaned)) return ''
   return titleCase(cleaned)
 }
 

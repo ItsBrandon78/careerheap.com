@@ -58,6 +58,12 @@ interface RoleSelectionPrompt {
   }>
 }
 
+function roleMatchStrengthLabel(confidence: number) {
+  if (confidence >= 0.9) return 'Exact'
+  if (confidence >= 0.75) return 'Close'
+  return 'Broad'
+}
+
 interface PlannerIntakeWizardProps {
   activeWizardStep: WizardStep
   wizardSteps: Array<{ id: WizardStep; title: string; eyebrow: string; helper: string }>
@@ -747,7 +753,7 @@ export function PlannerIntakeWizard({
                     </span>
                   ) : null}
                 </span>
-                <span className="text-xs text-text-tertiary">{option.confidence.toFixed(2)}</span>
+                <span className="text-xs text-text-tertiary">{roleMatchStrengthLabel(option.confidence)}</span>
               </button>
             ))}
           </div>

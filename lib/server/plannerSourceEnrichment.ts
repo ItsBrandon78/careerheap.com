@@ -1,8 +1,9 @@
 import type { CareerPathwayProfile } from '@/lib/career-pathway/schema'
+import type { CareerPathType } from '@/lib/transition/types'
 import { getCareerPathwayProfile } from '@/lib/server/careerPathwayProfiles'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-type SourceType = 'verified' | 'estimate'
+type SourceType = 'verified' | 'estimate' | 'derived'
 
 type TrainingCard = {
   name: string
@@ -10,6 +11,14 @@ type TrainingCard = {
   length?: string | null
   cost?: string | null
   modality?: string | null
+  sourceUrl?: string | null
+  sourceLabel: string
+  sourceType: SourceType
+}
+
+type CertificationCard = {
+  name: string
+  provider: string
   sourceUrl?: string | null
   sourceLabel: string
   sourceType: SourceType
@@ -27,6 +36,13 @@ type WageFallback = {
   sourceType: SourceType
 }
 
+type EntryRoleSuggestion = {
+  title: string
+  sourceUrl?: string | null
+  sourceLabel: string
+  sourceType: SourceType
+}
+
 type TradeFacts = {
   tradeCode?: string | null
   totalHours?: number | null
@@ -40,11 +56,15 @@ type TradeFacts = {
 
 export type PlannerSourceEnrichment = {
   trainingCards: TrainingCard[]
+  certificationCards: CertificationCard[]
   wageFallback: WageFallback | null
   tradeFacts?: TradeFacts | null
+  entryRoles: EntryRoleSuggestion[]
   sourcePath: {
     training: 'table' | 'curated_profile' | 'web_search' | 'none'
     wage: 'table' | 'curated_profile' | 'web_search' | 'none'
+    entryRoles: 'table' | 'curated_profile' | 'web_search' | 'none'
+    certifications: 'table' | 'curated_profile' | 'web_search' | 'none'
   }
   cache: {
     hit: boolean
@@ -55,6 +75,20 @@ export type PlannerSourceEnrichment = {
 type EnrichmentArgs = {
   report: {
     careerPathwayProfile?: CareerPathwayProfile | null
+    targetRequirements?: {
+      certifications?: string[] | null
+      hardGates?: string[] | null
+    } | null
+    transitionReport?: {
+      marketSnapshot?: {
+        topRequirements?: Array<{ label?: string | null }> | null
+      } | null
+      mustHaves?: Array<{ label?: string | null }> | null
+    } | null
+    transitionStructuredPlan?: {
+      required_certifications?: string[] | null
+      requiredCertifications?: string[] | null
+    } | null
     suggestedCareers?: Array<{
       salary?: {
         native?: {
@@ -73,6 +107,8 @@ type EnrichmentArgs = {
   location: string
   currentRole?: string
   targetRole: string
+  canonicalRoleKey?: string | null
+  careerPathType?: CareerPathType | null
 }
 
 async function getEffectiveProfile(args: EnrichmentArgs) {
@@ -86,6 +122,11 @@ async function getEffectiveProfile(args: EnrichmentArgs) {
 const MODEL_DEFAULT = 'gpt-4.1-mini'
 const OFFICIAL_FETCH_TIMEOUT_MS = 9000
 const CACHE_TTL_HOURS = Number.parseInt(process.env.PLANNER_SOURCE_ENRICHMENT_TTL_HOURS?.trim() || '168', 10)
+const THIN_COVERAGE_TTL_HOURS = Number.parseInt(
+  process.env.PLANNER_SOURCE_ENRICHMENT_THIN_TTL_HOURS?.trim() || '6',
+  10
+)
+const ENRICHMENT_CACHE_SCHEMA_VERSION = 'v4-certification-enrichment-expanded'
 const snippetCache = new Map<string, string>()
 const enrichmentCache = new Map<string, PlannerSourceEnrichment>()
 
@@ -157,6 +198,46 @@ function providerNameFromUrl(url: string) {
 
 function cleanText(value: string) {
   return value.replace(/\s+/g, ' ').trim()
+}
+
+function normalizeCachedEnrichment(payload: Partial<PlannerSourceEnrichment> | null | undefined): PlannerSourceEnrichment {
+  return {
+    trainingCards: Array.isArray(payload?.trainingCards) ? payload.trainingCards : [],
+    certificationCards: Array.isArray(payload?.certificationCards) ? payload.certificationCards : [],
+    wageFallback: payload?.wageFallback ?? null,
+    tradeFacts: payload?.tradeFacts ?? null,
+    entryRoles: Array.isArray(payload?.entryRoles)
+      ? payload.entryRoles
+          .filter(
+            (item): item is EntryRoleSuggestion =>
+              Boolean(item) && typeof item === 'object' && typeof (item as { title?: unknown }).title === 'string'
+          )
+          .slice(0, 3)
+      : [],
+    sourcePath: {
+      training: payload?.sourcePath?.training ?? 'none',
+      wage: payload?.sourcePath?.wage ?? 'none',
+      entryRoles: payload?.sourcePath?.entryRoles ?? 'none',
+      certifications: payload?.sourcePath?.certifications ?? 'none'
+    },
+    cache: {
+      hit: Boolean(payload?.cache?.hit),
+      expiresAt: payload?.cache?.expiresAt ?? null
+    }
+  }
+}
+
+function hasThinCoverage(enrichment: PlannerSourceEnrichment) {
+  const noTraining = !Array.isArray(enrichment.trainingCards) || enrichment.trainingCards.length === 0
+  const noCertifications =
+    !Array.isArray(enrichment.certificationCards) || enrichment.certificationCards.length === 0
+  const noEntryRoles = !Array.isArray(enrichment.entryRoles) || enrichment.entryRoles.length === 0
+  const sourceNone =
+    enrichment.sourcePath.training === 'none' &&
+    enrichment.sourcePath.certifications === 'none' &&
+    enrichment.sourcePath.entryRoles === 'none'
+
+  return noTraining && noCertifications && noEntryRoles && sourceNone
 }
 
 function toSnippet(html: string) {
@@ -351,7 +432,16 @@ async function callResponsesWebSearchJson<T>(args: {
     })
   })
 
-  if (!response.ok) return null
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '')
+    const compactError = errorText.replace(/\s+/g, ' ').slice(0, 240)
+    console.warn('[planner-source-enrichment] web_search_failed', {
+      status: response.status,
+      schemaName: args.schemaName,
+      detail: compactError || 'no_error_body'
+    })
+    return null
+  }
   const payload = await response.json()
   const text = extractResponseText(payload)
   if (!text) return null
@@ -480,6 +570,357 @@ async function callWageWebSearch(args: {
   return result?.wage ?? null
 }
 
+const ENTRY_ROLE_PATTERNS: Array<{ pattern: RegExp; title: string }> = [
+  { pattern: /\bindustrial maintenance helper\b/i, title: 'Industrial Maintenance Helper' },
+  { pattern: /\belectrical labourer\b|\belectrical laborer\b/i, title: 'Electrical Labourer' },
+  { pattern: /\belectrical helper\b/i, title: 'Electrical Helper' },
+  { pattern: /\bmaintenance technician\b/i, title: 'Maintenance Technician' },
+  { pattern: /\bmaintenance helper\b/i, title: 'Maintenance Helper' },
+  { pattern: /\bmaintenance assistant\b/i, title: 'Maintenance Assistant' },
+  { pattern: /\bautomation technician assistant\b/i, title: 'Automation Technician Assistant' },
+  { pattern: /\bpre[- ]apprentice\b/i, title: 'Pre-Apprentice' },
+  { pattern: /\bapprentice[- ]entry\b/i, title: 'Apprentice Entry Role' },
+  { pattern: /\bhelper\b/i, title: 'Helper' },
+  { pattern: /\blabourer\b|\blaborer\b/i, title: 'Labourer' }
+]
+
+function uniqueCertificationCards(items: CertificationCard[]) {
+  const seen = new Set<string>()
+  const output: CertificationCard[] = []
+  for (const item of items) {
+    const key = cleanText(String(item.name ?? ''))
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    output.push({
+      name: cleanText(item.name),
+      provider: cleanText(item.provider || 'Official requirement source'),
+      sourceUrl: item.sourceUrl ?? null,
+      sourceLabel: cleanText(item.sourceLabel || 'Official source'),
+      sourceType: item.sourceType
+    })
+  }
+  return output
+}
+
+function deriveCertificationCardsFromProfile(profile: CareerPathwayProfile | null): CertificationCard[] {
+  if (!profile) return []
+
+  const starterBundle = Array.isArray(profile.requirements?.starter_cert_bundle)
+    ? profile.requirements.starter_cert_bundle
+    : []
+
+  const starterItems: CertificationCard[] = starterBundle
+    .map((item) => ({
+      name: cleanText(String(item?.name ?? '')),
+      provider: cleanText(String(item?.provider ?? 'Official requirement source')),
+      sourceUrl: item?.source_url ?? null,
+      sourceLabel: cleanText(String(item?.source_title ?? 'Career pathway profile')),
+      sourceType: 'verified' as const
+    }))
+    .filter((item) => item.name)
+
+  const mustHave = Array.isArray(profile.requirements?.must_have) ? profile.requirements.must_have : []
+  const mustHaveItems: CertificationCard[] = mustHave
+    .filter((item) =>
+      /certif|licen[cs]e|registration|exam|permit|accredit/i.test(String(item?.type ?? '')) ||
+      /certif|licen[cs]e|registration|exam|permit|accredit/i.test(String(item?.name ?? ''))
+    )
+    .map((item) => {
+      const record = item as Record<string, unknown>
+      return {
+        name: cleanText(String(record.name ?? '')),
+        provider: cleanText(String(record.provider ?? 'Official requirement source')),
+        sourceUrl: typeof record.source_url === 'string' ? record.source_url : null,
+        sourceLabel: cleanText(String(record.source_title ?? 'Career pathway profile')),
+        sourceType: 'verified' as const
+      }
+    })
+    .filter((item) => item.name)
+
+  return uniqueCertificationCards([...starterItems, ...mustHaveItems]).slice(0, 5)
+}
+
+const GENERIC_CERTIFICATION_LINES = [
+  /confirm regional licensing and certification requirements before applying/i,
+  /obtain required certification with active status/i,
+  /required certification/i,
+  /licensing and certification requirements/i
+]
+
+function isCertificationSignal(value: string) {
+  return /\b(certif|licen[cs]e|registration|exam|permit|clearance|accredit|cpr|bls|acls|whmis|loto|first aid|safety|board|designation)\b/i.test(
+    value
+  )
+}
+
+function isGenericCertificationLine(value: string) {
+  return GENERIC_CERTIFICATION_LINES.some((pattern) => pattern.test(value))
+}
+
+function certificationSignalNamesFromText(value: string) {
+  const normalized = cleanText(value)
+  if (!normalized) return []
+
+  const signals: string[] = []
+  const push = (item: string) => {
+    const cleaned = cleanText(item)
+    if (!cleaned) return
+    if (signals.some((existing) => existing.toLowerCase() === cleaned.toLowerCase())) return
+    signals.push(cleaned)
+  }
+
+  if (/\bwhmis\b/i.test(normalized)) push('WHMIS')
+  if (/\bworking at heights?\b/i.test(normalized)) push('Working at Heights')
+  if (/\b(first aid|standard first aid)\b/i.test(normalized)) push('Standard First Aid')
+  if (/\bcpr\b/i.test(normalized)) push('CPR')
+  if (/\bbls\b/i.test(normalized)) push('BLS')
+  if (/\bacls\b/i.test(normalized)) push('ACLS')
+  if (/\bnclex(?:-rn)?\b/i.test(normalized)) push('NCLEX-RN')
+  if (/\bcpnre\b/i.test(normalized)) push('CPNRE')
+  if (/\bred seal\b/i.test(normalized)) push('Red Seal certification')
+
+  const tradeCodeMatch = normalized.match(/\b(\d{3}[a-z])\b/i)
+  if (tradeCodeMatch?.[1]) push(`${tradeCodeMatch[1].toUpperCase()} trade certification`)
+
+  const boardRegistrationMatch = normalized.match(/\b([a-z][a-z&/.\-\s]{2,70})\s+registration\b/i)
+  if (boardRegistrationMatch?.[1]) {
+    const body = cleanText(boardRegistrationMatch[1]).replace(/^with\s+/i, '')
+    if (body && body.length < 60) push(`${body} registration`)
+  }
+
+  return signals.slice(0, 5)
+}
+
+function deriveCertificationCardsFromReport(report: EnrichmentArgs['report']) {
+  const targetRequirements = report.targetRequirements ?? null
+  const transitionReport = report.transitionReport ?? null
+  const transitionStructuredPlan = report.transitionStructuredPlan ?? null
+  const marketTopRequirements = Array.isArray(transitionReport?.marketSnapshot?.topRequirements)
+    ? transitionReport.marketSnapshot.topRequirements
+    : []
+  const mustHaves = Array.isArray(transitionReport?.mustHaves) ? transitionReport.mustHaves : []
+  const structuredPlanCertifications = [
+    ...(Array.isArray(transitionStructuredPlan?.required_certifications)
+      ? transitionStructuredPlan.required_certifications
+      : []),
+    ...(Array.isArray(transitionStructuredPlan?.requiredCertifications)
+      ? transitionStructuredPlan.requiredCertifications
+      : [])
+  ]
+
+  const candidates = uniqueCertificationCards(
+    [
+      ...(Array.isArray(targetRequirements?.certifications) ? targetRequirements.certifications : []).map((item) => ({
+        name: cleanText(String(item ?? '')),
+        provider: 'Employer evidence',
+        sourceUrl: null,
+        sourceLabel: 'Employer evidence',
+        sourceType: 'derived' as const
+      })),
+      ...(Array.isArray(targetRequirements?.hardGates) ? targetRequirements.hardGates : []).map((item) => ({
+        name: cleanText(String(item ?? '')),
+        provider: 'Employer evidence',
+        sourceUrl: null,
+        sourceLabel: 'Employer evidence',
+        sourceType: 'derived' as const
+      })),
+      ...marketTopRequirements.map((item) => ({
+        name: cleanText(String(item?.label ?? '')),
+        provider: 'Employer evidence',
+        sourceUrl: null,
+        sourceLabel: 'Employer evidence',
+        sourceType: 'derived' as const
+      })),
+      ...mustHaves.map((item) => ({
+        name: cleanText(String(item?.label ?? '')),
+        provider: 'Employer evidence',
+        sourceUrl: null,
+        sourceLabel: 'Employer evidence',
+        sourceType: 'derived' as const
+      })),
+      ...structuredPlanCertifications.map((item) => ({
+        name: cleanText(String(item ?? '')),
+        provider: 'Plan synthesis',
+        sourceUrl: null,
+        sourceLabel: 'Structured plan requirements',
+        sourceType: 'derived' as const
+      })),
+      ...[
+        ...(Array.isArray(targetRequirements?.certifications) ? targetRequirements.certifications : []),
+        ...(Array.isArray(targetRequirements?.hardGates) ? targetRequirements.hardGates : []),
+        ...marketTopRequirements.map((item) => String(item?.label ?? '')),
+        ...mustHaves.map((item) => String(item?.label ?? '')),
+        ...structuredPlanCertifications
+      ]
+        .flatMap((item) => certificationSignalNamesFromText(String(item ?? '')))
+        .map((item) => ({
+          name: item,
+          provider: 'Requirement signal',
+          sourceUrl: null,
+          sourceLabel: 'Requirement signal extraction',
+          sourceType: 'derived' as const
+        }))
+    ].filter((item) => item.name)
+  )
+
+  return candidates
+    .filter((item) => isCertificationSignal(item.name) && !isGenericCertificationLine(item.name))
+    .slice(0, 5)
+}
+
+function deriveEntryRolesFromProfile(profile: CareerPathwayProfile | null) {
+  if (!profile || !Array.isArray(profile.entry_paths)) return []
+  const searchText = profile.entry_paths
+    .flatMap((entryPath) => (Array.isArray(entryPath?.steps) ? entryPath.steps : []))
+    .map((step) => cleanText(String(step ?? '')))
+    .join(' \n ')
+
+  const sourceUrl =
+    profile.resources?.job_search?.[0]?.url ??
+    profile.resources?.official?.[0]?.url ??
+    profile.resources?.training?.[0]?.url ??
+    null
+  const sourceLabel =
+    profile.resources?.job_search?.[0]?.title ??
+    profile.resources?.official?.[0]?.title ??
+    profile.resources?.training?.[0]?.title ??
+    'Career pathway profile'
+
+  return ENTRY_ROLE_PATTERNS.filter((item) => item.pattern.test(searchText))
+    .map((item) => ({
+      title: item.title,
+      sourceUrl,
+      sourceLabel,
+      sourceType: 'verified' as const
+    }))
+    .slice(0, 3)
+}
+
+async function callEntryRoleWebSearch(args: {
+  targetRole: string
+  province: string
+}) {
+  const result = await callResponsesWebSearchJson<{
+    items: Array<{
+      title: string
+      sourceUrl: string
+      sourceLabel: string
+    }>
+  }>({
+    task: 'Find realistic entry-role job titles people use to enter this trade or role in the selected province.',
+    schemaName: 'planner_entry_role_web_search',
+    schema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        items: {
+          type: 'array',
+          maxItems: 3,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              title: { type: 'string' },
+              sourceUrl: { type: 'string' },
+              sourceLabel: { type: 'string' }
+            },
+            required: ['title', 'sourceUrl', 'sourceLabel']
+          }
+        }
+      },
+      required: ['items']
+    },
+    input: {
+      hard_rules: [
+        'Prefer provincial apprenticeship pages, Job Bank, unions, regulators, or employer career pages.',
+        'Return entry door job titles only, not generic advice sentences.',
+        'Do not invent job titles. Every title must be supported by a source page.',
+        'Do not use Reddit, forums, or blogs.'
+      ],
+      province: args.province,
+      target_role: args.targetRole
+    }
+  })
+
+  if (!result?.items?.length) return null
+  return result.items
+    .filter((item) => item.title && item.sourceUrl)
+    .slice(0, 3)
+    .map((item) => ({
+      title: cleanText(item.title),
+      sourceUrl: item.sourceUrl,
+      sourceLabel: item.sourceLabel,
+      sourceType: 'verified' as const
+    }))
+}
+
+async function callCertificationWebSearch(args: {
+  targetRole: string
+  province: string
+  careerPathType?: CareerPathType | null
+}) {
+  const result = await callResponsesWebSearchJson<{
+    items: Array<{
+      name: string
+      provider: string
+      sourceUrl: string
+      sourceLabel: string
+    }>
+  }>({
+    task: 'Find role-relevant certifications or licensing checkpoints for this target role and province from official sources.',
+    schemaName: 'planner_certification_web_search',
+    schema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        items: {
+          type: 'array',
+          maxItems: 5,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              name: { type: 'string' },
+              provider: { type: 'string' },
+              sourceUrl: { type: 'string' },
+              sourceLabel: { type: 'string' }
+            },
+            required: ['name', 'provider', 'sourceUrl', 'sourceLabel']
+          }
+        }
+      },
+      required: ['items']
+    },
+    input: {
+      hard_rules: [
+        'Prefer official provincial government, regulator, licensing body, apprenticeship authority, or official college/training pages.',
+        'Do not invent certifications, providers, or links.',
+        'Do not use Reddit, forums, or blogs.',
+        'Return concise certification/checkpoint names only.'
+      ],
+      province: args.province,
+      target_role: args.targetRole,
+      career_path_type: args.careerPathType ?? 'GENERAL'
+    }
+  })
+
+  if (!result?.items?.length) return null
+  return uniqueCertificationCards(
+    result.items
+      .filter((item) => item.name && item.sourceUrl)
+      .map((item) => ({
+        name: cleanText(item.name),
+        provider: cleanText(item.provider || 'Official requirement source'),
+        sourceUrl: item.sourceUrl,
+        sourceLabel: cleanText(item.sourceLabel || 'Official source'),
+        sourceType: 'verified' as const
+      }))
+  ).slice(0, 5)
+}
+
 function deterministicTrainingFallback(profile: CareerPathwayProfile) {
   const links = profile.resources.training.slice(0, 3)
   const employableWindow =
@@ -525,6 +966,92 @@ async function resolveTrainingCards(args: EnrichmentArgs) {
   return {
     items: webSearchItems ?? [],
     sourcePath: webSearchItems && webSearchItems.length > 0 ? ('web_search' as const) : ('none' as const)
+  }
+}
+
+async function resolveEntryRoles(args: EnrichmentArgs) {
+  if (args.careerPathType && args.careerPathType !== 'TRADES') {
+    return { items: [], sourcePath: 'none' as const }
+  }
+
+  const profile = await getEffectiveProfile(args)
+  const province = inferProvinceCode(args.location) ?? profile?.meta.jurisdiction.region ?? 'CA'
+  const profileEntryRoles = deriveEntryRolesFromProfile(profile)
+  if (profileEntryRoles.length > 0) {
+    return { items: profileEntryRoles, sourcePath: 'curated_profile' as const }
+  }
+
+  const webSearchItems = await callEntryRoleWebSearch({
+    targetRole: args.targetRole,
+    province
+  })
+  return {
+    items: webSearchItems ?? [],
+    sourcePath: webSearchItems && webSearchItems.length > 0 ? ('web_search' as const) : ('none' as const)
+  }
+}
+
+async function resolveCertificationCards(args: EnrichmentArgs) {
+  const reportDerivedCards = deriveCertificationCardsFromReport(args.report)
+  const profile = await getEffectiveProfile(args)
+  const province = inferProvinceCode(args.location) ?? profile?.meta.jurisdiction.region ?? 'CA'
+  const existingCertifications = uniqueCertificationCards([
+    ...reportDerivedCards,
+    ...(Array.isArray(args.report?.targetRequirements?.certifications)
+      ? args.report.targetRequirements.certifications
+          .map((item) => cleanText(String(item ?? '')))
+          .filter((item) => item && isCertificationSignal(item) && !isGenericCertificationLine(item))
+          .map((name) => ({
+            name,
+            provider: 'Target requirement source',
+            sourceUrl: null,
+            sourceLabel: 'Employer or requirement evidence',
+            sourceType: 'derived' as const
+          }))
+      : [])
+  ])
+  const profileCards = deriveCertificationCardsFromProfile(profile)
+  const mergedBaseCards = uniqueCertificationCards([
+    ...existingCertifications,
+    ...profileCards
+  ])
+
+  if (mergedBaseCards.length >= 3) {
+    return {
+      items: mergedBaseCards.slice(0, 5),
+      sourcePath:
+        existingCertifications.length > 0
+          ? ('table' as const)
+          : profileCards.length > 0
+            ? ('curated_profile' as const)
+            : ('none' as const)
+    }
+  }
+
+  const webSearchCards = await callCertificationWebSearch({
+    targetRole: args.targetRole,
+    province,
+    careerPathType: args.careerPathType
+  })
+
+  if (webSearchCards && webSearchCards.length > 0) {
+    return {
+      items: uniqueCertificationCards([
+        ...mergedBaseCards,
+        ...webSearchCards
+      ]).slice(0, 5),
+      sourcePath: 'web_search' as const
+    }
+  }
+
+  return {
+    items: mergedBaseCards.slice(0, 5),
+    sourcePath:
+      existingCertifications.length > 0
+        ? ('table' as const)
+        : profileCards.length > 0
+          ? ('curated_profile' as const)
+          : ('none' as const)
   }
 }
 
@@ -605,9 +1132,12 @@ function inferWageSourcePath(
   return 'none' as const
 }
 
-function cacheExpiresAt() {
+function cacheExpiresAt(isThinCoverage = false) {
   const expires = new Date()
-  expires.setHours(expires.getHours() + (Number.isFinite(CACHE_TTL_HOURS) ? CACHE_TTL_HOURS : 168))
+  const ttlHours = isThinCoverage
+    ? (Number.isFinite(THIN_COVERAGE_TTL_HOURS) ? THIN_COVERAGE_TTL_HOURS : 6)
+    : (Number.isFinite(CACHE_TTL_HOURS) ? CACHE_TTL_HOURS : 168)
+  expires.setHours(expires.getHours() + ttlHours)
   return expires.toISOString()
 }
 
@@ -623,7 +1153,10 @@ async function readPersistentCache(cacheKey: string, args: EnrichmentArgs) {
     if (!roleCache.error && roleCache.data?.enrichment_payload && roleCache.data?.expires_at) {
       const expiresAt = new Date(roleCache.data.expires_at)
       if (!Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() > Date.now()) {
-        const payload = roleCache.data.enrichment_payload as PlannerSourceEnrichment
+        const payload = normalizeCachedEnrichment(roleCache.data.enrichment_payload as Partial<PlannerSourceEnrichment>)
+        if (hasThinCoverage(payload)) {
+          return null
+        }
         return {
           ...payload,
           cache: {
@@ -636,13 +1169,23 @@ async function readPersistentCache(cacheKey: string, args: EnrichmentArgs) {
 
     const provinceCode = inferProvinceCode(args.location) ?? 'CA'
     const currentRoleCluster = deriveRoleCluster(args.currentRole)
-    const roleCacheCandidates = await admin
-      .from('planner_role_enrichment_cache')
-      .select('target_role_key,target_role,enrichment_payload,expires_at,current_role_cluster')
-      .eq('province_code', provinceCode)
-      .in('current_role_cluster', [currentRoleCluster, 'all'])
-      .order('expires_at', { ascending: false })
-      .limit(30)
+    const canonicalRoleKey = args.canonicalRoleKey?.trim().toLowerCase() || ''
+    const roleCacheCandidates = canonicalRoleKey
+      ? await admin
+          .from('planner_role_enrichment_cache')
+          .select('target_role_key,target_role,enrichment_payload,expires_at,current_role_cluster')
+          .eq('province_code', provinceCode)
+          .eq('target_role_key', canonicalRoleKey)
+          .in('current_role_cluster', [currentRoleCluster, 'all'])
+          .order('expires_at', { ascending: false })
+          .limit(30)
+      : await admin
+          .from('planner_role_enrichment_cache')
+          .select('target_role_key,target_role,enrichment_payload,expires_at,current_role_cluster')
+          .eq('province_code', provinceCode)
+          .in('current_role_cluster', [currentRoleCluster, 'all'])
+          .order('expires_at', { ascending: false })
+          .limit(30)
 
     if (!roleCacheCandidates.error && Array.isArray(roleCacheCandidates.data) && roleCacheCandidates.data.length > 0) {
       const winner = roleCacheCandidates.data
@@ -660,8 +1203,12 @@ async function readPersistentCache(cacheKey: string, args: EnrichmentArgs) {
         .sort((left, right) => right.score - left.score)[0]
 
       if (winner?.row?.enrichment_payload) {
+        const payload = normalizeCachedEnrichment(winner.row.enrichment_payload as Partial<PlannerSourceEnrichment>)
+        if (hasThinCoverage(payload)) {
+          return null
+        }
         return {
-          ...(winner.row.enrichment_payload as PlannerSourceEnrichment),
+          ...payload,
           cache: {
             hit: true,
             expiresAt: String(winner.row.expires_at ?? null)
@@ -680,7 +1227,10 @@ async function readPersistentCache(cacheKey: string, args: EnrichmentArgs) {
     const expiresAt = new Date(legacyCache.data.expires_at)
     if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) return null
 
-    const payload = legacyCache.data.enrichment_payload as PlannerSourceEnrichment
+    const payload = normalizeCachedEnrichment(legacyCache.data.enrichment_payload as Partial<PlannerSourceEnrichment>)
+    if (hasThinCoverage(payload)) {
+      return null
+    }
     return {
       ...payload,
       cache: {
@@ -703,8 +1253,14 @@ function readMemoryCache(cacheKey: string) {
     return null
   }
 
+  const payload = normalizeCachedEnrichment(cached)
+  if (hasThinCoverage(payload)) {
+    enrichmentCache.delete(cacheKey)
+    return null
+  }
+
   return {
-    ...cached,
+    ...payload,
     cache: {
       hit: true,
       expiresAt: cached.cache.expiresAt
@@ -724,14 +1280,16 @@ async function writePersistentCache(
       new Set(
         [
           ...enrichment.trainingCards.map((card) => card.sourceUrl).filter(Boolean),
-          enrichment.wageFallback?.sourceUrl ?? null
+          ...enrichment.certificationCards.map((card) => card.sourceUrl).filter(Boolean),
+          enrichment.wageFallback?.sourceUrl ?? null,
+          ...enrichment.entryRoles.map((item) => item.sourceUrl).filter(Boolean)
         ].filter((value): value is string => Boolean(value))
       )
     )
     const provinceCode = inferProvinceCode(args.location) ?? 'CA'
-    const targetRoleKey = normalizeRoleKey(args.targetRole)
+    const targetRoleKey = args.canonicalRoleKey?.trim().toLowerCase() || normalizeRoleKey(args.targetRole)
     const currentRoleCluster = deriveRoleCluster(args.currentRole)
-    const expiresAt = enrichment.cache.expiresAt ?? cacheExpiresAt()
+    const expiresAt = enrichment.cache.expiresAt ?? cacheExpiresAt(hasThinCoverage(enrichment))
 
     await admin.from('planner_role_enrichment_cache').upsert(
       {
@@ -774,10 +1332,17 @@ async function writePersistentCache(
 
 export async function getPlannerSourceEnrichment(args: EnrichmentArgs): Promise<PlannerSourceEnrichment> {
   const profile = await getEffectiveProfile(args)
+  const effectiveTargetRoleKey =
+    args.canonicalRoleKey?.trim().toLowerCase() ||
+    normalizeRoleKey(args.targetRole) ||
+    profile?.meta.slug ||
+    'no-profile'
   const cacheKey = [
-    normalizeRoleKey(args.targetRole) || profile?.meta.slug || 'no-profile',
+    ENRICHMENT_CACHE_SCHEMA_VERSION,
+    effectiveTargetRoleKey,
     inferProvinceCode(args.location) ?? 'CA',
     deriveRoleCluster(args.currentRole),
+    args.careerPathType ?? 'GENERAL',
     args.targetRole.trim().toLowerCase()
   ].join('::')
 
@@ -791,14 +1356,20 @@ export async function getPlannerSourceEnrichment(args: EnrichmentArgs): Promise<
   }
 
   const resolvedTraining = await resolveTrainingCards(args)
+  const resolvedCertifications = await resolveCertificationCards(args)
+  const resolvedEntryRoles = await resolveEntryRoles(args)
   const wageFallback = await resolveWageFallback(args)
 
   const enrichment: PlannerSourceEnrichment = {
     trainingCards: resolvedTraining.items,
+    certificationCards: resolvedCertifications.items,
     wageFallback,
+    entryRoles: resolvedEntryRoles.items,
     sourcePath: {
       training: resolvedTraining.sourcePath,
-      wage: inferWageSourcePath(args, profile, wageFallback)
+      wage: inferWageSourcePath(args, profile, wageFallback),
+      entryRoles: resolvedEntryRoles.sourcePath,
+      certifications: resolvedCertifications.sourcePath
     },
     cache: {
       hit: false,
