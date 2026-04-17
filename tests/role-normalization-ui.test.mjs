@@ -33,8 +33,18 @@ const plannerClientPath = path.resolve(
   __dirname,
   '../app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx'
 )
+const plannerComponentsPath = path.resolve(
+  __dirname,
+  '../components/career-switch-planner/CareerSwitchPlannerComponents.tsx'
+)
+const intakeWizardPath = path.resolve(
+  __dirname,
+  '../components/career-switch-planner/PlannerIntakeWizard.tsx'
+)
 
 const plannerClientSource = readFileSync(plannerClientPath, 'utf8')
+const plannerComponentsSource = readFileSync(plannerComponentsPath, 'utf8')
+const intakeWizardSource = readFileSync(intakeWizardPath, 'utf8')
 
 test('scoreToLabel maps raw similarity to non-numeric confidence labels', () => {
   const helperModule = loadTranspiledTsModule(roleNormalizationPath)
@@ -51,19 +61,25 @@ test('scoreToLabel maps raw similarity to non-numeric confidence labels', () => 
 })
 
 test('role match UI uses standardized wording and never renders numeric confidence', () => {
-  const roleNormalizationCard = plannerClientSource.match(
-    /function RoleNormalizationCard[\s\S]*?function ReportSection/s
+  const roleAutocomplete = plannerComponentsSource.match(
+    /export function RoleAutocomplete[\s\S]*?interface SkillsChipsInputProps/s
   )
-  assert.ok(roleNormalizationCard, 'Role normalization card not found')
-  const roleMatchMarkup = roleNormalizationCard[0]
-  assert.match(plannerClientSource, /Standardized as:/)
-  assert.match(plannerClientSource, /Similar roles:/)
-  assert.doesNotMatch(roleMatchMarkup, /Matched to:/)
-  assert.doesNotMatch(roleMatchMarkup, /toFixed\(.+confidence/)
-  assert.doesNotMatch(roleMatchMarkup, /confidenceLabel\} \(\{/)
+  assert.ok(roleAutocomplete, 'Role autocomplete component not found')
+  const roleMatchMarkup = roleAutocomplete[0]
+
+  assert.match(roleMatchMarkup, /Not an exact match - showing closest known roles\./)
+  assert.match(roleMatchMarkup, /scoreToLabel\(suggestion\.confidence\)/)
+  assert.doesNotMatch(roleMatchMarkup, /toFixed\(/)
+  assert.doesNotMatch(roleMatchMarkup, /\{\s*suggestion\.confidence\s*\}/)
 })
 
 test('similar roles display is gated by non-Exact confidence', () => {
-  assert.match(plannerClientSource, /shouldShowSimilarRoles\(confidenceLabel\)/)
-  assert.match(plannerClientSource, /showSimilar && similarRoles\.length > 0/)
+  assert.match(
+    plannerComponentsSource,
+    /setHasClosestMatches\([\s\S]*bestMatch\.confidence < 0\.72[\s\S]*\)/
+  )
+  assert.match(plannerComponentsSource, /hasClosestMatches \? \(/)
+  assert.match(intakeWizardSource, /Choose your closest match for the \{roleSelectionPrompt\.role\} role/)
+  assert.match(intakeWizardSource, /roleMatchStrengthLabel\(option\.confidence\)/)
+  assert.doesNotMatch(plannerClientSource, /function RoleNormalizationCard/)
 })

@@ -11,6 +11,20 @@ type DashboardCareerPathType =
   | 'TECH'
   | 'GENERAL'
 
+export type PlannerPathwayWeightingType =
+  | 'trades'
+  | 'tech'
+  | 'healthcare'
+  | 'creative'
+  | 'corporate_operations'
+
+export type PlannerRouteType =
+  | 'direct'
+  | 'bridge-role'
+  | 'certification-first'
+  | 'education-first'
+  | 'portfolio-first'
+
 export interface DashboardFallbackValue<T> {
   value: T
   badge?: FallbackBadge
@@ -74,11 +88,75 @@ export interface PlannerDashboardV3Model {
     skillsCount: number
     lastUpdated: string
   }
+  pathwayWeighting: {
+    type: PlannerPathwayWeightingType
+    label: string
+    emphasis: string[]
+  }
+  decision: {
+    currentRole: string
+    targetRole: string
+    transitionVerdict: 'Strong' | 'Possible' | 'Stretch'
+    fastestRoute: string
+    estimatedTimeline: string
+    biggestBlocker: string
+    routeType: PlannerRouteType
+  }
+  actionWindow14: {
+    thisWeek: string[]
+    nextWeek: string[]
+    proofToCollect: string[]
+  }
+  blockers: Array<{
+    blocker: string
+    whyItMatters: string
+    howToFix: string
+  }>
+  strengths: Array<{
+    advantage: string
+    whyItMatters: string
+  }>
+  requirementsGaps: {
+    mustHave: string[]
+    niceToHave: string[]
+    missingNow: string[]
+  }
+  skillsBuckets: {
+    alreadyHave: string[]
+    needSoon: string[]
+    laterStage: string[]
+  }
+  certEducation: {
+    required: string[]
+    recommended: string[]
+    optional: string[]
+    effortSummary: string
+  }
+  resumeEvidence: {
+    alreadyProves: string[]
+    stillNeedsProof: string[]
+    artifacts: string[]
+  }
+  adjacentEntryOptions: {
+    fastestEntry: PlannerDashboardAlternative | null
+    closestMatch: PlannerDashboardAlternative | null
+    bestLongTermUpside: PlannerDashboardAlternative | null
+  }
+  longerTermRoadmap: {
+    windows: Array<{
+      label: string
+      actions: string[]
+    }>
+  }
   hero: {
     title: string
     mappedPathLabel?: string
     insight: string
     scenarioModes: Array<{ label: string; active: boolean }>
+    routeType: PlannerRouteType
+    transitionVerdict: 'Strong' | 'Possible' | 'Stretch'
+    fastestRoute: string
+    biggestBlocker: string
     difficulty: DashboardFallbackValue<string>
     timeline: DashboardFallbackValue<string>
     probability: DashboardFallbackValue<string>
@@ -105,6 +183,8 @@ export interface PlannerDashboardV3Model {
   }
   fastestPath: {
     headline: string
+    routeType: PlannerRouteType
+    bestEntryStrategy: string
     steps: Array<{ label: string; detail: string }>
     strongestPath: Array<{ label: string; detail: string }>
     tradeFacts: Array<{ label: string; value: string }>
@@ -347,6 +427,165 @@ function inferCareerPathTypeFromReport(
   return 'GENERAL'
 }
 
+const PATHWAY_KEYWORDS: Record<PlannerPathwayWeightingType, RegExp[]> = {
+  trades: [
+    /\b(apprentice|sponsor|trade|certifying exam|red seal|journeyperson|journeyman|site|safety|hours|whmis|working at heights)\b/i
+  ],
+  tech: [
+    /\b(code|software|stack|api|data|analytics|cloud|qa|cyber|system|it|devops)\b/i
+  ],
+  healthcare: [
+    /\b(health|clinical|patient|nurse|licensure|registration|placement|care|medical|cpnre|nclex)\b/i
+  ],
+  creative: [
+    /\b(portfolio|case study|design|ux|ui|brand|visual|creative|content|copy|illustration)\b/i
+  ],
+  corporate_operations: [
+    /\b(operations|coordinator|stakeholder|process|workflow|reporting|admin|project|customer success|business)\b/i
+  ]
+}
+
+function inferPathwayWeightingType(
+  careerPathType: DashboardCareerPathType,
+  targetRole: string,
+  templateKey?: string | null
+): PlannerPathwayWeightingType {
+  if (careerPathType === 'TRADES') return 'trades'
+  if (careerPathType === 'HEALTHCARE_LICENSED') return 'healthcare'
+  if (careerPathType === 'TECH') {
+    const creativeSignals = PATHWAY_KEYWORDS.creative.some((pattern) => pattern.test(targetRole))
+    if (creativeSignals || templateKey === 'portfolio_role') return 'creative'
+    return 'tech'
+  }
+  const creativeSignals = PATHWAY_KEYWORDS.creative.some((pattern) => pattern.test(targetRole))
+  if (creativeSignals) return 'creative'
+  return 'corporate_operations'
+}
+
+function pathwayWeightingLabel(type: PlannerPathwayWeightingType) {
+  if (type === 'trades') return 'Trades'
+  if (type === 'tech') return 'Tech'
+  if (type === 'healthcare') return 'Healthcare'
+  if (type === 'creative') return 'Creative'
+  return 'Corporate/Operations'
+}
+
+function pathwayWeightingEmphasis(type: PlannerPathwayWeightingType) {
+  if (type === 'trades') {
+    return ['Entry-door roles', 'Safety and certifications', 'Hands-on proof']
+  }
+  if (type === 'tech') {
+    return ['Practical skills', 'Project evidence', 'Bridge-role targeting']
+  }
+  if (type === 'healthcare') {
+    return ['Prerequisites and licensing', 'Education sequence', 'Timeline realism']
+  }
+  if (type === 'creative') {
+    return ['Portfolio quality', 'Case-study proof', 'Client-ready artifacts']
+  }
+  return ['Title translation', 'Transferable outcomes', 'Execution cadence']
+}
+
+function scorePathwayRelevance(value: string, pathwayType: PlannerPathwayWeightingType) {
+  const normalized = cleanGeneratedLabel(value)
+  if (!normalized) return 0
+  const familyPatterns = PATHWAY_KEYWORDS[pathwayType]
+  const familyScore = familyPatterns.reduce((score, pattern) => score + (pattern.test(normalized) ? 2 : 0), 0)
+  const genericSignals = /\b(required|must|apply|interview|experience|proof|resume|portfolio|certification|education)\b/i
+  return familyScore + (genericSignals.test(normalized) ? 1 : 0)
+}
+
+function rankContentByPathway(
+  items: string[],
+  pathwayType: PlannerPathwayWeightingType,
+  limit: number
+) {
+  return uniqueNormalizedStrings(items)
+    .map((item, index) => ({
+      item,
+      index,
+      score: scorePathwayRelevance(item, pathwayType)
+    }))
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score
+      return left.index - right.index
+    })
+    .map((entry) => entry.item)
+    .slice(0, limit)
+}
+
+function parseTimelineMidpointMonths(value: string) {
+  const matches = value.match(/\d+/g)
+  if (!matches || matches.length === 0) return Number.POSITIVE_INFINITY
+  if (matches.length === 1) return Number.parseInt(matches[0], 10)
+  const first = Number.parseInt(matches[0], 10)
+  const second = Number.parseInt(matches[1], 10)
+  return Math.round((first + second) / 2)
+}
+
+function parseSalaryUpperBound(value: string) {
+  const matches = value.match(/\$?(\d{2,3})(?:[kK]|,\d{3})?/g)
+  if (!matches || matches.length === 0) return 0
+  const parsed = matches.map((chunk) => {
+    const digits = chunk.replace(/[^\d]/g, '')
+    if (!digits) return 0
+    const numeric = Number.parseInt(digits, 10)
+    return /k/i.test(chunk) || numeric < 1000 ? numeric * 1000 : numeric
+  })
+  return Math.max(...parsed)
+}
+
+function classifyRouteType(args: {
+  careerPathType: DashboardCareerPathType
+  templateKey?: string | null
+  primaryRouteTitle?: string | null
+  primaryRouteReason?: string | null
+  primaryRouteFirstStep?: string | null
+}): PlannerRouteType {
+  const routeText = cleanGeneratedLabel(
+    [args.primaryRouteTitle, args.primaryRouteReason, args.primaryRouteFirstStep].filter(Boolean).join(' ')
+  ).toLowerCase()
+
+  if (/\b(portfolio|case study|github|work sample|prototype|demo)\b/.test(routeText)) {
+    return 'portfolio-first'
+  }
+  if (/\b(education|degree|diploma|school|program|prerequisite|admission)\b/.test(routeText)) {
+    return 'education-first'
+  }
+  if (/\b(cert|certificate|certification|license|licens|registration|exam|ticket)\b/.test(routeText)) {
+    return 'certification-first'
+  }
+  if (/\b(bridge|helper|assistant|support|adjacent|entry role|entry-level|entry level)\b/.test(routeText)) {
+    return 'bridge-role'
+  }
+  if (/\b(direct|lateral|straight)\b/.test(routeText)) {
+    return 'direct'
+  }
+
+  if (args.templateKey === 'portfolio_role') return 'portfolio-first'
+  if (args.templateKey === 'credentialed_role') return 'certification-first'
+  if (args.templateKey === 'regulated_profession') {
+    return args.careerPathType === 'HEALTHCARE_LICENSED' ? 'education-first' : 'certification-first'
+  }
+  if (args.templateKey === 'regulated_trade') return 'bridge-role'
+  if (args.templateKey === 'experience_ladder_role') return 'direct'
+
+  if (args.careerPathType === 'TRADES') return 'bridge-role'
+  if (args.careerPathType === 'HEALTHCARE_LICENSED') return 'education-first'
+  if (args.careerPathType === 'TECH') return 'portfolio-first'
+  return 'bridge-role'
+}
+
+function routeTypeLabel(routeType: PlannerRouteType) {
+  return routeType
+}
+
+function deriveTransitionVerdict(compatibilityScore: number): 'Strong' | 'Possible' | 'Stretch' {
+  if (compatibilityScore >= 70) return 'Strong'
+  if (compatibilityScore >= 45) return 'Possible'
+  return 'Stretch'
+}
+
 function normalizeLocalDemandLabel(summaryLine: string | null | undefined, location: string) {
   const raw = typeof summaryLine === 'string' ? cleanGeneratedLabel(summaryLine.trim()) : ''
   if (!raw) return 'Unknown - needs data source'
@@ -542,6 +781,65 @@ function uniqueNormalizedStrings(values: string[]) {
     output.push(trimmed)
   }
   return output
+}
+
+function normalizedLabelKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function removeOverlappingItems(source: string[], comparison: string[]) {
+  const comparisonSet = new Set(comparison.map((item) => normalizedLabelKey(item)).filter(Boolean))
+  return source.filter((item) => !comparisonSet.has(normalizedLabelKey(item)))
+}
+
+function toPracticalBlockerWhy({
+  whyItMatters,
+  roleTargetDisplay
+}: {
+  whyItMatters: string
+  roleTargetDisplay: string
+}) {
+  const base = sanitizePlannerCopy(whyItMatters, 'GENERAL').trim()
+  if (base.length >= 36 && /\b(hiring|screen|interview|shortlist|application|employer)\b/i.test(base)) {
+    return base
+  }
+  return `Hiring teams screen this early for ${roleTargetDisplay}. Missing it usually reduces interview callbacks.`
+}
+
+function toPracticalBlockerFix({
+  blocker,
+  howToFix,
+  pathwayWeightingType
+}: {
+  blocker: string
+  howToFix: string
+  pathwayWeightingType: PlannerPathwayWeightingType
+}) {
+  const normalizedBlocker = blocker.toLowerCase()
+  const cleanedFix = sanitizePlannerCopy(howToFix, 'GENERAL').trim()
+  const hasConcreteSignal =
+    /\b(apply|book|complete|submit|build|create|document|add|rewrite|contact|call|email|register|schedule)\b/i.test(
+      cleanedFix
+    ) && cleanedFix.length >= 24
+
+  if (hasConcreteSignal) return cleanedFix
+
+  if (/\b(cert|certification|license|licen|registration|exam|ticket|safety)\b/.test(normalizedBlocker)) {
+    return `Book this requirement now, complete it within 7-14 days, and add completion proof to your resume before your next applications.`
+  }
+  if (/\b(proof|portfolio|project|artifact|experience|sample)\b/.test(normalizedBlocker)) {
+    return `Create one role-relevant work sample this week and attach it to resume bullets so employers can verify readiness.`
+  }
+  if (/\b(resume|application|interview|outreach)\b/.test(normalizedBlocker)) {
+    return `Rewrite the top three application bullets for this requirement and send a targeted application batch this week.`
+  }
+  if (pathwayWeightingType === 'trades') {
+    return `Complete one hands-on readiness step and one employer outreach step this week, then track both in your checklist.`
+  }
+  if (pathwayWeightingType === 'tech' || pathwayWeightingType === 'creative') {
+    return `Build and publish one proof artifact, then apply to a focused batch of entry roles aligned to that evidence.`
+  }
+  return `Define one concrete action and one proof artifact for this blocker, then complete both in the next 14 days.`
 }
 
 function cleanGeneratedLabel(value: string) {
@@ -2182,6 +2480,361 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     pathwayProfile,
     trainingCourses
   })
+  const pathwayWeightingType = inferPathwayWeightingType(
+    careerPathType,
+    roleTargetDisplay,
+    input.report?.transitionMode?.templateKey
+  )
+  const pathwayEmphasis = pathwayWeightingEmphasis(pathwayWeightingType)
+  const transitionVerdict = deriveTransitionVerdict(compatibilityScore)
+  const primaryRoute = input.report?.transitionMode?.routes?.primary
+  const routeType = classifyRouteType({
+    careerPathType,
+    templateKey: input.report?.transitionMode?.templateKey,
+    primaryRouteTitle: primaryRoute?.title,
+    primaryRouteReason: primaryRoute?.reason,
+    primaryRouteFirstStep: primaryRoute?.firstStep
+  })
+  const fastestRoute =
+    sanitizePlannerCopy(
+      String(
+        primaryRoute?.title ||
+          primaryRoute?.firstStep ||
+          fastestPath[0]?.detail ||
+          'Use the closest entry role as your bridge route'
+      ),
+      careerPathType
+    ) || 'Use the closest entry role as your bridge route'
+  const biggestBlocker =
+    sanitizePlannerCopy(
+      String(
+        input.report?.executionStrategy?.realBlockers?.requiredToApply?.[0]?.label ||
+          input.report?.bottleneck?.title ||
+          required[0]?.label ||
+          input.report?.transitionMode?.gaps?.missing?.[0] ||
+          'Missing role-specific proof'
+      ),
+      careerPathType
+    ) || 'Missing role-specific proof'
+
+  const normalizeKey = (value: string) =>
+    cleanGeneratedLabel(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
+
+  const actionThisWeekCandidates = [
+    ...(checklistImmediate.length > 0 ? checklistImmediate : nowFallback),
+    ...((input.report?.transitionMode?.roadmapGuide?.next7Days as string[] | undefined) ?? []),
+    ...((input.report?.transitionMode?.gaps?.first3Steps as string[] | undefined) ?? [])
+  ].map((item) => sanitizePlannerCopy(item, careerPathType))
+
+  const actionNextWeekCandidates = [
+    ...(checklistShortTerm.length > 0 ? checklistShortTerm : shortFallback),
+    ...fastestPath.map((step) => step.detail),
+    ...((input.report?.executionStrategy?.plan90Day?.month2?.actions as Array<{ task?: string }> | undefined)?.map(
+      (item) => String(item.task ?? '')
+    ) ?? [])
+  ].map((item) => sanitizePlannerCopy(item, careerPathType))
+
+  const proofTargets = (
+    ((input.report?.executionStrategy?.plan90Day?.month1?.actions as Array<{ proofTarget?: string }> | undefined) ?? [])
+      .concat(
+        ((input.report?.executionStrategy?.plan90Day?.month2?.actions as Array<{ proofTarget?: string }> | undefined) ??
+          []).slice(0, 2)
+      )
+      .map((item) => String(item.proofTarget ?? '').trim())
+      .filter(Boolean) as string[]
+  )
+
+  const proofToCollectCandidates = [
+    ...proofTargets,
+    ...evidenceRequired,
+    ...((input.report?.targetRequirements?.employerSignals as string[] | undefined) ?? [])
+  ].map((item) => sanitizePlannerCopy(item, careerPathType))
+
+  const transferableStrengthMap = new Map<string, string>()
+  for (const item of (input.report?.transitionSections?.transferableStrengths as Array<{
+    label?: string
+    requirement?: string
+  }> | undefined) ?? []) {
+    const label = sanitizePlannerCopy(String(item?.label ?? ''), careerPathType)
+    const requirement = sanitizePlannerCopy(String(item?.requirement ?? ''), careerPathType)
+    if (!label || !requirement) continue
+    transferableStrengthMap.set(normalizeKey(label), requirement)
+  }
+  for (const item of (input.report?.executionStrategy?.whereYouStandNow?.strengths as Array<{
+    summary?: string
+    countsToward?: string[]
+  }> | undefined) ?? []) {
+    const summary = sanitizePlannerCopy(String(item?.summary ?? ''), careerPathType)
+    const countsToward = (Array.isArray(item?.countsToward) ? item.countsToward : [])
+      .map((entry) => sanitizePlannerCopy(String(entry ?? ''), careerPathType))
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' and ')
+    if (!summary || !countsToward) continue
+    transferableStrengthMap.set(normalizeKey(summary), countsToward)
+  }
+
+  const weightedStrengthLabels = rankContentByPathway(
+    [
+      ...transferable.map((item) => item.label),
+      ...((input.report?.transitionMode?.gaps?.strengths as string[] | undefined) ?? [])
+    ].map((item) => sanitizePlannerCopy(item, careerPathType)),
+    pathwayWeightingType,
+    5
+  )
+  const weightedStrengths = weightedStrengthLabels.map((label) => ({
+    label,
+    why:
+      transferableStrengthMap.get(normalizeKey(label)) ||
+      `Directly supports employer signals for ${roleTargetDisplay}.`
+  }))
+
+  const blockerCandidates = [
+    ...(
+      (input.report?.executionStrategy?.realBlockers?.requiredToApply as Array<{
+        label?: string
+        whyItMatters?: string
+        howToClose?: string
+      }> | undefined) ?? []
+    ).map((item) => ({
+      blocker: sanitizePlannerCopy(String(item?.label ?? ''), careerPathType),
+      whyItMatters: sanitizePlannerCopy(String(item?.whyItMatters ?? ''), careerPathType),
+      howToFix: sanitizePlannerCopy(String(item?.howToClose ?? ''), careerPathType)
+    })),
+    ...(
+      (input.report?.executionStrategy?.realBlockers?.requiredToCompete as Array<{
+        label?: string
+        whyItMatters?: string
+        howToClose?: string
+      }> | undefined) ?? []
+    ).map((item) => ({
+      blocker: sanitizePlannerCopy(String(item?.label ?? ''), careerPathType),
+      whyItMatters: sanitizePlannerCopy(String(item?.whyItMatters ?? ''), careerPathType),
+      howToFix: sanitizePlannerCopy(String(item?.howToClose ?? ''), careerPathType)
+    })),
+    ...required.map((item) => ({
+      blocker: sanitizePlannerCopy(item.label, careerPathType),
+      whyItMatters: `Hiring teams screen this before moving candidates forward in ${roleTargetDisplay}.`,
+      howToFix:
+        evidenceRequired.find((entry) => normalizeKey(entry).includes(normalizeKey(item.label))) ||
+        `Build one concrete readiness example for ${item.label}.`
+    }))
+  ].filter((item) => item.blocker && item.whyItMatters && item.howToFix)
+
+  const weightedBlockers = blockerCandidates
+    .map((item, index) => ({
+      ...item,
+      index,
+      score: scorePathwayRelevance(`${item.blocker} ${item.whyItMatters} ${item.howToFix}`, pathwayWeightingType)
+    }))
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score
+      return left.index - right.index
+    })
+    .slice(0, 4)
+    .map(({ blocker, whyItMatters, howToFix }) => ({
+      blocker,
+      whyItMatters: toPracticalBlockerWhy({ whyItMatters, roleTargetDisplay }),
+      howToFix: toPracticalBlockerFix({ blocker, howToFix, pathwayWeightingType })
+    }))
+
+  const mustHaveRaw = uniqueNormalizedStrings(
+    [
+      input.report?.targetRequirements?.education
+        ? `Education baseline: ${sanitizePlannerCopy(input.report.targetRequirements.education, careerPathType)}`
+        : '',
+      ...((input.report?.targetRequirements?.certifications as string[] | undefined) ?? []),
+      ...((input.report?.targetRequirements?.hardGates as string[] | undefined) ?? []),
+      ...(
+        (input.report?.transitionSections?.mandatoryGateRequirements as Array<{ label?: string }> | undefined) ?? []
+      ).map((item) => String(item?.label ?? ''))
+    ]
+      .map((item) => sanitizePlannerCopy(String(item ?? ''), careerPathType))
+      .filter(Boolean)
+  )
+
+  const niceToHaveRaw = uniqueNormalizedStrings(
+    [
+      ...((input.report?.transitionReport?.niceToHaves as Array<{ label?: string }> | undefined) ?? []).map((item) =>
+        String(item?.label ?? '')
+      ),
+      ...(
+        (input.report?.transitionSections?.coreHardSkills as Array<{ label?: string; gapLevel?: string }> | undefined) ??
+        []
+      )
+        .filter((item) => item?.gapLevel !== 'missing')
+        .map((item) => String(item?.label ?? ''))
+    ]
+      .map((item) => sanitizePlannerCopy(item, careerPathType))
+      .filter(Boolean)
+  )
+
+  const missingNowRaw = uniqueNormalizedStrings(
+    [
+      ...(
+        (input.report?.transitionSections?.mandatoryGateRequirements as Array<{
+          label?: string
+          gapLevel?: 'met' | 'partial' | 'missing'
+        }> | undefined) ?? []
+      )
+        .filter((item) => item?.gapLevel !== 'met')
+        .map((item) => String(item?.label ?? '')),
+      ...required.filter((item) => item.progress < 60).map((item) => item.label),
+      ...((input.report?.transitionMode?.gaps?.missing as string[] | undefined) ?? [])
+    ]
+      .map((item) => sanitizePlannerCopy(item, careerPathType))
+      .filter(Boolean)
+  )
+
+  const skillsAlreadyHaveRaw = uniqueNormalizedStrings(
+    [
+      ...transferable.map((item) => item.label),
+      ...((input.report?.transitionMode?.gaps?.strengths as string[] | undefined) ?? [])
+    ].map((item) => sanitizePlannerCopy(item, careerPathType))
+  )
+  const skillsNeedSoonRaw = uniqueNormalizedStrings(
+    [
+      ...required.map((item) => item.label),
+      ...(
+        (input.report?.transitionSections?.coreHardSkills as Array<{ label?: string; gapLevel?: string }> | undefined) ??
+        []
+      )
+        .filter((item) => item?.gapLevel !== 'met')
+        .map((item) => String(item?.label ?? ''))
+    ].map((item) => sanitizePlannerCopy(item, careerPathType))
+  )
+  const skillsLaterRaw = uniqueNormalizedStrings(
+    [
+      ...strongestPath.map((item) => item.detail),
+      ...(checklistLongTerm.length > 0 ? checklistLongTerm : longFallback)
+    ].map((item) => sanitizePlannerCopy(item, careerPathType))
+  )
+
+  const rankedMustHave = rankContentByPathway(mustHaveRaw, pathwayWeightingType, 5)
+  const rankedNiceToHave = rankContentByPathway(niceToHaveRaw, pathwayWeightingType, 5)
+  const rankedMissingNow = rankContentByPathway(missingNowRaw, pathwayWeightingType, 5)
+
+  const rankedSkillsAlreadyHaveBase = rankContentByPathway(skillsAlreadyHaveRaw, pathwayWeightingType, 7)
+  const rankedSkillsNeedSoonBase = rankContentByPathway(skillsNeedSoonRaw, pathwayWeightingType, 7)
+  const rankedSkillsLaterBase = rankContentByPathway(skillsLaterRaw, pathwayWeightingType, 7)
+
+  const rankedSkillsAlreadyHave = removeOverlappingItems(rankedSkillsAlreadyHaveBase, rankedMissingNow).slice(0, 5)
+  let rankedSkillsNeedSoon = removeOverlappingItems(rankedSkillsNeedSoonBase, [
+    ...rankedMustHave,
+    ...rankedMissingNow
+  ]).slice(0, 5)
+  if (rankedSkillsNeedSoon.length === 0) {
+    rankedSkillsNeedSoon = rankedSkillsNeedSoonBase.slice(0, 5)
+  }
+  let rankedSkillsLater = removeOverlappingItems(rankedSkillsLaterBase, [
+    ...rankedSkillsNeedSoon,
+    ...rankedMissingNow
+  ]).slice(0, 5)
+  if (rankedSkillsLater.length === 0) {
+    rankedSkillsLater = rankedSkillsLaterBase.slice(0, 5)
+  }
+
+  const certRequiredRaw = uniqueNormalizedStrings(
+    [
+      input.report?.targetRequirements?.education
+        ? `Education: ${sanitizePlannerCopy(input.report.targetRequirements.education, careerPathType)}`
+        : '',
+      ...((input.report?.targetRequirements?.certifications as string[] | undefined) ?? []),
+      ...((input.report?.targetRequirements?.hardGates as string[] | undefined) ?? [])
+    ]
+      .map((item) => sanitizePlannerCopy(item, careerPathType))
+      .filter(Boolean)
+  )
+  const certRecommendedRaw = uniqueNormalizedStrings(
+    trainingCourses
+      .filter((course) => course.priorityLabel !== 'Later-stage')
+      .map((course) => sanitizePlannerCopy(course.name, careerPathType))
+  )
+  const certOptionalRaw = uniqueNormalizedStrings(
+    [
+      ...trainingCourses
+        .filter((course) => course.priorityLabel === 'Later-stage')
+        .map((course) => sanitizePlannerCopy(course.name, careerPathType)),
+      ...((input.report?.transitionReport?.niceToHaves as Array<{ label?: string }> | undefined) ?? []).map((item) =>
+        sanitizePlannerCopy(String(item?.label ?? ''), careerPathType)
+      )
+    ].filter(Boolean)
+  )
+
+  const resumeSignalRows = (
+    (input.report?.executionStrategy?.whereYouStandNow?.strengths as Array<{
+      summary?: string
+      resumeSignal?: string
+    }> | undefined) ?? []
+  )
+    .flatMap((item) => [item?.resumeSignal, item?.summary])
+    .map((item) => sanitizePlannerCopy(String(item ?? ''), careerPathType))
+    .filter(Boolean)
+
+  const resumeEvidenceAlready = rankContentByPathway(
+    resumeSignalRows.length > 0 ? resumeSignalRows : transferable.map((item) => item.label),
+    pathwayWeightingType,
+    4
+  )
+  const resumeEvidenceMissingBase = rankContentByPathway(
+    [...evidenceRequired, ...missingNowRaw],
+    pathwayWeightingType,
+    6
+  )
+  let resumeEvidenceMissing = removeOverlappingItems(resumeEvidenceMissingBase, [
+    ...rankedMissingNow,
+    ...rankedSkillsNeedSoon
+  ]).slice(0, 4)
+  if (resumeEvidenceMissing.length === 0) {
+    resumeEvidenceMissing = resumeEvidenceMissingBase.slice(0, 4)
+  }
+  const resumeArtifactsRaw = uniqueNormalizedStrings([
+    ...proofTargets,
+    ...resumeEvidenceMissing.map((item) => `Resume bullet + artifact for: ${item}`)
+  ])
+
+  const sortedByFastest = [...alternativeCards].sort(
+    (left, right) => parseTimelineMidpointMonths(left.timeline) - parseTimelineMidpointMonths(right.timeline)
+  )
+  const sortedByUpside = [...alternativeCards].sort(
+    (left, right) => parseSalaryUpperBound(right.salary.value) - parseSalaryUpperBound(left.salary.value)
+  )
+  const adjacentFastest = sortedByFastest[0] ?? null
+  const adjacentClosest = alternativeCards[0] ?? sortedByFastest[0] ?? null
+  const adjacentUpside = sortedByUpside[0] ?? alternativeCards[2] ?? alternativeCards[0] ?? null
+
+  const longerTermRoadmapWindows = [
+    {
+      label: '30 Days',
+      actions: rankContentByPathway(
+        (checklistImmediate.length > 0 ? checklistImmediate : nowFallback).map((item) =>
+          sanitizePlannerCopy(item, careerPathType)
+        ),
+        pathwayWeightingType,
+        3
+      )
+    },
+    {
+      label: '60 Days',
+      actions: rankContentByPathway(
+        (checklistShortTerm.length > 0 ? checklistShortTerm : shortFallback).map((item) =>
+          sanitizePlannerCopy(item, careerPathType)
+        ),
+        pathwayWeightingType,
+        3
+      )
+    },
+    {
+      label: '90 Days+',
+      actions: rankContentByPathway(
+        (checklistLongTerm.length > 0 ? checklistLongTerm : longFallback).map((item) =>
+          sanitizePlannerCopy(item, careerPathType)
+        ),
+        pathwayWeightingType,
+        3
+      )
+    }
+  ]
 
   return {
     missingFields: missingFallbackFields,
@@ -2201,6 +2854,64 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       skillsCount: input.skillsCount,
       lastUpdated: toReadableDate(input.lastGeneratedAt)
     },
+    pathwayWeighting: {
+      type: pathwayWeightingType,
+      label: pathwayWeightingLabel(pathwayWeightingType),
+      emphasis: pathwayEmphasis
+    },
+    decision: {
+      currentRole: roleCurrent,
+      targetRole: roleTargetDisplay,
+      transitionVerdict: transitionVerdict,
+      fastestRoute,
+      estimatedTimeline: timelineLabel,
+      biggestBlocker,
+      routeType
+    },
+    actionWindow14: {
+      thisWeek: rankContentByPathway(actionThisWeekCandidates, pathwayWeightingType, 4),
+      nextWeek: rankContentByPathway(actionNextWeekCandidates, pathwayWeightingType, 4),
+      proofToCollect: rankContentByPathway(proofToCollectCandidates, pathwayWeightingType, 4)
+    },
+    blockers: weightedBlockers,
+    strengths: weightedStrengths.map((item) => ({
+      advantage: item.label,
+      whyItMatters: item.why
+    })),
+    requirementsGaps: {
+      mustHave: rankedMustHave,
+      niceToHave: rankedNiceToHave,
+      missingNow: rankedMissingNow
+    },
+    skillsBuckets: {
+      alreadyHave: rankedSkillsAlreadyHave,
+      needSoon: rankedSkillsNeedSoon,
+      laterStage: rankedSkillsLater
+    },
+    certEducation: {
+      required: rankContentByPathway(certRequiredRaw, pathwayWeightingType, 5),
+      recommended: rankContentByPathway(certRecommendedRaw, pathwayWeightingType, 5),
+      optional: rankContentByPathway(certOptionalRaw, pathwayWeightingType, 5),
+      effortSummary:
+        routeType === 'education-first'
+          ? `Education gate is the pacing factor. Use ${timelineLabel} as the realistic planning window.`
+          : routeType === 'certification-first'
+            ? `Certification sequencing drives speed. Use ${timelineLabel} as your practical estimate.`
+            : `Sequence these requirements inside a ${timelineLabel} execution plan.`
+    },
+    resumeEvidence: {
+      alreadyProves: resumeEvidenceAlready,
+      stillNeedsProof: resumeEvidenceMissing,
+      artifacts: rankContentByPathway(resumeArtifactsRaw, pathwayWeightingType, 4)
+    },
+    adjacentEntryOptions: {
+      fastestEntry: adjacentFastest,
+      closestMatch: adjacentClosest,
+      bestLongTermUpside: adjacentUpside
+    },
+    longerTermRoadmap: {
+      windows: longerTermRoadmapWindows
+    },
     hero: {
       title: transitionLabel,
       mappedPathLabel:
@@ -2216,6 +2927,10 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         { label: 'Balanced', active: false },
         { label: 'Low Risk', active: false }
       ],
+      routeType,
+      transitionVerdict,
+      fastestRoute,
+      biggestBlocker,
       difficulty: {
         value: difficultyLabel,
         badge: missingFallbackFields.includes('hero.difficulty') ? 'Estimate' : undefined,
@@ -2305,6 +3020,17 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     },
     fastestPath: {
       headline: tradeFastestPath?.headline || 'Shortest realistic route to first field entry',
+      routeType: routeTypeLabel(routeType),
+      bestEntryStrategy:
+        sanitizePlannerCopy(
+          String(
+            primaryRoute?.firstStep ||
+              input.report?.bottleneck?.nextAction ||
+              fastestPath[0]?.detail ||
+              'Target the most realistic entry lane and prove readiness with concrete artifacts.'
+          ),
+          careerPathType
+        ) || 'Target the most realistic entry lane and prove readiness with concrete artifacts.',
       steps: fastestPath,
       strongestPath,
       tradeFacts

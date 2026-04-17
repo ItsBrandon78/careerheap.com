@@ -207,21 +207,24 @@ export async function extractStructuredResumeData(input: {
   text: string
   regionHint?: 'US' | 'CA'
 }): Promise<ResumeStructuredData> {
-  const admin = createAdminClient()
-  const [skillsRes, occupationsRes] = await Promise.all([
-    admin.from('skills').select('id,name,aliases').order('name', { ascending: true }),
-    admin
-      .from('occupations')
-      .select('id,title,region')
-      .eq('region', input.regionHint ?? 'US')
-      .limit(1000)
-  ])
+  let skills: SkillRow[] = []
+  let occupations: OccupationRow[] = []
 
-  if (skillsRes.error) throw skillsRes.error
-  if (occupationsRes.error) throw occupationsRes.error
-
-  const skills = (skillsRes.data ?? []) as SkillRow[]
-  const occupations = (occupationsRes.data ?? []) as OccupationRow[]
+  try {
+    const admin = createAdminClient()
+    const [skillsRes, occupationsRes] = await Promise.all([
+      admin.from('skills').select('id,name,aliases').order('name', { ascending: true }),
+      admin
+        .from('occupations')
+        .select('id,title,region')
+        .eq('region', input.regionHint ?? 'US')
+        .limit(1000)
+    ])
+    if (!skillsRes.error) skills = (skillsRes.data ?? []) as SkillRow[]
+    if (!occupationsRes.error) occupations = (occupationsRes.data ?? []) as OccupationRow[]
+  } catch {
+    // DB unavailable — proceed with heuristic-only extraction
+  }
   const lines = input.text
     .split(/\r?\n/)
     .map((line) => line.trim())

@@ -31,7 +31,11 @@ export function SectionCard({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <Card className={`!rounded-2xl !border-border-light p-6 shadow-card ${className}`}>{children}</Card>;
+  return (
+    <Card className={`!rounded-2xl !border-border-light bg-surface p-5 shadow-card md:p-6 ${className}`}>
+      {children}
+    </Card>
+  );
 }
 
 export function FallbackTag({ value }: { value: DashboardFallbackValue<string> }) {
@@ -39,6 +43,90 @@ export function FallbackTag({ value }: { value: DashboardFallbackValue<string> }
   const variant =
     value.badge === 'Needs data' ? 'warning' : value.badge === 'Estimate' ? 'info' : 'default';
   return <Badge variant={variant}>{value.badge}</Badge>;
+}
+
+export function toChecklistKey(...parts: Array<string | number | null | undefined>) {
+  return parts
+    .map((part) => String(part ?? '').trim().toLowerCase())
+    .filter(Boolean)
+    .join('::')
+    .replace(/[^a-z0-9:]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+function CardDoneToggle({
+  cardId,
+  checked,
+  onToggleCard,
+  label = 'Done',
+}: {
+  cardId: string;
+  checked: boolean;
+  onToggleCard: (cardId: string) => void;
+  label?: string;
+}) {
+  return (
+    <label
+      className={`inline-flex cursor-pointer items-center gap-2 rounded-pill border px-2.5 py-1 text-[10px] font-bold transition ${
+        checked
+          ? 'border-success/35 bg-success/10 text-success'
+          : 'border-border bg-surface text-text-secondary hover:border-accent/30'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => onToggleCard(cardId)}
+        className="h-3.5 w-3.5 rounded border-border text-accent focus:ring-accent"
+      />
+      {label}
+    </label>
+  );
+}
+
+function ChecklistRow({
+  itemId,
+  checked,
+  onToggle,
+  text,
+  accent = false,
+}: {
+  itemId: string;
+  checked: boolean;
+  onToggle: (itemId: string) => void;
+  text: string;
+  accent?: boolean;
+}) {
+  return (
+    <label
+      className={`group flex cursor-pointer items-start gap-2.5 rounded-[10px] px-2 py-1.5 transition ${
+        checked
+          ? 'bg-success/10'
+          : accent
+            ? 'hover:bg-accent-light/50'
+            : 'hover:bg-bg-secondary'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => onToggle(itemId)}
+        className={`mt-0.5 h-4 w-4 shrink-0 rounded border ${
+          accent
+            ? 'border-accent/35 text-accent focus:ring-accent'
+            : 'border-border text-accent focus:ring-accent'
+        }`}
+      />
+      <span
+        className={`break-words text-[12px] font-semibold leading-[1.55] ${
+          checked ? 'text-text-tertiary line-through' : 'text-text-secondary'
+        }`}
+      >
+        {text}
+      </span>
+    </label>
+  );
 }
 
 function shortenMarketCardValue(label: string, value: string) {
@@ -98,21 +186,21 @@ export function TopSummaryStrip({
   dataFreshness: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface px-[14px] py-3 shadow-card">
-      <div className="grid gap-[10px] md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]">
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold tracking-[0.2px] text-text-tertiary">Plan Score</p>
+    <div className="rounded-2xl border border-border-light bg-surface p-3 shadow-card md:p-4">
+      <div className="grid gap-2.5 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]">
+        <div className="min-w-0 rounded-xl border border-border-light bg-bg-secondary p-3">
+          <p className="text-[10px] font-bold tracking-[1px] text-text-tertiary">Plan Score</p>
           <p className="mt-1 break-words text-sm font-bold text-text-primary">{planScore}</p>
         </div>
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold tracking-[0.2px] text-text-tertiary">Welcome Back</p>
+        <div className="min-w-0 rounded-xl border border-border-light bg-bg-secondary p-3">
+          <p className="text-[10px] font-bold tracking-[1px] text-text-tertiary">Welcome Back</p>
           <p className="mt-1 break-words text-sm font-bold text-text-primary">{welcomeLine}</p>
           <p className="mt-1 break-words text-[12px] font-medium text-text-secondary">
             Recommended action: {recommendedAction}
           </p>
         </div>
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold tracking-[0.2px] text-text-tertiary">
+        <div className="min-w-0 rounded-xl border border-border-light bg-bg-secondary p-3">
+          <p className="text-[10px] font-bold tracking-[1px] text-text-tertiary">
             Confidence Trend (30D)
           </p>
           <p className="mt-1 break-words text-sm font-bold text-success">{confidenceTrend}</p>
@@ -120,8 +208,8 @@ export function TopSummaryStrip({
             <p className="mt-1 text-[12px] font-medium text-text-secondary">{lastTaskDeltaLabel}</p>
           ) : null}
         </div>
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold tracking-[0.2px] text-text-tertiary">Data Freshness</p>
+        <div className="min-w-0 rounded-xl border border-border-light bg-bg-secondary p-3">
+          <p className="text-[10px] font-bold tracking-[1px] text-text-tertiary">Data Freshness</p>
           <p className="mt-1 text-sm font-bold text-accent">{dataFreshness}</p>
           <p className="mt-1 text-[12px] font-medium text-text-secondary">
             Province-aware signals refreshed for this plan.
@@ -320,6 +408,9 @@ export function RoadmapSection({
   nowTasks,
   nextCompletion,
   blockedTasks,
+  cardId,
+  isCardChecked,
+  onToggleCard,
 }: {
   roadmapPhases: PlannerDashboardRoadmapPhase[];
   phaseStats: Map<string, PhaseStateView>;
@@ -330,14 +421,20 @@ export function RoadmapSection({
   nowTasks: PlannerDashboardTask[];
   nextCompletion: number;
   blockedTasks: PlannerDashboardTask[];
+  cardId: string;
+  isCardChecked: boolean;
+  onToggleCard: (cardId: string) => void;
 }) {
   return (
     <SectionCard className="bg-surface">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">
-          4. Roadmap and Milestone Tracking (Expandable)
-        </p>
-        <Badge variant="info">Contextual Detail</Badge>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">
+            11. Longer-Term Roadmap Card
+          </p>
+          <Badge variant="info">Scan later</Badge>
+        </div>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
       </div>
       <div className="mt-4 space-y-[10px]">
         {roadmapPhases.map((phase) => {
@@ -351,12 +448,12 @@ export function RoadmapSection({
           return (
             <article
               key={phase.id}
-              className={`rounded-xl border px-[14px] py-3 ${
+              className={`rounded-xl border px-[14px] py-3 transition ${
                 statusLabel === 'Done'
                   ? 'border-success/35 bg-success/10'
                   : statusLabel === 'In progress'
-                    ? 'border-accent/35 bg-accent-light/30'
-                    : 'border-accent/30 bg-accent-light/20'
+                    ? 'border-accent/35 bg-accent-light/25'
+                    : 'border-border-light bg-bg-secondary'
               }`}
             >
               <button
@@ -365,7 +462,7 @@ export function RoadmapSection({
                 onClick={() => toggleRoadmapPhase(phase.id)}
                 className="flex w-full items-center justify-between gap-2 text-left"
               >
-                <p className="text-[14px] font-bold text-accent">{phase.title}</p>
+                <p className="text-[14px] font-bold text-text-primary">{phase.title}</p>
                 <div className="flex items-center gap-2">
                   <span
                     className={`rounded-pill border px-2 py-0.5 text-[10px] font-bold ${
@@ -376,10 +473,10 @@ export function RoadmapSection({
                           : 'border-border bg-surface text-text-secondary'
                     }`}
                   >
-                    {statusLabel} Â· {checkedCount}/{totalTasks}
+                    {statusLabel} - {checkedCount}/{totalTasks}
                   </span>
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-pill border border-accent/25 bg-accent-light text-[10px] font-bold text-accent">
-                    {isExpanded ? '^' : 'v'}
+                    {isExpanded ? '-' : '+'}
                   </span>
                 </div>
               </button>
@@ -401,7 +498,7 @@ export function RoadmapSection({
                       return (
                         <div
                           key={task.id}
-                          className={`flex items-center justify-between gap-3 rounded-xl border p-3 ${meta.rowClass}`}
+                          className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${meta.rowClass}`}
                         >
                           <label className="flex min-w-0 cursor-pointer items-start gap-3">
                             <input
@@ -464,7 +561,7 @@ export function RoadmapSection({
         })}
       </div>
       <p className="mt-4 text-[12px] font-semibold text-text-secondary">
-        Check tasks here first. Completed phases collapse automatically and can always be reopened.
+        Expand each phase for 30/60/90 and beyond. Completed phases collapse automatically and can always be reopened.
       </p>
       <div className="mt-3 grid gap-[10px] md:grid-cols-3">
         <div className="rounded-[10px] border border-accent/25 bg-accent-light p-[10px]">
@@ -497,6 +594,667 @@ export function RoadmapSection({
       </div>
     </SectionCard>
   );
+}
+
+export function Action14DaySection({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  const thisWeek = model.actionWindow14.thisWeek.length > 0 ? model.actionWindow14.thisWeek : model.checklist.immediate
+  const nextWeek = model.actionWindow14.nextWeek.length > 0 ? model.actionWindow14.nextWeek : model.checklist.shortTerm
+  const proofToCollect =
+    model.actionWindow14.proofToCollect.length > 0
+      ? model.actionWindow14.proofToCollect
+      : model.resumeEvidence.stillNeedsProof
+  const applyFirstRole = model.adjacentEntryOptions.fastestEntry?.title || model.decision.targetRole
+  const firstCredential = model.certEducation.required[0] || model.certEducation.recommended[0] || 'Confirm required entry credential'
+  const firstProof = proofToCollect[0] || model.resumeEvidence.stillNeedsProof[0] || 'Collect one role-relevant proof artifact'
+
+  return (
+    <SectionCard className="bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">2. 14-Day Action Card</p>
+          <Badge variant="default">High priority</Badge>
+        </div>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 rounded-xl border border-accent/25 bg-accent-light/45 p-3.5">
+        <p className="text-[10px] font-bold uppercase tracking-[1.1px] text-accent">Start here (next 48 hours)</p>
+        <ul className="mt-2 space-y-2 text-[12px] font-semibold leading-[1.6] text-text-secondary">
+          <li>
+            <ChecklistRow
+              itemId={toChecklistKey('action-priority', 'apply-first', applyFirstRole)}
+              checked={isItemChecked(toChecklistKey('action-priority', 'apply-first', applyFirstRole))}
+              onToggle={onToggleItem}
+              text={`Apply to first: ${applyFirstRole}`}
+              accent
+            />
+          </li>
+          <li>
+            <ChecklistRow
+              itemId={toChecklistKey('action-priority', 'first-credential', firstCredential)}
+              checked={isItemChecked(toChecklistKey('action-priority', 'first-credential', firstCredential))}
+              onToggle={onToggleItem}
+              text={`Lock this credential/proof gate: ${firstCredential}`}
+              accent
+            />
+          </li>
+          <li>
+            <ChecklistRow
+              itemId={toChecklistKey('action-priority', 'first-proof', firstProof)}
+              checked={isItemChecked(toChecklistKey('action-priority', 'first-proof', firstProof))}
+              onToggle={onToggleItem}
+              text={`Collect this proof artifact first: ${firstProof}`}
+              accent
+            />
+          </li>
+        </ul>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          { id: 'this-week', title: 'This week', items: thisWeek },
+          { id: 'next-week', title: 'Next week', items: nextWeek },
+          { id: 'proof-to-collect', title: 'Proof to collect', items: proofToCollect },
+        ].map((group) => (
+          <div key={group.title} className="rounded-xl border border-border-light bg-bg-secondary/80 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">{group.title}</p>
+            <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.65] text-text-secondary">
+              {group.items.slice(0, 4).map((item, idx) => (
+                <li key={`${group.title}-${idx}-${item}`} className="break-words">
+                  <ChecklistRow
+                    itemId={toChecklistKey('action-14-day', group.id, idx, item)}
+                    checked={isItemChecked(toChecklistKey('action-14-day', group.id, idx, item))}
+                    onToggle={onToggleItem}
+                    text={item}
+                    accent
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+export function BestRouteSection({
+  model,
+  primaryScenarioSteps,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  primaryScenarioSteps: PlannerDashboardV3Model['fastestPath']['steps']
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  const sequence = primaryScenarioSteps.slice(0, 4)
+
+  return (
+    <SectionCard className="bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">3. Best Route Card</p>
+          <Badge variant="default">High priority</Badge>
+        </div>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="rounded-xl border border-border-light bg-bg-secondary/80 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-[1.1px] text-text-tertiary">Route type</p>
+          <p className="mt-1 text-base font-bold text-text-primary">{model.fastestPath.routeType}</p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-[1.1px] text-text-tertiary">
+            Best entry strategy
+          </p>
+          <div className="mt-1 text-[12px] font-semibold leading-[1.6]">
+            <ChecklistRow
+              itemId={toChecklistKey('best-route', 'entry-strategy', model.fastestPath.bestEntryStrategy)}
+              checked={isItemChecked(
+                toChecklistKey('best-route', 'entry-strategy', model.fastestPath.bestEntryStrategy)
+              )}
+              onToggle={onToggleItem}
+              text={model.fastestPath.bestEntryStrategy}
+              accent
+            />
+          </div>
+        </div>
+        <div className="rounded-xl border border-accent/25 bg-accent-light/45 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-[1.1px] text-accent">Route sequence</p>
+          <div className="mt-2 space-y-2">
+            {sequence.map((step, idx) => (
+              <div key={`${step.label}-${step.detail}-${idx}`} className="rounded-[10px] border border-accent/20 bg-surface px-3 py-2.5">
+                <p className="text-[12px] font-bold text-accent">{step.label}</p>
+                <div className="mt-1 text-[12px] font-semibold leading-[1.55]">
+                  <ChecklistRow
+                    itemId={toChecklistKey('best-route', 'sequence', idx, step.label, step.detail)}
+                    checked={isItemChecked(
+                      toChecklistKey('best-route', 'sequence', idx, step.label, step.detail)
+                    )}
+                    onToggle={onToggleItem}
+                    text={step.detail}
+                    accent
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SectionCard>
+  )
+}
+
+export function BlockersSection({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  return (
+    <SectionCard className="border-warning/30 bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">4. Blockers Card</p>
+          <Badge variant="warning">High priority</Badge>
+        </div>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 space-y-3">
+        {model.blockers.slice(0, 4).map((item, idx) => (
+          <div key={`${item.blocker}-${idx}`} className="rounded-xl border border-warning/25 bg-warning-light p-3.5">
+            <ChecklistRow
+              itemId={toChecklistKey('blockers', idx, item.blocker)}
+              checked={isItemChecked(toChecklistKey('blockers', idx, item.blocker))}
+              onToggle={onToggleItem}
+              text={`Blocker: ${item.blocker}`}
+              accent
+            />
+            <p className="mt-2 text-[11px] font-bold uppercase tracking-[1px] text-text-tertiary">
+              Why it matters in hiring
+            </p>
+            <p className="mt-1 text-[12px] font-semibold leading-[1.6] text-text-secondary">
+              Why it matters: {item.whyItMatters}
+            </p>
+            <p className="mt-2 text-[11px] font-bold uppercase tracking-[1px] text-accent">How to fix it</p>
+            <p className="mt-1 text-[12px] font-semibold leading-[1.6] text-accent">{item.howToFix}</p>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+export function RequirementsGapsSection({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  return (
+    <SectionCard className="bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">5. Requirements/Gaps Card</p>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          {
+            id: 'must-have',
+            title: 'Must-have requirements',
+            items: model.requirementsGaps.mustHave,
+            className: 'border-accent/25 bg-accent-light/25',
+          },
+          {
+            id: 'nice-to-have',
+            title: 'Nice-to-have accelerators',
+            items: model.requirementsGaps.niceToHave,
+            className: 'border-border-light bg-bg-secondary/80',
+          },
+          {
+            id: 'missing-right-now',
+            title: 'Missing right now',
+            items: model.requirementsGaps.missingNow,
+            className: 'border-error/25 bg-error-light/45',
+          },
+        ].map((group) => (
+          <div key={group.title} className={`rounded-xl border p-3 ${group.className}`}>
+            <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-text-primary">{group.title}</p>
+            <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.65] text-text-secondary">
+              {group.items.slice(0, 5).map((item, idx) => (
+                <li key={`${group.title}-${idx}-${item}`} className="break-words">
+                  <ChecklistRow
+                    itemId={toChecklistKey('requirements-gaps', group.id, idx, item)}
+                    checked={isItemChecked(toChecklistKey('requirements-gaps', group.id, idx, item))}
+                    onToggle={onToggleItem}
+                    text={item}
+                    accent={group.id === 'must-have'}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+export function SkillsBucketsSection({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  return (
+    <SectionCard className="bg-bg-secondary">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">6. Skills Card</p>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          { id: 'already-have', title: 'Already have', items: model.skillsBuckets.alreadyHave, className: 'border-success/25 bg-success/10' },
+          { id: 'need-soon', title: 'Need soon', items: model.skillsBuckets.needSoon, className: 'border-warning/30 bg-warning-light' },
+          { id: 'later-stage', title: 'Later-stage', items: model.skillsBuckets.laterStage, className: 'border-border-light bg-surface' },
+        ].map((group) => (
+          <div key={group.title} className={`rounded-xl border p-3 ${group.className}`}>
+            <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-text-primary">{group.title}</p>
+            <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.65] text-text-secondary">
+              {group.items.slice(0, 5).map((item, idx) => (
+                <li key={`${group.title}-${idx}-${item}`} className="break-words">
+                  <ChecklistRow
+                    itemId={toChecklistKey('skills-buckets', group.id, idx, item)}
+                    checked={isItemChecked(toChecklistKey('skills-buckets', group.id, idx, item))}
+                    onToggle={onToggleItem}
+                    text={item}
+                    accent={group.id === 'need-soon'}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+export function CertificationsEducationSection({
+  model,
+  trainingCards,
+  completedTrainingIds,
+  onToggleTrainingCard,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  trainingCards: ReturnType<typeof buildTrainingCards>
+  completedTrainingIds: Record<string, boolean>
+  onToggleTrainingCard: (trainingId: string) => void
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  return (
+    <SectionCard className="bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">7. Certifications/Education Card</p>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <p className="mt-3 text-[12px] font-semibold text-text-secondary">{model.certEducation.effortSummary}</p>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          { id: 'required', title: 'Required', items: model.certEducation.required, className: 'border-accent/25 bg-accent-light/25' },
+          { id: 'recommended', title: 'Recommended', items: model.certEducation.recommended, className: 'border-border-light bg-bg-secondary/80' },
+          { id: 'optional', title: 'Optional', items: model.certEducation.optional, className: 'border-border-light bg-surface' },
+        ].map((group) => (
+          <div key={group.title} className={`rounded-xl border p-3 ${group.className}`}>
+            <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-text-primary">{group.title}</p>
+            <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.65] text-text-secondary">
+              {group.items.slice(0, 5).map((item, idx) => (
+                <li key={`${group.title}-${idx}-${item}`} className="break-words">
+                  <ChecklistRow
+                    itemId={toChecklistKey('cert-education', group.id, idx, item)}
+                    checked={isItemChecked(toChecklistKey('cert-education', group.id, idx, item))}
+                    onToggle={onToggleItem}
+                    text={item}
+                    accent={group.id === 'required'}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {trainingCards.map((card) => (
+          <div
+            key={card.id}
+            className={`rounded-xl border p-3 text-left transition ${
+              completedTrainingIds[card.id]
+                ? 'border-success/35 bg-success/10'
+                : 'border-border-light bg-bg-secondary/80 hover:border-accent/30'
+            }`}
+          >
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                checked={Boolean(completedTrainingIds[card.id])}
+                onChange={() => onToggleTrainingCard(card.id)}
+                className="mt-0.5 h-4 w-4 rounded border-accent/35 text-accent focus:ring-accent"
+              />
+              <span>
+                <p className="text-[13px] font-bold text-text-primary">{card.name}</p>
+                <p className="mt-1 text-[11px] font-semibold text-text-secondary">{card.provider}</p>
+                {card.cost ? <p className="mt-1 text-[11px] font-semibold text-text-tertiary">Cost: {card.cost}</p> : null}
+                <p className="mt-2 text-[10px] font-bold uppercase tracking-[1px] text-accent">
+                  {completedTrainingIds[card.id] ? 'Completed' : 'Mark complete'}
+                </p>
+              </span>
+            </label>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+export function ResumeEvidenceSection({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  return (
+    <SectionCard className="bg-bg-secondary">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">8. Resume Evidence Card</p>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {[
+          { id: 'already-proves', title: 'Already proves', items: model.resumeEvidence.alreadyProves, className: 'border-success/25 bg-success/10' },
+          { id: 'still-needs-proof', title: 'Still needs proof', items: model.resumeEvidence.stillNeedsProof, className: 'border-warning/30 bg-warning-light' },
+          { id: 'artifacts-to-add', title: 'Artifacts to add', items: model.resumeEvidence.artifacts, className: 'border-accent/25 bg-accent-light/25' },
+        ].map((group) => (
+          <div key={group.title} className={`rounded-xl border p-3 ${group.className}`}>
+            <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-text-primary">{group.title}</p>
+            <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.65] text-text-secondary">
+              {group.items.slice(0, 4).map((item, idx) => (
+                <li key={`${group.title}-${idx}-${item}`} className="break-words">
+                  <ChecklistRow
+                    itemId={toChecklistKey('resume-evidence', group.id, idx, item)}
+                    checked={isItemChecked(toChecklistKey('resume-evidence', group.id, idx, item))}
+                    onToggle={onToggleItem}
+                    text={item}
+                    accent={group.id !== 'still-needs-proof'}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  )
+}
+
+function AdjacentOptionCard({
+  label,
+  option,
+  optionId,
+  isChecked,
+  onToggleItem,
+  onSelectAlternativeRole,
+}: {
+  label: string
+  option: PlannerDashboardAlternative | null
+  optionId: string
+  isChecked: boolean
+  onToggleItem: (itemId: string) => void
+  onSelectAlternativeRole: (title: string) => void
+}) {
+  if (!option) {
+    return (
+      <div className="rounded-xl border border-border-light bg-bg-secondary p-3">
+        <p className="text-[12px] font-bold tracking-[0.35px] text-text-primary">{label}</p>
+        <p className="mt-2 text-[12px] font-semibold text-text-secondary">No route available yet.</p>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelectAlternativeRole(option.title)}
+      className="rounded-xl border border-border-light bg-surface p-3 text-left transition hover:border-accent/30 hover:bg-bg-secondary"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">{label}</p>
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={(event) => {
+            event.stopPropagation()
+            onToggleItem(optionId)
+          }}
+          onClick={(event) => event.stopPropagation()}
+          className="h-4 w-4 rounded border-accent/35 text-accent focus:ring-accent"
+        />
+      </div>
+      <p className="mt-2 text-[14px] font-bold text-text-primary">{option.title}</p>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        <span className="rounded-pill border border-border px-2 py-0.5 text-[10px] font-bold text-text-secondary">
+          {option.timeline}
+        </span>
+        <span className="rounded-pill border border-border px-2 py-0.5 text-[10px] font-bold text-text-secondary">
+          {option.difficulty}
+        </span>
+      </div>
+      <p className="mt-1 text-[11px] font-semibold text-text-tertiary">Salary: {option.salary.value}</p>
+      <p className="mt-2 text-[11px] font-semibold leading-[1.6] text-text-secondary">{option.reason}</p>
+      <p className="mt-3 text-[11px] font-bold text-accent">Generate this path</p>
+    </button>
+  )
+}
+
+export function AdjacentEntryOptionsSection({
+  model,
+  onSelectAlternativeRole,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  onSelectAlternativeRole: (title: string) => void
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  return (
+    <SectionCard className="bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">9. Adjacent Entry Options</p>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <p className="mt-3 text-[12px] font-semibold text-text-secondary">
+        Strategic alternatives if your primary route slows down.
+      </p>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <AdjacentOptionCard
+          label="Fastest entry"
+          option={model.adjacentEntryOptions.fastestEntry}
+          optionId={toChecklistKey('adjacent-entry-options', 'fastest-entry', model.adjacentEntryOptions.fastestEntry?.title)}
+          isChecked={isItemChecked(
+            toChecklistKey('adjacent-entry-options', 'fastest-entry', model.adjacentEntryOptions.fastestEntry?.title)
+          )}
+          onToggleItem={onToggleItem}
+          onSelectAlternativeRole={onSelectAlternativeRole}
+        />
+        <AdjacentOptionCard
+          label="Closest match"
+          option={model.adjacentEntryOptions.closestMatch}
+          optionId={toChecklistKey('adjacent-entry-options', 'closest-match', model.adjacentEntryOptions.closestMatch?.title)}
+          isChecked={isItemChecked(
+            toChecklistKey('adjacent-entry-options', 'closest-match', model.adjacentEntryOptions.closestMatch?.title)
+          )}
+          onToggleItem={onToggleItem}
+          onSelectAlternativeRole={onSelectAlternativeRole}
+        />
+        <AdjacentOptionCard
+          label="Best long-term upside"
+          option={model.adjacentEntryOptions.bestLongTermUpside}
+          optionId={toChecklistKey(
+            'adjacent-entry-options',
+            'best-long-term-upside',
+            model.adjacentEntryOptions.bestLongTermUpside?.title
+          )}
+          isChecked={isItemChecked(
+            toChecklistKey(
+              'adjacent-entry-options',
+              'best-long-term-upside',
+              model.adjacentEntryOptions.bestLongTermUpside?.title
+            )
+          )}
+          onToggleItem={onToggleItem}
+          onSelectAlternativeRole={onSelectAlternativeRole}
+        />
+      </div>
+    </SectionCard>
+  )
+}
+
+export function SalaryMarketSection({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model
+  cardId: string
+  isCardChecked: boolean
+  onToggleCard: (cardId: string) => void
+  isItemChecked: (itemId: string) => boolean
+  onToggleItem: (itemId: string) => void
+}) {
+  const cards = [
+    { label: 'Entry pay', metric: model.marketSnapshot.entryWage },
+    { label: 'Long-term pay', metric: model.marketSnapshot.topEarners },
+    { label: 'Market demand', metric: model.marketSnapshot.localDemand },
+    { label: 'Hiring environment', metric: model.marketSnapshot.hiringRequirements },
+  ]
+
+  return (
+    <SectionCard className="bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-light pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">10. Salary/Market Card</p>
+          <Badge variant="info">Scan later</Badge>
+        </div>
+        <CardDoneToggle cardId={cardId} checked={isCardChecked} onToggleCard={onToggleCard} />
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-4">
+        {cards.map((item) => {
+          const compactValue = shortenMarketCardValue(item.label, item.metric.value)
+          const valueWasTrimmed = compactValue !== item.metric.value
+          return (
+            <div key={item.label} className="rounded-xl border border-border-light bg-bg-secondary/80 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-text-tertiary">{item.label}</p>
+                <input
+                  type="checkbox"
+                  checked={isItemChecked(toChecklistKey('salary-market', item.label))}
+                  onChange={() => onToggleItem(toChecklistKey('salary-market', item.label))}
+                  className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                />
+              </div>
+              <p className="mt-2 text-[16px] font-bold leading-[1.2] text-text-primary">{compactValue}</p>
+              {valueWasTrimmed ? (
+                <p className="mt-1 text-[11px] font-semibold text-text-tertiary">{item.metric.value}</p>
+              ) : null}
+              <div className="mt-2">
+                <FallbackTag value={item.metric} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <span className="rounded-pill border border-accent/20 bg-accent-light px-[10px] py-1 text-[11px] font-bold text-accent">
+          Wages: {model.marketSnapshot.wageSourceLabel}
+        </span>
+        <span className="rounded-pill border border-border px-[10px] py-1 text-[11px] font-bold text-text-secondary">
+          Demand: {model.marketSnapshot.demandSourceLabel}
+        </span>
+      </div>
+    </SectionCard>
+  )
 }
 
 export function FastestPathSection({
@@ -586,21 +1344,21 @@ export function FastestPathSection({
 export function GuestPreviewLimitSection() {
   return (
     <SectionCard className="border-warning/25 bg-warning-light">
-      <p className="text-xs font-semibold uppercase tracking-[1.1px] text-warning">Preview Limit</p>
-      <p className="mt-2 text-sm text-text-secondary">
+      <p className="text-[10px] font-bold uppercase tracking-[1.1px] text-warning">Preview Limit</p>
+      <p className="mt-2 text-sm font-semibold text-text-secondary">
         Sections after{' '}
         <span className="font-semibold text-text-primary">
-          4. Roadmap and Milestone Tracking (Expandable)
+          3. Best Route Card
         </span>{' '}
         are locked on guest preview.
       </p>
-      <p className="mt-2 text-sm text-text-secondary">
-        Sign in to unlock Fastest Path, Training, Market Snapshot, Outreach Toolkit, Reality Check,
-        Weekly Sprint Checklist, Alternative Paths, Action Panel, FAQ, and Related Tools.
+      <p className="mt-2 text-sm font-semibold text-text-secondary">
+        Sign in to unlock Blockers, Requirements, Skills, Certifications, Resume Evidence,
+        Adjacent Entry Options, Salary/Market context, and the Longer-Term Roadmap.
       </p>
       <Link
         href="/login"
-        className="mt-4 inline-flex rounded-xl border border-accent/20 bg-accent-light px-4 py-2 text-sm font-semibold text-accent"
+        className="mt-4 inline-flex rounded-xl border border-accent/20 bg-accent-light px-4 py-2 text-sm font-bold text-accent transition hover:border-accent/35"
       >
         Sign In to Unlock Full Report
       </Link>
@@ -612,7 +1370,7 @@ export function AiSignalCard({ model }: { model: PlannerDashboardV3Model }) {
   return (
     <SectionCard className="!rounded-xl !p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-bold tracking-[0.4px] text-accent">AI Signal</p>
+        <p className="text-[10px] font-bold tracking-[1px] text-accent">AI Signal</p>
         <span className="rounded-pill border border-accent/20 bg-accent-light px-2 py-0.5 text-[10px] font-semibold text-accent">
           Supportive
         </span>
@@ -1246,7 +2004,7 @@ export function AlternativesSection({
   return (
     <SectionCard className="bg-bg-secondary">
       <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">
-        11. Alternative Career Paths
+        11. Adjacent Entry Options
       </p>
       <p className="mt-2 text-[12px] font-semibold text-text-secondary">
         Selecting a path regenerates this planner for that role.
@@ -1287,21 +2045,26 @@ export function TrustFaqSection({
 }) {
   return (
     <SectionCard className="bg-surface">
-      <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">
+      <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">
         14. Trust, Methodology and FAQ
       </p>
       <div className="mt-4 rounded-xl border border-border-light bg-bg-secondary p-3">
-        <p className="text-[12px] font-bold tracking-[0.4px] text-accent">How This Score Is Computed</p>
+        <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">How This Score Is Computed</p>
         <p className="mt-1 text-[11px] font-semibold leading-[1.7] text-text-secondary">
           {methodology.scoreSummary}
         </p>
-        <div className="mt-2 space-y-1">
-          {methodology.sourceLines.map((line) => (
-            <p key={line} className="text-[11px] font-bold text-text-secondary">
-              {line}
-            </p>
-          ))}
-        </div>
+        <details className="mt-2 rounded-[10px] border border-border-light bg-surface p-3">
+          <summary className="cursor-pointer text-[11px] font-bold text-accent">
+            See assumptions and source details
+          </summary>
+          <div className="mt-2 space-y-1">
+            {methodology.sourceLines.map((line) => (
+              <p key={line} className="text-[11px] font-bold text-text-secondary">
+                {line}
+              </p>
+            ))}
+          </div>
+        </details>
       </div>
       <FAQAccordion items={faqItems} className="mt-4" />
     </SectionCard>
@@ -1315,7 +2078,7 @@ export function RelatedToolsSection({
 }) {
   return (
     <SectionCard className="bg-bg-secondary">
-      <p className="text-[12px] font-bold tracking-[0.4px] text-text-secondary">15. Related Tools</p>
+      <p className="text-[11px] font-bold tracking-[0.45px] text-text-secondary">15. Related Tools</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="rounded-pill border border-accent/20 bg-accent-light px-[10px] py-1 text-[11px] font-bold text-accent">
           Resume Analyzer
@@ -1344,6 +2107,8 @@ export function StickyExecutionPanel({
   lastTaskDeltaLabel,
   nextBestAction,
   stickyNextSteps,
+  isItemChecked,
+  onToggleItem,
   savePlanLabel,
   onRegenerate,
   onEditInputs,
@@ -1357,6 +2122,8 @@ export function StickyExecutionPanel({
   lastTaskDeltaLabel: string | null;
   nextBestAction: string;
   stickyNextSteps: string[];
+  isItemChecked: (itemId: string) => boolean;
+  onToggleItem: (itemId: string) => void;
   savePlanLabel: string;
   onRegenerate: () => void;
   onEditInputs: () => void;
@@ -1366,18 +2133,18 @@ export function StickyExecutionPanel({
   onSavePlan: () => void;
 }) {
   return (
-    <SectionCard className="!rounded-2xl !p-[18px]">
-      <p id="planner-v3-sticky-panel" className="text-[11px] font-bold tracking-[0.4px] text-text-secondary">
+    <SectionCard className="!rounded-2xl !p-4 md:!p-[18px]">
+      <p id="planner-v3-sticky-panel" className="text-[10px] font-bold tracking-[1px] text-text-secondary">
         Execution
       </p>
-      <p className="mt-2 text-[12px] font-bold text-text-tertiary">Return Loop</p>
+      <p className="mt-2 text-[10px] font-bold uppercase tracking-[1.05px] text-text-tertiary">Return Loop</p>
       <p className="mt-1 text-base font-bold leading-[1.35] text-text-primary">{model.stickyPanel.transition}</p>
       <p className="mt-2 text-[13px] font-semibold text-text-secondary">
         Difficulty: {model.stickyPanel.difficulty}
       </p>
       <p className="text-[13px] font-semibold text-text-secondary">Timeline: {model.stickyPanel.timeline}</p>
-      <div className="mt-3 rounded-[10px] border border-accent/25 bg-accent-light p-[10px]">
-        <p className="text-[12px] font-bold tracking-[0.4px] text-accent">Progress to First Offer</p>
+      <div className="mt-3 rounded-[10px] border border-accent/25 bg-accent-light/45 p-[10px]">
+        <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">Progress to First Offer</p>
         <div className="mt-2 h-2 rounded-pill bg-surface">
           <div className="h-2 rounded-pill bg-accent" style={{ width: `${liveProgressToOffer}%` }} />
         </div>
@@ -1386,15 +2153,26 @@ export function StickyExecutionPanel({
         </p>
       </div>
       <div className="mt-3 rounded-[10px] border border-success/20 bg-success/10 p-[10px]">
-        <p className="text-[12px] font-bold tracking-[0.4px] text-success">Next Best Action</p>
-        <p className="mt-1 text-[11px] font-semibold text-success">{nextBestAction}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-success">Next Best Action</p>
+        <p className="mt-1 text-[12px] font-semibold text-success">{nextBestAction}</p>
       </div>
-      <div className="mt-3 rounded-[10px] border border-border-light bg-bg-secondary p-[10px]">
+      <div className="mt-3 rounded-[10px] border border-border-light bg-bg-secondary/80 p-[10px]">
         <p className="text-[13px] font-bold text-text-primary">Next Steps</p>
         <ul className="mt-2 space-y-1.5 text-[12px] font-semibold leading-[1.7] text-text-secondary">
-          {stickyNextSteps.map((item, idx) => (
-            <li key={`${item}-${idx}`}>[ ] {item}</li>
-          ))}
+          {stickyNextSteps.map((item, idx) => {
+            const itemId = toChecklistKey('sticky-next-steps', idx, item);
+            return (
+              <li key={`${item}-${idx}`}>
+                <ChecklistRow
+                  itemId={itemId}
+                  checked={isItemChecked(itemId)}
+                  onToggle={onToggleItem}
+                  text={item}
+                  accent
+                />
+              </li>
+            );
+          })}
         </ul>
       </div>
       <div className="mt-4 rounded-[10px] border border-border-light bg-bg-secondary p-3">

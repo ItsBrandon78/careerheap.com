@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
@@ -256,12 +256,6 @@ export function PlannerIntakeWizard({
     : COMPACT_STEP2_POLISH
       ? 'Review constraints, then generate.'
       : 'The final generate button appears after you review constraints.'
-
-  useEffect(() => {
-    if (hasPostingText) {
-      setShowEmployerEvidenceDetails(true)
-    }
-  }, [hasPostingText])
 
   const handleNextClick = () => {
     onNext()
@@ -688,7 +682,13 @@ export function PlannerIntakeWizard({
                     <textarea
                       rows={5}
                       value={userPostingText}
-                      onChange={(event) => onSetUserPostingText(event.target.value)}
+                      onChange={(event) => {
+                        const nextValue = event.target.value
+                        onSetUserPostingText(nextValue)
+                        if (nextValue.trim().length > 0) {
+                          setShowEmployerEvidenceDetails(true)
+                        }
+                      }}
                       placeholder="Paste full requirements section from a posting."
                       className="w-full rounded-md border border-border bg-surface p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
                     />

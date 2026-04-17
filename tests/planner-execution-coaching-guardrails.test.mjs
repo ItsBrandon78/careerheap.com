@@ -182,11 +182,12 @@ test('deterministic execution strategy enforces minimum actions and linked requi
 test('legacy execution strategy block is removed and V3 dashboard sections are present', () => {
   assert.match(plannerClientSource, /PlannerDashboardV3/)
   assert.doesNotMatch(plannerClientSource, /Personalized execution strategy/)
-  assert.match(dashboardSource, /2\. Weighted Difficulty Drivers/)
-  assert.match(dashboardSource, /4\. Roadmap and Milestone Tracking \(Expandable\)/)
-  assert.match(dashboardSource, /5\. Fastest Path with Risk Controls/)
-  assert.match(dashboardSource, /9\. Reality Check/)
-  assert.match(dashboardSource, /10\. Weekly Sprint Checklist/)
+  assert.match(dashboardSource, /<Action14DaySection/)
+  assert.match(dashboardSource, /<BestRouteSection/)
+  assert.match(dashboardSource, /<BlockersSection/)
+  assert.match(dashboardSource, /<AdjacentEntryOptionsSection/)
+  assert.match(dashboardSource, /<SalaryMarketSection/)
+  assert.match(dashboardSource, /<RoadmapSection/)
 })
 
 test('execution strategy month ordering keeps immediate blockers ahead of long-horizon gates', () => {
