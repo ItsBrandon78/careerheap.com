@@ -1,5 +1,4 @@
-'use client'
-
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
@@ -7,6 +6,17 @@ import Card from '@/components/Card'
 import PricingCard from '@/components/PricingCard'
 import FAQAccordion from '@/components/FAQAccordion'
 import { pricingFaqs, pricingPlans } from '@/src/design/mockupData'
+
+export const metadata: Metadata = {
+  title: 'Pricing — CareerHeap',
+  description: 'Start free with 3 lifetime career analyses. Upgrade to Pro for unlimited province-aware roadmaps, resume upload, and PDF export.',
+  alternates: { canonical: '/pricing' },
+  openGraph: {
+    title: 'Simple, Transparent Pricing — CareerHeap',
+    description: 'Free plan includes 3 lifetime career analyses. Pro unlocks unlimited guidance, resume upload, and full roadmap depth.',
+    type: 'website',
+  },
+}
 
 export default function PricingPage() {
   const foundersEnabled = process.env.NEXT_PUBLIC_FOUNDERS_LIFETIME_ENABLED !== '0'

@@ -1,7 +1,19 @@
+import type { Metadata } from 'next'
 import ToolCard from '@/components/ToolCard'
 import CTASection from '@/components/CTASection'
 import FeaturedToolCard from '@/components/FeaturedToolCard'
 import { featuredHomepageTool, homepageTools } from '@/src/design/mockupData'
+
+export const metadata: Metadata = {
+  title: 'Career Tools — CareerHeap',
+  description: 'AI-powered career tools for Canadians. Analyze your resume, prep for interviews, write cover letters, and plan your next career switch.',
+  alternates: { canonical: '/tools' },
+  openGraph: {
+    title: 'Career Tools — CareerHeap',
+    description: 'Resume analyzer, interview prep, cover letter writer, and career switch planner — built for Canadian job seekers.',
+    type: 'website',
+  },
+}
 
 export default function ToolsPage() {
   return (

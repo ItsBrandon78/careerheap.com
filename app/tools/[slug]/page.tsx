@@ -1,6 +1,6 @@
 'use client'
 
-import { notFound, useSearchParams } from 'next/navigation'
+import { notFound, redirect, useSearchParams } from 'next/navigation'
 import { use, useEffect, useMemo, useState } from 'react'
 import ToolHero from '@/components/ToolHero'
 import ToolUIContainer from '@/components/ToolUIContainer'
@@ -213,7 +213,7 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
 
       <section className="w-full px-4 py-16 lg:px-[340px]">
         {isLocked ? (
-          <PaywallBanner usesRemaining={0} />
+          <PaywallBanner usesRemaining={usage?.usesRemaining ?? 0} />
         ) : (
           <ToolUIContainer>
             <label htmlFor="tool-input" className="text-sm font-semibold text-text-primary">
@@ -289,5 +289,8 @@ export function ToolPageTemplate({ slug, locked = false }: ToolPageTemplateProps
 
 export default function ToolPage({ params }: ToolPageProps) {
   const { slug } = use(params)
+  if (slug === 'career-switch-planner') {
+    redirect('/tools/career-switch-planner')
+  }
   return <ToolPageTemplate slug={slug} />
 }
