@@ -709,7 +709,14 @@ async function loadOccupationIndex(region?: RegionCode) {
     return cached.rows
   }
 
-  const supabase = createAdminClient()
+  let supabase: ReturnType<typeof createAdminClient>
+  try {
+    supabase = createAdminClient()
+  } catch {
+    indexCache.set(cacheKey, { createdAt: Date.now(), rows: [] })
+    return []
+  }
+
   let query = supabase
     .from('occupations')
     .select('id,title,region,codes,source,last_updated')
@@ -721,7 +728,11 @@ async function loadOccupationIndex(region?: RegionCode) {
   }
 
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    console.warn('[resolveOccupation] occupation index load failed, using empty index:', error.message)
+    indexCache.set(cacheKey, { createdAt: Date.now(), rows: [] })
+    return []
+  }
 
   const rows = ((data ?? []) as OccupationRow[]).map((row) => ({
     ...row,
@@ -740,14 +751,23 @@ async function loadOccupationById(occupationId: string) {
   const normalizedId = occupationId.trim()
   if (!normalizedId) return null
 
-  const supabase = createAdminClient()
+  let supabase: ReturnType<typeof createAdminClient>
+  try {
+    supabase = createAdminClient()
+  } catch {
+    return null
+  }
+
   const { data, error } = await supabase
     .from('occupations')
     .select('id,title,region,codes,source,last_updated')
     .eq('id', normalizedId)
     .maybeSingle()
 
-  if (error) throw error
+  if (error) {
+    console.warn('[resolveOccupation] loadOccupationById failed:', error.message)
+    return null
+  }
   if (!data) return null
 
   const row = data as OccupationRow

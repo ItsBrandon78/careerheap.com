@@ -1577,7 +1577,10 @@ async function selectByIdsInChunks<T>(args: {
     const chunk = ids.slice(index, index + chunkSize)
     if (chunk.length === 0) continue
     const { data, error } = await supabase.from(table).select(columns).in(idColumn, chunk)
-    if (error) throw error
+    if (error) {
+      console.warn(`[careerMapPlanner] ${table} query failed, skipping chunk:`, error.message)
+      continue
+    }
     rows.push(...((data ?? []) as T[]))
   }
   return rows
@@ -1654,7 +1657,14 @@ function mergeCuratedTargetRequirements(args: {
 }
 
 export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput): Promise<CareerPlannerAnalysis> {
-  const supabase = createAdminClient()
+  let supabase: ReturnType<typeof createAdminClient>
+  try {
+    supabase = createAdminClient()
+  } catch (adminError) {
+    console.warn('[careerMapPlanner] Admin client unavailable, running in heuristic-only mode:', adminError instanceof Error ? adminError.message : String(adminError))
+    supabase = null as unknown as ReturnType<typeof createAdminClient>
+  }
+
   const country = inferCountry(input.location)
   const preferredProvince = country === 'CA' ? inferProvinceCode(input.location) : null
   const timeline = parseTimeline(input.timeline)
@@ -1664,20 +1674,24 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     ? input.skills.map((skill) => String(skill ?? '').trim()).filter(Boolean)
     : []
 
-  const [{ data: skillsData, error: skillsError }, { data: fxData }] = await Promise.all([
-    supabase.from('skills').select('id,name,aliases').order('name', { ascending: true }),
-    supabase
-      .from('fx_rates')
-      .select('base_currency,quote_currency,rate,source,as_of_date')
-      .eq('base_currency', 'USD')
-      .eq('quote_currency', 'CAD')
-      .order('as_of_date', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-  ])
-  if (skillsError) throw skillsError
-  const skills = (skillsData ?? []) as SkillRow[]
-  const fxRate = (fxData ?? null) as FxRateRow | null
+  let skills: SkillRow[] = []
+  let fxRate: FxRateRow | null = null
+  if (supabase) {
+    const [{ data: skillsData, error: skillsError }, { data: fxData }] = await Promise.all([
+      supabase.from('skills').select('id,name,aliases').order('name', { ascending: true }),
+      supabase
+        .from('fx_rates')
+        .select('base_currency,quote_currency,rate,source,as_of_date')
+        .eq('base_currency', 'USD')
+        .eq('quote_currency', 'CAD')
+        .order('as_of_date', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    ])
+    if (!skillsError) skills = (skillsData ?? []) as SkillRow[]
+    else console.warn('[careerMapPlanner] skills query failed:', skillsError.message)
+    fxRate = (fxData ?? null) as FxRateRow | null
+  }
 
   const skillMatchText = `${input.currentRole} ${input.targetRole ?? ''} ${input.experienceText} ${input.education ?? ''} ${explicitSkills.join(' ')}`
   const userSkills = skills
@@ -1691,14 +1705,16 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     .filter((row): row is { id: string; name: string; confidence: number } => Boolean(row))
   const userSkillIds = new Set(userSkills.map((skill) => skill.id))
 
-  const { data: occupationData, error: occupationError } = await supabase
-    .from('occupations')
-    .select('id,title,region,codes,source,last_updated')
-    .eq('region', country)
-    .limit(ACTIVE_OCCUPATION_LIMIT)
-  if (occupationError) throw occupationError
-
-  const occupations = (occupationData ?? []) as OccupationRow[]
+  let occupations: OccupationRow[] = []
+  if (supabase) {
+    const { data: occupationData, error: occupationError } = await supabase
+      .from('occupations')
+      .select('id,title,region,codes,source,last_updated')
+      .eq('region', country)
+      .limit(ACTIVE_OCCUPATION_LIMIT)
+    if (!occupationError) occupations = (occupationData ?? []) as OccupationRow[]
+    else console.warn('[careerMapPlanner] occupations query failed:', occupationError.message)
+  }
   const seededOccupations = occupations
     .map((occupation) => {
       const currentRoleScore = similarity(input.currentRole, occupation.title)
@@ -1847,8 +1863,8 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     }),
     supabase.from('trade_requirements').select('occupation_id,trade_code,province,hours,exam_required,official_links,source,source_url,notes').eq('province', 'ON')
   ])
-  if (requirementsRes.error) throw requirementsRes.error
-  if (tradesRes.error) throw tradesRes.error
+  if (requirementsRes.error) console.warn('[careerMapPlanner] occupation_requirements query failed:', requirementsRes.error.message)
+  if (tradesRes.error) console.warn('[careerMapPlanner] trade_requirements query failed:', tradesRes.error.message)
 
   const occupationSkills = byKey(occupationSkillsRows, (row) => row.occupation_id)
   const requirements = new Map(((requirementsRes.data ?? []) as OccupationRequirementRow[]).map((row) => [row.occupation_id, row]))
