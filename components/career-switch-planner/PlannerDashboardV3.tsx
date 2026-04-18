@@ -865,6 +865,7 @@ export function PlannerDashboardV3({
             cardId={ACTIONABLE_CARD_IDS.bestRoute}
             isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.bestRoute])}
             onToggleCard={toggleCardChecklist}
+            onSelectAlternativeRole={onSelectAlternativeRole}
           />
 
           <StartHereCard

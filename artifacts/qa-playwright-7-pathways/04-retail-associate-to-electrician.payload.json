@@ -1,0 +1,1443 @@
+{
+  "score": 30,
+  "explanation": "Largest gap is Setting Up. Experience adjacency indicates a realistic transition path. Certification/licensing evidence is currently missing.",
+  "transferableSkills": [],
+  "skillGaps": [],
+  "roadmap": {
+    "30": [
+      "Advance Trade certification is available, but voluntary, in Manitoba, Alberta, the Yukon, the Northwest Territories and Nunavut.."
+    ],
+    "60": [],
+    "90": []
+  },
+  "resumeReframes": [],
+  "recommendedRoles": [
+    {
+      "title": "Power system electricians",
+      "match": 30,
+      "reason": "Largest gap is Setting Up."
+    },
+    {
+      "title": "Butchers - retail and wholesale",
+      "match": 35,
+      "reason": "Largest gap is Management of Material Resources."
+    },
+    {
+      "title": "Retail and wholesale buyers",
+      "match": 34,
+      "reason": "Largest gap is Persuading."
+    },
+    {
+      "title": "Couriers and messengers",
+      "match": 33,
+      "reason": "Largest gap is Operation and Control."
+    }
+  ],
+  "report": {
+    "compatibilitySnapshot": {
+      "score": 30,
+      "band": "weak",
+      "breakdown": {
+        "skill_overlap": 0,
+        "experience_similarity": 16.3,
+        "education_alignment": 10,
+        "certification_gap": 3,
+        "timeline_feasibility": 0.5
+      },
+      "topReasons": [
+        "Largest gap is Setting Up.",
+        "Experience adjacency indicates a realistic transition path.",
+        "Certification/licensing evidence is currently missing."
+      ]
+    },
+    "suggestedCareers": [
+      {
+        "occupationId": "6f6dea70-ce19-4862-ad85-c2a10e51cddd",
+        "title": "Power system electricians",
+        "score": 30,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 16.3,
+          "education_alignment": 10,
+          "certification_gap": 3,
+          "timeline_feasibility": 0.5
+        },
+        "salary": {
+          "usd": null,
+          "native": {
+            "currency": "CAD",
+            "low": 22,
+            "median": 36,
+            "high": 55,
+            "sourceName": "Job Bank / Ontario average",
+            "sourceUrl": "https://www.jobbank.gc.ca/wagereport/occupation/20684",
+            "asOfDate": "2026-03-03",
+            "region": "ON"
+          },
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "12+ months",
+        "regulated": true,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Setting Up.",
+          "Experience adjacency indicates a realistic transition path.",
+          "Certification/licensing evidence is currently missing."
+        ]
+      },
+      {
+        "occupationId": "61c0e289-39fa-4094-a29d-07673dd81b35",
+        "title": "Butchers - retail and wholesale",
+        "score": 35,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 5.3,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 4.4
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "6-12 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Management of Material Resources.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "9198bd7c-e925-4809-a8c6-1c58d15d3a45",
+        "title": "Retail and wholesale buyers",
+        "score": 34,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 8.8,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 0.5
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "12+ months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Persuading.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "fca640aa-cca2-4d4f-b1a2-78555b53cf17",
+        "title": "Couriers and messengers",
+        "score": 33,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 1.5,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 6.7
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "3-6 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Operation and Control.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      }
+    ],
+    "skillGaps": [],
+    "roadmap": [
+      {
+        "id": "phase-gate",
+        "phase": "1_3_months",
+        "title": "Complete credential checkpoint",
+        "time_estimate_hours": 14,
+        "difficulty": "hard",
+        "why_it_matters": "Entry into this role depends on formal credential progress.",
+        "action": "Advance Trade certification is available, but voluntary, in Manitoba, Alberta, the Yukon, the Northwest Territories and Nunavut.."
+      }
+    ],
+    "resumeReframe": [],
+    "linksResources": [],
+    "targetRequirements": {
+      "education": "Completion of secondary school is usually required.",
+      "certifications": [
+        "Obtain Electrician license before applying",
+        "Working at Heights",
+        "Worker Health and Safety Awareness",
+        "WHMIS",
+        "Certifying exam (Certificate of Qualification)"
+      ],
+      "hardGates": [
+        "Confirm regional trade certification requirements before applying",
+        "Confirm regional licensing and certification requirements before applying"
+      ],
+      "employerSignals": [],
+      "apprenticeshipHours": null,
+      "examRequired": null,
+      "regulated": true,
+      "sources": [
+        "Employer evidence",
+        "Ontario Working at Heights training",
+        "Ontario Worker Health and Safety Awareness workbook",
+        "CCOHS WHMIS guidance",
+        "Career pathway profile"
+      ]
+    },
+    "transitionSections": {
+      "mandatoryGateRequirements": [
+        {
+          "id": "gate-confirm regional trade certification requirements before applying",
+          "label": "Confirm regional trade certification requirements before applying",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 2,
+          "howToGet": "Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.",
+          "estimatedTime": "3-12+ months (depends on sponsorship, hours, and exams)",
+          "evidenceLabel": "Baseline (O*NET)",
+          "evidence": [
+            {
+              "source": "onet",
+              "quote": "Confirm regional trade certification requirements before applying",
+              "confidence": 0.62
+            }
+          ]
+        },
+        {
+          "id": "gate-confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Baseline (O*NET)",
+          "evidence": [
+            {
+              "source": "onet",
+              "quote": "Confirm regional licensing and certification requirements before applying",
+              "confidence": 0.62
+            }
+          ]
+        }
+      ],
+      "coreHardSkills": [],
+      "toolsPlatforms": [],
+      "experienceSignals": [],
+      "transferableStrengths": [],
+      "roadmapPlan": {
+        "zeroToTwoWeeks": [
+          {
+            "id": "r-0-2-1",
+            "action": "Start confirm regional trade certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional trade certification requirements before applying"
+          },
+          {
+            "id": "r-0-2-2",
+            "action": "Start confirm regional licensing and certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional licensing and certification requirements before applying"
+          }
+        ],
+        "oneToThreeMonths": [],
+        "threeToTwelveMonths": [],
+        "fastestPathToApply": [
+          "Close confirm regional trade certification requirements before applying with one interview-ready artifact.",
+          "Close confirm regional licensing and certification requirements before applying with one interview-ready artifact."
+        ],
+        "strongCandidatePath": [
+          "Build depth in confirm regional trade certification requirements before applying and attach measurable evidence.",
+          "Build depth in confirm regional licensing and certification requirements before applying and attach measurable evidence."
+        ]
+      }
+    },
+    "transitionReport": {
+      "marketSnapshot": {
+        "role": "power system electricians",
+        "location": "ontario, canada",
+        "summaryLine": "Based on 4 recent postings in ontario, canada.",
+        "topRequirements": [
+          {
+            "id": "snapshot-confirm regional trade certification requirements before applying",
+            "normalized_key": "confirm regional trade certification requirements before applying",
+            "label": "Confirm regional trade certification requirements before applying",
+            "frequency_count": 2,
+            "frequency_percent": null,
+            "evidenceQuote": [
+              {
+                "source": "onet",
+                "quote": "Confirm regional trade certification requirements before applying",
+                "confidence": 0.62
+              }
+            ]
+          },
+          {
+            "id": "snapshot-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 1,
+            "frequency_percent": null,
+            "evidenceQuote": [
+              {
+                "source": "onet",
+                "quote": "Confirm regional licensing and certification requirements before applying",
+                "confidence": 0.62
+              }
+            ]
+          }
+        ],
+        "topTools": [],
+        "gateBlockers": [
+          {
+            "id": "blocker-confirm regional trade certification requirements before applying",
+            "normalized_key": "confirm regional trade certification requirements before applying",
+            "label": "Confirm regional trade certification requirements before applying",
+            "frequency_count": 2,
+            "frequency_percent": null,
+            "evidenceQuote": [
+              {
+                "source": "onet",
+                "quote": "Confirm regional trade certification requirements before applying",
+                "confidence": 0.62
+              }
+            ]
+          },
+          {
+            "id": "blocker-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 1,
+            "frequency_percent": null,
+            "evidenceQuote": [
+              {
+                "source": "onet",
+                "quote": "Confirm regional licensing and certification requirements before applying",
+                "confidence": 0.62
+              }
+            ]
+          }
+        ]
+      },
+      "mustHaves": [
+        {
+          "id": "must-confirm regional trade certification requirements before applying",
+          "normalized_key": "confirm regional trade certification requirements before applying",
+          "label": "Confirm regional trade certification requirements before applying",
+          "frequency_count": 2,
+          "frequency_percent": null,
+          "evidenceQuote": [
+            {
+              "source": "onet",
+              "quote": "Confirm regional trade certification requirements before applying",
+              "confidence": 0.62
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.",
+          "timeEstimate": "3-12+ months (depends on sponsorship, hours, and exams)"
+        },
+        {
+          "id": "must-confirm regional licensing and certification requirements before applying",
+          "normalized_key": "confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "frequency_count": 1,
+          "frequency_percent": null,
+          "evidenceQuote": [
+            {
+              "source": "onet",
+              "quote": "Confirm regional licensing and certification requirements before applying",
+              "confidence": 0.62
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        }
+      ],
+      "niceToHaves": [],
+      "coreTasks": [],
+      "toolsPlatformsEquipment": [],
+      "transferableStrengths": [],
+      "plan30_60_90": {
+        "days30": [
+          {
+            "id": "d30-1",
+            "goal": "Confirm regional trade certification requirements before applying",
+            "actions": [
+              "Close confirm regional trade certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional trade certification requirements before applying"
+            ]
+          },
+          {
+            "id": "d30-2",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          }
+        ],
+        "days60": [],
+        "days90": [],
+        "fastestPathToApply": [
+          {
+            "id": "fast-1",
+            "goal": "Confirm regional trade certification requirements before applying",
+            "actions": [
+              "Close confirm regional trade certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional trade certification requirements before applying"
+            ]
+          },
+          {
+            "id": "fast-2",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          }
+        ],
+        "strongCandidatePath": [
+          {
+            "id": "strong-1",
+            "goal": "Confirm regional trade certification requirements before applying",
+            "actions": [
+              "Close confirm regional trade certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional trade certification requirements before applying"
+            ]
+          },
+          {
+            "id": "strong-2",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          }
+        ]
+      },
+      "evidenceTransparency": {
+        "employerPostings": {
+          "source": "adzuna_cached",
+          "count": 4,
+          "lastUpdated": "2026-03-16T07:39:06.866Z",
+          "usedCache": false
+        },
+        "userProvidedPosting": {
+          "included": false
+        },
+        "baselineOnet": {
+          "included": true
+        },
+        "baselineOnlyWarning": "No employer evidence found; showing baseline only."
+      }
+    },
+    "executionStrategy": {
+      "whereYouStandNow": {
+        "strengths": [
+          {
+            "summary": "This background signal supports transition readiness for Power system electricians.",
+            "resumeSignal": "Testing transition from Retail Associate to Electrician with measurable weekly output and customer-facing experience. token:mmsvh5f5",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Confirm regional trade certification requirements before applying"
+            ]
+          }
+        ],
+        "missingMandatoryRequirements": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          }
+        ],
+        "competitiveDisadvantages": [
+          {
+            "normalized_key": "confirm regional trade certification requirements before applying",
+            "label": "Confirm regional trade certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          }
+        ]
+      },
+      "realBlockers": {
+        "requiredToApply": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Confirm regional licensing and certification requirements before applying"
+            ]
+          }
+        ],
+        "requiredToCompete": [
+          {
+            "normalized_key": "confirm regional trade certification requirements before applying",
+            "label": "Confirm regional trade certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.",
+            "timeEstimate": "3-12+ months (depends on sponsorship, hours, and exams)",
+            "evidenceQuote": [
+              "Confirm regional trade certification requirements before applying"
+            ]
+          }
+        ]
+      },
+      "transferableEdge": {
+        "translations": [
+          {
+            "fromResume": "Testing transition from Retail Associate to Electrician with measurable weekly output and customer-facing experience. token:mmsvh5f5",
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Power system electricians settings, then quantify the outcome.",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Confirm regional trade certification requirements before applying"
+            ]
+          }
+        ]
+      },
+      "plan90Day": {
+        "month1": {
+          "label": "Month 1: Foundations",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month1-1",
+              "task": "Confirm and complete regional licensing and certification requirements before applying, then keep proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-applications",
+              "task": "Apply to a focused short-list and track response patterns daily.",
+              "volumeTarget": "10 targeted applications/week",
+              "learningTarget": "Tighten role-specific positioning in every application",
+              "proofTarget": "Keep an application tracker with response outcomes",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-outreach",
+              "task": "Run direct outreach to hiring contacts instead of waiting on portals.",
+              "volumeTarget": "10 targeted outreach messages/week",
+              "learningTarget": "Refine a concise call or message opener",
+              "proofTarget": "Store outreach logs and follow-up outcomes",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-resume",
+              "task": "Rewrite resume bullets so each one proves a target-role task with outcomes.",
+              "volumeTarget": "5 bullet rewrites/week",
+              "learningTarget": "Use target-role terminology from employer requirements",
+              "proofTarget": "Maintain before/after bullet versions in a tracker",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-repeat-5",
+              "task": "Execute another requirement-linked practice cycle and document the result.",
+              "volumeTarget": "1 additional cycle/week",
+              "learningTarget": "Close one visible execution weakness",
+              "proofTarget": "Add one dated entry to your proof tracker",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            }
+          ]
+        },
+        "month2": {
+          "label": "Month 2: Positioning",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month2-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional trade certification requirements before applying"
+              ]
+            }
+          ]
+        },
+        "month3": {
+          "label": "Month 3: Conversion",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month3-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            }
+          ]
+        }
+      },
+      "probabilityRealityCheck": {
+        "difficulty": "This is a realistic transition path if you maintain weekly execution discipline.",
+        "whatIncreasesOdds": [
+          "Close apply blockers first, then run 10 targeted applications/week.",
+          "Execute 10 targeted outreach messages/week and follow up until each lead has an outcome.",
+          "Publish 1 measurable readiness example/week so interviews focus on evidence, not claims."
+        ],
+        "commonFailureModes": [
+          "Applying passively through portals with no direct outreach.",
+          "Spending time on low-impact learning without work samples or verification items.",
+          "Skipping follow-up after first contact or first rejection."
+        ]
+      },
+      "behavioralExecution": {
+        "minimumWeeklyEffort": "10-14 hours/week for 12 consecutive weeks.",
+        "consistencyLooksLike": [
+          "Block execution time on your calendar before discretionary tasks.",
+          "Track applications, outreach, and readiness examples every weekday.",
+          "Review blockers weekly and adjust next-week actions immediately."
+        ],
+        "whatNotToDo": [
+          "Do not wait for perfect readiness before contacting employers.",
+          "Do not submit untailored applications with generic resume bullets.",
+          "Do not stop outreach after one rejection or one no-response week."
+        ]
+      }
+    },
+    "marketEvidence": {
+      "enabled": true,
+      "used": false,
+      "baselineOnly": true,
+      "usedCache": false,
+      "postingsCount": 0,
+      "llmNormalizedCount": 0,
+      "fetchedAt": null,
+      "query": null,
+      "sourcePriority": [
+        "user_posting",
+        "adzuna",
+        "onet"
+      ]
+    },
+    "bottleneck": {
+      "title": "Confirm regional trade certification requirements before applying",
+      "why": "Power system electricians demand signals weight this requirement heavily.",
+      "nextAction": "Start or verify Trade certification is available, but voluntary, in Manitoba, Alberta, the Yukon, the Northwest Territories and Nunavut. requirements, then complete one scoped project proving Confirm regional trade certification requirements before applying in 7-14 days and add the result to your resume.",
+      "estimatedEffort": "12+ months"
+    },
+    "dataTransparency": {
+      "inputsUsed": [
+        "currentRole",
+        "targetRole",
+        "experienceText",
+        "skills",
+        "location",
+        "timeline",
+        "education"
+      ],
+      "datasetsUsed": [
+        "occupations",
+        "occupation_skills",
+        "occupation_requirements",
+        "occupation_wages",
+        "trade_requirements",
+        "onet_baseline"
+      ],
+      "fxRateUsed": "USD/CAD 1.3689 (2026-02-20)"
+    },
+    "careerPathwayProfile": null,
+    "sourceEnrichment": {
+      "trainingCards": [
+        {
+          "cost": null,
+          "name": "Electrical Trades curriculum (levels and hours structure)",
+          "length": "2-16 weeks to first employable milestone",
+          "modality": null,
+          "provider": "Skilledtradesontario",
+          "sourceUrl": "https://www.skilledtradesontario.ca/wp-content/uploads/1970/01/Electrical-Trades-309A-309C-442A-Curriculum-L1234-Dec-22-2023-EN.pdf",
+          "sourceType": "verified",
+          "sourceLabel": "Official source: Electrical Trades curriculum (levels and hours structure)"
+        }
+      ],
+      "certificationCards": [
+        {
+          "name": "Obtain Electrician license before applying",
+          "provider": "Employer evidence",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Employer evidence"
+        },
+        {
+          "name": "Working at Heights",
+          "provider": "Approved Ontario training provider",
+          "sourceUrl": "https://www.ontario.ca/page/training-working-heights",
+          "sourceType": "verified",
+          "sourceLabel": "Ontario Working at Heights training"
+        },
+        {
+          "name": "Worker Health and Safety Awareness",
+          "provider": "Ontario workplace safety awareness source",
+          "sourceUrl": "https://www.ontario.ca/document/worker-health-and-safety-awareness-workbook",
+          "sourceType": "verified",
+          "sourceLabel": "Ontario Worker Health and Safety Awareness workbook"
+        },
+        {
+          "name": "WHMIS",
+          "provider": "Employer or approved Canadian training provider",
+          "sourceUrl": "https://www.ccohs.ca/oshanswers/chemicals/whmis_ghs/general.html",
+          "sourceType": "verified",
+          "sourceLabel": "CCOHS WHMIS guidance"
+        },
+        {
+          "name": "Certifying exam (Certificate of Qualification)",
+          "provider": "Official requirement source",
+          "sourceUrl": null,
+          "sourceType": "verified",
+          "sourceLabel": "Career pathway profile"
+        }
+      ],
+      "wageFallback": {
+        "low": 22,
+        "high": 55,
+        "median": 36,
+        "region": "ON",
+        "asOfDate": "2026-03-03",
+        "currency": "CAD",
+        "sourceUrl": "https://www.jobbank.gc.ca/wagereport/occupation/20684",
+        "sourceName": "Job Bank / Ontario average",
+        "sourceType": "verified"
+      },
+      "tradeFacts": null,
+      "entryRoles": [
+        {
+          "title": "Apprentice Electrician",
+          "sourceUrl": "https://www.jobbank.gc.ca/marketreport/jobs/20677/ON",
+          "sourceType": "verified",
+          "sourceLabel": "Job Bank - Apprentice Electrician Jobs in Ontario"
+        },
+        {
+          "title": "Construction Electrician Helper",
+          "sourceUrl": "https://www.jobbank.gc.ca/marketreport/occupation/8402/ON",
+          "sourceType": "verified",
+          "sourceLabel": "Job Bank - Construction Electrician Helper Job Description"
+        },
+        {
+          "title": "Electrician – Construction and Maintenance",
+          "sourceUrl": "https://files.ontario.ca/books/144-23.pdf",
+          "sourceType": "verified",
+          "sourceLabel": "Ontario Gazette - Compulsory Trades in Ontario"
+        }
+      ],
+      "sourcePath": {
+        "training": "curated_profile",
+        "wage": "curated_profile",
+        "entryRoles": "web_search",
+        "certifications": "table"
+      },
+      "cache": {
+        "hit": true,
+        "expiresAt": "2026-03-23T00:43:15.522+00:00"
+      }
+    },
+    "transitionMode": {
+      "careerPathType": "TRADES",
+      "templateKey": "regulated_trade",
+      "difficulty": {
+        "score": 9.1,
+        "label": "Very Hard",
+        "why": [
+          "This target has 4 formal gates you need to respect early.",
+          "Your current education profile does not create a major extra delay.",
+          "2 high-value requirements still need stronger proof."
+        ]
+      },
+      "timeline": {
+        "minMonths": 13,
+        "maxMonths": 15,
+        "assumptions": [
+          "You start direct employer and pathway outreach in week 1.",
+          "You follow the training sequence in the right order instead of applying blindly.",
+          "You keep weekly output consistent while the first sponsor or entry point is still forming."
+        ]
+      },
+      "routes": {
+        "primary": {
+          "title": "Primary route: helper to registered apprenticeship",
+          "reason": "Start by getting around the no-experience objection. Land a helper or entry-level site role, then turn that employer relationship into formal apprenticeship registration.",
+          "firstStep": "Build a list of 15 contractors or trade employers and ask directly about helper, trainee, or apprentice starts."
+        },
+        "secondary": {
+          "title": "Secondary route: pre-apprenticeship first",
+          "reason": "If employer response is weak, use a short pre-apprenticeship or trade-school bridge to tighten your fundamentals, then re-enter the market with better positioning.",
+          "firstStep": "Shortlist 3 pre-apprenticeship or trade-school options and compare cost, start dates, and employer links."
+        },
+        "contingency": {
+          "title": "Contingency route: agency or temp jobsite bridge",
+          "reason": "If direct hiring is slow, use agency, labor, or maintenance placements to build site hours, references, and warm contacts.",
+          "firstStep": "Contact 5 labor, maintenance, or contractor staffing sources and ask for entry-level placements that create trade-adjacent hours."
+        }
+      },
+      "roadmapGuide": {
+        "phases": [
+          {
+            "label": "0-30 Days",
+            "focus": "15 outreach messages",
+            "steps": [
+              {
+                "title": "Confirm the minimum entry requirements for Electrician in your area: education baseline, physical demands, and any safety prerequisites.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$150 now (tickets and registration can vary by employer/province)",
+                "prereqs": [
+                  "Baseline education: Completion of secondary school is usually required.",
+                  "Confirm regional trade certification requirements before applying.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "15 outreach messages.",
+                  "Save one dated note, email, or checklist that proves this step moved."
+                ]
+              },
+              {
+                "title": "Choose a lane: union apprenticeship, non-union apprenticeship, or a short pre-apprenticeship bridge.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$300",
+                "prereqs": [
+                  "Baseline education: Completion of secondary school is usually required.",
+                  "Confirm regional trade certification requirements before applying.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "3 pathway options compared.",
+                  "Save one dated note, email, or checklist that proves this step moved."
+                ]
+              },
+              {
+                "title": "Create one role-relevant practice sample (safe demo, simulation, or guided lab) so employers can see training momentum.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$50-CA$900+ (varies by province/employer)",
+                "prereqs": [
+                  "Baseline education: Completion of secondary school is usually required.",
+                  "Confirm regional trade certification requirements before applying.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 practice sample.",
+                  "Save one dated note, email, or checklist that proves this step moved."
+                ]
+              },
+              {
+                "title": "Send 15 direct outreach messages to employers and training contacts.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$50-CA$900+ (varies by province/employer)",
+                "prereqs": [
+                  "Baseline education: Completion of secondary school is usually required.",
+                  "Confirm regional trade certification requirements before applying.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 entry requirement checklist.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Log who you contacted, what you asked, and the next follow-up for Electrician."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "30-90 Days",
+            "focus": "10 targeted applications",
+            "steps": [
+              {
+                "title": "Focus on sponsor or employer conversations and ask what registration step comes first in your area.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$50-CA$900+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "10 targeted applications.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Keep applications and follow-ups moving while you close the first technical or safety gap.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$0-CA$300",
+                "prereqs": [
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "15 follow-ups.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Line up any starter training, site docs, or application paperwork the pathway requires.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$50-CA$900+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "2 live pathway conversations.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "3-12 Months",
+            "focus": "1 formal pathway commitment",
+            "steps": [
+              {
+                "title": "Push for a formal start: employer sponsor, training agreement, or apprenticeship intake.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$50-CA$900+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 formal pathway commitment.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Track how on-the-job hours and technical schooling are recorded so you understand the full path.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$0-CA$300",
+                "prereqs": [
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 hours-and-schooling plan.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Map the later licensing path: Certificate of Qualification and Red Seal if it applies in your province.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$0-CA$150 now (tickets and registration can vary by employer/province)",
+                "prereqs": [
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "5 warm follow-ups.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          }
+        ],
+        "next7Days": [
+          "Build a list of 15 contractors or trade employers and ask directly about helper, trainee, or apprentice starts.",
+          "Confirm regional trade certification requirements before applying in short daily blocks.",
+          "Confirm the first safety and entry requirements in your area."
+        ]
+      },
+      "plan90": [
+        {
+          "phase": "Weeks 1-2",
+          "weeks": "1-2",
+          "tasks": [
+            "Confirm the minimum entry requirements for Electrician in your area: education baseline, physical demands, and any safety prerequisites.",
+            "Choose a lane: union apprenticeship, non-union apprenticeship, or a short pre-apprenticeship bridge.",
+            "Create one role-relevant practice sample (safe demo, simulation, or guided lab) so employers can see training momentum.",
+            "Send 15 direct outreach messages to employers and training contacts."
+          ],
+          "weeklyTargets": [
+            "15 outreach messages",
+            "3 pathway options compared",
+            "1 practice sample",
+            "1 entry requirement checklist"
+          ],
+          "timePerWeekHours": 8
+        },
+        {
+          "phase": "Weeks 3-6",
+          "weeks": "3-6",
+          "tasks": [
+            "Focus on sponsor or employer conversations and ask what registration step comes first in your area.",
+            "Keep applications and follow-ups moving while you close the first technical or safety gap.",
+            "Line up any starter training, site docs, or application paperwork the pathway requires."
+          ],
+          "weeklyTargets": [
+            "10 targeted applications",
+            "15 follow-ups",
+            "2 live pathway conversations",
+            "1 paperwork checkpoint"
+          ],
+          "timePerWeekHours": 10
+        },
+        {
+          "phase": "Weeks 7-12",
+          "weeks": "7-12",
+          "tasks": [
+            "Push for a formal start: employer sponsor, training agreement, or apprenticeship intake.",
+            "Track how on-the-job hours and technical schooling are recorded so you understand the full path.",
+            "Map the later licensing path: Certificate of Qualification and Red Seal if it applies in your province."
+          ],
+          "weeklyTargets": [
+            "1 formal pathway commitment",
+            "1 hours-and-schooling plan",
+            "5 warm follow-ups",
+            "1 long-range licensing note"
+          ],
+          "timePerWeekHours": 10
+        }
+      ],
+      "execution": {
+        "dailyRoutine": [
+          "15 minutes: review open applications, follow-ups, and employer replies.",
+          "15 minutes: contact one employer, union intake, or training lead directly.",
+          "15 minutes: move one training, safety, or paperwork step forward."
+        ],
+        "weeklyCadence": [
+          "15 direct outreach messages",
+          "10 targeted applications",
+          "2 conversations with pathway contacts",
+          "1 role-relevant practice sample"
+        ],
+        "outreachTemplates": {
+          "call": "Hi, I am moving into Electrician and I am looking for the right entry point. I am open to helper, trainee, or apprentice starts. I am already working on the first training steps and I can move quickly. Who handles entry-level hiring or apprenticeship intake?",
+          "email": "Subject: Entry path into Electrician Hi, I am transitioning into Electrician and I am looking for the right entry path. I am open to helper, trainee, or apprenticeship starts and I am already working through the first requirements. If you hire entry-level people or can point me to the right intake step, I would appreciate the direction. Best, Your Name"
+        }
+      },
+      "gaps": {
+        "strengths": [
+          "You already communicate clearly with customers, clients, or teams, which matters in the transition.",
+          "You already work around tools or systems, which makes the technical ramp cleaner.",
+          "You already understand customer behavior, which can transfer into user or client-facing work."
+        ],
+        "missing": [
+          "Confirm regional trade certification requirements before applying in short daily blocks.",
+          "Turn the biggest missing requirement into one concrete proof action.",
+          "Choose one gap and make the next step visible this week."
+        ],
+        "first3Steps": [
+          "Build a list of 15 contractors or trade employers and ask directly about helper, trainee, or apprentice starts.",
+          "Confirm regional trade certification requirements before applying in short daily blocks.",
+          "Confirm the first safety and entry requirements in your area."
+        ]
+      },
+      "earnings": [
+        {
+          "stage": "Year 1",
+          "rangeLow": 18,
+          "rangeHigh": 24,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 2",
+          "rangeLow": 20,
+          "rangeHigh": 26,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 3",
+          "rangeLow": 26,
+          "rangeHigh": 29,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Fully Qualified",
+          "rangeLow": 26,
+          "rangeHigh": 31,
+          "unit": "USD/hour"
+        }
+      ],
+      "reality": {
+        "barriers": [
+          "Trade hiring often moves through direct relationships and timing, not easy job-board visibility.",
+          "Confirm regional trade certification requirements before applying.",
+          "Local demand is thin or unclear, so you need live feedback from outreach early."
+        ],
+        "mitigations": [
+          "Confirm regional trade certification requirements before applying in short daily blocks.",
+          "Confirm the first safety and entry requirements in your area.",
+          "Get hands-on with the core tools or materials used in the trade."
+        ]
+      },
+      "resources": {
+        "local": [
+          {
+            "label": "Local apprenticeship authority (your province)",
+            "url": ""
+          },
+          {
+            "label": "Union intake information",
+            "url": ""
+          },
+          {
+            "label": "Non-union apprenticeship providers (starting points)",
+            "url": ""
+          }
+        ],
+        "online": [
+          {
+            "label": "Basic trade theory course (online)",
+            "url": ""
+          }
+        ],
+        "internal": [
+          {
+            "label": "CareerHeap Blog",
+            "url": "/blog"
+          },
+          {
+            "label": "Career Tools",
+            "url": "/tools"
+          },
+          {
+            "label": "Run This Plan Again",
+            "url": "/tools/career-switch-planner"
+          }
+        ]
+      }
+    },
+    "transitionStructuredPlan": {
+      "summary": "Transitioning from Retail Associate to Electrician in Ontario, Canada requires completing secondary school and confirming regional trade certification and licensing requirements. The path typically takes 13-15 months to reach an entry-level role, starting with securing a helper or apprentice position. Building practical skills and meeting formal credential gates are essential. Communication, reliability, and attention to detail are key soft skills. Initial wages range from $18 to $24 USD/hour, increasing to $26 to $31 USD/hour once fully qualified.",
+      "compatibility_level": "Low",
+      "timeline_estimate": "13-15 months to your first viable entry role",
+      "required_certifications": [
+        "Completion of secondary school is usually required.",
+        "Confirm regional trade certification requirements before applying.",
+        "Confirm regional licensing and certification requirements before applying."
+      ],
+      "required_experience": [
+        "Confirm regional trade certification requirements before applying in short daily blocks.",
+        "Turn the biggest missing requirement into one concrete proof action.",
+        "Choose one gap and make the next step visible this week.",
+        "Communication."
+      ],
+      "action_steps": [
+        "Build a list of 15 contractors or trade employers and ask directly about helper, trainee, or apprentice starts.",
+        "Confirm regional trade certification requirements before applying in short daily blocks.",
+        "Confirm the first safety and entry requirements in your area."
+      ],
+      "salary_projection": "Year 1: 18-24 USD/hour; Fully Qualified: 26-31 USD/hour",
+      "narrative_sections": {
+        "intro": "Here is the realistic path into Electrician in Ontario, Canada. The goal is to separate the skills you build from the credentials employers or regulators actually screen for first.",
+        "skills_you_build": [
+          {
+            "title": "Core job skills",
+            "summary": "These are the first practical skills you need to build for Electrician.",
+            "bullets": [
+              "Confirm regional trade certification requirements before applying in short daily blocks.",
+              "Turn the biggest missing requirement into one concrete proof action.",
+              "Choose one gap and make the next step visible this week."
+            ]
+          }
+        ],
+        "credentials_you_need": [
+          {
+            "title": "Before you get hired",
+            "summary": "These are the education or tickets employers often screen for first at the entry level.",
+            "bullets": [
+              "Completion of secondary school is usually required.",
+              "Confirm regional trade certification requirements before applying.",
+              "Confirm regional licensing and certification requirements before applying."
+            ]
+          },
+          {
+            "title": "What full qualification usually requires",
+            "summary": "This is the longer qualification path. It can vary by province, regulator, or employer.",
+            "bullets": [
+              "Confirm regional trade certification requirements before applying.",
+              "Confirm regional licensing and certification requirements before applying."
+            ]
+          }
+        ],
+        "soft_skills_that_matter": [
+          "Communication.",
+          "Reliability.",
+          "Attention to detail."
+        ],
+        "why_this_path_can_pay_off": [
+          "Year 1: 18-24 USD/hour.",
+          "Fully Qualified: 26-31 USD/hour.",
+          "Pay can rise meaningfully as your proof, qualification, and scope increase.",
+          "Wages are averages, not guarantees, and can vary by province and employer."
+        ],
+        "start_from_zero": [
+          "Build a list of 15 contractors or trade employers and ask directly about helper, trainee, or apprentice starts.",
+          "Confirm regional trade certification requirements before applying in short daily blocks.",
+          "Confirm the first safety and entry requirements in your area."
+        ]
+      }
+    },
+    "transitionPlanScripts": {
+      "call": "Hello, my name is [Your Name]. I am exploring entry-level opportunities to start a career as an Electrician in Ontario. Could you please tell me if you are currently hiring helpers, trainees, or apprentices? I would appreciate the chance to discuss how I can begin contributing and learning with your team.",
+      "email": "Subject: Inquiry About Entry-Level Electrician Opportunities Dear [Hiring Manager], I am reaching out to inquire about potential openings for helper, trainee, or apprentice positions within your company in Ontario. I am committed to completing the necessary certifications and am eager to build practical skills under experienced professionals. Could you please let me know if you are currently hiring for such roles or if there is a recommended path to join your team? Thank you for your time and consideration. I look forward to your response. Best regards, [Your Name]",
+      "source": "gpt"
+    },
+    "transitionPlanCacheMeta": {
+      "version": "transition-plan-v4",
+      "generatedAt": "2026-03-16T07:39:27.493Z",
+      "region": "Ontario, Canada",
+      "experienceLevelBucket": "entry",
+      "cacheHit": false
+    },
+    "previewLimited": false,
+    "v3Diagnostics": {
+      "missingFields": [],
+      "placeholderSignals": [],
+      "stageFailures": [],
+      "role_match_explanation": {
+        "current": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        },
+        "target": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "generatedAt": "2026-03-16T07:39:37.381Z"
+    },
+    "roleResolution": {
+      "current": {
+        "input": "Retail Associate",
+        "matched": {
+          "occupationId": "9198bd7c-e925-4809-a8c6-1c58d15d3a45",
+          "title": "Retail and wholesale buyers",
+          "code": "9198bd7c-e925-4809-a8c6-1c58d15d3a45",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.919,
+          "stage": "associate",
+          "specialization": null,
+          "rawInputTitle": "Retail Associate",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.083,
+            "industryMatch": 0.9,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "98ce94ac-d9cd-4061-8b0d-ae3c97e3ffbf",
+            "title": "Retail and wholesale trade managers",
+            "code": "98ce94ac-d9cd-4061-8b0d-ae3c97e3ffbf",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.919
+          },
+          {
+            "occupationId": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "title": "Retail sales supervisors",
+            "code": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.919
+          },
+          {
+            "occupationId": "61c0e289-39fa-4094-a29d-07673dd81b35",
+            "title": "Butchers - retail and wholesale",
+            "code": "61c0e289-39fa-4094-a29d-07673dd81b35",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.84
+          },
+          {
+            "occupationId": "f6302a58-3f65-4498-a67a-5ad833fcd089",
+            "title": "Retail salespersons and visual merchandisers",
+            "code": "f6302a58-3f65-4498-a67a-5ad833fcd089",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.84
+          },
+          {
+            "occupationId": "b24a1562-14dc-4680-857c-444220b2c9a2",
+            "title": "Bakers",
+            "code": "b24a1562-14dc-4680-857c-444220b2c9a2",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.807
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "target": {
+        "input": "Electrician",
+        "matched": {
+          "occupationId": "6f6dea70-ce19-4862-ad85-c2a10e51cddd",
+          "title": "Power system electricians",
+          "code": "6f6dea70-ce19-4862-ad85-c2a10e51cddd",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.96,
+          "stage": null,
+          "specialization": null,
+          "rawInputTitle": "Electrician",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.083,
+            "industryMatch": 1,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "6f6dea70-ce19-4862-ad85-c2a10e51cddd",
+            "title": "Power system electricians",
+            "code": "6f6dea70-ce19-4862-ad85-c2a10e51cddd",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.96
+          },
+          {
+            "occupationId": "87185e85-e0ed-4830-8029-dbce16a37353",
+            "title": "Electricians (except industrial and power system)",
+            "code": "87185e85-e0ed-4830-8029-dbce16a37353",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.868
+          },
+          {
+            "occupationId": "fbc3a85f-c2bf-4520-a0eb-4cf3214f0991",
+            "title": "Electrical mechanics",
+            "code": "fbc3a85f-c2bf-4520-a0eb-4cf3214f0991",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.841
+          },
+          {
+            "occupationId": "cb3e830f-574b-4134-8be5-b69a938d8948",
+            "title": "Aircraft instrument, electrical and avionics mechanics, technicians and inspectors",
+            "code": "cb3e830f-574b-4134-8be5-b69a938d8948",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.729
+          },
+          {
+            "occupationId": "bc2f4290-ec1e-483f-a074-6f71f2af80c5",
+            "title": "Telecommunications line and cable installers and repairers",
+            "code": "bc2f4290-ec1e-483f-a074-6f71f2af80c5",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.729
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      }
+    }
+  },
+  "reportId": null,
+  "scoring": {
+    "total_score": 30,
+    "breakdown": {
+      "skill_overlap": 0,
+      "experience_similarity": 16.3,
+      "education_alignment": 10,
+      "certification_gap": 3,
+      "timeline_feasibility": 0.5
+    },
+    "top_occupation_id": "6f6dea70-ce19-4862-ad85-c2a10e51cddd"
+  },
+  "usage": {
+    "plan": "free",
+    "isUnlimited": false,
+    "canUse": true,
+    "used": 0,
+    "limit": 3,
+    "usesRemaining": 3,
+    "byTool": {}
+  },
+  "previewLimited": false
+}

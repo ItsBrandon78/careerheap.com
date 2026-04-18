@@ -1,0 +1,45 @@
+{
+  "error": "UNMAPPED_ROLE",
+  "role": "target",
+  "input": "Customer Success Manager",
+  "message": "We couldn’t confidently map \"Customer Success Manager\" yet. Choose the closest match, or refine the role title with more specific wording.",
+  "threshold": 0.72,
+  "alternatives": [
+    {
+      "occupationId": "30186cfc-3d8c-4065-ae6e-87a8209c5e46",
+      "title": "Managers in customer and personal services",
+      "code": "30186cfc-3d8c-4065-ae6e-87a8209c5e46",
+      "confidence": 0.52,
+      "source": "NOC",
+      "stage": "manager",
+      "specialization": "succes"
+    },
+    {
+      "occupationId": "7bc1697f-b431-4930-9074-4a378653a0f1",
+      "title": "Other customer and information services representatives",
+      "code": "7bc1697f-b431-4930-9074-4a378653a0f1",
+      "confidence": 0.428,
+      "source": "NOC",
+      "stage": "manager",
+      "specialization": "succes"
+    },
+    {
+      "occupationId": "0a1a1de6-f7ba-4135-87e9-671a223cb063",
+      "title": "Customer service representatives supervisors - financial services",
+      "code": "0a1a1de6-f7ba-4135-87e9-671a223cb063",
+      "confidence": 0.375,
+      "source": "NOC",
+      "stage": "manager",
+      "specialization": "succes"
+    },
+    {
+      "occupationId": "bf1cbfa6-7e58-4a26-afc1-b41684789a1b",
+      "title": "Customer services representatives - financial institutions",
+      "code": "bf1cbfa6-7e58-4a26-afc1-b41684789a1b",
+      "confidence": 0.375,
+      "source": "NOC",
+      "stage": "manager",
+      "specialization": "succes"
+    }
+  ]
+}

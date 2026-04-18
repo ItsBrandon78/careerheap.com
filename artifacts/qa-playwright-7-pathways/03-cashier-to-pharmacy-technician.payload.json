@@ -1,0 +1,2683 @@
+{
+  "score": 30,
+  "explanation": "Largest gap is Learning and Teaching Strategies. Experience adjacency indicates a realistic transition path. Certification/licensing evidence is currently missing.",
+  "transferableSkills": [],
+  "skillGaps": [
+    {
+      "title": "Perform final technical check of products as per departmental process and OCP standards",
+      "detail": "Pharmacy technicians hiring evidence repeatedly expects: Perform final technical check of products as per departmental process and OCP standards.",
+      "difficulty": "easy"
+    },
+    {
+      "title": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+      "detail": "Pharmacy technicians hiring evidence repeatedly expects: Prepare daily cartfill medications Complete all associated documentation/workload sta….",
+      "difficulty": "easy"
+    },
+    {
+      "title": "Use Excel in role-relevant workflows",
+      "detail": "Pharmacy technicians hiring evidence repeatedly expects: Use Excel in role-relevant workflows.",
+      "difficulty": "easy"
+    },
+    {
+      "title": "Use experience may be considered) 3 in role-relevant workflows",
+      "detail": "Pharmacy technicians hiring evidence repeatedly expects: Use experience may be considered) 3 in role-relevant workflows.",
+      "difficulty": "easy"
+    },
+    {
+      "title": "Use pharmacy distributive activities 4 in role-relevant workflows",
+      "detail": "Pharmacy technicians hiring evidence repeatedly expects: Use pharmacy distributive activities 4 in role-relevant workflows.",
+      "difficulty": "easy"
+    }
+  ],
+  "roadmap": {
+    "30": [
+      "Advance Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+    ],
+    "60": [],
+    "90": []
+  },
+  "resumeReframes": [],
+  "recommendedRoles": [
+    {
+      "title": "Pharmacy technicians",
+      "match": 30,
+      "reason": "Largest gap is Learning and Teaching Strategies."
+    },
+    {
+      "title": "Pharmacy technical assistants and pharmacy assistants",
+      "match": 34,
+      "reason": "Largest gap is Coordinating."
+    },
+    {
+      "title": "Records management technicians",
+      "match": 32,
+      "reason": "Largest gap is Coordinating."
+    }
+  ],
+  "report": {
+    "compatibilitySnapshot": {
+      "score": 30,
+      "band": "weak",
+      "breakdown": {
+        "skill_overlap": 0,
+        "experience_similarity": 16.3,
+        "education_alignment": 10,
+        "certification_gap": 3,
+        "timeline_feasibility": 0.5
+      },
+      "topReasons": [
+        "Largest gap is Learning and Teaching Strategies.",
+        "Experience adjacency indicates a realistic transition path.",
+        "Certification/licensing evidence is currently missing."
+      ]
+    },
+    "suggestedCareers": [
+      {
+        "occupationId": "c1f40500-16ee-4352-a5f4-ab92f1a743bb",
+        "title": "Pharmacy technicians",
+        "score": 30,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 16.3,
+          "education_alignment": 10,
+          "certification_gap": 3,
+          "timeline_feasibility": 0.5
+        },
+        "salary": {
+          "usd": null,
+          "native": {
+            "currency": "CAD",
+            "low": 18,
+            "median": 26.45,
+            "high": 36.8,
+            "sourceName": "Job Bank",
+            "sourceUrl": "https://www.jobbank.gc.ca/marketreport/wages-occupation/25660/ON",
+            "asOfDate": "2026-03-16T06:27:21.450Z",
+            "region": "ON"
+          },
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "12+ months",
+        "regulated": true,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Learning and Teaching Strategies.",
+          "Experience adjacency indicates a realistic transition path.",
+          "Certification/licensing evidence is currently missing."
+        ]
+      },
+      {
+        "occupationId": "d33c4bf3-197e-4064-a56e-a32fa38aa63e",
+        "title": "Pharmacy technical assistants and pharmacy assistants",
+        "score": 34,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 3.3,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 5.6
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "6-12 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Coordinating.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "32b96336-ffb6-4ede-b6bb-ce0f1b0fc042",
+        "title": "Records management technicians",
+        "score": 32,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 4.1,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 3.3
+        },
+        "salary": {
+          "usd": {
+            "low": 16.8,
+            "median": 22.88,
+            "high": 32.91
+          },
+          "native": {
+            "currency": "CAD",
+            "low": 23,
+            "median": 31.32,
+            "high": 45.05,
+            "sourceName": "Job Bank Wages 2025",
+            "sourceUrl": "https://open.canada.ca/data/dataset/adad580f-76b0-4502-bd05-20c125de9116/resource/9da94d63-b178-4a64-aeb3-b6a3bd721ad2/download/2a71-das-wage2025opendata-esdc-all-19nov2025-vf.csv",
+            "asOfDate": "2025-11-19",
+            "region": "CA-NAT"
+          },
+          "conversion": {
+            "rate": 1.3689,
+            "source": "Bank of Canada Valet API (FXUSDCAD)",
+            "asOfDate": "2026-02-20"
+          }
+        },
+        "difficulty": "hard",
+        "transitionTime": "6-12 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Coordinating.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      }
+    ],
+    "skillGaps": [
+      {
+        "skillId": "perform final technical check of products as per departmental process and ocp standards",
+        "skillName": "Perform final technical check of products as per departmental process and OCP standards",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Perform final technical check of products as per departmental process and OCP standards",
+            "postingId": "adzuna:5649067323",
+            "confidence": 0.8
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Pharmacy technicians hiring evidence repeatedly expects: Perform final technical check of products as per departmental process and OCP standards.",
+          "Complete one role-specific task and publish a measurable work sample. Include progress on Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+        ]
+      },
+      {
+        "skillId": "prepare daily cartfill medications complete all associated documentation workload sta",
+        "skillName": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+            "postingId": "adzuna:5649067323",
+            "confidence": 0.8
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Pharmacy technicians hiring evidence repeatedly expects: Prepare daily cartfill medications Complete all associated documentation/workload sta….",
+          "Complete one role-specific task and publish a measurable work sample. Include progress on Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+        ]
+      },
+      {
+        "skillId": "use excel in role relevant workflows",
+        "skillName": "Use Excel in role-relevant workflows",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Word processing, spreadsheet, and e-mail systems are an asset 6",
+            "postingId": "adzuna:5657961471",
+            "confidence": 0.86
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Pharmacy technicians hiring evidence repeatedly expects: Use Excel in role-relevant workflows.",
+          "Practice with a scoped project that produces an artifact you can show in interviews. Include progress on Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+        ]
+      },
+      {
+        "skillId": "use experience may be considered 3 in role relevant workflows",
+        "skillName": "Use experience may be considered) 3 in role-relevant workflows",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3",
+            "postingId": "adzuna:5657961471",
+            "confidence": 0.86
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Pharmacy technicians hiring evidence repeatedly expects: Use experience may be considered) 3 in role-relevant workflows.",
+          "Practice with a scoped project that produces an artifact you can show in interviews. Include progress on Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+        ]
+      },
+      {
+        "skillId": "use pharmacy distributive activities 4 in role relevant workflows",
+        "skillName": "Use pharmacy distributive activities 4 in role-relevant workflows",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4",
+            "postingId": "adzuna:5657961471",
+            "confidence": 0.86
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Pharmacy technicians hiring evidence repeatedly expects: Use pharmacy distributive activities 4 in role-relevant workflows.",
+          "Practice with a scoped project that produces an artifact you can show in interviews. Include progress on Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+        ]
+      }
+    ],
+    "roadmap": [
+      {
+        "id": "phase-gate",
+        "phase": "1_3_months",
+        "title": "Complete credential checkpoint",
+        "time_estimate_hours": 14,
+        "difficulty": "hard",
+        "why_it_matters": "Entry into this role depends on formal credential progress.",
+        "action": "Advance Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians.."
+      }
+    ],
+    "resumeReframe": [],
+    "linksResources": [],
+    "targetRequirements": {
+      "education": "Pharmacy technicians usually require a two-year pharmacy technician college program or completion of a two- to three-year college program in pharmaceutics and supervised practical training.",
+      "certifications": [
+        "Pharmacy Examining Board of Canada (PEBC) Qualifying Examination",
+        "Ontario College of Pharmacists (OCP) Jurisprudence Examination",
+        "Structured Practical Training (SPT)"
+      ],
+      "hardGates": [
+        "Confirm regional licensing and certification requirements before applying",
+        "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+        "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+        "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+        "Obtain I am a registered pharmacy technician and I just got my first job",
+        "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience"
+      ],
+      "employerSignals": [
+        "Complete required clinical rotations and document supervised competencies",
+        "Collaborate across teams to deliver role-critical milestones on time"
+      ],
+      "apprenticeshipHours": null,
+      "examRequired": null,
+      "regulated": true,
+      "sources": [
+        "PEBC Official Website",
+        "OCP Official Website"
+      ]
+    },
+    "transitionSections": {
+      "mandatoryGateRequirements": [
+        {
+          "id": "gate-confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 5,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 5",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "As a Registered Pharmacy Technician, you will be an integral part of a collaborative, inter-disciplinary team focused on delivering seamless services and programs to our clients and customers",
+              "postingId": "adzuna:5650451029",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Job Summary Registered Pharmacy Technician Pillway BC Full-time In-Office | Delta, BC, Canada Job Description Pillway Pharmacy is looking for a motivated and professional Registered Pha...",
+              "postingId": "adzuna:5632946049",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Job Description: Pillway Pharmacy is looking for a motivated and professional Registered Pharmacy Technician to join our dynamic team in BC",
+              "postingId": "adzuna:5643379565",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description We Innovate so You Can Focus on Patient Care Join Our Team at Murphy's Pharmacies! Position : Central Fill Registered Pharmacy Technician Murphy's Kinlock Pharmacy Location: Stratford,...",
+              "postingId": "adzuna:5657381260",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "Apply today! Job Details PRIMARY DUTIES AND RESPONSIBILITIES: Assist Pharmacist or the Registered Pharmacy Technician in filling pre…",
+              "postingId": "adzuna:5653798908",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain carerx is seeking a registered pharmacy technician to join ou",
+          "label": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 3,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 3",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+              "postingId": "adzuna:5657865253",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+              "postingId": "adzuna:5656547476",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+              "postingId": "adzuna:5649039942",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain carerx is seeking future registered pharmacy technicians to j",
+          "label": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking future Registered Pharmacy Technicians to j…",
+              "postingId": "adzuna:5647655628",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain hubbard pharmacy is looking for a full time registered pharmacy technician",
+          "label": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+              "postingId": "adzuna:5614065635",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain i am a registered pharmacy technician and i just got my first job",
+          "label": "Obtain I am a registered pharmacy technician and I just got my first job",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "I am a registered pharmacy technician and I just got my first job",
+              "postingId": "adzuna:5626817803",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain job title registered pharmacy technician pharmacy assistant with experience",
+          "label": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+              "postingId": "adzuna:4725861995",
+              "confidence": 0.9
+            }
+          ]
+        }
+      ],
+      "coreHardSkills": [
+        {
+          "id": "hard-perform final technical check of products as per departmental process and ocp standards",
+          "label": "Perform final technical check of products as per departmental process and OCP standards",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToLearn": "Complete one role-specific task and publish a measurable work sample.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Perform final technical check of products as per departmental process and OCP standards",
+              "postingId": "adzuna:5649067323",
+              "confidence": 0.8
+            }
+          ]
+        },
+        {
+          "id": "hard-prepare daily cartfill medications complete all associated documentation workload sta",
+          "label": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToLearn": "Complete one role-specific task and publish a measurable work sample.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+              "postingId": "adzuna:5649067323",
+              "confidence": 0.8
+            }
+          ]
+        }
+      ],
+      "toolsPlatforms": [
+        {
+          "id": "tool-use excel in role relevant workflows",
+          "label": "Use Excel in role-relevant workflows",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "quickProject": "Build a mini project that uses Excel in role-relevant workflows and publish a one-page walkthrough.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Word processing, spreadsheet, and e-mail systems are an asset 6",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ]
+        },
+        {
+          "id": "tool-use experience may be considered 3 in role relevant workflows",
+          "label": "Use experience may be considered) 3 in role-relevant workflows",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "quickProject": "Build a mini project that uses experience may be considered) 3 in role-relevant workflows and publish a one-page walkthrough.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ]
+        },
+        {
+          "id": "tool-use pharmacy distributive activities 4 in role relevant workflows",
+          "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "quickProject": "Build a mini project that uses pharmacy distributive activities 4 in role-relevant workflows and publish a one-page walkthrough.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ]
+        }
+      ],
+      "experienceSignals": [
+        {
+          "id": "exp-complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "gapLevel": "missing",
+          "frequency": 12,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 12",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "All rotations include responsibi…",
+              "postingId": "adzuna:5656967034",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "All rotations include responsibi…",
+              "postingId": "adzuna:5646899129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our goal is to improve clinical outcomes and provide personalized care every step of the way",
+              "postingId": "adzuna:5657865253",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Position Summary The regulated pharmacy technician as a health care professional supports the role of the pharmacist through the safe and efficient management of all aspects of drug distribution that do not require th...",
+              "postingId": "adzuna:5603652129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Summary: Reporting to the Manager, Pharmacy, the Pharmacy Technician will be responsible for technical and clinical support activities according to departmental & hospital policies, provincial guidelines and Canadian So…",
+              "postingId": "adzuna:5626477546",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "gapLevel": "missing",
+          "frequency": 6,
+          "howToBuild": "Document concrete examples with outcomes instead of generic claims.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 6",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5623021832",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hig…",
+              "postingId": "adzuna:5655406540",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hig…",
+              "postingId": "adzuna:5649066791",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5650479068",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5600377787",
+              "confidence": 0.7
+            }
+          ]
+        }
+      ],
+      "transferableStrengths": [],
+      "roadmapPlan": {
+        "zeroToTwoWeeks": [
+          {
+            "id": "r-0-2-1",
+            "action": "Start confirm regional licensing and certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional licensing and certification requirements before applying"
+          },
+          {
+            "id": "r-0-2-2",
+            "action": "Start obtain carerx is seeking a registered pharmacy technician to join ou… and publish one verification artifact.",
+            "tiedRequirement": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…"
+          },
+          {
+            "id": "r-0-2-3",
+            "action": "Start obtain carerx is seeking future registered pharmacy technicians to j… and publish one verification artifact.",
+            "tiedRequirement": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…"
+          }
+        ],
+        "oneToThreeMonths": [
+          {
+            "id": "r-1-3-1",
+            "action": "Build repeatable evidence for obtain hubbard pharmacy is looking for a full time registered pharmacy technician with measurable outcomes.",
+            "tiedRequirement": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician"
+          },
+          {
+            "id": "r-1-3-2",
+            "action": "Build repeatable evidence for obtain i am a registered pharmacy technician and i just got my first job with measurable outcomes.",
+            "tiedRequirement": "Obtain I am a registered pharmacy technician and I just got my first job"
+          },
+          {
+            "id": "r-1-3-3",
+            "action": "Build repeatable evidence for obtain job title: registered pharmacy technician - pharmacy assistant with experience with measurable outcomes.",
+            "tiedRequirement": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience"
+          }
+        ],
+        "threeToTwelveMonths": [
+          {
+            "id": "r-3-12-1",
+            "action": "Turn complete required clinical rotations and document supervised competencies into durable credential or portfolio depth.",
+            "tiedRequirement": "Complete required clinical rotations and document supervised competencies"
+          },
+          {
+            "id": "r-3-12-2",
+            "action": "Turn collaborate across teams to deliver role-critical milestones on time into durable credential or portfolio depth.",
+            "tiedRequirement": "Collaborate across teams to deliver role-critical milestones on time"
+          },
+          {
+            "id": "r-3-12-3",
+            "action": "Turn perform final technical check of products as per departmental process and ocp standards into durable credential or portfolio depth.",
+            "tiedRequirement": "Perform final technical check of products as per departmental process and OCP standards"
+          }
+        ],
+        "fastestPathToApply": [
+          "Close confirm regional licensing and certification requirements before applying with one interview-ready artifact.",
+          "Close obtain carerx is seeking a registered pharmacy technician to join ou… with one interview-ready artifact.",
+          "Close obtain carerx is seeking future registered pharmacy technicians to j… with one interview-ready artifact."
+        ],
+        "strongCandidatePath": [
+          "Build depth in confirm regional licensing and certification requirements before applying and attach measurable evidence.",
+          "Build depth in obtain carerx is seeking a registered pharmacy technician to join ou… and attach measurable evidence.",
+          "Build depth in obtain carerx is seeking future registered pharmacy technicians to j… and attach measurable evidence.",
+          "Build depth in obtain hubbard pharmacy is looking for a full time registered pharmacy technician and attach measurable evidence.",
+          "Build depth in obtain i am a registered pharmacy technician and i just got my first job and attach measurable evidence.",
+          "Build depth in obtain job title: registered pharmacy technician - pharmacy assistant with experience and attach measurable evidence."
+        ]
+      }
+    },
+    "transitionReport": {
+      "marketSnapshot": {
+        "role": "pharmacy technicians",
+        "location": "ontario, canada",
+        "summaryLine": "Based on 100 recent postings in ontario, canada.",
+        "topRequirements": [
+          {
+            "id": "snapshot-complete required clinical rotations and document supervised competencies",
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "frequency_count": 12,
+            "frequency_percent": 12,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "All rotations include responsibi…",
+                "postingId": "adzuna:5646899129",
+                "confidence": 0.84
+              },
+              {
+                "source": "adzuna",
+                "quote": "All rotations include responsibi…",
+                "postingId": "adzuna:5656967034",
+                "confidence": 0.84
+              }
+            ]
+          },
+          {
+            "id": "snapshot-collaborate across teams to deliver role critical milestones on time",
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "frequency_count": 6,
+            "frequency_percent": 6,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+                "postingId": "adzuna:5600377787",
+                "confidence": 0.7
+              },
+              {
+                "source": "adzuna",
+                "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+                "postingId": "adzuna:5623021832",
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "id": "snapshot-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 5,
+            "frequency_percent": 5,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Apply today! Job Details PRIMARY DUTIES AND RESPONSIBILITIES: Assist Pharmacist or the Registered Pharmacy Technician in filling pre…",
+                "postingId": "adzuna:5653798908",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "As a Registered Pharmacy Technician, you will be an integral part of a collaborative, inter-disciplinary team focused on delivering seamless services and programs to our clients and customers",
+                "postingId": "adzuna:5650451029",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "snapshot-obtain carerx is seeking a registered pharmacy technician to join ou",
+            "normalized_key": "obtain carerx is seeking a registered pharmacy technician to join ou",
+            "label": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "frequency_count": 3,
+            "frequency_percent": 3,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+                "postingId": "adzuna:5649039942",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+                "postingId": "adzuna:5656547476",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "snapshot-obtain carerx is seeking future registered pharmacy technicians to j",
+            "normalized_key": "obtain carerx is seeking future registered pharmacy technicians to j",
+            "label": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "CareRx is seeking future Registered Pharmacy Technicians to j…",
+                "postingId": "adzuna:5647655628",
+                "confidence": 0.9
+              }
+            ]
+          }
+        ],
+        "topTools": [
+          {
+            "id": "snapshot-tool-use excel in role relevant workflows",
+            "normalized_key": "use excel in role relevant workflows",
+            "label": "Use Excel in role-relevant workflows",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Word processing, spreadsheet, and e-mail systems are an asset 6",
+                "postingId": "adzuna:5657961471",
+                "confidence": 0.86
+              }
+            ]
+          },
+          {
+            "id": "snapshot-tool-use experience may be considered 3 in role relevant workflows",
+            "normalized_key": "use experience may be considered 3 in role relevant workflows",
+            "label": "Use experience may be considered) 3 in role-relevant workflows",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3",
+                "postingId": "adzuna:5657961471",
+                "confidence": 0.86
+              }
+            ]
+          },
+          {
+            "id": "snapshot-tool-use pharmacy distributive activities 4 in role relevant workflows",
+            "normalized_key": "use pharmacy distributive activities 4 in role relevant workflows",
+            "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4",
+                "postingId": "adzuna:5657961471",
+                "confidence": 0.86
+              }
+            ]
+          }
+        ],
+        "gateBlockers": [
+          {
+            "id": "blocker-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 5,
+            "frequency_percent": 5,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Apply today! Job Details PRIMARY DUTIES AND RESPONSIBILITIES: Assist Pharmacist or the Registered Pharmacy Technician in filling pre…",
+                "postingId": "adzuna:5653798908",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "As a Registered Pharmacy Technician, you will be an integral part of a collaborative, inter-disciplinary team focused on delivering seamless services and programs to our clients and customers",
+                "postingId": "adzuna:5650451029",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "blocker-obtain carerx is seeking a registered pharmacy technician to join ou",
+            "normalized_key": "obtain carerx is seeking a registered pharmacy technician to join ou",
+            "label": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "frequency_count": 3,
+            "frequency_percent": 3,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+                "postingId": "adzuna:5649039942",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+                "postingId": "adzuna:5656547476",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "blocker-obtain carerx is seeking future registered pharmacy technicians to j",
+            "normalized_key": "obtain carerx is seeking future registered pharmacy technicians to j",
+            "label": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "CareRx is seeking future Registered Pharmacy Technicians to j…",
+                "postingId": "adzuna:5647655628",
+                "confidence": 0.9
+              }
+            ]
+          }
+        ]
+      },
+      "mustHaves": [
+        {
+          "id": "must-confirm regional licensing and certification requirements before applying",
+          "normalized_key": "confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Apply today! Job Details PRIMARY DUTIES AND RESPONSIBILITIES: Assist Pharmacist or the Registered Pharmacy Technician in filling pre…",
+              "postingId": "adzuna:5653798908",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "As a Registered Pharmacy Technician, you will be an integral part of a collaborative, inter-disciplinary team focused on delivering seamless services and programs to our clients and customers",
+              "postingId": "adzuna:5650451029",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain carerx is seeking a registered pharmacy technician to join ou",
+          "normalized_key": "obtain carerx is seeking a registered pharmacy technician to join ou",
+          "label": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+          "frequency_count": 3,
+          "frequency_percent": 3,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+              "postingId": "adzuna:5649039942",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+              "postingId": "adzuna:5656547476",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain carerx is seeking future registered pharmacy technicians to j",
+          "normalized_key": "obtain carerx is seeking future registered pharmacy technicians to j",
+          "label": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "CareRx is seeking future Registered Pharmacy Technicians to j…",
+              "postingId": "adzuna:5647655628",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain hubbard pharmacy is looking for a full time registered pharmacy technician",
+          "normalized_key": "obtain hubbard pharmacy is looking for a full time registered pharmacy technician",
+          "label": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+              "postingId": "adzuna:5614065635",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain i am a registered pharmacy technician and i just got my first job",
+          "normalized_key": "obtain i am a registered pharmacy technician and i just got my first job",
+          "label": "Obtain I am a registered pharmacy technician and I just got my first job",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "I am a registered pharmacy technician and I just got my first job",
+              "postingId": "adzuna:5626817803",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain job title registered pharmacy technician pharmacy assistant with experience",
+          "normalized_key": "obtain job title registered pharmacy technician pharmacy assistant with experience",
+          "label": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+              "postingId": "adzuna:4725861995",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        }
+      ],
+      "niceToHaves": [
+        {
+          "id": "nice-use excel in role relevant workflows",
+          "normalized_key": "use excel in role relevant workflows",
+          "label": "Use Excel in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Word processing, spreadsheet, and e-mail systems are an asset 6",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Practice with a scoped project that produces an artifact you can show in interviews."
+        },
+        {
+          "id": "nice-complete required clinical rotations and document supervised competencies",
+          "normalized_key": "complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "frequency_count": 12,
+          "frequency_percent": 12,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "All rotations include responsibi…",
+              "postingId": "adzuna:5646899129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "All rotations include responsibi…",
+              "postingId": "adzuna:5656967034",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-collaborate across teams to deliver role critical milestones on time",
+          "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "frequency_count": 6,
+          "frequency_percent": 6,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5600377787",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5623021832",
+              "confidence": 0.7
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Document concrete examples with outcomes instead of generic claims."
+        },
+        {
+          "id": "nice-perform final technical check of products as per departmental process and ocp standards",
+          "normalized_key": "perform final technical check of products as per departmental process and ocp standards",
+          "label": "Perform final technical check of products as per departmental process and OCP standards",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Perform final technical check of products as per departmental process and OCP standards",
+              "postingId": "adzuna:5649067323",
+              "confidence": 0.8
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Complete one role-specific task and publish a measurable work sample."
+        },
+        {
+          "id": "nice-prepare daily cartfill medications complete all associated documentation workload sta",
+          "normalized_key": "prepare daily cartfill medications complete all associated documentation workload sta",
+          "label": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+              "postingId": "adzuna:5649067323",
+              "confidence": 0.8
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Complete one role-specific task and publish a measurable work sample."
+        },
+        {
+          "id": "nice-use experience may be considered 3 in role relevant workflows",
+          "normalized_key": "use experience may be considered 3 in role relevant workflows",
+          "label": "Use experience may be considered) 3 in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Practice with a scoped project that produces an artifact you can show in interviews."
+        },
+        {
+          "id": "nice-use pharmacy distributive activities 4 in role relevant workflows",
+          "normalized_key": "use pharmacy distributive activities 4 in role relevant workflows",
+          "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Practice with a scoped project that produces an artifact you can show in interviews."
+        }
+      ],
+      "coreTasks": [
+        {
+          "id": "task-complete required clinical rotations and document supervised competencies",
+          "normalized_key": "complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "frequency_count": 12,
+          "frequency_percent": 12,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "All rotations include responsibi…",
+              "postingId": "adzuna:5646899129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "All rotations include responsibi…",
+              "postingId": "adzuna:5656967034",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Complete required clinical rotations and document supervised competencies",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-collaborate across teams to deliver role critical milestones on time",
+          "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "frequency_count": 6,
+          "frequency_percent": 6,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5600377787",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "postingId": "adzuna:5623021832",
+              "confidence": 0.7
+            }
+          ],
+          "task": "Collaborate across teams to deliver role-critical milestones on time",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-perform final technical check of products as per departmental process and ocp standards",
+          "normalized_key": "perform final technical check of products as per departmental process and ocp standards",
+          "label": "Perform final technical check of products as per departmental process and OCP standards",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Perform final technical check of products as per departmental process and OCP standards",
+              "postingId": "adzuna:5649067323",
+              "confidence": 0.8
+            }
+          ],
+          "task": "Perform final technical check of products as per departmental process and OCP standards",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-prepare daily cartfill medications complete all associated documentation workload sta",
+          "normalized_key": "prepare daily cartfill medications complete all associated documentation workload sta",
+          "label": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+              "postingId": "adzuna:5649067323",
+              "confidence": 0.8
+            }
+          ],
+          "task": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-use excel in role relevant workflows",
+          "normalized_key": "use excel in role relevant workflows",
+          "label": "Use Excel in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Word processing, spreadsheet, and e-mail systems are an asset 6",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "task": "Use Excel in role-relevant workflows",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-use experience may be considered 3 in role relevant workflows",
+          "normalized_key": "use experience may be considered 3 in role relevant workflows",
+          "label": "Use experience may be considered) 3 in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "task": "Use experience may be considered) 3 in role-relevant workflows",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-use pharmacy distributive activities 4 in role relevant workflows",
+          "normalized_key": "use pharmacy distributive activities 4 in role relevant workflows",
+          "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "task": "Use pharmacy distributive activities 4 in role-relevant workflows",
+          "gapLevel": "missing"
+        }
+      ],
+      "toolsPlatformsEquipment": [
+        {
+          "id": "tool-use excel in role relevant workflows",
+          "normalized_key": "use excel in role relevant workflows",
+          "label": "Use Excel in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Word processing, spreadsheet, and e-mail systems are an asset 6",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "tool": "Use Excel in role-relevant workflows",
+          "gapLevel": "missing",
+          "quickPractice": "Build a mini project that uses Excel in role-relevant workflows and publish a one-page walkthrough."
+        },
+        {
+          "id": "tool-use experience may be considered 3 in role relevant workflows",
+          "normalized_key": "use experience may be considered 3 in role relevant workflows",
+          "label": "Use experience may be considered) 3 in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "tool": "Use experience may be considered) 3 in role-relevant workflows",
+          "gapLevel": "missing",
+          "quickPractice": "Build a mini project that uses experience may be considered) 3 in role-relevant workflows and publish a one-page walkthrough."
+        },
+        {
+          "id": "tool-use pharmacy distributive activities 4 in role relevant workflows",
+          "normalized_key": "use pharmacy distributive activities 4 in role relevant workflows",
+          "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4",
+              "postingId": "adzuna:5657961471",
+              "confidence": 0.86
+            }
+          ],
+          "tool": "Use pharmacy distributive activities 4 in role-relevant workflows",
+          "gapLevel": "missing",
+          "quickPractice": "Build a mini project that uses pharmacy distributive activities 4 in role-relevant workflows and publish a one-page walkthrough."
+        }
+      ],
+      "transferableStrengths": [],
+      "plan30_60_90": {
+        "days30": [
+          {
+            "id": "d30-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "d30-2",
+            "goal": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "actions": [
+              "Close obtain carerx is seeking a registered pharmacy technician to join ou… with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain carerx is seeking a registered pharmacy technician to join ou"
+            ]
+          },
+          {
+            "id": "d30-3",
+            "goal": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "actions": [
+              "Close obtain carerx is seeking future registered pharmacy technicians to j… with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain carerx is seeking future registered pharmacy technicians to j"
+            ]
+          }
+        ],
+        "days60": [
+          {
+            "id": "d60-1",
+            "goal": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+            "actions": [
+              "Close obtain hubbard pharmacy is looking for a full time registered pharmacy technician with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain hubbard pharmacy is looking for a full time registered pharmacy technician"
+            ]
+          },
+          {
+            "id": "d60-2",
+            "goal": "Obtain I am a registered pharmacy technician and I just got my first job",
+            "actions": [
+              "Close obtain i am a registered pharmacy technician and i just got my first job with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain i am a registered pharmacy technician and i just got my first job"
+            ]
+          },
+          {
+            "id": "d60-3",
+            "goal": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+            "actions": [
+              "Close obtain job title: registered pharmacy technician - pharmacy assistant with experience with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain job title registered pharmacy technician pharmacy assistant with experience"
+            ]
+          }
+        ],
+        "days90": [
+          {
+            "id": "d90-1",
+            "goal": "Complete required clinical rotations and document supervised competencies",
+            "actions": [
+              "Close complete required clinical rotations and document supervised competencies with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "complete required clinical rotations and document supervised competencies"
+            ]
+          },
+          {
+            "id": "d90-2",
+            "goal": "Collaborate across teams to deliver role-critical milestones on time",
+            "actions": [
+              "Close collaborate across teams to deliver role-critical milestones on time with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "collaborate across teams to deliver role critical milestones on time"
+            ]
+          },
+          {
+            "id": "d90-3",
+            "goal": "Perform final technical check of products as per departmental process and OCP standards",
+            "actions": [
+              "Close perform final technical check of products as per departmental process and ocp standards with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "perform final technical check of products as per departmental process and ocp standards"
+            ]
+          }
+        ],
+        "fastestPathToApply": [
+          {
+            "id": "fast-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "fast-2",
+            "goal": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "actions": [
+              "Close obtain carerx is seeking a registered pharmacy technician to join ou… with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain carerx is seeking a registered pharmacy technician to join ou"
+            ]
+          },
+          {
+            "id": "fast-3",
+            "goal": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "actions": [
+              "Close obtain carerx is seeking future registered pharmacy technicians to j… with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain carerx is seeking future registered pharmacy technicians to j"
+            ]
+          }
+        ],
+        "strongCandidatePath": [
+          {
+            "id": "strong-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "strong-2",
+            "goal": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "actions": [
+              "Close obtain carerx is seeking a registered pharmacy technician to join ou… with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain carerx is seeking a registered pharmacy technician to join ou"
+            ]
+          },
+          {
+            "id": "strong-3",
+            "goal": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "actions": [
+              "Close obtain carerx is seeking future registered pharmacy technicians to j… with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain carerx is seeking future registered pharmacy technicians to j"
+            ]
+          },
+          {
+            "id": "strong-4",
+            "goal": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+            "actions": [
+              "Close obtain hubbard pharmacy is looking for a full time registered pharmacy technician with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain hubbard pharmacy is looking for a full time registered pharmacy technician"
+            ]
+          },
+          {
+            "id": "strong-5",
+            "goal": "Obtain I am a registered pharmacy technician and I just got my first job",
+            "actions": [
+              "Close obtain i am a registered pharmacy technician and i just got my first job with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain i am a registered pharmacy technician and i just got my first job"
+            ]
+          },
+          {
+            "id": "strong-6",
+            "goal": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+            "actions": [
+              "Close obtain job title: registered pharmacy technician - pharmacy assistant with experience with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain job title registered pharmacy technician pharmacy assistant with experience"
+            ]
+          }
+        ]
+      },
+      "evidenceTransparency": {
+        "employerPostings": {
+          "source": "adzuna_cached",
+          "count": 100,
+          "lastUpdated": "2026-03-14T04:54:55.377+00:00",
+          "usedCache": true
+        },
+        "userProvidedPosting": {
+          "included": false
+        },
+        "baselineOnet": {
+          "included": false
+        },
+        "baselineOnlyWarning": null
+      }
+    },
+    "executionStrategy": {
+      "whereYouStandNow": {
+        "strengths": [
+          {
+            "summary": "This background signal supports transition readiness for Pharmacy technicians.",
+            "resumeSignal": "Testing transition from Cashier to Pharmacy Technician with measurable weekly output and customer-facing experience. token:mmsvg92v",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…"
+            ]
+          }
+        ],
+        "missingMandatoryRequirements": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain carerx is seeking a registered pharmacy technician to join ou",
+            "label": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain carerx is seeking future registered pharmacy technicians to j",
+            "label": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain hubbard pharmacy is looking for a full time registered pharmacy technician",
+            "label": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain i am a registered pharmacy technician and i just got my first job",
+            "label": "Obtain I am a registered pharmacy technician and I just got my first job",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain job title registered pharmacy technician pharmacy assistant with experience",
+            "label": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          }
+        ],
+        "competitiveDisadvantages": [
+          {
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "perform final technical check of products as per departmental process and ocp standards",
+            "label": "Perform final technical check of products as per departmental process and OCP standards",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "prepare daily cartfill medications complete all associated documentation workload sta",
+            "label": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "use excel in role relevant workflows",
+            "label": "Use Excel in role-relevant workflows",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "use experience may be considered 3 in role relevant workflows",
+            "label": "Use experience may be considered) 3 in role-relevant workflows",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "use pharmacy distributive activities 4 in role relevant workflows",
+            "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          }
+        ]
+      },
+      "realBlockers": {
+        "requiredToApply": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Apply today! Job Details PRIMARY DUTIES AND RESPONSIBILITIES: Assist Pharmacist or the Registered Pharmacy Technician in filling pre…",
+              "As a Registered Pharmacy Technician, you will be an integral part of a collaborative, inter-disciplinary team focused on delivering seamless services and programs to our clients and customers"
+            ]
+          },
+          {
+            "normalized_key": "obtain carerx is seeking a registered pharmacy technician to join ou",
+            "label": "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "CareRx is seeking a Registered Pharmacy Technician to join ou…",
+              "CareRx is seeking a Registered Pharmacy Technician to join ou…"
+            ]
+          },
+          {
+            "normalized_key": "obtain carerx is seeking future registered pharmacy technicians to j",
+            "label": "Obtain CareRx is seeking future Registered Pharmacy Technicians to j…",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "CareRx is seeking future Registered Pharmacy Technicians to j…"
+            ]
+          },
+          {
+            "normalized_key": "obtain hubbard pharmacy is looking for a full time registered pharmacy technician",
+            "label": "Obtain Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician"
+            ]
+          },
+          {
+            "normalized_key": "obtain i am a registered pharmacy technician and i just got my first job",
+            "label": "Obtain I am a registered pharmacy technician and I just got my first job",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "I am a registered pharmacy technician and I just got my first job"
+            ]
+          },
+          {
+            "normalized_key": "obtain job title registered pharmacy technician pharmacy assistant with experience",
+            "label": "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience"
+            ]
+          }
+        ],
+        "requiredToCompete": [
+          {
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "All rotations include responsibi…",
+              "All rotations include responsibi…"
+            ]
+          },
+          {
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Document concrete examples with outcomes instead of generic claims.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…",
+              "At Loblaw Companies Limited, we succeed through collaboration and commitment and set a hi…"
+            ]
+          },
+          {
+            "normalized_key": "perform final technical check of products as per departmental process and ocp standards",
+            "label": "Perform final technical check of products as per departmental process and OCP standards",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Complete one role-specific task and publish a measurable work sample.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "Perform final technical check of products as per departmental process and OCP standards"
+            ]
+          },
+          {
+            "normalized_key": "prepare daily cartfill medications complete all associated documentation workload sta",
+            "label": "Prepare daily cartfill medications Complete all associated documentation/workload sta…",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Complete one role-specific task and publish a measurable work sample.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "Prepare daily cartfill medications Complete all associated documentation/workload sta…"
+            ]
+          },
+          {
+            "normalized_key": "use excel in role relevant workflows",
+            "label": "Use Excel in role-relevant workflows",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Practice with a scoped project that produces an artifact you can show in interviews.",
+            "timeEstimate": "1-4 weeks",
+            "evidenceQuote": [
+              "Word processing, spreadsheet, and e-mail systems are an asset 6"
+            ]
+          },
+          {
+            "normalized_key": "use experience may be considered 3 in role relevant workflows",
+            "label": "Use experience may be considered) 3 in role-relevant workflows",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Practice with a scoped project that produces an artifact you can show in interviews.",
+            "timeEstimate": "1-4 weeks",
+            "evidenceQuote": [
+              "Minimum of two years experience in a hospital or retail pharmacy setting (an equivalent combination or education and experience may be considered) 3"
+            ]
+          },
+          {
+            "normalized_key": "use pharmacy distributive activities 4 in role relevant workflows",
+            "label": "Use pharmacy distributive activities 4 in role-relevant workflows",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Practice with a scoped project that produces an artifact you can show in interviews.",
+            "timeEstimate": "1-4 weeks",
+            "evidenceQuote": [
+              "Demonstrated experience in parenteral drug preparation and pharmacy distributive activities 4"
+            ]
+          }
+        ]
+      },
+      "transferableEdge": {
+        "translations": [
+          {
+            "fromResume": "Testing transition from Cashier to Pharmacy Technician with measurable weekly output and customer-facing experience. token:mmsvg92v",
+            "toTargetRole": "Apply this as obtain job title: registered pharmacy technician - pharmacy assistant with experience work in Pharmacy technicians settings, then quantify the outcome.",
+            "countsToward": [
+              "Obtain Job Title: Registered Pharmacy Technician - Pharmacy Assistant with experience"
+            ]
+          }
+        ]
+      },
+      "plan90Day": {
+        "month1": {
+          "label": "Month 1: Foundations",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month1-1",
+              "task": "Confirm and complete regional licensing and certification requirements before applying, then keep proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-2",
+              "task": "Book and complete CareRx is seeking a Registered Pharmacy Technician to join ou…, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain carerx is seeking a registered pharmacy technician to join ou"
+              ]
+            },
+            {
+              "id": "month1-3",
+              "task": "Book and complete CareRx is seeking future Registered Pharmacy Technicians to j…, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain carerx is seeking future registered pharmacy technicians to j"
+              ]
+            },
+            {
+              "id": "month1-4",
+              "task": "Book and complete Hubbard Pharmacy is looking for a full time Registered Pharmacy Technician, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain hubbard pharmacy is looking for a full time registered pharmacy technician"
+              ]
+            },
+            {
+              "id": "month1-5",
+              "task": "Book and complete I am a registered pharmacy technician and I just got my first job, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain i am a registered pharmacy technician and i just got my first job"
+              ]
+            }
+          ]
+        },
+        "month2": {
+          "label": "Month 2: Positioning",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month2-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain job title registered pharmacy technician pharmacy assistant with experience"
+              ]
+            }
+          ]
+        },
+        "month3": {
+          "label": "Month 3: Conversion",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month3-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "use pharmacy distributive activities 4 in role relevant workflows"
+              ]
+            }
+          ]
+        }
+      },
+      "probabilityRealityCheck": {
+        "difficulty": "This is a hard transition right now, but it is realistic if you execute a strict weekly plan.",
+        "whatIncreasesOdds": [
+          "Close apply blockers first, then run 8 role-specific applications/week.",
+          "Execute 10 employer follow-ups/week and follow up until each lead has an outcome.",
+          "Publish 1 compliance-ready verification packet/week so interviews focus on evidence, not claims."
+        ],
+        "commonFailureModes": [
+          "Applying passively through portals with no direct outreach.",
+          "Spending time on low-impact learning without work samples or verification items.",
+          "Skipping follow-up after first contact or first rejection."
+        ]
+      },
+      "behavioralExecution": {
+        "minimumWeeklyEffort": "10-14 hours/week for 12 consecutive weeks.",
+        "consistencyLooksLike": [
+          "Block execution time on your calendar before discretionary tasks.",
+          "Track applications, outreach, and readiness examples every weekday.",
+          "Review blockers weekly and adjust next-week actions immediately."
+        ],
+        "whatNotToDo": [
+          "Do not wait for perfect readiness before contacting employers.",
+          "Do not submit untailored applications with generic resume bullets.",
+          "Do not stop outreach after one rejection or one no-response week."
+        ]
+      }
+    },
+    "marketEvidence": {
+      "enabled": true,
+      "used": true,
+      "baselineOnly": false,
+      "usedCache": true,
+      "postingsCount": 100,
+      "llmNormalizedCount": 0,
+      "fetchedAt": "2026-03-14T04:54:55.377+00:00",
+      "query": {
+        "role": "pharmacy technicians",
+        "location": "ontario, canada",
+        "country": "ca"
+      },
+      "sourcePriority": [
+        "user_posting",
+        "adzuna",
+        "onet"
+      ]
+    },
+    "bottleneck": {
+      "title": "Confirm regional licensing and certification requirements before applying",
+      "why": "Pharmacy technicians demand signals weight this requirement heavily.",
+      "nextAction": "Start or verify Completion of the Pharmacy Examining Board of Canada (PEBC) certification exams is required for pharmacy technicians. requirements, then complete one scoped project proving Confirm regional licensing and certification requirements before applying in 7-14 days and add the result to your resume.",
+      "estimatedEffort": "12+ months"
+    },
+    "dataTransparency": {
+      "inputsUsed": [
+        "currentRole",
+        "targetRole",
+        "experienceText",
+        "skills",
+        "location",
+        "timeline",
+        "education"
+      ],
+      "datasetsUsed": [
+        "occupations",
+        "occupation_skills",
+        "occupation_requirements",
+        "occupation_wages",
+        "trade_requirements",
+        "job_queries",
+        "job_postings",
+        "job_requirements"
+      ],
+      "fxRateUsed": "USD/CAD 1.3689 (2026-02-20)"
+    },
+    "careerPathwayProfile": null,
+    "sourceEnrichment": {
+      "trainingCards": [
+        {
+          "cost": "$18,700 CAD per year plus $1,936 CAD program costs (2024-2025)",
+          "name": "Pharmacy Technician Program",
+          "length": "2 years",
+          "modality": "In-person",
+          "provider": "Confederation College",
+          "sourceUrl": "https://www.confederationcollege.ca/program/pharmacy-technician",
+          "sourceType": "verified",
+          "sourceLabel": "Confederation College Pharmacy Technician Program"
+        },
+        {
+          "cost": "Tuition: $3,136.92 CAD per term; Ancillary Fees: $2,188.66 CAD per term (2025-2026)",
+          "name": "Pharmacy Technician Program",
+          "length": "2 years",
+          "modality": "In-person",
+          "provider": "Conestoga College",
+          "sourceUrl": "https://www.conestogac.on.ca/fulltime/pharmacy-technician",
+          "sourceType": "verified",
+          "sourceLabel": "Conestoga College Pharmacy Technician Program"
+        },
+        {
+          "cost": "Tuition and fees details for programs starting September 2026 and later will be available in Spring 2026",
+          "name": "Pharmacy Technician Program",
+          "length": "2 years",
+          "modality": "In-person",
+          "provider": "Loyalist College",
+          "sourceUrl": "https://loyalistcollege.com/program/pharmacy-technician/",
+          "sourceType": "verified",
+          "sourceLabel": "Loyalist College Pharmacy Technician Program"
+        }
+      ],
+      "certificationCards": [
+        {
+          "name": "Pharmacy Examining Board of Canada (PEBC) Qualifying Examination",
+          "provider": "Pharmacy Examining Board of Canada",
+          "sourceUrl": "https://www.pebc.ca/",
+          "sourceType": "verified",
+          "sourceLabel": "PEBC Official Website"
+        },
+        {
+          "name": "Ontario College of Pharmacists (OCP) Jurisprudence Examination",
+          "provider": "Ontario College of Pharmacists",
+          "sourceUrl": "https://www.ocpinfo.com/",
+          "sourceType": "verified",
+          "sourceLabel": "OCP Official Website"
+        },
+        {
+          "name": "Structured Practical Training (SPT)",
+          "provider": "Ontario College of Pharmacists",
+          "sourceUrl": "https://www.ocpinfo.com/",
+          "sourceType": "verified",
+          "sourceLabel": "OCP Official Website"
+        }
+      ],
+      "wageFallback": {
+        "low": 18,
+        "high": 36.8,
+        "median": 26.45,
+        "region": "ON",
+        "asOfDate": "2026-03-16T06:27:21.450Z",
+        "currency": "CAD",
+        "sourceUrl": "https://www.jobbank.gc.ca/marketreport/wages-occupation/25660/ON",
+        "sourceName": "Job Bank",
+        "sourceType": "verified"
+      },
+      "tradeFacts": null,
+      "entryRoles": [],
+      "sourcePath": {
+        "training": "web_search",
+        "wage": "web_search",
+        "entryRoles": "none",
+        "certifications": "web_search"
+      },
+      "cache": {
+        "hit": true,
+        "expiresAt": "2026-03-23T06:27:21.45+00:00"
+      }
+    },
+    "transitionMode": {
+      "careerPathType": "HEALTHCARE_LICENSED",
+      "templateKey": "regulated_profession",
+      "difficulty": {
+        "score": 9.8,
+        "label": "Very Hard",
+        "why": [
+          "This target has 7 formal gates you need to respect early.",
+          "Your current education profile does not create a major extra delay.",
+          "4 high-value requirements still need stronger proof."
+        ]
+      },
+      "timeline": {
+        "minMonths": 13,
+        "maxMonths": 19,
+        "assumptions": [
+          "You verify education and licensure steps before spending money.",
+          "You move one admissions, exam, or paperwork task forward every week.",
+          "You keep a realistic timeline for supervised practice and first employable milestones."
+        ]
+      },
+      "routes": {
+        "primary": {
+          "title": "Primary route: education, clinical hours, and licensing",
+          "reason": "This move depends on an accredited program, supervised pharmacy practicum hours and dispensary competencies, and registration with the Ontario College of Pharmacists (OCP) or your provincial pharmacy regulator for Ontario, Canada. The fastest path is the one that clears those gates in order.",
+          "firstStep": "Confirm the exact program, admissions requirements, the PEBC pathway and regulator registration requirements, and registration path for Ontario, Canada."
+        },
+        "secondary": {
+          "title": "Secondary route: adjacent patient-care support role",
+          "reason": "If the full program takes time, a support role can help you build field exposure, references, and confidence while you move through the education and licensing sequence.",
+          "firstStep": "Shortlist 5 support roles that sit close to Pharmacy Technician and can build patient-care exposure while you qualify."
+        },
+        "contingency": {
+          "title": "Contingency route: prerequisite and admissions bridge",
+          "reason": "If you are missing prerequisite courses or admissions requirements, solve those first instead of paying for the wrong school or applying too early.",
+          "firstStep": "Map the prerequisite courses, admissions tests, or bridge programs you can close in the next 30 days."
+        }
+      },
+      "roadmapGuide": {
+        "phases": [
+          {
+            "label": "0-30 Days",
+            "focus": "1 regulator checklist",
+            "steps": [
+              {
+                "title": "Confirm the accredited program, admissions prerequisites, the PEBC pathway and regulator registration requirements, and provincial registration sequence for Ontario, Canada.",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, program, or regulator path.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Baseline education: Pharmacy technicians usually require a two-year pharmacy technician college program or completion of a two- to three-year college program in pharmaceutics and supervised practical training.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…."
+                ],
+                "proofChecklist": [
+                  "1 regulator checklist.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Write down the province-specific rule, regulator, or admission requirement you confirmed."
+                ]
+              },
+              {
+                "title": "Compare program options by length, tuition, and supervised pharmacy practicum hours and dispensary competencies.",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, program, or regulator path.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Baseline education: Pharmacy technicians usually require a two-year pharmacy technician college program or completion of a two- to three-year college program in pharmaceutics and supervised practical training.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…."
+                ],
+                "proofChecklist": [
+                  "3 route comparisons.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Write down the province-specific rule, regulator, or admission requirement you confirmed."
+                ]
+              },
+              {
+                "title": "Speak with 3 practitioners or advisors aligned to Pharmacy Technician so you understand the real path before you commit.",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, program, or regulator path.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Baseline education: Pharmacy technicians usually require a two-year pharmacy technician college program or completion of a two- to three-year college program in pharmaceutics and supervised practical training.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Obtain CareRx is seeking a Registered Pharmacy Technician to join ou…."
+                ],
+                "proofChecklist": [
+                  "3 field conversations.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Write down the province-specific rule, regulator, or admission requirement you confirmed."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "30-90 Days",
+            "focus": "2 admissions tasks closed",
+            "steps": [
+              {
+                "title": "Start prerequisite coursework, transcripts, or admissions steps for the accredited program.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$150-CA$2,500+ (varies by province, school, and regulator)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "2 admissions tasks closed.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Build relevant exposure through volunteer, support, or adjacent healthcare roles connected to Pharmacy Technician.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$50-CA$750+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 prerequisite milestone.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Map funding, schedule, and placement constraints before accepting a program.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 patient-care exposure plan.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "3-12 Months",
+            "focus": "1 program completion milestone",
+            "steps": [
+              {
+                "title": "Complete the accredited program and required supervised placements.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$50-CA$750+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 program completion milestone.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Prepare for the PEBC pathway and regulator registration requirements and final regulator submission.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$150-CA$2,500+ (varies by province, school, and regulator)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 licensing exam plan.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Target entry-level healthcare roles as you clear the final regulator checkpoint.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$50-CA$750+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 regulator submission checklist.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          }
+        ],
+        "next7Days": [
+          "Confirm the exact program, admissions requirements, the PEBC pathway and regulator registration requirements, and registration path for Ontario, Canada.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain carerx is seeking a registered pharmacy technician to join ou… in short daily blocks.",
+          "Ask one regulator, school, or licensing contact to confirm the right first checkpoint for your province."
+        ]
+      },
+      "plan90": [
+        {
+          "phase": "Weeks 1-4",
+          "weeks": "1-4",
+          "tasks": [
+            "Confirm the accredited program, admissions prerequisites, the PEBC pathway and regulator registration requirements, and provincial registration sequence for Ontario, Canada.",
+            "Compare program options by length, tuition, and supervised pharmacy practicum hours and dispensary competencies.",
+            "Speak with 3 practitioners or advisors aligned to Pharmacy Technician so you understand the real path before you commit."
+          ],
+          "weeklyTargets": [
+            "1 regulator checklist",
+            "3 route comparisons",
+            "3 field conversations",
+            "1 admissions timeline"
+          ],
+          "timePerWeekHours": 8
+        },
+        {
+          "phase": "Months 2-6",
+          "weeks": "5-24",
+          "tasks": [
+            "Start prerequisite coursework, transcripts, or admissions steps for the accredited program.",
+            "Build relevant exposure through volunteer, support, or adjacent healthcare roles connected to Pharmacy Technician.",
+            "Map funding, schedule, and placement constraints before accepting a program."
+          ],
+          "weeklyTargets": [
+            "2 admissions tasks closed",
+            "1 prerequisite milestone",
+            "1 patient-care exposure plan",
+            "1 funding plan"
+          ],
+          "timePerWeekHours": 10
+        },
+        {
+          "phase": "Final licensing phase",
+          "weeks": "24+",
+          "tasks": [
+            "Complete the accredited program and required supervised placements.",
+            "Prepare for the PEBC pathway and regulator registration requirements and final regulator submission.",
+            "Target entry-level healthcare roles as you clear the final regulator checkpoint."
+          ],
+          "weeklyTargets": [
+            "1 program completion milestone",
+            "1 licensing exam plan",
+            "1 regulator submission checklist",
+            "5 entry-role targets"
+          ],
+          "timePerWeekHours": 10
+        }
+      ],
+      "execution": {
+        "dailyRoutine": [
+          "15 minutes: move one admissions, paperwork, or regulator task forward.",
+          "15 minutes: maintain one healthcare relationship with an instructor, advisor, recruiter, or Pharmacy Technician practitioner.",
+          "15 minutes: review your next education, placement, or licensing checkpoint."
+        ],
+        "weeklyCadence": [
+          "2 admissions or regulator tasks",
+          "2 program or prerequisite steps",
+          "2 healthcare field conversations",
+          "1 timeline review"
+        ],
+        "outreachTemplates": {
+          "call": "Hi, I am planning a move into Pharmacy Technician. I want to make sure I follow the right program, placement, and licensing sequence for Ontario, Canada. Who can confirm the correct first step so I do not waste time or tuition?",
+          "email": "Subject: Clarifying the path into Pharmacy Technician Hi, I am planning a transition into Pharmacy Technician. I am mapping the right education program, supervised pharmacy practicum hours and dispensary competencies, and licensing sequence and want to make sure I start with the correct first step. If you can point me to the best first action, I would appreciate it. Best, Your Name"
+        }
+      },
+      "gaps": {
+        "strengths": [
+          "You already communicate clearly with customers, clients, or teams, which matters in the transition.",
+          "You already understand customer behavior, which can transfer into user or client-facing work.",
+          "You already bring some usable overlap into this move."
+        ],
+        "missing": [
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain carerx is seeking a registered pharmacy technician to join ou… in short daily blocks.",
+          "Learn the basics of obtain hubbard pharmacy is looking for a full time registered pharmacy technician in short daily blocks."
+        ],
+        "first3Steps": [
+          "Confirm the exact program, admissions requirements, the PEBC pathway and regulator registration requirements, and registration path for Ontario, Canada.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain carerx is seeking a registered pharmacy technician to join ou… in short daily blocks."
+        ]
+      },
+      "earnings": [
+        {
+          "stage": "Year 1",
+          "rangeLow": 22,
+          "rangeHigh": 24,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 2",
+          "rangeLow": 22,
+          "rangeHigh": 26,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 3",
+          "rangeLow": 26,
+          "rangeHigh": 29,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Fully Qualified",
+          "rangeLow": 26,
+          "rangeHigh": 31,
+          "unit": "USD/hour"
+        }
+      ],
+      "reality": {
+        "barriers": [
+          "The sequence matters here. Skipping education or licensure steps wastes time.",
+          "This is a regulated profession. Licensing, credential recognition, and timelines can vary by province in Canada.",
+          "Confirm regional licensing and certification requirements before applying."
+        ],
+        "mitigations": [
+          "Confirm the province-specific regulator, credential-recognition rules, and first application checkpoint before you spend money.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain carerx is seeking a registered pharmacy technician to join ou… in short daily blocks."
+        ]
+      },
+      "resources": {
+        "local": [
+          {
+            "label": "Provincial pharmacy regulator",
+            "url": ""
+          },
+          {
+            "label": "Accredited pharmacy technician programs (starting points)",
+            "url": ""
+          }
+        ],
+        "online": [
+          {
+            "label": "PEBC and provincial registration overview",
+            "url": ""
+          },
+          {
+            "label": "Healthcare program admissions guidance",
+            "url": ""
+          }
+        ],
+        "internal": [
+          {
+            "label": "CareerHeap Blog",
+            "url": "/blog"
+          },
+          {
+            "label": "Career Tools",
+            "url": "/tools"
+          },
+          {
+            "label": "Run This Plan Again",
+            "url": "/tools/career-switch-planner"
+          }
+        ]
+      }
+    },
+    "transitionStructuredPlan": {
+      "summary": "Transitioning from Cashier to Pharmacy Technician in Ontario, Canada requires completing a two-year pharmacy technician college program or a related pharmaceutics program with supervised practical training, followed by licensing with the Ontario College of Pharmacists. The path is structured and regulated, with a timeline of approximately 13 to 19 months. Key skills include technical checks, medication preparation, and use of Excel in workflows. Credentials needed include formal education and regional certification. Starting from zero involves confirming program and licensing requirements and building foundational knowledge through short daily study blocks.",
+      "compatibility_level": "Low",
+      "timeline_estimate": "13-19 months",
+      "required_certifications": [
+        "Completion of a two-year pharmacy technician college program or a two- to three-year pharmaceutics program with supervised practical training",
+        "Licensing and certification by the Ontario College of Pharmacists (OCP) or relevant provincial regulator"
+      ],
+      "required_experience": [
+        "Perform final technical check of products as per departmental process and OCP standards",
+        "Prepare daily cartfill medications and complete associated documentation",
+        "Use Excel in role-relevant workflows",
+        "Experience in pharmacy distributive activities and parenteral drug preparation may be considered"
+      ],
+      "action_steps": [
+        "Confirm the exact program, admissions requirements, PEBC pathway, and regulator registration requirements for Ontario, Canada",
+        "Confirm regional licensing and certification requirements before applying, dedicating short daily study blocks",
+        "Learn the basics of pharmacy technician roles and employer expectations through targeted study and research"
+      ],
+      "salary_projection": "Year 1: $22-$24 USD/hour; Fully Qualified: $26-$31 USD/hour",
+      "narrative_sections": {
+        "intro": "This plan outlines the realistic path to become a Pharmacy Technician in Ontario, Canada, distinguishing between the skills you will develop and the credentials required by employers and regulators.",
+        "skills_you_build": [
+          {
+            "title": "Core job skills",
+            "summary": "Practical skills expected include technical product checks, medication preparation, documentation, and use of Excel in workflows.",
+            "bullets": [
+              "Perform final technical check of products as per departmental process and OCP standards",
+              "Prepare daily cartfill medications and complete all associated documentation/workload",
+              "Use Excel in role-relevant workflows",
+              "Engage in pharmacy distributive activities and parenteral drug preparation"
+            ]
+          },
+          {
+            "title": "Tools and practical work",
+            "summary": "Hands-on experience with pharmacy tools and software is essential.",
+            "bullets": [
+              "Use Excel in role-relevant workflows",
+              "Demonstrate experience in pharmacy distributive activities and parenteral drug preparation"
+            ]
+          },
+          {
+            "title": "Work habits employers notice fast",
+            "summary": "Employers value candidates who complete clinical rotations and collaborate effectively across teams.",
+            "bullets": [
+              "Complete required clinical rotations and document supervised competencies",
+              "Collaborate across teams to deliver role-critical milestones on time"
+            ]
+          }
+        ],
+        "credentials_you_need": [
+          {
+            "title": "Before you get hired",
+            "summary": "Employers screen for formal education and regional certification first.",
+            "bullets": [
+              "Completion of a two-year pharmacy technician college program or a two- to three-year pharmaceutics program with supervised practical training",
+              "Confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "title": "What full qualification usually requires",
+            "summary": "Full qualification involves licensing and registration with provincial regulators and meeting employer-specific requirements.",
+            "bullets": [
+              "Obtain registration with the Ontario College of Pharmacists (OCP) or relevant provincial regulator",
+              "Meet employer requirements such as those from CareRx and Hubbard Pharmacy for Registered Pharmacy Technicians"
+            ]
+          }
+        ],
+        "soft_skills_that_matter": [
+          "Complete required clinical rotations and document supervised competencies",
+          "Collaborate across teams to deliver role-critical milestones on time"
+        ],
+        "why_this_path_can_pay_off": [
+          "Starting salary ranges from $22 to $24 USD per hour",
+          "Fully qualified technicians can earn between $26 and $31 USD per hour",
+          "Pay increases with proof of qualification and expanded scope of practice",
+          "Wages vary by province and employer"
+        ],
+        "start_from_zero": [
+          "Confirm the exact program, admissions requirements, PEBC pathway, and regulator registration requirements for Ontario, Canada",
+          "Confirm regional licensing and certification requirements before applying, dedicating short daily study blocks",
+          "Learn the basics of pharmacy technician roles and employer expectations through targeted study and research"
+        ]
+      }
+    },
+    "transitionPlanScripts": {
+      "call": "Hello, I am exploring the pathway to become a Pharmacy Technician in Ontario and would like to know if you are currently hiring or offering training pathway opportunities. Could we schedule a brief follow-up to discuss how I might prepare for such roles?",
+      "email": "Subject: Inquiry About Pharmacy Technician training pathway or Entry Opportunities Dear Hiring Manager, I am interested in pursuing a career as a Pharmacy Technician in Ontario, Canada. I understand this role requires specific education and licensing, and I am currently preparing to meet these requirements. Could you please let me know if your organization is hiring or offering training pathway or entry-level opportunities for aspiring Pharmacy Technicians? I would appreciate the chance to discuss how I can contribute and learn within your team. Thank you for your time and consideration. Best regards, [Your Name]",
+      "source": "gpt"
+    },
+    "transitionPlanCacheMeta": {
+      "version": "transition-plan-v4",
+      "generatedAt": "2026-03-16T07:38:44.378Z",
+      "region": "Ontario, Canada",
+      "experienceLevelBucket": "entry",
+      "cacheHit": false
+    },
+    "previewLimited": false,
+    "v3Diagnostics": {
+      "missingFields": [],
+      "placeholderSignals": [],
+      "stageFailures": [],
+      "role_match_explanation": {
+        "current": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        },
+        "target": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "generatedAt": "2026-03-16T07:39:01.814Z"
+    },
+    "roleResolution": {
+      "current": {
+        "input": "Cashier",
+        "matched": {
+          "occupationId": "74c96646-1119-4fe6-bc5c-5888a491627f",
+          "title": "Cashiers",
+          "code": "74c96646-1119-4fe6-bc5c-5888a491627f",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.957,
+          "stage": null,
+          "specialization": null,
+          "rawInputTitle": "Cashier",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.083,
+            "industryMatch": 0.9,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "title": "Retail sales supervisors",
+            "code": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.832
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "target": {
+        "input": "Pharmacy Technician",
+        "matched": {
+          "occupationId": "c1f40500-16ee-4352-a5f4-ab92f1a743bb",
+          "title": "Pharmacy technicians",
+          "code": "c1f40500-16ee-4352-a5f4-ab92f1a743bb",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.973,
+          "stage": null,
+          "specialization": null,
+          "rawInputTitle": "Pharmacy Technician",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.083,
+            "industryMatch": 1,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "d33c4bf3-197e-4064-a56e-a32fa38aa63e",
+            "title": "Pharmacy technical assistants and pharmacy assistants",
+            "code": "d33c4bf3-197e-4064-a56e-a32fa38aa63e",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.726
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      }
+    }
+  },
+  "reportId": null,
+  "scoring": {
+    "total_score": 30,
+    "breakdown": {
+      "skill_overlap": 0,
+      "experience_similarity": 16.3,
+      "education_alignment": 10,
+      "certification_gap": 3,
+      "timeline_feasibility": 0.5
+    },
+    "top_occupation_id": "c1f40500-16ee-4352-a5f4-ab92f1a743bb"
+  },
+  "usage": {
+    "plan": "free",
+    "isUnlimited": false,
+    "canUse": true,
+    "used": 0,
+    "limit": 3,
+    "usesRemaining": 3,
+    "byTool": {}
+  },
+  "previewLimited": false
+}

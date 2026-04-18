@@ -1,0 +1,264 @@
+{
+  "summary": {
+    "startedAt": "2026-03-14T07:14:43.188Z",
+    "finishedAt": "2026-03-14T07:15:23.632Z",
+    "baseUrl": "http://127.0.0.1:3000",
+    "total": 10,
+    "dashboard": 8,
+    "roleSelectionRequired": 2,
+    "errors": 0,
+    "unknown": 0
+  },
+  "results": [
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Licensed Practical Nurse",
+      "startedAt": "2026-03-14T07:14:43.188Z",
+      "finishedAt": "2026-03-14T07:14:50.657Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\01-cashier-to-licensed-practical-nurse.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Licensed+Practical+Nurse&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Accountant",
+      "startedAt": "2026-03-14T07:14:50.657Z",
+      "finishedAt": "2026-03-14T07:14:56.274Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\02-cashier-to-accountant.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Accountant&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Human Resources Manager",
+      "startedAt": "2026-03-14T07:14:56.274Z",
+      "finishedAt": "2026-03-14T07:15:00.310Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\03-cashier-to-human-resources-manager.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Human+Resources+Manager&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Administrative Assistant",
+      "startedAt": "2026-03-14T07:15:00.311Z",
+      "finishedAt": "2026-03-14T07:15:04.244Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\04-cashier-to-administrative-assistant.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Administrative+Assistant&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Cybersecurity Analyst",
+      "startedAt": "2026-03-14T07:15:04.245Z",
+      "finishedAt": "2026-03-14T07:15:08.130Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\05-retail-associate-to-cybersecurity-analyst.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Cybersecurity+Analyst&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Project Coordinator",
+      "startedAt": "2026-03-14T07:15:08.130Z",
+      "finishedAt": "2026-03-14T07:15:11.962Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\06-retail-associate-to-project-coordinator.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Project+Coordinator&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Warehouse Associate",
+      "targetRole": "Business Analyst",
+      "startedAt": "2026-03-14T07:15:11.962Z",
+      "finishedAt": "2026-03-14T07:15:13.141Z",
+      "status": "role_selection_required",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\07-warehouse-associate-to-business-analyst.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 409,
+          "ok": false
+        }
+      ]
+    },
+    {
+      "currentRole": "Customer Service Representative",
+      "targetRole": "Software QA Analyst",
+      "startedAt": "2026-03-14T07:15:13.141Z",
+      "finishedAt": "2026-03-14T07:15:14.592Z",
+      "status": "role_selection_required",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\08-customer-service-representative-to-software-qa-analyst.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Business+Analyst&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Warehouse+Associate&limit=6&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 409,
+          "ok": false
+        }
+      ]
+    },
+    {
+      "currentRole": "Customer Service Representative",
+      "targetRole": "DevOps Engineer",
+      "startedAt": "2026-03-14T07:15:14.592Z",
+      "finishedAt": "2026-03-14T07:15:19.514Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\09-customer-service-representative-to-devops-engineer.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=DevOps+Engineer&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    },
+    {
+      "currentRole": "Customer Service Representative",
+      "targetRole": "HR Coordinator",
+      "startedAt": "2026-03-14T07:15:19.514Z",
+      "finishedAt": "2026-03-14T07:15:23.605Z",
+      "status": "dashboard",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-fault-screenshots\\10-customer-service-representative-to-hr-coordinator.png",
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=HR+Coordinator&limit=8&region=CA",
+          "status": 200,
+          "ok": true
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true
+        }
+      ]
+    }
+  ]
+}

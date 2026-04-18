@@ -1,0 +1,2177 @@
+{
+  "score": 27,
+  "roadmap": {
+    "30": [
+      "Advance the required licensing/certification path."
+    ],
+    "60": [],
+    "90": []
+  },
+  "skillGaps": [],
+  "explanation": "Largest gap is Coordinating. Experience adjacency indicates a realistic transition path. Certification/licensing evidence is currently missing.",
+  "resumeReframes": [],
+  "recommendedRoles": [
+    {
+      "match": 27,
+      "title": "Registered nurses and registered psychiatric nurses",
+      "reason": "Largest gap is Coordinating."
+    },
+    {
+      "match": 38,
+      "title": "Couriers and messengers",
+      "reason": "Largest gap is Operation and Control."
+    },
+    {
+      "match": 38,
+      "title": "Mouldmakers and coremakers",
+      "reason": "Largest gap is Operation Monitoring of Machinery and Equipment."
+    },
+    {
+      "match": 33,
+      "title": "Musicians and singers",
+      "reason": "Largest gap is Learning and Teaching Strategies."
+    }
+  ],
+  "transferableSkills": [],
+  "report": {
+    "roadmap": [
+      {
+        "id": "phase-gate",
+        "phase": "6_12_months",
+        "title": "Complete credential checkpoint",
+        "action": "Advance the required licensing/certification path.",
+        "difficulty": "hard",
+        "why_it_matters": "Entry into this role depends on formal credential progress.",
+        "time_estimate_hours": 40
+      }
+    ],
+    "skillGaps": [],
+    "bottleneck": {
+      "why": "Registered nurses and registered psychiatric nurses demand signals weight this requirement heavily.",
+      "title": "Confirm regional licensing and certification requirements before applying",
+      "nextAction": "complete one scoped project proving Confirm regional licensing and certification requirements before applying in 7-14 days and add the result to your resume.",
+      "estimatedEffort": "12+ months"
+    },
+    "resumeReframe": [],
+    "v3Diagnostics": {
+      "generatedAt": "2026-03-16T07:03:48.621Z",
+      "missingFields": [],
+      "stageFailures": [],
+      "placeholderSignals": [],
+      "role_match_explanation": {
+        "target": {
+          "skillOverlap": 0,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "titleSimilarity": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": [
+            "Dental hygienists and dental therapists",
+            "Massage therapists",
+            "Pharmacy technicians",
+            "Social and community service workers",
+            "Social workers"
+          ]
+        },
+        "current": {
+          "skillOverlap": 0.25,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "titleSimilarity": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "cacheHit": true,
+      "cacheType": "shared_generation_cache"
+    },
+    "linksResources": [
+      {
+        "url": "https://www.cno.org/",
+        "type": "official",
+        "label": "College of Nurses of Ontario"
+      },
+      {
+        "url": "https://www.ontariocolleges.ca/",
+        "type": "official",
+        "label": "Ontario nursing programs (search)"
+      },
+      {
+        "url": "https://www.jobbank.gc.ca/",
+        "type": "curated",
+        "label": "Job Bank wage data"
+      },
+      {
+        "url": "https://open.canada.ca/data/dataset/adad580f-76b0-4502-bd05-20c125de9116/resource/9da94d63-b178-4a64-aeb3-b6a3bd721ad2/download/2a71-das-wage2025opendata-esdc-all-19nov2025-vf.csv",
+        "type": "official",
+        "label": "Job Bank Wages 2025 wage source"
+      }
+    ],
+    "marketEvidence": {
+      "used": true,
+      "query": {
+        "role": "registered nurses and registered psychiatric nurses",
+        "country": "ca",
+        "location": "ontario, canada"
+      },
+      "enabled": true,
+      "fetchedAt": "2026-03-14T04:54:31.699+00:00",
+      "usedCache": true,
+      "baselineOnly": false,
+      "postingsCount": 10,
+      "sourcePriority": [
+        "user_posting",
+        "adzuna",
+        "onet"
+      ],
+      "llmNormalizedCount": 0
+    },
+    "previewLimited": false,
+    "roleResolution": {
+      "target": {
+        "input": "Registered Nurse",
+        "matched": {
+          "code": "81a70974-a296-4b5b-be1e-6db319432f99",
+          "stage": null,
+          "title": "Registered nurses and registered psychiatric nurses",
+          "region": "CA",
+          "source": "NOC",
+          "confidence": 0.954,
+          "lastUpdated": "2025-11-19",
+          "occupationId": "81a70974-a296-4b5b-be1e-6db319432f99",
+          "rawInputTitle": "Registered Nurse",
+          "specialization": null,
+          "matchExplanation": {
+            "skillOverlap": 0,
+            "industryMatch": 1,
+            "experienceMatch": 1,
+            "titleSimilarity": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": [
+              "Dental hygienists and dental therapists",
+              "Massage therapists",
+              "Pharmacy technicians",
+              "Social and community service workers",
+              "Social workers"
+            ]
+          }
+        },
+        "suggestions": [
+          {
+            "code": "b8ee4b16-3b0a-4cdb-922b-ff97a8906d25",
+            "title": "Nurse practitioners",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.881,
+            "occupationId": "b8ee4b16-3b0a-4cdb-922b-ff97a8906d25"
+          },
+          {
+            "code": "8a534aec-3f54-4e10-8573-e3fb0f0cbcdc",
+            "title": "Nursery and greenhouse labourers",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.6,
+            "occupationId": "8a534aec-3f54-4e10-8573-e3fb0f0cbcdc"
+          },
+          {
+            "code": "2c134faf-9c80-4e43-a90a-65e736d55bdd",
+            "title": "Nurse aides, orderlies and patient service associates",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.594,
+            "occupationId": "2c134faf-9c80-4e43-a90a-65e736d55bdd"
+          },
+          {
+            "code": "31147022-418e-4864-949f-71770ac95dad",
+            "title": "Licensed practical nurses",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.586,
+            "occupationId": "31147022-418e-4864-949f-71770ac95dad"
+          },
+          {
+            "code": "e52d4dc7-c745-454f-adc4-007b47517690",
+            "title": "Community pharmacists and hospital pharmacists",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.3,
+            "occupationId": "e52d4dc7-c745-454f-adc4-007b47517690"
+          }
+        ],
+        "matchExplanation": {
+          "skillOverlap": 0,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "titleSimilarity": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": [
+            "Dental hygienists and dental therapists",
+            "Massage therapists",
+            "Pharmacy technicians",
+            "Social and community service workers",
+            "Social workers"
+          ]
+        }
+      },
+      "current": {
+        "input": "Cashier",
+        "matched": {
+          "code": "74c96646-1119-4fe6-bc5c-5888a491627f",
+          "stage": null,
+          "title": "Cashiers",
+          "region": "CA",
+          "source": "NOC",
+          "confidence": 0.971,
+          "lastUpdated": "2025-11-19",
+          "occupationId": "74c96646-1119-4fe6-bc5c-5888a491627f",
+          "rawInputTitle": "Cashier",
+          "specialization": null,
+          "matchExplanation": {
+            "skillOverlap": 0.25,
+            "industryMatch": 0.9,
+            "experienceMatch": 1,
+            "titleSimilarity": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "code": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "title": "Retail sales supervisors",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.855,
+            "occupationId": "16723617-a7d5-47f3-9704-3e8e71ed72c2"
+          }
+        ],
+        "matchExplanation": {
+          "skillOverlap": 0.25,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "titleSimilarity": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      }
+    },
+    "transitionMode": {
+      "gaps": {
+        "missing": [
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain may supervise licensed practical nurses and other nursing staff in short daily blocks.",
+          "Start the first formal step for cno registration requirements."
+        ],
+        "strengths": [
+          "You already bring some usable overlap into this move.",
+          "Lead with the strongest overlap when you apply or reach out.",
+          "Use the clearest transferable signal as early interview proof."
+        ],
+        "first3Steps": [
+          "Confirm the exact program, admissions requirements, the CPNRE/NCLEX pathway and regulator registration requirements, and registration path for Ontario, Canada.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain may supervise licensed practical nurses and other nursing staff in short daily blocks."
+        ]
+      },
+      "plan90": [
+        {
+          "phase": "Weeks 1-4",
+          "tasks": [
+            "Confirm the accredited program, admissions prerequisites, the CPNRE/NCLEX pathway and regulator registration requirements, and provincial registration sequence for Ontario, Canada.",
+            "Compare program options by length, tuition, and required clinical placements and supervised care competencies.",
+            "Speak with 3 practitioners or advisors aligned to Registered Nurse so you understand the real path before you commit."
+          ],
+          "weeks": "1-4",
+          "weeklyTargets": [
+            "1 regulator checklist",
+            "3 route comparisons",
+            "3 field conversations",
+            "1 admissions timeline"
+          ],
+          "timePerWeekHours": 8
+        },
+        {
+          "phase": "Months 2-6",
+          "tasks": [
+            "Start prerequisite coursework, transcripts, or admissions steps for the accredited program.",
+            "Build relevant exposure through volunteer, support, or adjacent healthcare roles connected to Registered Nurse.",
+            "Map funding, schedule, and placement constraints before accepting a program."
+          ],
+          "weeks": "5-24",
+          "weeklyTargets": [
+            "2 admissions tasks closed",
+            "1 prerequisite milestone",
+            "1 patient-care exposure plan",
+            "1 funding plan"
+          ],
+          "timePerWeekHours": 10
+        },
+        {
+          "phase": "Final licensing phase",
+          "tasks": [
+            "Complete the accredited program and required supervised placements.",
+            "Prepare for the CPNRE/NCLEX pathway and regulator registration requirements and final regulator submission.",
+            "Target entry-level healthcare roles as you clear the final regulator checkpoint."
+          ],
+          "weeks": "24+",
+          "weeklyTargets": [
+            "1 program completion milestone",
+            "1 licensing exam plan",
+            "1 regulator submission checklist",
+            "5 entry-role targets"
+          ],
+          "timePerWeekHours": 10
+        }
+      ],
+      "routes": {
+        "primary": {
+          "title": "Primary route: education, clinical hours, and licensing",
+          "reason": "This move depends on an accredited program, required clinical placements and supervised care competencies, and registration with the College of Nurses of Ontario (CNO) or your provincial nursing regulator for Ontario, Canada. The fastest path is the one that clears those gates in order.",
+          "firstStep": "Confirm the exact program, admissions requirements, the CPNRE/NCLEX pathway and regulator registration requirements, and registration path for Ontario, Canada."
+        },
+        "secondary": {
+          "title": "Secondary route: adjacent patient-care support role",
+          "reason": "If the full program takes time, a support role can help you build field exposure, references, and confidence while you move through the education and licensing sequence.",
+          "firstStep": "Shortlist 5 support roles that sit close to Registered Nurse and can build patient-care exposure while you qualify."
+        },
+        "contingency": {
+          "title": "Contingency route: prerequisite and admissions bridge",
+          "reason": "If you are missing prerequisite courses or admissions requirements, solve those first instead of paying for the wrong school or applying too early.",
+          "firstStep": "Map the prerequisite courses, admissions tests, or bridge programs you can close in the next 30 days."
+        }
+      },
+      "reality": {
+        "barriers": [
+          "The sequence matters here. Skipping education or licensure steps wastes time.",
+          "This is a regulated profession. Licensing, credential recognition, and timelines can vary by province in Canada.",
+          "Confirm regional licensing and certification requirements before applying."
+        ],
+        "mitigations": [
+          "Confirm the province-specific regulator, credential-recognition rules, and first application checkpoint before you spend money.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain may supervise licensed practical nurses and other nursing staff in short daily blocks."
+        ]
+      },
+      "earnings": [
+        {
+          "unit": "CAD/hour",
+          "stage": "Year 1",
+          "rangeLow": 27,
+          "rangeHigh": 41
+        },
+        {
+          "unit": "CAD/hour",
+          "stage": "Year 2",
+          "rangeLow": 30,
+          "rangeHigh": 43
+        },
+        {
+          "unit": "CAD/hour",
+          "stage": "Year 3",
+          "rangeLow": 43,
+          "rangeHigh": 51
+        },
+        {
+          "unit": "CAD/hour",
+          "stage": "Fully Qualified",
+          "rangeLow": 44,
+          "rangeHigh": 54
+        }
+      ],
+      "timeline": {
+        "maxMonths": 48,
+        "minMonths": 12,
+        "assumptions": [
+          "You verify education and licensure steps before spending money.",
+          "You move one admissions, exam, or paperwork task forward every week.",
+          "You keep a realistic timeline for supervised practice and first employable milestones.",
+          "Full qualification can take about 24-60 months, even if you can become employable sooner."
+        ]
+      },
+      "execution": {
+        "dailyRoutine": [
+          "15 minutes: move one admissions, paperwork, or regulator task forward.",
+          "15 minutes: maintain one healthcare relationship with an instructor, advisor, recruiter, or Registered Nurse practitioner.",
+          "15 minutes: review your next education, placement, or licensing checkpoint."
+        ],
+        "weeklyCadence": [
+          "2 admissions or regulator tasks",
+          "2 program or prerequisite steps",
+          "2 healthcare field conversations",
+          "1 timeline review"
+        ],
+        "outreachTemplates": {
+          "call": "Hi, I am planning a move into Registered Nurse. I want to make sure I follow the right program, placement, and licensing sequence for Ontario, Canada. Who can confirm the correct first step so I do not waste time or tuition?",
+          "email": "Subject: Clarifying the path into Registered Nurse Hi, I am planning a transition into Registered Nurse. I am mapping the right education program, required clinical placements and supervised care competencies, and licensing sequence and want to make sure I start with the correct first step. If you can point me to the best first action, I would appreciate it. Best, Your Name"
+        }
+      },
+      "resources": {
+        "local": [
+          {
+            "url": "https://www.cno.org/",
+            "label": "College of Nurses of Ontario"
+          },
+          {
+            "url": "https://www.ontariocolleges.ca/",
+            "label": "Ontario nursing programs (search)"
+          },
+          {
+            "url": "https://www.jobbank.gc.ca/",
+            "label": "Job Bank wage data"
+          },
+          {
+            "url": "",
+            "label": "Provincial nursing regulator"
+          }
+        ],
+        "online": [
+          {
+            "url": "https://www.cno.org/",
+            "label": "College of Nurses of Ontario"
+          },
+          {
+            "url": "https://www.ontariocolleges.ca/",
+            "label": "Ontario nursing programs (search)"
+          },
+          {
+            "url": "https://www.jobbank.gc.ca/",
+            "label": "Job Bank wage data"
+          },
+          {
+            "url": "https://open.canada.ca/data/dataset/adad580f-76b0-4502-bd05-20c125de9116/resource/9da94d63-b178-4a64-aeb3-b6a3bd721ad2/download/2a71-das-wage2025opendata-esdc-all-19nov2025-vf.csv",
+            "label": "Job Bank Wages 2025 wage source"
+          },
+          {
+            "url": "",
+            "label": "CPNRE/NCLEX and registration overview"
+          },
+          {
+            "url": "",
+            "label": "Healthcare program admissions guidance"
+          }
+        ],
+        "internal": [
+          {
+            "url": "/blog",
+            "label": "CareerHeap Blog"
+          },
+          {
+            "url": "/tools",
+            "label": "Career Tools"
+          },
+          {
+            "url": "/tools/career-switch-planner",
+            "label": "Run This Plan Again"
+          }
+        ]
+      },
+      "difficulty": {
+        "why": [
+          "This target has 12 formal gates you need to respect early.",
+          "Your current education profile does not create a major extra delay.",
+          "4 high-value requirements still need stronger proof."
+        ],
+        "label": "Very Hard",
+        "score": 9.8
+      },
+      "templateKey": "regulated_profession",
+      "roadmapGuide": {
+        "phases": [
+          {
+            "focus": "You know the exact Ontario admissions and registration sequence.",
+            "label": "Start",
+            "steps": [
+              {
+                "title": "Confirm the first regulator and admissions requirements in Ontario, Canada",
+                "prereqs": [
+                  "Education baseline: Approved nursing education pathway.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Confirm regional trade certification requirements before applying."
+                ],
+                "costRange": "CA$0-CA$250 now (document requests and regulator checks can vary by province)",
+                "timeRange": "1-2 weeks",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, school, or regulator sequence.",
+                "proofChecklist": [
+                  "Write down the exact first requirement, who enforces it, and what proof you need.",
+                  "Save one source, employer note, or regulator page that confirms the requirement.",
+                  "List the next named checkpoint on your calendar."
+                ]
+              },
+              {
+                "title": "Confirm prerequisites",
+                "prereqs": [
+                  "Approved nursing education pathway.",
+                  "CNO registration requirements.",
+                  "Required registration exam."
+                ],
+                "costRange": "CA$0-CA$500+ (varies by employer or provider)",
+                "timeRange": "4-16 weeks",
+                "whyItMatters": "This keeps you moving through the start phase for Registered Nurse (RN) - Ontario.",
+                "proofChecklist": [
+                  "You know the exact Ontario admissions and registration sequence.",
+                  "Save the exact confirmation email, registration, or checklist that proves this milestone is complete.",
+                  "Write down the next named checkpoint and who controls it."
+                ]
+              },
+              {
+                "title": "Choose education route",
+                "prereqs": [
+                  "Approved nursing education pathway.",
+                  "CNO registration requirements.",
+                  "Required registration exam."
+                ],
+                "costRange": "CA$0-CA$500+ (varies by employer or provider)",
+                "timeRange": "4-16 weeks",
+                "whyItMatters": "This keeps you moving through the start phase for Registered Nurse (RN) - Ontario.",
+                "proofChecklist": [
+                  "You have a realistic school pathway and budget.",
+                  "Save the exact confirmation email, registration, or checklist that proves this milestone is complete.",
+                  "Write down the next named checkpoint and who controls it."
+                ]
+              }
+            ]
+          },
+          {
+            "focus": "You complete the main education requirement.",
+            "label": "Training",
+            "steps": [
+              {
+                "title": "Complete core nursing education",
+                "prereqs": [
+                  "Approved nursing education pathway.",
+                  "CNO registration requirements.",
+                  "Required registration exam."
+                ],
+                "costRange": "CA$0-CA$500+ (varies by employer or provider)",
+                "timeRange": "52-208 weeks",
+                "whyItMatters": "This keeps you moving through the training phase for Registered Nurse (RN) - Ontario.",
+                "proofChecklist": [
+                  "You complete the main education requirement.",
+                  "Save the exact confirmation email, registration, or checklist that proves this milestone is complete."
+                ]
+              },
+              {
+                "title": "Complete placements",
+                "prereqs": [
+                  "Approved nursing education pathway.",
+                  "CNO registration requirements.",
+                  "Required registration exam."
+                ],
+                "costRange": "CA$0-CA$500+ (varies by employer or provider)",
+                "timeRange": "52-208 weeks",
+                "whyItMatters": "This keeps you moving through the training phase for Registered Nurse (RN) - Ontario.",
+                "proofChecklist": [
+                  "You have the clinical experience required for the route.",
+                  "Save the exact confirmation email, registration, or checklist that proves this milestone is complete."
+                ]
+              }
+            ]
+          },
+          {
+            "focus": "Your registration is active and you can apply as an RN.",
+            "label": "Credentialing",
+            "steps": [
+              {
+                "title": "Finish registration and exam",
+                "prereqs": [
+                  "Approved nursing education pathway.",
+                  "CNO registration requirements.",
+                  "Required registration exam."
+                ],
+                "costRange": "CA$150-CA$2,500+ (varies by province, employer, or school)",
+                "timeRange": "2-16 weeks",
+                "whyItMatters": "This keeps you moving through the credentialing phase for Registered Nurse (RN) - Ontario.",
+                "proofChecklist": [
+                  "Your registration is active and you can apply as an RN.",
+                  "Save the exact confirmation email, registration, or checklist that proves this milestone is complete."
+                ]
+              }
+            ]
+          }
+        ],
+        "next7Days": [
+          "Confirm the exact program, admissions requirements, the CPNRE/NCLEX pathway and regulator registration requirements, and registration path for Ontario, Canada.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain may supervise licensed practical nurses and other nursing staff in short daily blocks.",
+          "Confirm education prerequisites and admissions route.",
+          "Complete an approved nursing degree path."
+        ]
+      },
+      "careerPathType": "HEALTHCARE_LICENSED"
+    },
+    "dataTransparency": {
+      "fxRateUsed": "USD/CAD 1.3689 (2026-02-20)",
+      "inputsUsed": [
+        "currentRole",
+        "targetRole",
+        "experienceText",
+        "skills",
+        "location",
+        "timeline",
+        "education"
+      ],
+      "datasetsUsed": [
+        "occupations",
+        "occupation_skills",
+        "occupation_requirements",
+        "occupation_wages",
+        "trade_requirements",
+        "career_pathway_profiles",
+        "job_queries",
+        "job_postings",
+        "job_requirements",
+        "onet_baseline"
+      ]
+    },
+    "sourceEnrichment": {
+      "cache": {
+        "hit": true,
+        "expiresAt": "2026-03-23T06:26:29.286+00:00"
+      },
+      "entryRoles": [],
+      "sourcePath": {
+        "wage": "table",
+        "training": "curated_profile",
+        "entryRoles": "none",
+        "certifications": "table"
+      },
+      "tradeFacts": null,
+      "wageFallback": {
+        "low": 30,
+        "high": 54.37,
+        "median": 43.27,
+        "region": "CA-NAT",
+        "asOfDate": "2025-11-19",
+        "currency": "CAD",
+        "sourceUrl": "https://open.canada.ca/data/dataset/adad580f-76b0-4502-bd05-20c125de9116/resource/9da94d63-b178-4a64-aeb3-b6a3bd721ad2/download/2a71-das-wage2025opendata-esdc-all-19nov2025-vf.csv",
+        "sourceName": "Job Bank Wages 2025",
+        "sourceType": "verified"
+      },
+      "trainingCards": [
+        {
+          "cost": null,
+          "name": "Ontario nursing programs (search)",
+          "length": "52-260 weeks to first employable milestone",
+          "modality": null,
+          "provider": "Ontariocolleges",
+          "sourceUrl": "https://www.ontariocolleges.ca/",
+          "sourceType": "verified",
+          "sourceLabel": "Official source: Ontario nursing programs (search)"
+        }
+      ],
+      "certificationCards": [
+        {
+          "name": "CNO registration requirements",
+          "provider": "Employer evidence",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Employer evidence"
+        },
+        {
+          "name": "Required registration exam",
+          "provider": "Employer evidence",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Employer evidence"
+        },
+        {
+          "name": "BLS / CPR",
+          "provider": "Employer evidence",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Employer evidence"
+        },
+        {
+          "name": "CNO registration",
+          "provider": "Requirement signal",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Requirement signal extraction"
+        },
+        {
+          "name": "Required registration",
+          "provider": "Requirement signal",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Requirement signal extraction"
+        }
+      ]
+    },
+    "suggestedCareers": [
+      {
+        "score": 27,
+        "title": "Registered nurses and registered psychiatric nurses",
+        "salary": {
+          "usd": {
+            "low": 21.92,
+            "high": 39.72,
+            "median": 31.61
+          },
+          "native": {
+            "low": 30,
+            "high": 54.37,
+            "median": 43.27,
+            "region": "CA-NAT",
+            "asOfDate": "2025-11-19",
+            "currency": "CAD",
+            "sourceUrl": "https://open.canada.ca/data/dataset/adad580f-76b0-4502-bd05-20c125de9116/resource/9da94d63-b178-4a64-aeb3-b6a3bd721ad2/download/2a71-das-wage2025opendata-esdc-all-19nov2025-vf.csv",
+            "sourceName": "Job Bank Wages 2025"
+          },
+          "conversion": {
+            "rate": 1.3689,
+            "source": "Bank of Canada Valet API (FXUSDCAD)",
+            "asOfDate": "2026-02-20"
+          }
+        },
+        "breakdown": {
+          "skill_overlap": 0,
+          "certification_gap": 3,
+          "education_alignment": 2,
+          "timeline_feasibility": 6.1,
+          "experience_similarity": 16.3
+        },
+        "regulated": true,
+        "difficulty": "hard",
+        "topReasons": [
+          "Largest gap is Coordinating.",
+          "Experience adjacency indicates a realistic transition path.",
+          "Certification/licensing evidence is currently missing."
+        ],
+        "occupationId": "81a70974-a296-4b5b-be1e-6db319432f99",
+        "officialLinks": [],
+        "transitionTime": "12+ months"
+      },
+      {
+        "score": 38,
+        "title": "Couriers and messengers",
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "breakdown": {
+          "skill_overlap": 0,
+          "certification_gap": 15,
+          "education_alignment": 10,
+          "timeline_feasibility": 10,
+          "experience_similarity": 2.7
+        },
+        "regulated": false,
+        "difficulty": "hard",
+        "topReasons": [
+          "Largest gap is Operation and Control.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ],
+        "occupationId": "fca640aa-cca2-4d4f-b1a2-78555b53cf17",
+        "officialLinks": [],
+        "transitionTime": "3-6 months"
+      },
+      {
+        "score": 38,
+        "title": "Mouldmakers and coremakers",
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "breakdown": {
+          "skill_overlap": 0,
+          "certification_gap": 15,
+          "education_alignment": 10,
+          "timeline_feasibility": 10,
+          "experience_similarity": 2.7
+        },
+        "regulated": false,
+        "difficulty": "hard",
+        "topReasons": [
+          "Largest gap is Operation Monitoring of Machinery and Equipment.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ],
+        "occupationId": "6ece8284-e5f0-4626-a9f4-74a2daba03f4",
+        "officialLinks": [],
+        "transitionTime": "6-12 months"
+      },
+      {
+        "score": 33,
+        "title": "Musicians and singers",
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "breakdown": {
+          "skill_overlap": 0,
+          "certification_gap": 15,
+          "education_alignment": 5,
+          "timeline_feasibility": 10,
+          "experience_similarity": 2.7
+        },
+        "regulated": false,
+        "difficulty": "hard",
+        "topReasons": [
+          "Largest gap is Learning and Teaching Strategies.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ],
+        "occupationId": "5f0d8177-be62-44e8-ba4c-52508c4f54d0",
+        "officialLinks": [],
+        "transitionTime": "6-12 months"
+      }
+    ],
+    "transitionReport": {
+      "coreTasks": [
+        {
+          "id": "task-demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+          "task": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+          "label": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+          "gapLevel": "missing",
+          "evidenceQuote": [
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5465914788",
+              "confidence": 0.84
+            },
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5648918265",
+              "confidence": 0.84
+            }
+          ],
+          "normalized_key": "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+          "frequency_count": 6,
+          "frequency_percent": 60
+        },
+        {
+          "id": "task-complete required clinical rotations and document supervised competencies",
+          "task": "Complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "gapLevel": "missing",
+          "evidenceQuote": [
+            {
+              "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+              "source": "adzuna",
+              "postingId": "adzuna:5533730355",
+              "confidence": 0.84
+            },
+            {
+              "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+              "source": "adzuna",
+              "postingId": "adzuna:5648960266",
+              "confidence": 0.84
+            }
+          ],
+          "normalized_key": "complete required clinical rotations and document supervised competencies",
+          "frequency_count": 2,
+          "frequency_percent": 20
+        }
+      ],
+      "mustHaves": [
+        {
+          "id": "must-confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)",
+          "evidenceQuote": [
+            {
+              "quote": "Confirm regional licensing and certification requirements before applying",
+              "source": "onet",
+              "confidence": 0.62
+            }
+          ],
+          "normalized_key": "confirm regional licensing and certification requirements before applying",
+          "frequency_count": 1,
+          "frequency_percent": null
+        },
+        {
+          "id": "must-confirm regional trade certification requirements before applying",
+          "label": "Confirm regional trade certification requirements before applying",
+          "status": "missing",
+          "howToGet": "Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.",
+          "timeEstimate": "3-12+ months (depends on sponsorship, hours, and exams)",
+          "evidenceQuote": [
+            {
+              "quote": "Confirm regional trade certification requirements before applying",
+              "source": "onet",
+              "confidence": 0.62
+            }
+          ],
+          "normalized_key": "confirm regional trade certification requirements before applying",
+          "frequency_count": 1,
+          "frequency_percent": null
+        },
+        {
+          "id": "must-obtain may supervise licensed practical nurses and other nursing staff",
+          "label": "Obtain May supervise licensed practical nurses and other nursing staff",
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)",
+          "evidenceQuote": [
+            {
+              "quote": "May supervise licensed practical nurses and other nursing staff",
+              "source": "onet",
+              "confidence": 0.62
+            }
+          ],
+          "normalized_key": "obtain may supervise licensed practical nurses and other nursing staff",
+          "frequency_count": 1,
+          "frequency_percent": null
+        },
+        {
+          "id": "must-demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+          "label": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+          "status": "missing",
+          "howToGet": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "timeEstimate": "4-12 weeks",
+          "evidenceQuote": [
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5465914788",
+              "confidence": 0.84
+            },
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5648918265",
+              "confidence": 0.84
+            }
+          ],
+          "normalized_key": "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+          "frequency_count": 6,
+          "frequency_percent": 60
+        },
+        {
+          "id": "must-complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "status": "missing",
+          "howToGet": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "timeEstimate": "4-12 weeks",
+          "evidenceQuote": [
+            {
+              "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+              "source": "adzuna",
+              "postingId": "adzuna:5533730355",
+              "confidence": 0.84
+            },
+            {
+              "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+              "source": "adzuna",
+              "postingId": "adzuna:5648960266",
+              "confidence": 0.84
+            }
+          ],
+          "normalized_key": "complete required clinical rotations and document supervised competencies",
+          "frequency_count": 2,
+          "frequency_percent": 20
+        }
+      ],
+      "niceToHaves": [],
+      "plan30_60_90": {
+        "days30": [
+          {
+            "id": "d30-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "d30-2",
+            "goal": "Confirm regional trade certification requirements before applying",
+            "actions": [
+              "Close confirm regional trade certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional trade certification requirements before applying"
+            ]
+          },
+          {
+            "id": "d30-3",
+            "goal": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "actions": [
+              "Close obtain may supervise licensed practical nurses and other nursing staff with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain may supervise licensed practical nurses and other nursing staff"
+            ]
+          }
+        ],
+        "days60": [
+          {
+            "id": "d60-1",
+            "goal": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+            "actions": [
+              "Close demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees"
+            ]
+          },
+          {
+            "id": "d60-2",
+            "goal": "Complete required clinical rotations and document supervised competencies",
+            "actions": [
+              "Close complete required clinical rotations and document supervised competencies with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "complete required clinical rotations and document supervised competencies"
+            ]
+          }
+        ],
+        "days90": [],
+        "fastestPathToApply": [
+          {
+            "id": "fast-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "fast-2",
+            "goal": "Confirm regional trade certification requirements before applying",
+            "actions": [
+              "Close confirm regional trade certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional trade certification requirements before applying"
+            ]
+          },
+          {
+            "id": "fast-3",
+            "goal": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "actions": [
+              "Close obtain may supervise licensed practical nurses and other nursing staff with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain may supervise licensed practical nurses and other nursing staff"
+            ]
+          }
+        ],
+        "strongCandidatePath": [
+          {
+            "id": "strong-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "strong-2",
+            "goal": "Confirm regional trade certification requirements before applying",
+            "actions": [
+              "Close confirm regional trade certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional trade certification requirements before applying"
+            ]
+          },
+          {
+            "id": "strong-3",
+            "goal": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "actions": [
+              "Close obtain may supervise licensed practical nurses and other nursing staff with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain may supervise licensed practical nurses and other nursing staff"
+            ]
+          },
+          {
+            "id": "strong-4",
+            "goal": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+            "actions": [
+              "Close demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees"
+            ]
+          },
+          {
+            "id": "strong-5",
+            "goal": "Complete required clinical rotations and document supervised competencies",
+            "actions": [
+              "Close complete required clinical rotations and document supervised competencies with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "complete required clinical rotations and document supervised competencies"
+            ]
+          }
+        ]
+      },
+      "marketSnapshot": {
+        "role": "registered nurses and registered psychiatric nurses",
+        "location": "ontario, canada",
+        "topTools": [],
+        "summaryLine": "Based on 10 recent postings in ontario, canada.",
+        "gateBlockers": [
+          {
+            "id": "blocker-confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "evidenceQuote": [
+              {
+                "quote": "Confirm regional licensing and certification requirements before applying",
+                "source": "onet",
+                "confidence": 0.62
+              }
+            ],
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "frequency_count": 1,
+            "frequency_percent": null
+          },
+          {
+            "id": "blocker-confirm regional trade certification requirements before applying",
+            "label": "Confirm regional trade certification requirements before applying",
+            "evidenceQuote": [
+              {
+                "quote": "Confirm regional trade certification requirements before applying",
+                "source": "onet",
+                "confidence": 0.62
+              }
+            ],
+            "normalized_key": "confirm regional trade certification requirements before applying",
+            "frequency_count": 1,
+            "frequency_percent": null
+          },
+          {
+            "id": "blocker-obtain may supervise licensed practical nurses and other nursing staff",
+            "label": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "evidenceQuote": [
+              {
+                "quote": "May supervise licensed practical nurses and other nursing staff",
+                "source": "onet",
+                "confidence": 0.62
+              }
+            ],
+            "normalized_key": "obtain may supervise licensed practical nurses and other nursing staff",
+            "frequency_count": 1,
+            "frequency_percent": null
+          }
+        ],
+        "topRequirements": [
+          {
+            "id": "snapshot-demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+            "label": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+            "evidenceQuote": [
+              {
+                "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+                "source": "adzuna",
+                "postingId": "adzuna:5465914788",
+                "confidence": 0.84
+              },
+              {
+                "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+                "source": "adzuna",
+                "postingId": "adzuna:5648918265",
+                "confidence": 0.84
+              }
+            ],
+            "normalized_key": "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+            "frequency_count": 6,
+            "frequency_percent": 60
+          },
+          {
+            "id": "snapshot-complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "evidenceQuote": [
+              {
+                "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+                "source": "adzuna",
+                "postingId": "adzuna:5533730355",
+                "confidence": 0.84
+              },
+              {
+                "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+                "source": "adzuna",
+                "postingId": "adzuna:5648960266",
+                "confidence": 0.84
+              }
+            ],
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "frequency_count": 2,
+            "frequency_percent": 20
+          },
+          {
+            "id": "snapshot-confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "evidenceQuote": [
+              {
+                "quote": "Confirm regional licensing and certification requirements before applying",
+                "source": "onet",
+                "confidence": 0.62
+              }
+            ],
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "frequency_count": 1,
+            "frequency_percent": null
+          },
+          {
+            "id": "snapshot-confirm regional trade certification requirements before applying",
+            "label": "Confirm regional trade certification requirements before applying",
+            "evidenceQuote": [
+              {
+                "quote": "Confirm regional trade certification requirements before applying",
+                "source": "onet",
+                "confidence": 0.62
+              }
+            ],
+            "normalized_key": "confirm regional trade certification requirements before applying",
+            "frequency_count": 1,
+            "frequency_percent": null
+          },
+          {
+            "id": "snapshot-obtain may supervise licensed practical nurses and other nursing staff",
+            "label": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "evidenceQuote": [
+              {
+                "quote": "May supervise licensed practical nurses and other nursing staff",
+                "source": "onet",
+                "confidence": 0.62
+              }
+            ],
+            "normalized_key": "obtain may supervise licensed practical nurses and other nursing staff",
+            "frequency_count": 1,
+            "frequency_percent": null
+          }
+        ]
+      },
+      "evidenceTransparency": {
+        "baselineOnet": {
+          "included": true
+        },
+        "employerPostings": {
+          "count": 10,
+          "source": "adzuna_cached",
+          "usedCache": true,
+          "lastUpdated": "2026-03-14T04:54:31.699+00:00"
+        },
+        "baselineOnlyWarning": null,
+        "userProvidedPosting": {
+          "included": false
+        }
+      },
+      "transferableStrengths": [],
+      "toolsPlatformsEquipment": []
+    },
+    "executionStrategy": {
+      "plan90Day": {
+        "month1": {
+          "label": "Month 1: Foundations",
+          "actions": [
+            {
+              "id": "month1-1",
+              "task": "Confirm and complete regional licensing and certification requirements before applying, then keep proof ready.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Save certificate or registration confirmation",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-2",
+              "task": "Book and complete May supervise licensed practical nurses and other nursing staff, then keep active proof ready.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Save certificate or registration confirmation",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "linkedRequirements": [
+                "obtain may supervise licensed practical nurses and other nursing staff"
+              ]
+            },
+            {
+              "id": "month1-3",
+              "task": "Build one role-mirrored task that proves Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Publish a short result log with measurable outcomes",
+              "volumeTarget": "1 finished scenario/week",
+              "learningTarget": "Rehearse the execution sequence until repeatable",
+              "linkedRequirements": [
+                "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees"
+              ]
+            },
+            {
+              "id": "month1-4",
+              "task": "Build one role-mirrored task that proves required clinical rotations and document supervised competencies.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Publish a short result log with measurable outcomes",
+              "volumeTarget": "1 finished scenario/week",
+              "learningTarget": "Rehearse the execution sequence until repeatable",
+              "linkedRequirements": [
+                "complete required clinical rotations and document supervised competencies"
+              ]
+            },
+            {
+              "id": "month1-applications",
+              "task": "Apply to a focused short-list and track response patterns daily.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Keep an application tracker with response outcomes",
+              "volumeTarget": "10 targeted applications/week",
+              "learningTarget": "Tighten role-specific positioning in every application",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying",
+                "obtain may supervise licensed practical nurses and other nursing staff",
+                "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+                "complete required clinical rotations and document supervised competencies"
+              ]
+            }
+          ],
+          "weeklyTimeInvestment": "10-14 hours/week"
+        },
+        "month2": {
+          "label": "Month 2: Positioning",
+          "actions": [
+            {
+              "id": "month2-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Full proof checklist available on Pro",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "linkedRequirements": [
+                "confirm regional trade certification requirements before applying"
+              ]
+            }
+          ],
+          "weeklyTimeInvestment": "10-14 hours/week"
+        },
+        "month3": {
+          "label": "Month 3: Conversion",
+          "actions": [
+            {
+              "id": "month3-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "weeklyTime": "10-14 hours/week",
+              "proofTarget": "Full proof checklist available on Pro",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            }
+          ],
+          "weeklyTimeInvestment": "10-14 hours/week"
+        }
+      },
+      "realBlockers": {
+        "requiredToApply": [
+          {
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "blockerClass": "legal_certification",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "evidenceQuote": [
+              "Confirm regional licensing and certification requirements before applying"
+            ],
+            "normalized_key": "confirm regional licensing and certification requirements before applying"
+          },
+          {
+            "label": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "blockerClass": "legal_certification",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "evidenceQuote": [
+              "May supervise licensed practical nurses and other nursing staff"
+            ],
+            "normalized_key": "obtain may supervise licensed practical nurses and other nursing staff"
+          },
+          {
+            "label": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "blockerClass": "experience",
+            "timeEstimate": "4-12 weeks",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "evidenceQuote": [
+              "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "For over 25 years, we have dedicated every day to the happiness of retirees"
+            ],
+            "normalized_key": "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees"
+          },
+          {
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "blockerClass": "experience",
+            "timeEstimate": "4-12 weeks",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "evidenceQuote": [
+              "Join our team today! Are you a driven clinical leader looking to make an …",
+              "Join our team today! Are you a driven clinical leader looking to make an …"
+            ],
+            "normalized_key": "complete required clinical rotations and document supervised competencies"
+          }
+        ],
+        "requiredToCompete": [
+          {
+            "label": "Confirm regional trade certification requirements before applying",
+            "howToClose": "Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.",
+            "blockerClass": "legal_certification",
+            "timeEstimate": "3-12+ months (depends on sponsorship, hours, and exams)",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "evidenceQuote": [
+              "Confirm regional trade certification requirements before applying"
+            ],
+            "normalized_key": "confirm regional trade certification requirements before applying"
+          }
+        ]
+      },
+      "transferableEdge": {
+        "translations": [
+          {
+            "fromResume": "Retail customer service and teamwork experience",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Registered nurses and registered psychiatric nurses settings, then quantify the outcome."
+          },
+          {
+            "fromResume": "Skills: customer service, teamwork, cash handling",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Registered nurses and registered psychiatric nurses settings, then quantify the outcome."
+          },
+          {
+            "fromResume": "Applied skill evidence: customer service",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Registered nurses and registered psychiatric nurses settings, then quantify the outcome."
+          },
+          {
+            "fromResume": "Applied skill evidence: teamwork",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Registered nurses and registered psychiatric nurses settings, then quantify the outcome."
+          },
+          {
+            "fromResume": "Applied skill evidence: cash handling",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Registered nurses and registered psychiatric nurses settings, then quantify the outcome."
+          }
+        ]
+      },
+      "whereYouStandNow": {
+        "strengths": [
+          {
+            "summary": "This background signal supports transition readiness for Registered nurses and registered psychiatric nurses.",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "resumeSignal": "Retail customer service and teamwork experience"
+          },
+          {
+            "summary": "This background signal supports transition readiness for Registered nurses and registered psychiatric nurses.",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "resumeSignal": "Skills: customer service, teamwork, cash handling"
+          },
+          {
+            "summary": "This background signal supports transition readiness for Registered nurses and registered psychiatric nurses.",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain May supervise licensed practical nurses and other nursing staff"
+            ],
+            "resumeSignal": "Applied skill evidence: customer service"
+          }
+        ],
+        "competitiveDisadvantages": [
+          {
+            "label": "Confirm regional trade certification requirements before applying",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example.",
+            "blockerClass": "legal_certification",
+            "normalized_key": "confirm regional trade certification requirements before applying"
+          }
+        ],
+        "missingMandatoryRequirements": [
+          {
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "reason": "This apply gate still needs a verified credential or registration step.",
+            "blockerClass": "legal_certification",
+            "normalized_key": "confirm regional licensing and certification requirements before applying"
+          },
+          {
+            "label": "Obtain May supervise licensed practical nurses and other nursing staff",
+            "reason": "This apply gate still needs a verified credential or registration step.",
+            "blockerClass": "legal_certification",
+            "normalized_key": "obtain may supervise licensed practical nurses and other nursing staff"
+          },
+          {
+            "label": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive.",
+            "blockerClass": "experience",
+            "normalized_key": "demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees"
+          },
+          {
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive.",
+            "blockerClass": "experience",
+            "normalized_key": "complete required clinical rotations and document supervised competencies"
+          }
+        ]
+      },
+      "behavioralExecution": {
+        "whatNotToDo": [
+          "Do not wait for perfect readiness before contacting employers.",
+          "Do not submit untailored applications with generic resume bullets.",
+          "Do not stop outreach after one rejection or one no-response week."
+        ],
+        "minimumWeeklyEffort": "10-14 hours/week for 12 consecutive weeks.",
+        "consistencyLooksLike": [
+          "Block execution time on your calendar before discretionary tasks.",
+          "Track applications, outreach, and readiness examples every weekday.",
+          "Review blockers weekly and adjust next-week actions immediately."
+        ]
+      },
+      "probabilityRealityCheck": {
+        "difficulty": "This is a moderate transition: achievable in 90 days if you close blockers in order.",
+        "whatIncreasesOdds": [
+          "Close apply blockers first, then run 10 targeted applications/week.",
+          "Execute 10 targeted outreach messages/week and follow up until each lead has an outcome.",
+          "Publish 1 measurable readiness example/week so interviews focus on evidence, not claims."
+        ],
+        "commonFailureModes": [
+          "Applying passively through portals with no direct outreach.",
+          "Spending time on low-impact learning without work samples or verification items.",
+          "Skipping follow-up after first contact or first rejection."
+        ]
+      }
+    },
+    "targetRequirements": {
+      "sources": [
+        "Employer evidence",
+        "Requirement signal extraction"
+      ],
+      "education": "Approved nursing education pathway",
+      "hardGates": [
+        "Approved nursing education pathway",
+        "CNO registration requirements",
+        "Required registration exam",
+        "Confirm regional licensing and certification requirements before applying",
+        "Confirm regional trade certification requirements before applying",
+        "Obtain May supervise licensed practical nurses and other nursing staff"
+      ],
+      "regulated": true,
+      "examRequired": null,
+      "certifications": [
+        "CNO registration requirements",
+        "Required registration exam",
+        "BLS / CPR",
+        "CNO registration",
+        "Required registration"
+      ],
+      "employerSignals": [
+        "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+        "Complete required clinical rotations and document supervised competencies",
+        "Clinical judgment",
+        "Documentation",
+        "Patient care planning",
+        "Clinical systems",
+        "Medication safety",
+        "Assessment workflow"
+      ],
+      "apprenticeshipHours": null
+    },
+    "transitionSections": {
+      "roadmapPlan": {
+        "zeroToTwoWeeks": [
+          {
+            "id": "r-0-2-1",
+            "action": "Start confirm regional licensing and certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional licensing and certification requirements before applying"
+          },
+          {
+            "id": "r-0-2-2",
+            "action": "Start confirm regional trade certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional trade certification requirements before applying"
+          },
+          {
+            "id": "r-0-2-3",
+            "action": "Start obtain may supervise licensed practical nurses and other nursing staff and publish one verification artifact.",
+            "tiedRequirement": "Obtain May supervise licensed practical nurses and other nursing staff"
+          }
+        ],
+        "oneToThreeMonths": [
+          {
+            "id": "r-1-3-1",
+            "action": "Build repeatable evidence for demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees with measurable outcomes.",
+            "tiedRequirement": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees"
+          },
+          {
+            "id": "r-1-3-2",
+            "action": "Build repeatable evidence for complete required clinical rotations and document supervised competencies with measurable outcomes.",
+            "tiedRequirement": "Complete required clinical rotations and document supervised competencies"
+          }
+        ],
+        "fastestPathToApply": [
+          "Close confirm regional licensing and certification requirements before applying with one interview-ready artifact.",
+          "Close confirm regional trade certification requirements before applying with one interview-ready artifact.",
+          "Close obtain may supervise licensed practical nurses and other nursing staff with one interview-ready artifact."
+        ],
+        "strongCandidatePath": [
+          "Build depth in confirm regional licensing and certification requirements before applying and attach measurable evidence.",
+          "Build depth in confirm regional trade certification requirements before applying and attach measurable evidence.",
+          "Build depth in obtain may supervise licensed practical nurses and other nursing staff and attach measurable evidence.",
+          "Build depth in demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees and attach measurable evidence.",
+          "Build depth in complete required clinical rotations and document supervised competencies and attach measurable evidence."
+        ],
+        "threeToTwelveMonths": []
+      },
+      "coreHardSkills": [],
+      "toolsPlatforms": [],
+      "experienceSignals": [
+        {
+          "id": "exp-demonstrate 25 years of experience in over 25 years we have dedicated every day to the happiness of retirees",
+          "label": "Demonstrate 25 years of experience in over 25 years, we have dedicated every day to the happiness of retirees",
+          "evidence": [
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5465914788",
+              "confidence": 0.84
+            },
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5662076568",
+              "confidence": 0.84
+            },
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5648960266",
+              "confidence": 0.84
+            },
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5648918265",
+              "confidence": 0.84
+            },
+            {
+              "quote": "For over 25 years, we have dedicated every day to the happiness of retirees",
+              "source": "adzuna",
+              "postingId": "adzuna:5658730976",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "frequency": 6,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 6"
+        },
+        {
+          "id": "exp-complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "evidence": [
+            {
+              "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+              "source": "adzuna",
+              "postingId": "adzuna:5648960266",
+              "confidence": 0.84
+            },
+            {
+              "quote": "Join our team today! Are you a driven clinical leader looking to make an …",
+              "source": "adzuna",
+              "postingId": "adzuna:5533730355",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "frequency": 2,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 2"
+        }
+      ],
+      "transferableStrengths": [],
+      "mandatoryGateRequirements": [
+        {
+          "id": "gate-confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "status": "missing",
+          "evidence": [
+            {
+              "quote": "Confirm regional licensing and certification requirements before applying",
+              "source": "onet",
+              "confidence": 0.62
+            }
+          ],
+          "gapLevel": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "frequency": 1,
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Baseline (O*NET)"
+        },
+        {
+          "id": "gate-confirm regional trade certification requirements before applying",
+          "label": "Confirm regional trade certification requirements before applying",
+          "status": "missing",
+          "evidence": [
+            {
+              "quote": "Confirm regional trade certification requirements before applying",
+              "source": "onet",
+              "confidence": 0.62
+            }
+          ],
+          "gapLevel": "missing",
+          "howToGet": "Confirm the sponsorship pathway, identify required checkpoints, and track progress weekly instead of treating this as an immediate completion step.",
+          "frequency": 1,
+          "estimatedTime": "3-12+ months (depends on sponsorship, hours, and exams)",
+          "evidenceLabel": "Baseline (O*NET)"
+        },
+        {
+          "id": "gate-obtain may supervise licensed practical nurses and other nursing staff",
+          "label": "Obtain May supervise licensed practical nurses and other nursing staff",
+          "status": "missing",
+          "evidence": [
+            {
+              "quote": "May supervise licensed practical nurses and other nursing staff",
+              "source": "onet",
+              "confidence": 0.62
+            }
+          ],
+          "gapLevel": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "frequency": 1,
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Baseline (O*NET)"
+        }
+      ]
+    },
+    "careerPathwayProfile": {
+      "meta": {
+        "slug": "registered-nurse-on",
+        "teer": 1,
+        "codes": {
+          "noc_2021": "31301",
+          "onet_soc": null,
+          "trade_code": null
+        },
+        "title": "Registered Nurse (RN) - Ontario",
+        "regulated": true,
+        "jurisdiction": {
+          "region": "ON",
+          "country": "CA"
+        },
+        "pathway_type": "regulated_profession",
+        "last_verified": "2026-03-03"
+      },
+      "wages": {
+        "notes": "Wages are averages, not guarantees, and can vary by employer, union status, and Ontario region.",
+        "hourly": [
+          {
+            "low": 34,
+            "high": 55,
+            "median": 43,
+            "region": "ON",
+            "source": "Job Bank / Ontario average"
+          }
+        ],
+        "currency": "CAD"
+      },
+      "skills": {
+        "core": [
+          "Clinical judgment",
+          "Documentation",
+          "Patient care planning"
+        ],
+        "tools_tech": [
+          "Clinical systems",
+          "Medication safety",
+          "Assessment workflow"
+        ],
+        "soft_skills": [
+          "Calm communication",
+          "Attention to detail",
+          "Team coordination"
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://www.cno.org/",
+          "title": "College of Nurses of Ontario",
+          "publisher": "College of Nurses of Ontario",
+          "accessed_at": "2026-03-03"
+        }
+      ],
+      "snapshot": {
+        "one_liner": "Assess, plan, implement, and evaluate patient care in hospitals, clinics, long-term care, and community settings.",
+        "who_hires": [
+          "Hospitals",
+          "Long-term care homes",
+          "Community health providers"
+        ],
+        "what_you_do": [
+          "Provide direct patient care and clinical documentation.",
+          "Coordinate with physicians, teams, and families while maintaining safe practice standards."
+        ],
+        "where_you_work": [
+          "Ontario",
+          "Canada"
+        ]
+      },
+      "timeline": {
+        "phases": [
+          {
+            "phase": "Start",
+            "duration": {
+              "max_weeks": 16,
+              "min_weeks": 4
+            },
+            "milestones": [
+              {
+                "title": "Confirm prerequisites",
+                "done_when": "You know the exact Ontario admissions and registration sequence."
+              },
+              {
+                "title": "Choose education route",
+                "done_when": "You have a realistic school pathway and budget."
+              }
+            ]
+          },
+          {
+            "phase": "Training",
+            "duration": {
+              "max_weeks": 208,
+              "min_weeks": 52
+            },
+            "milestones": [
+              {
+                "title": "Complete core nursing education",
+                "done_when": "You complete the main education requirement."
+              },
+              {
+                "title": "Complete placements",
+                "done_when": "You have the clinical experience required for the route."
+              }
+            ]
+          },
+          {
+            "phase": "Credentialing",
+            "duration": {
+              "max_weeks": 16,
+              "min_weeks": 2
+            },
+            "milestones": [
+              {
+                "title": "Finish registration and exam",
+                "done_when": "Your registration is active and you can apply as an RN."
+              }
+            ]
+          }
+        ],
+        "time_to_employable": {
+          "max_weeks": 260,
+          "min_weeks": 52
+        },
+        "time_to_full_qualification": {
+          "max_months": 60,
+          "min_months": 24
+        }
+      },
+      "resources": {
+        "official": [
+          {
+            "url": "https://www.cno.org/",
+            "title": "College of Nurses of Ontario"
+          }
+        ],
+        "training": [
+          {
+            "url": "https://www.ontariocolleges.ca/",
+            "title": "Ontario nursing programs (search)"
+          }
+        ],
+        "job_search": [
+          {
+            "url": "https://www.jobbank.gc.ca/",
+            "title": "Job Bank wage data"
+          }
+        ]
+      },
+      "difficulty": {
+        "why": [
+          "It is a regulated profession with a real education gate.",
+          "The path depends on admissions, clinical training, and licensure."
+        ],
+        "overall_1_5": 5,
+        "common_failure_points": [
+          "Underestimating education time",
+          "Weak prerequisite planning",
+          "Not mapping registration early"
+        ]
+      },
+      "entry_paths": [
+        {
+          "steps": [
+            "Confirm education prerequisites and admissions route.",
+            "Complete an approved nursing degree path.",
+            "Meet CNO registration requirements and write the required exam.",
+            "Apply into RN roles once registration is active."
+          ],
+          "path_name": "Ontario nursing education plus licensure route",
+          "who_its_for": "People pursuing the full RN route in Ontario, including career changers who need a clear regulated path.",
+          "time_to_first_job_weeks": {
+            "max": 260,
+            "min": 52
+          }
+        }
+      ],
+      "progression": {
+        "levels": [
+          {
+            "level": "Entry",
+            "title": "Registered Nurse",
+            "typical_time": "At entry to practice",
+            "what_changes": [
+              "Practice under RN scope",
+              "Specialties open over time"
+            ]
+          },
+          {
+            "level": "Advanced",
+            "title": "Specialized RN roles",
+            "typical_time": "After 2-5 years",
+            "what_changes": [
+              "Higher specialization",
+              "Leadership or advanced practice paths"
+            ]
+          }
+        ]
+      },
+      "requirements": {
+        "must_have": [
+          {
+            "name": "Approved nursing education pathway",
+            "type": "education",
+            "details": "Degree and admissions path depend on your starting point."
+          },
+          {
+            "name": "CNO registration requirements",
+            "type": "legal",
+            "details": "Ontario nursing is regulated."
+          },
+          {
+            "name": "Required registration exam",
+            "type": "exam",
+            "details": "Exam and registration sequence must be completed."
+          }
+        ],
+        "nice_to_have": [
+          {
+            "name": "BLS / CPR",
+            "type": "health_safety",
+            "details": "Common baseline requirement."
+          }
+        ],
+        "tools_or_gear": [
+          "Clinical placement readiness",
+          "Documentation systems familiarity"
+        ]
+      },
+      "wages_by_province": [
+        {
+          "source": "Job Bank / Ontario average",
+          "province": "ON",
+          "low_hourly_cad": 34,
+          "high_hourly_cad": 55,
+          "median_hourly_cad": 43
+        }
+      ]
+    },
+    "compatibilitySnapshot": {
+      "band": "weak",
+      "score": 27,
+      "breakdown": {
+        "skill_overlap": 0,
+        "certification_gap": 3,
+        "education_alignment": 2,
+        "timeline_feasibility": 6.1,
+        "experience_similarity": 16.3
+      },
+      "topReasons": [
+        "Largest gap is Coordinating.",
+        "Experience adjacency indicates a realistic transition path.",
+        "Certification/licensing evidence is currently missing."
+      ]
+    },
+    "transitionPlanScripts": {
+      "call": "Hello, my name is [Your Name]. I am exploring the Registered Nurse role in Ontario and would like to understand your current hiring needs and any training pathway or entry-level opportunities you may have. May I schedule a brief follow-up to discuss this further?",
+      "email": "Subject: Inquiry About Registered Nurse training pathway or Entry-Level Opportunities Dear Hiring Manager, I am currently preparing to transition into a Registered Nurse role in Ontario and am seeking information about training pathway or entry-level opportunities within your organization. Could you please advise if you are currently hiring or have upcoming openings? I would appreciate the chance to discuss how I can contribute as I complete my qualifications. Thank you for your time and consideration. Best regards, [Your Name] [Your Contact Information]",
+      "source": "gpt"
+    },
+    "transitionPlanCacheMeta": {
+      "region": "Ontario, Canada",
+      "version": "transition-plan-v4",
+      "cacheHit": false,
+      "generatedAt": "2026-03-16T07:03:22.324Z",
+      "experienceLevelBucket": "entry"
+    },
+    "transitionStructuredPlan": {
+      "summary": "Transitioning from Cashier to Registered Nurse (RN) in Ontario, Canada requires completing an approved nursing education pathway, meeting College of Nurses of Ontario (CNO) registration requirements, and passing the required registration exam. This regulated profession demands building core clinical skills such as clinical judgment, documentation, and patient care planning, alongside practical experience in clinical systems and medication safety. The path typically takes 12 to 48 months to become employable, with full qualification potentially taking up to 60 months. Entry-level RN wages range from CAD 27 to 41 per hour, increasing to CAD 44 to 54 per hour when fully qualified.",
+      "action_steps": [
+        "Confirm the exact nursing program, admissions requirements, CPNRE/NCLEX pathway, and regulator registration requirements for Ontario, Canada.",
+        "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+        "Learn the basics of supervising licensed practical nurses and other nursing staff in short daily blocks."
+      ],
+      "salary_projection": "Year 1: CAD 27-41/hour; Fully Qualified: CAD 44-54/hour",
+      "timeline_estimate": "12-48 months",
+      "narrative_sections": {
+        "intro": "This plan outlines the realistic path to become a Registered Nurse (RN) in Ontario, Canada, distinguishing between the skills you will build and the credentials required by employers and regulators.",
+        "start_from_zero": [
+          "Confirm the exact nursing program, admissions requirements, CPNRE/NCLEX pathway, and regulator registration requirements for Ontario.",
+          "Confirm regional licensing and certification requirements before applying, dedicating short daily study blocks.",
+          "Learn basics of supervising licensed practical nurses and other nursing staff in short daily blocks.",
+          "Confirm education prerequisites and admissions route.",
+          "Complete an approved nursing degree program."
+        ],
+        "skills_you_build": [
+          {
+            "title": "Core job skills",
+            "bullets": [
+              "Clinical judgment",
+              "Documentation",
+              "Patient care planning"
+            ],
+            "summary": "Practical skills essential for RN roles."
+          },
+          {
+            "title": "Tools and practical work",
+            "bullets": [
+              "Clinical systems",
+              "Medication safety",
+              "Assessment workflow",
+              "Clinical placement readiness",
+              "Documentation systems familiarity"
+            ],
+            "summary": "Hands-on experience with clinical tools and workflows."
+          },
+          {
+            "title": "Work habits employers notice fast",
+            "bullets": [
+              "Calm communication",
+              "Attention to detail",
+              "Team coordination",
+              "Completion of required clinical rotations and supervised competencies"
+            ],
+            "summary": "Professional habits that enhance trust and retention."
+          }
+        ],
+        "credentials_you_need": [
+          {
+            "title": "Before you get hired",
+            "bullets": [
+              "Approved nursing education pathway",
+              "Confirm regional licensing and certification requirements",
+              "Confirm regional trade certification requirements",
+              "Obtain authorization to supervise licensed practical nurses and other nursing staff",
+              "CNO registration requirements",
+              "Required registration exam"
+            ],
+            "summary": "Initial education and certification requirements employers screen for."
+          },
+          {
+            "title": "What full qualification usually requires",
+            "bullets": [
+              "Approved nursing education pathway",
+              "CNO registration requirements",
+              "Required registration exam",
+              "Confirm regional licensing and certification requirements",
+              "Confirm regional trade certification requirements",
+              "Obtain authorization to supervise licensed practical nurses and other nursing staff"
+            ],
+            "summary": "Complete education and licensure for full RN status."
+          }
+        ],
+        "soft_skills_that_matter": [
+          "Calm communication",
+          "Attention to detail",
+          "Team coordination",
+          "Completion of clinical rotations with documented supervised competencies"
+        ],
+        "why_this_path_can_pay_off": [
+          "Entry-level wages range from CAD 27 to 41 per hour.",
+          "Fully qualified RNs earn between CAD 44 and 54 per hour.",
+          "Wages vary by employer, union status, and region within Ontario."
+        ]
+      },
+      "compatibility_level": "Low",
+      "required_experience": [
+        "Clinical judgment",
+        "Documentation",
+        "Patient care planning",
+        "Clinical systems"
+      ],
+      "required_certifications": [
+        "Approved nursing education pathway",
+        "Confirm regional licensing and certification requirements before applying",
+        "Confirm regional trade certification requirements before applying",
+        "Obtain May supervise licensed practical nurses and other nursing staff",
+        "CNO registration requirements",
+        "Required registration exam"
+      ]
+    }
+  },
+  "reportId": null,
+  "scoring": {
+    "breakdown": {
+      "skill_overlap": 0,
+      "certification_gap": 3,
+      "education_alignment": 2,
+      "timeline_feasibility": 6.1,
+      "experience_similarity": 16.3
+    },
+    "total_score": 27,
+    "top_occupation_id": "81a70974-a296-4b5b-be1e-6db319432f99"
+  },
+  "usage": {
+    "plan": "pro",
+    "isUnlimited": true,
+    "canUse": true,
+    "used": 0,
+    "limit": 3,
+    "usesRemaining": null,
+    "byTool": {}
+  },
+  "previewLimited": false,
+  "cacheHit": true
+}

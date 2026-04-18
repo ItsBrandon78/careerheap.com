@@ -1,0 +1,54 @@
+{
+  "error": "ROLE_SELECTION_REQUIRED",
+  "role": "target",
+  "input": "UX Designer",
+  "message": "Multiple close matches found. Please select the closest role.",
+  "threshold": 0.72,
+  "alternatives": [
+    {
+      "occupationId": "741d60b5-adeb-4c40-b1f9-16ab670497a7",
+      "title": "Industrial designers",
+      "code": "741d60b5-adeb-4c40-b1f9-16ab670497a7",
+      "confidence": 0.726,
+      "source": "NOC",
+      "stage": null,
+      "specialization": "ux"
+    },
+    {
+      "occupationId": "0822dfbb-7ea8-48c1-b467-3d11871146b9",
+      "title": "Web designers",
+      "code": "0822dfbb-7ea8-48c1-b467-3d11871146b9",
+      "confidence": 0.726,
+      "source": "NOC",
+      "stage": null,
+      "specialization": "ux"
+    },
+    {
+      "occupationId": "f886fed5-676f-4954-82ed-9c312290f501",
+      "title": "Graphic designers and illustrators",
+      "code": "f886fed5-676f-4954-82ed-9c312290f501",
+      "confidence": 0.706,
+      "source": "NOC",
+      "stage": null,
+      "specialization": "ux"
+    },
+    {
+      "occupationId": "34de376c-87c6-49bc-930c-487ea53eb3e9",
+      "title": "Interior designers and interior decorators",
+      "code": "34de376c-87c6-49bc-930c-487ea53eb3e9",
+      "confidence": 0.614,
+      "source": "NOC",
+      "stage": null,
+      "specialization": "ux"
+    },
+    {
+      "occupationId": "05c8e6b1-a08a-4b8d-a09a-c78313e8d8e7",
+      "title": "Software developers and programmers",
+      "code": "05c8e6b1-a08a-4b8d-a09a-c78313e8d8e7",
+      "confidence": 0.297,
+      "source": "NOC",
+      "stage": null,
+      "specialization": "ux"
+    }
+  ]
+}

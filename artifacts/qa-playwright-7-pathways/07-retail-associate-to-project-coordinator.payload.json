@@ -1,0 +1,2406 @@
+{
+  "score": 27,
+  "explanation": "Largest gap is Management of Financial Resources. Experience adjacency indicates a realistic transition path. Certification/licensing evidence is currently missing.",
+  "transferableSkills": [],
+  "skillGaps": [
+    {
+      "title": "Use safety experience are MUST HAVES in role-relevant workflows",
+      "detail": "Construction managers hiring evidence repeatedly expects: Use safety experience are MUST HAVES in role-relevant workflows.",
+      "difficulty": "easy"
+    }
+  ],
+  "roadmap": {
+    "30": [
+      "Advance Professional engineering status or construction trade certification may be required by some employers.."
+    ],
+    "60": [],
+    "90": []
+  },
+  "resumeReframes": [],
+  "recommendedRoles": [
+    {
+      "title": "Construction managers",
+      "match": 27,
+      "reason": "Largest gap is Management of Financial Resources."
+    },
+    {
+      "title": "Butchers - retail and wholesale",
+      "match": 35,
+      "reason": "Largest gap is Management of Material Resources."
+    },
+    {
+      "title": "Retail and wholesale buyers",
+      "match": 34,
+      "reason": "Largest gap is Persuading."
+    },
+    {
+      "title": "Couriers and messengers",
+      "match": 33,
+      "reason": "Largest gap is Operation and Control."
+    },
+    {
+      "title": "Retail and wholesale trade managers",
+      "match": 33,
+      "reason": "Largest gap is Management of Financial Resources."
+    }
+  ],
+  "report": {
+    "compatibilitySnapshot": {
+      "score": 27,
+      "band": "weak",
+      "breakdown": {
+        "skill_overlap": 0,
+        "experience_similarity": 16.3,
+        "education_alignment": 7.5,
+        "certification_gap": 3,
+        "timeline_feasibility": 0.5
+      },
+      "topReasons": [
+        "Largest gap is Management of Financial Resources.",
+        "Experience adjacency indicates a realistic transition path.",
+        "Certification/licensing evidence is currently missing."
+      ]
+    },
+    "suggestedCareers": [
+      {
+        "occupationId": "249ca260-19d0-4690-ac4c-a3701b848dd0",
+        "title": "Construction managers",
+        "score": 27,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 16.3,
+          "education_alignment": 7.5,
+          "certification_gap": 3,
+          "timeline_feasibility": 0.5
+        },
+        "salary": {
+          "usd": null,
+          "native": {
+            "currency": "CAD",
+            "low": 27.97,
+            "median": 44.94,
+            "high": 74.36,
+            "sourceName": "Job Bank",
+            "sourceUrl": "https://www.on.jobbank.gc.ca/marketreport/wages-occupation/297410/ON",
+            "asOfDate": "2026-03-16T06:28:56.129Z",
+            "region": "ON"
+          },
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "12+ months",
+        "regulated": true,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Management of Financial Resources.",
+          "Experience adjacency indicates a realistic transition path.",
+          "Certification/licensing evidence is currently missing."
+        ]
+      },
+      {
+        "occupationId": "61c0e289-39fa-4094-a29d-07673dd81b35",
+        "title": "Butchers - retail and wholesale",
+        "score": 35,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 5.3,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 4.4
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "6-12 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Management of Material Resources.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "9198bd7c-e925-4809-a8c6-1c58d15d3a45",
+        "title": "Retail and wholesale buyers",
+        "score": 34,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 8.8,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 0.5
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "12+ months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Persuading.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "fca640aa-cca2-4d4f-b1a2-78555b53cf17",
+        "title": "Couriers and messengers",
+        "score": 33,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 1.5,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 6.7
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "3-6 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Operation and Control.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "98ce94ac-d9cd-4061-8b0d-ae3c97e3ffbf",
+        "title": "Retail and wholesale trade managers",
+        "score": 33,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 7.1,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 0.5
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "12+ months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Management of Financial Resources.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      }
+    ],
+    "skillGaps": [
+      {
+        "skillId": "use safety experience are must haves in role relevant workflows",
+        "skillName": "Use safety experience are MUST HAVES in role-relevant workflows",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES",
+            "postingId": "adzuna:5660123402",
+            "confidence": 0.86
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Construction managers hiring evidence repeatedly expects: Use safety experience are MUST HAVES in role-relevant workflows.",
+          "Practice with a scoped project that produces an artifact you can show in interviews. Include progress on Professional engineering status or construction trade certification may be required by some employers.."
+        ]
+      }
+    ],
+    "roadmap": [
+      {
+        "id": "phase-gate",
+        "phase": "1_3_months",
+        "title": "Complete credential checkpoint",
+        "time_estimate_hours": 14,
+        "difficulty": "hard",
+        "why_it_matters": "Entry into this role depends on formal credential progress.",
+        "action": "Advance Professional engineering status or construction trade certification may be required by some employers.."
+      }
+    ],
+    "resumeReframe": [],
+    "linksResources": [],
+    "targetRequirements": {
+      "education": "A university degree in civil engineering or a college diploma in construction technology is usually required.",
+      "certifications": [
+        "Use safety experience are MUST HAVES in role-relevant workflows",
+        "Project Management Professional (PMP)",
+        "Prince2 Certification"
+      ],
+      "hardGates": [
+        "Confirm regional licensing and certification requirements before applying"
+      ],
+      "employerSignals": [
+        "Lead cross-functional execution with documented delivery outcomes",
+        "Collaborate across teams to deliver role-critical milestones on time",
+        "Build portfolio evidence with measurable, role-specific outcomes",
+        "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+        "Demonstrate 27 years of experience in nearly 27 years, we",
+        "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+        "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us"
+      ],
+      "apprenticeshipHours": null,
+      "examRequired": null,
+      "regulated": true,
+      "sources": [
+        "Employer evidence",
+        "Project Management Institute (PMI)",
+        "AXELOS"
+      ]
+    },
+    "transitionSections": {
+      "mandatoryGateRequirements": [
+        {
+          "id": "gate-confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 2,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Baseline (O*NET)",
+          "evidence": [
+            {
+              "source": "onet",
+              "quote": "Confirm regional licensing and certification requirements before applying",
+              "confidence": 0.62
+            }
+          ]
+        }
+      ],
+      "coreHardSkills": [],
+      "toolsPlatforms": [
+        {
+          "id": "tool-use safety experience are must haves in role relevant workflows",
+          "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "quickProject": "Build a mini project that uses safety experience are MUST HAVES in role-relevant workflows and publish a one-page walkthrough.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.86
+            }
+          ]
+        }
+      ],
+      "experienceSignals": [
+        {
+          "id": "exp-lead cross functional execution with documented delivery outcomes",
+          "label": "Lead cross-functional execution with documented delivery outcomes",
+          "gapLevel": "missing",
+          "frequency": 15,
+          "howToBuild": "Document concrete examples with outcomes instead of generic claims.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 15",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "This role provides leadership through both the design and construction phases, ensuring all station works are executed safely, efficiently, and in full compliance with contractual, schedule, and quality requirements",
+              "postingId": "adzuna:5658455304",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "This person acts as the representative of the organization, and plays a vital leadership ro…",
+              "postingId": "adzuna:5158217240",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution both in the field and in the shop",
+              "postingId": "adzuna:5591468660",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution b…",
+              "postingId": "adzuna:5632948697",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate will have extensive experience in construction sites management, strong leadership skills, and the ability to solve problems quickly and efficiently",
+              "postingId": "adzuna:5664083990",
+              "confidence": 0.7
+            }
+          ]
+        },
+        {
+          "id": "exp-collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "gapLevel": "missing",
+          "frequency": 7,
+          "howToBuild": "Document concrete examples with outcomes instead of generic claims.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 7",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "In collaboration with a diversified base of clients, DAVACO delivers scale, speed, and high-quality solutions that solve tomorrow's challenges today",
+              "postingId": "adzuna:5647567509",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Their family-owned business prides itself on a strong commitment to quality, innovation, and teamwork",
+              "postingId": "adzuna:5644642170",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "We value teamwork, passion, hard work, grati…",
+              "postingId": "adzuna:5375016057",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "We are looking for individuals who value what we value: Innovation Commitment Integrity Teamwork Excellence Job Description Compensation: Compensation will be based o…",
+              "postingId": "adzuna:5629373672",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "We are looking for individuals who value what we value: Innovation Commitment Integrity Teamwork Excellence Job Description Brief Overview: The Payroll & Benefit Coor…",
+              "postingId": "adzuna:5659290941",
+              "confidence": 0.7
+            }
+          ]
+        },
+        {
+          "id": "exp-build portfolio evidence with measurable role specific outcomes",
+          "label": "Build portfolio evidence with measurable, role-specific outcomes",
+          "gapLevel": "missing",
+          "frequency": 5,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 5",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "CreateTO is here to increase the social, cultural and economic value of our citys $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "postingId": "adzuna:5648437618",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "CreateTO is here to increase the social, cultural and economic value of our city's $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "postingId": "adzuna:5654078381",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our team is expanding, and we're looking for a dedicated Estimator/Project Manger to join us in managing our growing portfolio of projects",
+              "postingId": "adzuna:5656131349",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our portfolio includes leading fashion marketplaces like Italist , HEWI and Verishop , affiliate marketing platforms like Stylight and MyBestBrands, B2B technology solutions like Bonsai , and niche Marketpla…",
+              "postingId": "adzuna:5483437048",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "The Role The Director, Construction, Facilities & Lease Management is responsible for strategic leadership and operational oversight of all construction projects, facility operations, and real estate lease management...",
+              "postingId": "adzuna:5649040479",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+          "label": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+          "gapLevel": "missing",
+          "frequency": 2,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 2",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "postingId": "adzuna:5375016057",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "postingId": "adzuna:5644642419",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 27 years of experience in nearly 27 years we",
+          "label": "Demonstrate 27 years of experience in nearly 27 years, we",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "For nearly 27 years, we've delivered high-quality plumbing, sheet metal, and fabrication services with a focus on innovation, efficiency, and craftsmanship",
+              "postingId": "adzuna:5658455279",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+          "label": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "With 30 years of deep expertise in various industries such as Aerospace, Chemicals, Industrial Construction, Manufacturing, Mining…",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+          "label": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Company Summary FRAM Slokker is an experienced and award-winning residential developer/ builder that has been known for its creativity in planning, design and building premier residential and mixed-use communities acr...",
+              "postingId": "adzuna:5539918328",
+              "confidence": 0.84
+            }
+          ]
+        }
+      ],
+      "transferableStrengths": [],
+      "roadmapPlan": {
+        "zeroToTwoWeeks": [
+          {
+            "id": "r-0-2-1",
+            "action": "Start confirm regional licensing and certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional licensing and certification requirements before applying"
+          },
+          {
+            "id": "r-0-2-2",
+            "action": "Start lead cross-functional execution with documented delivery outcomes and publish one verification artifact.",
+            "tiedRequirement": "Lead cross-functional execution with documented delivery outcomes"
+          },
+          {
+            "id": "r-0-2-3",
+            "action": "Start collaborate across teams to deliver role-critical milestones on time and publish one verification artifact.",
+            "tiedRequirement": "Collaborate across teams to deliver role-critical milestones on time"
+          }
+        ],
+        "oneToThreeMonths": [
+          {
+            "id": "r-1-3-1",
+            "action": "Build repeatable evidence for build portfolio evidence with measurable, role-specific outcomes with measurable outcomes.",
+            "tiedRequirement": "Build portfolio evidence with measurable, role-specific outcomes"
+          },
+          {
+            "id": "r-1-3-2",
+            "action": "Build repeatable evidence for demonstrate 27 years of experience in toronto that has been in business for over 27 years with measurable outcomes.",
+            "tiedRequirement": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years"
+          },
+          {
+            "id": "r-1-3-3",
+            "action": "Build repeatable evidence for demonstrate 27 years of experience in nearly 27 years, we with measurable outcomes.",
+            "tiedRequirement": "Demonstrate 27 years of experience in nearly 27 years, we"
+          }
+        ],
+        "threeToTwelveMonths": [
+          {
+            "id": "r-3-12-1",
+            "action": "Turn demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace, chemicals, i into durable credential or portfolio depth.",
+            "tiedRequirement": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I"
+          },
+          {
+            "id": "r-3-12-2",
+            "action": "Turn demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us into durable credential or portfolio depth.",
+            "tiedRequirement": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us"
+          },
+          {
+            "id": "r-3-12-3",
+            "action": "Turn use safety experience are must haves in role-relevant workflows into durable credential or portfolio depth.",
+            "tiedRequirement": "Use safety experience are MUST HAVES in role-relevant workflows"
+          }
+        ],
+        "fastestPathToApply": [
+          "Close confirm regional licensing and certification requirements before applying with one interview-ready artifact.",
+          "Close lead cross-functional execution with documented delivery outcomes with one interview-ready artifact.",
+          "Close collaborate across teams to deliver role-critical milestones on time with one interview-ready artifact."
+        ],
+        "strongCandidatePath": [
+          "Build depth in confirm regional licensing and certification requirements before applying and attach measurable evidence.",
+          "Build depth in lead cross-functional execution with documented delivery outcomes and attach measurable evidence.",
+          "Build depth in collaborate across teams to deliver role-critical milestones on time and attach measurable evidence.",
+          "Build depth in build portfolio evidence with measurable, role-specific outcomes and attach measurable evidence.",
+          "Build depth in demonstrate 27 years of experience in toronto that has been in business for over 27 years and attach measurable evidence.",
+          "Build depth in demonstrate 27 years of experience in nearly 27 years, we and attach measurable evidence."
+        ]
+      }
+    },
+    "transitionReport": {
+      "marketSnapshot": {
+        "role": "construction managers",
+        "location": "ontario, canada",
+        "summaryLine": "Based on 100 recent postings in ontario, canada.",
+        "topRequirements": [
+          {
+            "id": "snapshot-lead cross functional execution with documented delivery outcomes",
+            "normalized_key": "lead cross functional execution with documented delivery outcomes",
+            "label": "Lead cross-functional execution with documented delivery outcomes",
+            "frequency_count": 15,
+            "frequency_percent": 15,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution b…",
+                "postingId": "adzuna:5632948697",
+                "confidence": 0.7
+              },
+              {
+                "source": "adzuna",
+                "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution both in the field and in the shop",
+                "postingId": "adzuna:5591468660",
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "id": "snapshot-collaborate across teams to deliver role critical milestones on time",
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "frequency_count": 7,
+            "frequency_percent": 7,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "In collaboration with a diversified base of clients, DAVACO delivers scale, speed, and high-quality solutions that solve tomorrow's challenges today",
+                "postingId": "adzuna:5647567509",
+                "confidence": 0.7
+              },
+              {
+                "source": "adzuna",
+                "quote": "Their family-owned business prides itself on a strong commitment to quality, innovation, and teamwork",
+                "postingId": "adzuna:5644642170",
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "id": "snapshot-build portfolio evidence with measurable role specific outcomes",
+            "normalized_key": "build portfolio evidence with measurable role specific outcomes",
+            "label": "Build portfolio evidence with measurable, role-specific outcomes",
+            "frequency_count": 5,
+            "frequency_percent": 5,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "CreateTO is here to increase the social, cultural and economic value of our city's $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+                "postingId": "adzuna:5654078381",
+                "confidence": 0.84
+              },
+              {
+                "source": "adzuna",
+                "quote": "CreateTO is here to increase the social, cultural and economic value of our citys $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+                "postingId": "adzuna:5648437618",
+                "confidence": 0.84
+              }
+            ]
+          },
+          {
+            "id": "snapshot-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 2,
+            "frequency_percent": null,
+            "evidenceQuote": [
+              {
+                "source": "onet",
+                "quote": "Confirm regional licensing and certification requirements before applying",
+                "confidence": 0.62
+              }
+            ]
+          },
+          {
+            "id": "snapshot-demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+            "normalized_key": "demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+            "label": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+            "frequency_count": 2,
+            "frequency_percent": 2,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+                "postingId": "adzuna:5375016057",
+                "confidence": 0.84
+              },
+              {
+                "source": "adzuna",
+                "quote": "Job Description Job Description Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+                "postingId": "adzuna:5644642419",
+                "confidence": 0.84
+              }
+            ]
+          }
+        ],
+        "topTools": [
+          {
+            "id": "snapshot-tool-use safety experience are must haves in role relevant workflows",
+            "normalized_key": "use safety experience are must haves in role relevant workflows",
+            "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES",
+                "postingId": "adzuna:5660123402",
+                "confidence": 0.86
+              }
+            ]
+          }
+        ],
+        "gateBlockers": [
+          {
+            "id": "blocker-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 2,
+            "frequency_percent": null,
+            "evidenceQuote": [
+              {
+                "source": "onet",
+                "quote": "Confirm regional licensing and certification requirements before applying",
+                "confidence": 0.62
+              }
+            ]
+          }
+        ]
+      },
+      "mustHaves": [
+        {
+          "id": "must-confirm regional licensing and certification requirements before applying",
+          "normalized_key": "confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "frequency_count": 2,
+          "frequency_percent": null,
+          "evidenceQuote": [
+            {
+              "source": "onet",
+              "quote": "Confirm regional licensing and certification requirements before applying",
+              "confidence": 0.62
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-use safety experience are must haves in role relevant workflows",
+          "normalized_key": "use safety experience are must haves in role relevant workflows",
+          "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.86
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Practice with a scoped project that produces an artifact you can show in interviews.",
+          "timeEstimate": "1-4 weeks"
+        },
+        {
+          "id": "must-lead cross functional execution with documented delivery outcomes",
+          "normalized_key": "lead cross functional execution with documented delivery outcomes",
+          "label": "Lead cross-functional execution with documented delivery outcomes",
+          "frequency_count": 15,
+          "frequency_percent": 15,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution b…",
+              "postingId": "adzuna:5632948697",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution both in the field and in the shop",
+              "postingId": "adzuna:5591468660",
+              "confidence": 0.7
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Document concrete examples with outcomes instead of generic claims.",
+          "timeEstimate": "2-8 weeks"
+        },
+        {
+          "id": "must-collaborate across teams to deliver role critical milestones on time",
+          "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "frequency_count": 7,
+          "frequency_percent": 7,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "In collaboration with a diversified base of clients, DAVACO delivers scale, speed, and high-quality solutions that solve tomorrow's challenges today",
+              "postingId": "adzuna:5647567509",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Their family-owned business prides itself on a strong commitment to quality, innovation, and teamwork",
+              "postingId": "adzuna:5644642170",
+              "confidence": 0.7
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Document concrete examples with outcomes instead of generic claims.",
+          "timeEstimate": "2-8 weeks"
+        },
+        {
+          "id": "must-build portfolio evidence with measurable role specific outcomes",
+          "normalized_key": "build portfolio evidence with measurable role specific outcomes",
+          "label": "Build portfolio evidence with measurable, role-specific outcomes",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "CreateTO is here to increase the social, cultural and economic value of our city's $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "postingId": "adzuna:5654078381",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "CreateTO is here to increase the social, cultural and economic value of our citys $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "postingId": "adzuna:5648437618",
+              "confidence": 0.84
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "timeEstimate": "4-12 weeks"
+        },
+        {
+          "id": "must-demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+          "normalized_key": "demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+          "label": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+          "frequency_count": 2,
+          "frequency_percent": 2,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "postingId": "adzuna:5375016057",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "postingId": "adzuna:5644642419",
+              "confidence": 0.84
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "timeEstimate": "4-12 weeks"
+        }
+      ],
+      "niceToHaves": [
+        {
+          "id": "nice-demonstrate 27 years of experience in nearly 27 years we",
+          "normalized_key": "demonstrate 27 years of experience in nearly 27 years we",
+          "label": "Demonstrate 27 years of experience in nearly 27 years, we",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "For nearly 27 years, we've delivered high-quality plumbing, sheet metal, and fabrication services with a focus on innovation, efficiency, and craftsmanship",
+              "postingId": "adzuna:5658455279",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+          "normalized_key": "demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+          "label": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "With 30 years of deep expertise in various industries such as Aerospace, Chemicals, Industrial Construction, Manufacturing, Mining…",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+          "normalized_key": "demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+          "label": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Company Summary FRAM Slokker is an experienced and award-winning residential developer/ builder that has been known for its creativity in planning, design and building premier residential and mixed-use communities acr...",
+              "postingId": "adzuna:5539918328",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        }
+      ],
+      "coreTasks": [
+        {
+          "id": "task-lead cross functional execution with documented delivery outcomes",
+          "normalized_key": "lead cross functional execution with documented delivery outcomes",
+          "label": "Lead cross-functional execution with documented delivery outcomes",
+          "frequency_count": 15,
+          "frequency_percent": 15,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution b…",
+              "postingId": "adzuna:5632948697",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution both in the field and in the shop",
+              "postingId": "adzuna:5591468660",
+              "confidence": 0.7
+            }
+          ],
+          "task": "Lead cross-functional execution with documented delivery outcomes",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-collaborate across teams to deliver role critical milestones on time",
+          "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "frequency_count": 7,
+          "frequency_percent": 7,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "In collaboration with a diversified base of clients, DAVACO delivers scale, speed, and high-quality solutions that solve tomorrow's challenges today",
+              "postingId": "adzuna:5647567509",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Their family-owned business prides itself on a strong commitment to quality, innovation, and teamwork",
+              "postingId": "adzuna:5644642170",
+              "confidence": 0.7
+            }
+          ],
+          "task": "Collaborate across teams to deliver role-critical milestones on time",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-build portfolio evidence with measurable role specific outcomes",
+          "normalized_key": "build portfolio evidence with measurable role specific outcomes",
+          "label": "Build portfolio evidence with measurable, role-specific outcomes",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "CreateTO is here to increase the social, cultural and economic value of our city's $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "postingId": "adzuna:5654078381",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "CreateTO is here to increase the social, cultural and economic value of our citys $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "postingId": "adzuna:5648437618",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Build portfolio evidence with measurable, role-specific outcomes",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+          "normalized_key": "demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+          "label": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+          "frequency_count": 2,
+          "frequency_percent": 2,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "postingId": "adzuna:5375016057",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "postingId": "adzuna:5644642419",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 27 years of experience in nearly 27 years we",
+          "normalized_key": "demonstrate 27 years of experience in nearly 27 years we",
+          "label": "Demonstrate 27 years of experience in nearly 27 years, we",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "For nearly 27 years, we've delivered high-quality plumbing, sheet metal, and fabrication services with a focus on innovation, efficiency, and craftsmanship",
+              "postingId": "adzuna:5658455279",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 27 years of experience in nearly 27 years, we",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+          "normalized_key": "demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+          "label": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "With 30 years of deep expertise in various industries such as Aerospace, Chemicals, Industrial Construction, Manufacturing, Mining…",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+          "normalized_key": "demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+          "label": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Company Summary FRAM Slokker is an experienced and award-winning residential developer/ builder that has been known for its creativity in planning, design and building premier residential and mixed-use communities acr...",
+              "postingId": "adzuna:5539918328",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-use safety experience are must haves in role relevant workflows",
+          "normalized_key": "use safety experience are must haves in role relevant workflows",
+          "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.86
+            }
+          ],
+          "task": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "gapLevel": "missing"
+        }
+      ],
+      "toolsPlatformsEquipment": [
+        {
+          "id": "tool-use safety experience are must haves in role relevant workflows",
+          "normalized_key": "use safety experience are must haves in role relevant workflows",
+          "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES",
+              "postingId": "adzuna:5660123402",
+              "confidence": 0.86
+            }
+          ],
+          "tool": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "gapLevel": "missing",
+          "quickPractice": "Build a mini project that uses safety experience are MUST HAVES in role-relevant workflows and publish a one-page walkthrough."
+        }
+      ],
+      "transferableStrengths": [],
+      "plan30_60_90": {
+        "days30": [
+          {
+            "id": "d30-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "d30-2",
+            "goal": "Lead cross-functional execution with documented delivery outcomes",
+            "actions": [
+              "Close lead cross-functional execution with documented delivery outcomes with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "lead cross functional execution with documented delivery outcomes"
+            ]
+          },
+          {
+            "id": "d30-3",
+            "goal": "Collaborate across teams to deliver role-critical milestones on time",
+            "actions": [
+              "Close collaborate across teams to deliver role-critical milestones on time with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "collaborate across teams to deliver role critical milestones on time"
+            ]
+          }
+        ],
+        "days60": [
+          {
+            "id": "d60-1",
+            "goal": "Build portfolio evidence with measurable, role-specific outcomes",
+            "actions": [
+              "Close build portfolio evidence with measurable, role-specific outcomes with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "build portfolio evidence with measurable role specific outcomes"
+            ]
+          },
+          {
+            "id": "d60-2",
+            "goal": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+            "actions": [
+              "Close demonstrate 27 years of experience in toronto that has been in business for over 27 years with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 27 years of experience in toronto that has been in business for over 27 years"
+            ]
+          },
+          {
+            "id": "d60-3",
+            "goal": "Demonstrate 27 years of experience in nearly 27 years, we",
+            "actions": [
+              "Close demonstrate 27 years of experience in nearly 27 years, we with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 27 years of experience in nearly 27 years we"
+            ]
+          }
+        ],
+        "days90": [
+          {
+            "id": "d90-1",
+            "goal": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+            "actions": [
+              "Close demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace, chemicals, i with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i"
+            ]
+          },
+          {
+            "id": "d90-2",
+            "goal": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+            "actions": [
+              "Close demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us"
+            ]
+          },
+          {
+            "id": "d90-3",
+            "goal": "Use safety experience are MUST HAVES in role-relevant workflows",
+            "actions": [
+              "Close use safety experience are must haves in role-relevant workflows with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "use safety experience are must haves in role relevant workflows"
+            ]
+          }
+        ],
+        "fastestPathToApply": [
+          {
+            "id": "fast-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "fast-2",
+            "goal": "Lead cross-functional execution with documented delivery outcomes",
+            "actions": [
+              "Close lead cross-functional execution with documented delivery outcomes with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "lead cross functional execution with documented delivery outcomes"
+            ]
+          },
+          {
+            "id": "fast-3",
+            "goal": "Collaborate across teams to deliver role-critical milestones on time",
+            "actions": [
+              "Close collaborate across teams to deliver role-critical milestones on time with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "collaborate across teams to deliver role critical milestones on time"
+            ]
+          }
+        ],
+        "strongCandidatePath": [
+          {
+            "id": "strong-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "strong-2",
+            "goal": "Lead cross-functional execution with documented delivery outcomes",
+            "actions": [
+              "Close lead cross-functional execution with documented delivery outcomes with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "lead cross functional execution with documented delivery outcomes"
+            ]
+          },
+          {
+            "id": "strong-3",
+            "goal": "Collaborate across teams to deliver role-critical milestones on time",
+            "actions": [
+              "Close collaborate across teams to deliver role-critical milestones on time with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "collaborate across teams to deliver role critical milestones on time"
+            ]
+          },
+          {
+            "id": "strong-4",
+            "goal": "Build portfolio evidence with measurable, role-specific outcomes",
+            "actions": [
+              "Close build portfolio evidence with measurable, role-specific outcomes with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "build portfolio evidence with measurable role specific outcomes"
+            ]
+          },
+          {
+            "id": "strong-5",
+            "goal": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+            "actions": [
+              "Close demonstrate 27 years of experience in toronto that has been in business for over 27 years with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 27 years of experience in toronto that has been in business for over 27 years"
+            ]
+          },
+          {
+            "id": "strong-6",
+            "goal": "Demonstrate 27 years of experience in nearly 27 years, we",
+            "actions": [
+              "Close demonstrate 27 years of experience in nearly 27 years, we with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "demonstrate 27 years of experience in nearly 27 years we"
+            ]
+          }
+        ]
+      },
+      "evidenceTransparency": {
+        "employerPostings": {
+          "source": "adzuna_cached",
+          "count": 100,
+          "lastUpdated": "2026-03-14T04:57:36.768+00:00",
+          "usedCache": true
+        },
+        "userProvidedPosting": {
+          "included": false
+        },
+        "baselineOnet": {
+          "included": true
+        },
+        "baselineOnlyWarning": null
+      }
+    },
+    "executionStrategy": {
+      "whereYouStandNow": {
+        "strengths": [
+          {
+            "summary": "This background signal supports transition readiness for Construction managers.",
+            "resumeSignal": "Testing transition from Retail Associate to Project Coordinator with measurable weekly output and customer-facing experience. token:mmsvhz9j",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Use safety experience are MUST HAVES in role-relevant workflows"
+            ]
+          }
+        ],
+        "missingMandatoryRequirements": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "use safety experience are must haves in role relevant workflows",
+            "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+            "blockerClass": "skill",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive."
+          },
+          {
+            "normalized_key": "lead cross functional execution with documented delivery outcomes",
+            "label": "Lead cross-functional execution with documented delivery outcomes",
+            "blockerClass": "skill",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive."
+          },
+          {
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "blockerClass": "skill",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive."
+          },
+          {
+            "normalized_key": "build portfolio evidence with measurable role specific outcomes",
+            "label": "Build portfolio evidence with measurable, role-specific outcomes",
+            "blockerClass": "experience",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive."
+          },
+          {
+            "normalized_key": "demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+            "label": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+            "blockerClass": "experience",
+            "reason": "This apply requirement still needs one clear work sample or verification item before you look competitive."
+          }
+        ],
+        "competitiveDisadvantages": [
+          {
+            "normalized_key": "demonstrate 27 years of experience in nearly 27 years we",
+            "label": "Demonstrate 27 years of experience in nearly 27 years, we",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+            "label": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+            "label": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          }
+        ]
+      },
+      "realBlockers": {
+        "requiredToApply": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "normalized_key": "use safety experience are must haves in role relevant workflows",
+            "label": "Use safety experience are MUST HAVES in role-relevant workflows",
+            "blockerClass": "skill",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Practice with a scoped project that produces an artifact you can show in interviews.",
+            "timeEstimate": "1-4 weeks",
+            "evidenceQuote": [
+              "Job Description Job Description Experience in operations and management consulting in an industrial construction environment and safety experience are MUST HAVES"
+            ]
+          },
+          {
+            "normalized_key": "lead cross functional execution with documented delivery outcomes",
+            "label": "Lead cross-functional execution with documented delivery outcomes",
+            "blockerClass": "skill",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Document concrete examples with outcomes instead of generic claims.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution b…",
+              "The ideal candidate has strong experience in construction project management, excellent leadership skills, and a commitment to well-organized, consistent project execution both in the field and in the shop"
+            ]
+          },
+          {
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "blockerClass": "skill",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Document concrete examples with outcomes instead of generic claims.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "In collaboration with a diversified base of clients, DAVACO delivers scale, speed, and high-quality solutions that solve tomorrow's challenges today",
+              "Their family-owned business prides itself on a strong commitment to quality, innovation, and teamwork"
+            ]
+          },
+          {
+            "normalized_key": "build portfolio evidence with measurable role specific outcomes",
+            "label": "Build portfolio evidence with measurable, role-specific outcomes",
+            "blockerClass": "experience",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "CreateTO is here to increase the social, cultural and economic value of our city's $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto",
+              "CreateTO is here to increase the social, cultural and economic value of our citys $27-billion real estate portfolio, ensuring positive impacts for residents and a bright future for Toronto"
+            ]
+          },
+          {
+            "normalized_key": "demonstrate 27 years of experience in toronto that has been in business for over 27 years",
+            "label": "Demonstrate 27 years of experience in Toronto that has been in business for over 27 years",
+            "blockerClass": "experience",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years",
+              "Job Description Job Description Company Profile: We are a $ multi million residential painting company located in Toronto that has been in business for over 27 years"
+            ]
+          }
+        ],
+        "requiredToCompete": [
+          {
+            "normalized_key": "demonstrate 27 years of experience in nearly 27 years we",
+            "label": "Demonstrate 27 years of experience in nearly 27 years, we",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "For nearly 27 years, we've delivered high-quality plumbing, sheet metal, and fabrication services with a focus on innovation, efficiency, and craftsmanship"
+            ]
+          },
+          {
+            "normalized_key": "demonstrate 30 years of experience in 30 years of deep expertise in various industries such as aerospace chemicals i",
+            "label": "Demonstrate 30 years of experience in 30 years of deep expertise in various industries such as Aerospace, Chemicals, I",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "With 30 years of deep expertise in various industries such as Aerospace, Chemicals, Industrial Construction, Manufacturing, Mining…"
+            ]
+          },
+          {
+            "normalized_key": "demonstrate 40 years of experience in its creativity in planning design and building premier residential and mixed us",
+            "label": "Demonstrate 40 years of experience in its creativity in planning, design and building premier residential and mixed-us",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "Company Summary FRAM Slokker is an experienced and award-winning residential developer/ builder that has been known for its creativity in planning, design and building premier residential and mixed-use communities acr..."
+            ]
+          }
+        ]
+      },
+      "transferableEdge": {
+        "translations": [
+          {
+            "fromResume": "Testing transition from Retail Associate to Project Coordinator with measurable weekly output and customer-facing experience. token:mmsvhz9j",
+            "toTargetRole": "Apply this as confirm regional licensing and certification requirements before applying work in Construction managers settings, then quantify the outcome.",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Use safety experience are MUST HAVES in role-relevant workflows"
+            ]
+          }
+        ]
+      },
+      "plan90Day": {
+        "month1": {
+          "label": "Month 1: Foundations",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month1-1",
+              "task": "Confirm and complete regional licensing and certification requirements before applying, then keep proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-2",
+              "task": "Practice with safety experience are MUST HAVES in role-relevant workflows in role-like workflows and record measurable outputs.",
+              "volumeTarget": "3 focused practice sessions/week",
+              "learningTarget": "Close one clearly defined sub-skill each week",
+              "proofTarget": "Publish one artifact showing before/after quality",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "use safety experience are must haves in role relevant workflows"
+              ]
+            },
+            {
+              "id": "month1-3",
+              "task": "Practice Lead cross-functional execution with documented delivery outcomes in role-like workflows and record measurable outputs.",
+              "volumeTarget": "3 focused practice sessions/week",
+              "learningTarget": "Close one clearly defined sub-skill each week",
+              "proofTarget": "Publish one artifact showing before/after quality",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "lead cross functional execution with documented delivery outcomes"
+              ]
+            },
+            {
+              "id": "month1-4",
+              "task": "Practice Collaborate across teams to deliver role-critical milestones on time in role-like workflows and record measurable outputs.",
+              "volumeTarget": "3 focused practice sessions/week",
+              "learningTarget": "Close one clearly defined sub-skill each week",
+              "proofTarget": "Publish one artifact showing before/after quality",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "collaborate across teams to deliver role critical milestones on time"
+              ]
+            },
+            {
+              "id": "month1-5",
+              "task": "Build one role-mirrored task that proves Build portfolio evidence with measurable, role-specific outcomes.",
+              "volumeTarget": "1 finished scenario/week",
+              "learningTarget": "Rehearse the execution sequence until repeatable",
+              "proofTarget": "Publish a short result log with measurable outcomes",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "build portfolio evidence with measurable role specific outcomes"
+              ]
+            }
+          ]
+        },
+        "month2": {
+          "label": "Month 2: Positioning",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month2-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "demonstrate 27 years of experience in toronto that has been in business for over 27 years"
+              ]
+            }
+          ]
+        },
+        "month3": {
+          "label": "Month 3: Conversion",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month3-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            }
+          ]
+        }
+      },
+      "probabilityRealityCheck": {
+        "difficulty": "This is a hard transition right now, but it is realistic if you execute a strict weekly plan.",
+        "whatIncreasesOdds": [
+          "Close apply blockers first, then run 10 targeted applications/week.",
+          "Execute 10 targeted outreach messages/week and follow up until each lead has an outcome.",
+          "Publish 1 measurable readiness example/week so interviews focus on evidence, not claims."
+        ],
+        "commonFailureModes": [
+          "Applying passively through portals with no direct outreach.",
+          "Spending time on low-impact learning without work samples or verification items.",
+          "Skipping follow-up after first contact or first rejection."
+        ]
+      },
+      "behavioralExecution": {
+        "minimumWeeklyEffort": "10-14 hours/week for 12 consecutive weeks.",
+        "consistencyLooksLike": [
+          "Block execution time on your calendar before discretionary tasks.",
+          "Track applications, outreach, and readiness examples every weekday.",
+          "Review blockers weekly and adjust next-week actions immediately."
+        ],
+        "whatNotToDo": [
+          "Do not wait for perfect readiness before contacting employers.",
+          "Do not submit untailored applications with generic resume bullets.",
+          "Do not stop outreach after one rejection or one no-response week."
+        ]
+      }
+    },
+    "marketEvidence": {
+      "enabled": true,
+      "used": true,
+      "baselineOnly": false,
+      "usedCache": true,
+      "postingsCount": 100,
+      "llmNormalizedCount": 0,
+      "fetchedAt": "2026-03-14T04:57:36.768+00:00",
+      "query": {
+        "role": "construction managers",
+        "location": "ontario, canada",
+        "country": "ca"
+      },
+      "sourcePriority": [
+        "user_posting",
+        "adzuna",
+        "onet"
+      ]
+    },
+    "bottleneck": {
+      "title": "Confirm regional licensing and certification requirements before applying",
+      "why": "Construction managers demand signals weight this requirement heavily.",
+      "nextAction": "Start or verify Professional engineering status or construction trade certification may be required by some employers. requirements, then complete one scoped project proving Confirm regional licensing and certification requirements before applying in 7-14 days and add the result to your resume.",
+      "estimatedEffort": "12+ months"
+    },
+    "dataTransparency": {
+      "inputsUsed": [
+        "currentRole",
+        "targetRole",
+        "experienceText",
+        "skills",
+        "location",
+        "timeline",
+        "education"
+      ],
+      "datasetsUsed": [
+        "occupations",
+        "occupation_skills",
+        "occupation_requirements",
+        "occupation_wages",
+        "trade_requirements",
+        "job_queries",
+        "job_postings",
+        "job_requirements",
+        "onet_baseline"
+      ],
+      "fxRateUsed": "USD/CAD 1.3689 (2026-02-20)"
+    },
+    "careerPathwayProfile": null,
+    "sourceEnrichment": {
+      "trainingCards": [
+        {
+          "cost": "Varies based on cohort size",
+          "name": "Project Coordinator for Construction (PCC) Micro-Credential",
+          "length": "16 hours",
+          "modality": "In-person",
+          "provider": "Humber Polytechnic",
+          "sourceUrl": "https://humber.ca/continuous-professional-learning/learner-programs/micro-credentials/project-coordinator-for-construction-pcc.html",
+          "sourceType": "verified",
+          "sourceLabel": "Humber Polytechnic Project Coordinator for Construction Micro-Credential"
+        },
+        {
+          "cost": "$895 after grants",
+          "name": "Construction Project Management Certificate",
+          "length": "6 weeks",
+          "modality": "Online, self-paced",
+          "provider": "York College",
+          "sourceUrl": "https://www.yorkc.ca/course/construction-project-management",
+          "sourceType": "verified",
+          "sourceLabel": "York College Construction Project Management Certificate"
+        },
+        {
+          "cost": "Varies",
+          "name": "Construction Project Management Graduate Certificate",
+          "length": "Varies",
+          "modality": "In-person",
+          "provider": "St. Clair College",
+          "sourceUrl": "https://www.stclaircollege.ca/index.php/programs/construction-project-management",
+          "sourceType": "verified",
+          "sourceLabel": "St. Clair College Construction Project Management Graduate Certificate"
+        }
+      ],
+      "certificationCards": [
+        {
+          "name": "Use safety experience are MUST HAVES in role-relevant workflows",
+          "provider": "Employer evidence",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Employer evidence"
+        },
+        {
+          "name": "Project Management Professional (PMP)",
+          "provider": "Project Management Institute (PMI)",
+          "sourceUrl": "https://www.pmi.org/certifications/project-management-pmp",
+          "sourceType": "verified",
+          "sourceLabel": "Project Management Institute (PMI)"
+        },
+        {
+          "name": "Prince2 Certification",
+          "provider": "AXELOS",
+          "sourceUrl": "https://www.axelos.com/certifications/prince2",
+          "sourceType": "verified",
+          "sourceLabel": "AXELOS"
+        }
+      ],
+      "wageFallback": {
+        "low": 27.97,
+        "high": 74.36,
+        "median": 44.94,
+        "region": "ON",
+        "asOfDate": "2026-03-16T06:28:56.129Z",
+        "currency": "CAD",
+        "sourceUrl": "https://www.on.jobbank.gc.ca/marketreport/wages-occupation/297410/ON",
+        "sourceName": "Job Bank",
+        "sourceType": "verified"
+      },
+      "tradeFacts": null,
+      "entryRoles": [],
+      "sourcePath": {
+        "training": "web_search",
+        "wage": "web_search",
+        "entryRoles": "none",
+        "certifications": "web_search"
+      },
+      "cache": {
+        "hit": true,
+        "expiresAt": "2026-03-23T06:28:56.13+00:00"
+      }
+    },
+    "transitionMode": {
+      "careerPathType": "GENERAL",
+      "templateKey": "experience_ladder_role",
+      "difficulty": {
+        "score": 7.5,
+        "label": "Hard",
+        "why": [
+          "This target has 2 formal gates you need to respect early.",
+          "Your current education profile does not create a major extra delay.",
+          "4 high-value requirements still need stronger proof."
+        ]
+      },
+      "timeline": {
+        "minMonths": 13,
+        "maxMonths": 13,
+        "assumptions": [
+          "You lead with measurable results, not just title history.",
+          "You treat referrals and positioning as part of the plan, not extras.",
+          "You tighten your stories based on response quality each week."
+        ]
+      },
+      "routes": {
+        "primary": {
+          "title": "Primary route: outcome-first progression",
+          "reason": "This move usually happens when you make your existing results look directly relevant to the next level. Tight positioning and measurable wins matter more than starting from scratch.",
+          "firstStep": "Write down 3 measurable wins from your current work that prove you can already handle part of the next-level scope."
+        },
+        "secondary": {
+          "title": "Secondary route: adjacent title bridge",
+          "reason": "If the exact title jump is a stretch today, a nearby title can give you the scope, reporting line, or team exposure you need before the full move.",
+          "firstStep": "List 10 adjacent roles that move you closer to Project Coordinator without requiring a full reset."
+        },
+        "contingency": {
+          "title": "Contingency route: internal or cross-functional stretch",
+          "reason": "If external responses stay thin, build the missing scope internally through stretch work, temporary ownership, or cross-functional projects.",
+          "firstStep": "Ask for one stretch project or cross-functional responsibility this month that gives you visible leadership or ownership proof."
+        }
+      },
+      "roadmapGuide": {
+        "phases": [
+          {
+            "label": "0-30 Days",
+            "focus": "3 quantified wins documented",
+            "steps": [
+              {
+                "title": "Document 3 quantified wins that translate directly into the next role.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$200",
+                "prereqs": [
+                  "Baseline education: A university degree in civil engineering or a college diploma in construction technology is usually required.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "3 quantified wins documented.",
+                  "Save one dated note, email, or checklist that proves this step moved."
+                ]
+              },
+              {
+                "title": "Rewrite your resume and LinkedIn headline to match the scope of the target role.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$200",
+                "prereqs": [
+                  "Baseline education: A university degree in civil engineering or a college diploma in construction technology is usually required.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 resume positioning update.",
+                  "Save one dated note, email, or checklist that proves this step moved."
+                ]
+              },
+              {
+                "title": "Send 10 outreach messages to managers, peers, or recruiters who hire for the next step.",
+                "whyItMatters": "This clarifies the real gate before you apply or spend money.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$50",
+                "prereqs": [
+                  "Baseline education: A university degree in civil engineering or a college diploma in construction technology is usually required.",
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "10 outreach messages.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Log who you contacted, what you asked, and the next follow-up for Project Coordinator."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "30-90 Days",
+            "focus": "8 targeted applications",
+            "steps": [
+              {
+                "title": "Apply to roles where your current outcomes already match at least half the scope.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$0-CA$50",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "8 targeted applications.",
+                  "Save one artifact that proves this step moved this week.",
+                  "Log who you contacted, what you asked, and the next follow-up for Project Coordinator."
+                ]
+              },
+              {
+                "title": "Practice 2 short stories that show ownership, coordination, or decision-making at the next level.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$0-CA$200",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "10 follow-ups.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Ask for referrals or warm introductions instead of relying on cold applications alone.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$0-CA$200",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "2 promotion-ready stories practiced.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "3-12 Months",
+            "focus": "8 new applications",
+            "steps": [
+              {
+                "title": "Tighten your positioning based on interview feedback and response quality.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$0-CA$50",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "8 new applications.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Close the biggest title-gap objection with one concrete result, project, or endorsement.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$50-CA$750",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "10 follow-ups.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Keep momentum high until you have a stable pipeline of interviews or internal conversations.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$0-CA$200",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 title-gap proof item.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          }
+        ],
+        "next7Days": [
+          "Write down 3 measurable wins from your current work that prove you can already handle part of the next-level scope.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Build 1 concrete example that proves you can handle a core task in this field."
+        ]
+      },
+      "plan90": [
+        {
+          "phase": "Weeks 1-2",
+          "weeks": "1-2",
+          "tasks": [
+            "Document 3 quantified wins that translate directly into the next role.",
+            "Rewrite your resume and LinkedIn headline to match the scope of the target role.",
+            "Send 10 outreach messages to managers, peers, or recruiters who hire for the next step."
+          ],
+          "weeklyTargets": [
+            "3 quantified wins documented",
+            "1 resume positioning update",
+            "10 outreach messages",
+            "5 target roles shortlisted"
+          ],
+          "timePerWeekHours": 6
+        },
+        {
+          "phase": "Weeks 3-6",
+          "weeks": "3-6",
+          "tasks": [
+            "Apply to roles where your current outcomes already match at least half the scope.",
+            "Practice 2 short stories that show ownership, coordination, or decision-making at the next level.",
+            "Ask for referrals or warm introductions instead of relying on cold applications alone."
+          ],
+          "weeklyTargets": [
+            "8 targeted applications",
+            "10 follow-ups",
+            "2 promotion-ready stories practiced",
+            "3 referral asks"
+          ],
+          "timePerWeekHours": 8
+        },
+        {
+          "phase": "Weeks 7-12",
+          "weeks": "7-12",
+          "tasks": [
+            "Tighten your positioning based on interview feedback and response quality.",
+            "Close the biggest title-gap objection with one concrete result, project, or endorsement.",
+            "Keep momentum high until you have a stable pipeline of interviews or internal conversations."
+          ],
+          "weeklyTargets": [
+            "8 new applications",
+            "10 follow-ups",
+            "1 title-gap proof item",
+            "1 weekly pipeline review"
+          ],
+          "timePerWeekHours": 8
+        }
+      ],
+      "execution": {
+        "dailyRoutine": [
+          "15 minutes: move one application, referral, or recruiter thread forward.",
+          "15 minutes: tighten one result statement, resume bullet, or interview story.",
+          "15 minutes: research one team, company, or hiring manager tied to your next step."
+        ],
+        "weeklyCadence": [
+          "8 targeted applications",
+          "10 follow-ups",
+          "3 referral or networking asks",
+          "1 positioning review"
+        ],
+        "outreachTemplates": {
+          "call": "Hi, I am targeting Project Coordinator next. My background already covers a meaningful part of the scope, and I can point to measurable results that map directly to the role. I would like to understand what hiring teams value most at this step.",
+          "email": "Subject: Targeting the next step into Project Coordinator Hi, I am positioning for Project Coordinator as my next move. I already bring relevant results and I am tightening how I present them for this level. If you can share what hiring teams prioritize most at this step, I would appreciate the guidance. Best, Your Name"
+        }
+      },
+      "gaps": {
+        "strengths": [
+          "You already communicate clearly with customers, clients, or teams, which matters in the transition.",
+          "You already have some proof-building habits, which helps in portfolio-driven moves.",
+          "You already bring some usable overlap into this move."
+        ],
+        "missing": [
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Build 1 concrete example that proves you can handle a core task in this field.",
+          "Learn the basics of lead cross-functional execution with documented delivery outcomes in short daily blocks.",
+          "Create 1 small, job-relevant proof example this week."
+        ],
+        "first3Steps": [
+          "Write down 3 measurable wins from your current work that prove you can already handle part of the next-level scope.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Build 1 concrete example that proves you can handle a core task in this field."
+        ]
+      },
+      "earnings": [
+        {
+          "stage": "Year 1",
+          "rangeLow": 18,
+          "rangeHigh": 24,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 2",
+          "rangeLow": 20,
+          "rangeHigh": 26,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 3",
+          "rangeLow": 26,
+          "rangeHigh": 29,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Established",
+          "rangeLow": 26,
+          "rangeHigh": 31,
+          "unit": "USD/hour"
+        }
+      ],
+      "reality": {
+        "barriers": [
+          "Weak positioning can hide the fact that you are already close to the next step.",
+          "Confirm regional licensing and certification requirements before applying.",
+          "Proof of role-ready work."
+        ],
+        "mitigations": [
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Build 1 concrete example that proves you can handle a core task in this field.",
+          "Learn the basics of lead cross-functional execution with documented delivery outcomes in short daily blocks."
+        ]
+      },
+      "resources": {
+        "local": [
+          {
+            "label": "Local professional association or meetup (starting point)",
+            "url": ""
+          }
+        ],
+        "online": [
+          {
+            "label": "Role scope and leveling benchmarks",
+            "url": ""
+          },
+          {
+            "label": "Leadership and interview story prompts",
+            "url": ""
+          }
+        ],
+        "internal": [
+          {
+            "label": "CareerHeap Blog",
+            "url": "/blog"
+          },
+          {
+            "label": "Career Tools",
+            "url": "/tools"
+          },
+          {
+            "label": "Run This Plan Again",
+            "url": "/tools/career-switch-planner"
+          }
+        ]
+      }
+    },
+    "transitionStructuredPlan": {
+      "summary": "Transitioning from Retail Associate to Project Coordinator in Ontario, Canada requires formal education such as a university degree in civil engineering or a college diploma in construction technology, along with regional licensing and certification. Practical skills include safety experience in workflows, leadership in cross-functional execution, and collaboration to meet project milestones. The path is challenging with a low current compatibility but achievable within approximately 13 months by building measurable evidence of relevant skills and confirming licensing requirements.",
+      "compatibility_level": "Low",
+      "timeline_estimate": "13 months",
+      "required_certifications": [
+        "University degree in civil engineering or college diploma in construction technology",
+        "Regional licensing and certification as required"
+      ],
+      "required_experience": [
+        "Safety experience in role-relevant workflows",
+        "Leading cross-functional execution with documented delivery outcomes",
+        "Collaborating across teams to deliver role-critical milestones on time"
+      ],
+      "action_steps": [
+        "Write down 3 measurable wins from your current work that demonstrate capability for next-level tasks",
+        "Confirm regional licensing and certification requirements in Ontario and document progress",
+        "Build one concrete example that proves you can handle a core task relevant to Project Coordination"
+      ],
+      "salary_projection": "Entry-level Project Coordinators earn approximately 18-24 USD/hour, with established professionals earning 26-31 USD/hour in Ontario, Canada.",
+      "narrative_sections": {
+        "intro": "This plan outlines the realistic steps to become a Project Coordinator in Ontario, Canada, distinguishing between the skills you will develop and the credentials employers require.",
+        "skills_you_build": [
+          {
+            "title": "Core job skills",
+            "summary": "Practical skills essential for Project Coordinators include safety management and workflow adherence.",
+            "bullets": [
+              "Apply safety experience consistently in role-relevant workflows."
+            ]
+          },
+          {
+            "title": "Tools and practical work",
+            "summary": "Hands-on experience with safety protocols and project execution tools is critical.",
+            "bullets": [
+              "Utilize safety experience as a foundational element in daily tasks."
+            ]
+          },
+          {
+            "title": "Work habits employers notice fast",
+            "summary": "Employers value leadership, collaboration, and measurable delivery outcomes.",
+            "bullets": [
+              "Lead cross-functional teams with documented successful outcomes.",
+              "Collaborate effectively to meet project milestones on schedule.",
+              "Build a portfolio demonstrating measurable, role-specific achievements."
+            ]
+          }
+        ],
+        "credentials_you_need": [
+          {
+            "title": "Before you get hired",
+            "summary": "Employers typically require formal education and regional certifications at entry.",
+            "bullets": [
+              "A university degree in civil engineering or a college diploma in construction technology.",
+              "Regional licensing and certification as applicable in Ontario."
+            ]
+          },
+          {
+            "title": "What full qualification usually requires",
+            "summary": "Complete and maintain regional licensing and certifications as per local regulations.",
+            "bullets": [
+              "Ongoing compliance with Ontario's licensing and certification requirements."
+            ]
+          }
+        ],
+        "soft_skills_that_matter": [
+          "Leadership in cross-functional execution with documented outcomes",
+          "Effective collaboration to meet critical milestones",
+          "Building measurable, role-specific portfolio evidence"
+        ],
+        "why_this_path_can_pay_off": [
+          "Starting wages range from 18-24 USD/hour.",
+          "Experienced Project Coordinators earn 26-31 USD/hour.",
+          "Salary increases with proven qualifications and expanded scope.",
+          "Wages vary by employer and region within Ontario."
+        ],
+        "start_from_zero": [
+          "Identify and document 3 measurable achievements from current role relevant to Project Coordination.",
+          "Research and confirm Ontario's licensing and certification requirements.",
+          "Develop a concrete example demonstrating ability to perform a core Project Coordinator task."
+        ]
+      }
+    },
+    "transitionPlanScripts": {
+      "call": "Hello, my name is [Your Name]. I am exploring opportunities to transition into a Project Coordinator role in Ontario and would like to learn if your organization is currently hiring for this position. Could we schedule a brief follow-up to discuss potential entry pathways?",
+      "email": "Subject: Inquiry About Project Coordinator Opportunities and Entry Pathways Dear [Hiring Manager], I am currently working as a Retail Associate and am interested in transitioning into a Project Coordinator role within Ontario. I understand that formal education and regional certifications are important, and I am actively working towards meeting these requirements. I would appreciate any information on training pathway or entry-level opportunities within your organization. Could you please let me know if you are hiring for Project Coordinator positions or if there are recommended pathways to gain relevant experience? Thank you for your time and consideration. Best regards, [Your Name]",
+      "source": "gpt"
+    },
+    "transitionPlanCacheMeta": {
+      "version": "transition-plan-v4",
+      "generatedAt": "2026-03-16T07:40:05.142Z",
+      "region": "Ontario, Canada",
+      "experienceLevelBucket": "entry",
+      "cacheHit": false
+    },
+    "previewLimited": false,
+    "v3Diagnostics": {
+      "missingFields": [],
+      "placeholderSignals": [],
+      "stageFailures": [],
+      "role_match_explanation": {
+        "current": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        },
+        "target": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": [
+            "Aerospace engineers",
+            "Architects",
+            "Chemical engineers",
+            "Civil engineers",
+            "Computer engineers (except software engineers and designers)",
+            "Cybersecurity specialists",
+            "Electrical and electronics engineers",
+            "Financial and investment analysts"
+          ]
+        }
+      },
+      "generatedAt": "2026-03-16T07:40:18.483Z"
+    },
+    "roleResolution": {
+      "current": {
+        "input": "Retail Associate",
+        "matched": {
+          "occupationId": "9198bd7c-e925-4809-a8c6-1c58d15d3a45",
+          "title": "Retail and wholesale buyers",
+          "code": "9198bd7c-e925-4809-a8c6-1c58d15d3a45",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.919,
+          "stage": "associate",
+          "specialization": null,
+          "rawInputTitle": "Retail Associate",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.083,
+            "industryMatch": 0.9,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "98ce94ac-d9cd-4061-8b0d-ae3c97e3ffbf",
+            "title": "Retail and wholesale trade managers",
+            "code": "98ce94ac-d9cd-4061-8b0d-ae3c97e3ffbf",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.919
+          },
+          {
+            "occupationId": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "title": "Retail sales supervisors",
+            "code": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.919
+          },
+          {
+            "occupationId": "61c0e289-39fa-4094-a29d-07673dd81b35",
+            "title": "Butchers - retail and wholesale",
+            "code": "61c0e289-39fa-4094-a29d-07673dd81b35",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.84
+          },
+          {
+            "occupationId": "f6302a58-3f65-4498-a67a-5ad833fcd089",
+            "title": "Retail salespersons and visual merchandisers",
+            "code": "f6302a58-3f65-4498-a67a-5ad833fcd089",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.84
+          },
+          {
+            "occupationId": "b24a1562-14dc-4680-857c-444220b2c9a2",
+            "title": "Bakers",
+            "code": "b24a1562-14dc-4680-857c-444220b2c9a2",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.807
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "target": {
+        "input": "Project Coordinator",
+        "matched": {
+          "occupationId": "249ca260-19d0-4690-ac4c-a3701b848dd0",
+          "title": "Construction managers",
+          "code": "249ca260-19d0-4690-ac4c-a3701b848dd0",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.848,
+          "stage": null,
+          "specialization": "project coordinator",
+          "rawInputTitle": "Project Coordinator",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.083,
+            "industryMatch": 1,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": [
+              "Aerospace engineers",
+              "Architects",
+              "Chemical engineers",
+              "Civil engineers",
+              "Computer engineers (except software engineers and designers)",
+              "Cybersecurity specialists",
+              "Electrical and electronics engineers",
+              "Financial and investment analysts"
+            ]
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "09c47536-0244-486d-9afa-7d407785ee9f",
+            "title": "Administrative officers",
+            "code": "09c47536-0244-486d-9afa-7d407785ee9f",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.333
+          },
+          {
+            "occupationId": "2a93436a-c4d3-4e5b-9cdc-13467c979d4e",
+            "title": "Professional occupations in business management consulting",
+            "code": "2a93436a-c4d3-4e5b-9cdc-13467c979d4e",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.333
+          },
+          {
+            "occupationId": "be472227-1d75-4d2d-bae4-027cab65ed86",
+            "title": "Education policy researchers, consultants and program officers",
+            "code": "be472227-1d75-4d2d-bae4-027cab65ed86",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.327
+          },
+          {
+            "occupationId": "7a9cb757-50bb-44d8-a6bc-5cab944bb751",
+            "title": "Information systems specialists",
+            "code": "7a9cb757-50bb-44d8-a6bc-5cab944bb751",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.327
+          },
+          {
+            "occupationId": "178d9177-666b-4513-ab72-35d87574511a",
+            "title": "Natural and applied science policy researchers, consultants and program officers",
+            "code": "178d9177-666b-4513-ab72-35d87574511a",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.327
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.083,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": [
+            "Aerospace engineers",
+            "Architects",
+            "Chemical engineers",
+            "Civil engineers",
+            "Computer engineers (except software engineers and designers)",
+            "Cybersecurity specialists",
+            "Electrical and electronics engineers",
+            "Financial and investment analysts"
+          ]
+        }
+      }
+    }
+  },
+  "reportId": null,
+  "scoring": {
+    "total_score": 27,
+    "breakdown": {
+      "skill_overlap": 0,
+      "experience_similarity": 16.3,
+      "education_alignment": 7.5,
+      "certification_gap": 3,
+      "timeline_feasibility": 0.5
+    },
+    "top_occupation_id": "249ca260-19d0-4690-ac4c-a3701b848dd0"
+  },
+  "usage": {
+    "plan": "free",
+    "isUnlimited": false,
+    "canUse": true,
+    "used": 0,
+    "limit": 3,
+    "usesRemaining": 3,
+    "byTool": {}
+  },
+  "previewLimited": false
+}

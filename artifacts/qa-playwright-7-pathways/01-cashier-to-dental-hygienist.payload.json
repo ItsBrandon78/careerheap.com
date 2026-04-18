@@ -1,0 +1,2613 @@
+{
+  "score": 44,
+  "explanation": "Largest gap is Decision Making. Experience adjacency indicates a realistic transition path. Certification requirement is currently acceptable.",
+  "transferableSkills": [],
+  "skillGaps": [
+    {
+      "title": "Maintain accurate patient records and charting",
+      "detail": "Dental hygienists and dental therapists hiring evidence repeatedly expects: Maintain accurate patient records and charting.",
+      "difficulty": "easy"
+    }
+  ],
+  "roadmap": {
+    "30": [
+      "Create two portfolio artifacts demonstrating Confirm regional licensing and certification requirements before applying in real-world Dental hygienists and dental therapists scenarios."
+    ],
+    "60": [],
+    "90": []
+  },
+  "resumeReframes": [],
+  "recommendedRoles": [
+    {
+      "title": "Dental hygienists and dental therapists",
+      "match": 44,
+      "reason": "Largest gap is Decision Making."
+    },
+    {
+      "title": "Couriers and messengers",
+      "match": 34,
+      "reason": "Largest gap is Operation and Control."
+    }
+  ],
+  "report": {
+    "compatibilitySnapshot": {
+      "score": 44,
+      "band": "weak",
+      "breakdown": {
+        "skill_overlap": 0,
+        "experience_similarity": 16.3,
+        "education_alignment": 10,
+        "certification_gap": 15,
+        "timeline_feasibility": 2.2
+      },
+      "topReasons": [
+        "Largest gap is Decision Making.",
+        "Experience adjacency indicates a realistic transition path.",
+        "Certification requirement is currently acceptable."
+      ]
+    },
+    "suggestedCareers": [
+      {
+        "occupationId": "0625c8c7-7792-4b4b-bee2-a7eb9ed9d539",
+        "title": "Dental hygienists and dental therapists",
+        "score": 44,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 16.3,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 2.2
+        },
+        "salary": {
+          "usd": null,
+          "native": {
+            "currency": "CAD",
+            "low": 33,
+            "median": 44,
+            "high": 53.67,
+            "sourceName": "Job Bank",
+            "sourceUrl": "https://www.jobbank.gc.ca/marketreport/wages-occupation/18325/ON",
+            "asOfDate": "2026-03-16T06:25:49.787Z",
+            "region": "ON"
+          },
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "6-12 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Decision Making.",
+          "Experience adjacency indicates a realistic transition path.",
+          "Certification requirement is currently acceptable."
+        ]
+      },
+      {
+        "occupationId": "fca640aa-cca2-4d4f-b1a2-78555b53cf17",
+        "title": "Couriers and messengers",
+        "score": 34,
+        "breakdown": {
+          "skill_overlap": 0,
+          "experience_similarity": 2.7,
+          "education_alignment": 10,
+          "certification_gap": 15,
+          "timeline_feasibility": 6.7
+        },
+        "salary": {
+          "usd": null,
+          "native": null,
+          "conversion": null
+        },
+        "difficulty": "hard",
+        "transitionTime": "3-6 months",
+        "regulated": false,
+        "officialLinks": [],
+        "topReasons": [
+          "Largest gap is Operation and Control.",
+          "Title similarity is moderate; transition is possible with focused positioning.",
+          "Certification requirement is currently acceptable."
+        ]
+      }
+    ],
+    "skillGaps": [
+      {
+        "skillId": "maintain accurate patient records and charting",
+        "skillName": "Maintain accurate patient records and charting",
+        "weight": 0.1,
+        "difficulty": "easy",
+        "gapLevel": "missing",
+        "frequency": 1,
+        "evidence": [
+          {
+            "source": "adzuna",
+            "quote": "Maintain accurate patient records and charting",
+            "postingId": "adzuna:5666260548",
+            "confidence": 0.8
+          }
+        ],
+        "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+        "howToClose": [
+          "Dental hygienists and dental therapists hiring evidence repeatedly expects: Maintain accurate patient records and charting.",
+          "Complete one role-specific task and publish a measurable work sample."
+        ]
+      }
+    ],
+    "roadmap": [
+      {
+        "id": "phase-1",
+        "phase": "1_3_months",
+        "title": "Build role evidence",
+        "time_estimate_hours": 18,
+        "difficulty": "medium",
+        "why_it_matters": "Hiring confidence increases when artifacts prove skill transfer.",
+        "action": "Create two portfolio artifacts demonstrating Confirm regional licensing and certification requirements before applying in real-world Dental hygienists and dental therapists scenarios."
+      }
+    ],
+    "resumeReframe": [],
+    "linksResources": [],
+    "targetRequirements": {
+      "education": "Dental therapists are required to complete a two- to three- year college diploma from an approved dental institution program.",
+      "certifications": [
+        "Obtain required license before independent work",
+        "National Dental Hygiene Certification Examination (NDHCE)"
+      ],
+      "hardGates": [
+        "Confirm regional licensing and certification requirements before applying",
+        "Obtain required certification with active status",
+        "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+        "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+        "Obtain Must be a Registered Dental Hygienist",
+        "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+        "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+        "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc"
+      ],
+      "employerSignals": [
+        "Collaborate across teams to deliver role-critical milestones on time",
+        "Complete required clinical rotations and document supervised competencies",
+        "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+        "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+        "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+        "maintain calm, reassuring, and friendly demeanor"
+      ],
+      "apprenticeshipHours": null,
+      "examRequired": null,
+      "regulated": false,
+      "sources": [
+        "Employer evidence",
+        "FDHRC"
+      ]
+    },
+    "transitionSections": {
+      "mandatoryGateRequirements": [
+        {
+          "id": "gate-confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 16,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 16",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "docbraces Toronto Bloor West has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Toronto, ON team",
+              "postingId": "adzuna:5636473973",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "docbraces Waterloo has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Waterloo, ON team for Thursdays",
+              "postingId": "adzuna:5648911947",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "We're looking for a skilled and compassionate Registered Dental Hygienists to join our team at Lumora Dental, a proud part of the Passion Dental Group",
+              "postingId": "adzuna:5629932453",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "We're looking for a skilled and compassionate Registered Dental Hygienist to join our team at Mall Road Dental, a proud part of the Passion Dental Group",
+              "postingId": "adzuna:5640350222",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "If you are an exceptional Registered Dental Hygienist, we are looking for you! Requirements: The ideal RDH will have a calm, reassuring, and friendly demeanor",
+              "postingId": "adzuna:4725862916",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain required certification with active status",
+          "label": "Obtain required certification with active status",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 2,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 2",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flexible locum dentist, Enspire make…",
+              "postingId": "adzuna:4937314453",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flex…",
+              "postingId": "adzuna:5652158085",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain job description job description registered dental hygienist required at our cambridge on office",
+          "label": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+              "postingId": "adzuna:5637696968",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain looking for a talented registered dental hygienist to join our ottawa on team",
+          "label": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+              "postingId": "adzuna:5667945986",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain must be a registered dental hygienist",
+          "label": "Obtain Must be a Registered Dental Hygienist",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Must be a Registered Dental Hygienist",
+              "postingId": "adzuna:4725862681",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain must be a registered dental hygienist in good standing with the cdho",
+          "label": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Must be a Registered Dental Hygienist in good standing with the CDHO",
+              "postingId": "adzuna:4725862916",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain our established dental practice is looking for a registered dental hygienist to join our dental family",
+          "label": "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+              "postingId": "adzuna:4725862916",
+              "confidence": 0.9
+            }
+          ]
+        },
+        {
+          "id": "gate-obtain registered dental hygienist rdh superior staff it inc",
+          "label": "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc",
+          "status": "missing",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "estimatedTime": "1-8 weeks (varies by region)",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Registered Dental Hygienist (RDH) Superior Staff it Inc",
+              "postingId": "adzuna:5655384519",
+              "confidence": 0.9
+            }
+          ]
+        }
+      ],
+      "coreHardSkills": [
+        {
+          "id": "hard-maintain accurate patient records and charting",
+          "label": "Maintain accurate patient records and charting",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToLearn": "Complete one role-specific task and publish a measurable work sample.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Maintain accurate patient records and charting",
+              "postingId": "adzuna:5666260548",
+              "confidence": 0.8
+            }
+          ]
+        }
+      ],
+      "toolsPlatforms": [],
+      "experienceSignals": [
+        {
+          "id": "exp-collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "gapLevel": "missing",
+          "frequency": 5,
+          "howToBuild": "Document concrete examples with outcomes instead of generic claims.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 5",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and Consistency in our Values",
+              "postingId": "adzuna:5592375252",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and Consistency in our Values",
+              "postingId": "adzuna:5592375249",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "If you're looking for a welcoming practice that values teamwork and work-life balance, Arthur Dental could be the right fit for you",
+              "postingId": "adzuna:5649001157",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and …",
+              "postingId": "adzuna:5637706819",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and …",
+              "postingId": "adzuna:5637705988",
+              "confidence": 0.7
+            }
+          ]
+        },
+        {
+          "id": "exp-complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "gapLevel": "missing",
+          "frequency": 5,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 5",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Get to Know Us : At Montrose Dental , we believe exceptional dentistry starts with a strong, supported clinical team -and our dental hygienists are at the heart of everything we do",
+              "postingId": "adzuna:5648990129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "We provide the non-clinical backbone for dental teams across the country, offering HR, marketing, finance, operations, and procurement support so local clinics can focus on what matters most — their patients",
+              "postingId": "adzuna:5649067059",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "You believe great hygiene care isn't just clinical — it's personal",
+              "postingId": "adzuna:5662725936",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Responsibilities: * Provide dental hygiene functions as directed by the doctor * Clinical duties including bonding brackets, repositioning and repairing, changing wires, debonding br…",
+              "postingId": "adzuna:5660118215",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Responsibilities: * Provide dental hygiene functions as directed by the doctor * Clinical duties including bonding brackets, repositioning and repairin…",
+              "postingId": "adzuna:5660125510",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+          "label": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+          "gapLevel": "missing",
+          "frequency": 2,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 2",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "postingId": "adzuna:5605564311",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "postingId": "adzuna:5649697933",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+          "label": "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Located in Niagara Falls, our practice has proudly served the community for over 25 years, building lasting relationships through compassionate, preventive-focused care",
+              "postingId": "adzuna:5648990129",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+          "label": "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToBuild": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "Cedars Dental has been proudly serving the Ottawa community for nearly 30 years, offering compassionate, patient-focused care in a welcoming, modern setting",
+              "postingId": "adzuna:5620754603",
+              "confidence": 0.84
+            }
+          ]
+        },
+        {
+          "id": "exp-maintain calm reassuring and friendly demeanor",
+          "label": "maintain calm, reassuring, and friendly demeanor",
+          "gapLevel": "missing",
+          "frequency": 1,
+          "howToBuild": "Document concrete examples with outcomes instead of generic claims.",
+          "evidenceLabel": "Employer evidence (Adzuna) - freq 1",
+          "evidence": [
+            {
+              "source": "adzuna",
+              "quote": "If you are an exceptional Registered Dental Hygienist available to work Thursdays, we are looking for you! The ideal candidate: Will have a calm, reassuring, and friendly demeanor as well as the ability to multitask i...",
+              "postingId": "adzuna:4725862681",
+              "confidence": 0.9
+            }
+          ]
+        }
+      ],
+      "transferableStrengths": [],
+      "roadmapPlan": {
+        "zeroToTwoWeeks": [
+          {
+            "id": "r-0-2-1",
+            "action": "Start confirm regional licensing and certification requirements before applying and publish one verification artifact.",
+            "tiedRequirement": "Confirm regional licensing and certification requirements before applying"
+          },
+          {
+            "id": "r-0-2-2",
+            "action": "Start obtain required certification with active status and publish one verification artifact.",
+            "tiedRequirement": "Obtain required certification with active status"
+          },
+          {
+            "id": "r-0-2-3",
+            "action": "Start obtain job description job description registered dental hygienist required at our cambridge, on office and publish one verification artifact.",
+            "tiedRequirement": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office"
+          }
+        ],
+        "oneToThreeMonths": [
+          {
+            "id": "r-1-3-1",
+            "action": "Build repeatable evidence for obtain looking for a talented registered dental hygienist to join our ottawa, on team with measurable outcomes.",
+            "tiedRequirement": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team"
+          },
+          {
+            "id": "r-1-3-2",
+            "action": "Build repeatable evidence for obtain must be a registered dental hygienist with measurable outcomes.",
+            "tiedRequirement": "Obtain Must be a Registered Dental Hygienist"
+          },
+          {
+            "id": "r-1-3-3",
+            "action": "Build repeatable evidence for obtain must be a registered dental hygienist in good standing with the cdho with measurable outcomes.",
+            "tiedRequirement": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO"
+          }
+        ],
+        "threeToTwelveMonths": [
+          {
+            "id": "r-3-12-1",
+            "action": "Turn obtain our established dental practice is looking for a registered dental hygienist to join our dental family into durable credential or portfolio depth.",
+            "tiedRequirement": "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family"
+          },
+          {
+            "id": "r-3-12-2",
+            "action": "Turn obtain registered dental hygienist (rdh) superior staff it inc into durable credential or portfolio depth.",
+            "tiedRequirement": "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc"
+          },
+          {
+            "id": "r-3-12-3",
+            "action": "Turn obtain required license before independent work into durable credential or portfolio depth.",
+            "tiedRequirement": "Obtain required license before independent work"
+          }
+        ],
+        "fastestPathToApply": [
+          "Close confirm regional licensing and certification requirements before applying with one interview-ready artifact.",
+          "Close obtain required certification with active status with one interview-ready artifact.",
+          "Close obtain job description job description registered dental hygienist required at our cambridge, on office with one interview-ready artifact."
+        ],
+        "strongCandidatePath": [
+          "Build depth in confirm regional licensing and certification requirements before applying and attach measurable evidence.",
+          "Build depth in obtain required certification with active status and attach measurable evidence.",
+          "Build depth in obtain job description job description registered dental hygienist required at our cambridge, on office and attach measurable evidence.",
+          "Build depth in obtain looking for a talented registered dental hygienist to join our ottawa, on team and attach measurable evidence.",
+          "Build depth in obtain must be a registered dental hygienist and attach measurable evidence.",
+          "Build depth in obtain must be a registered dental hygienist in good standing with the cdho and attach measurable evidence."
+        ]
+      }
+    },
+    "transitionReport": {
+      "marketSnapshot": {
+        "role": "dental hygienists and dental therapists",
+        "location": "ontario, canada",
+        "summaryLine": "Based on 100 recent postings in ontario, canada.",
+        "topRequirements": [
+          {
+            "id": "snapshot-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 16,
+            "frequency_percent": 16,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "docbraces Toronto Bloor West has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Toronto, ON team",
+                "postingId": "adzuna:5636473973",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "docbraces Waterloo has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Waterloo, ON team for Thursdays",
+                "postingId": "adzuna:5648911947",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "snapshot-collaborate across teams to deliver role critical milestones on time",
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "frequency_count": 5,
+            "frequency_percent": 5,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "If you're looking for a welcoming practice that values teamwork and work-life balance, Arthur Dental could be the right fit for you",
+                "postingId": "adzuna:5649001157",
+                "confidence": 0.7
+              },
+              {
+                "source": "adzuna",
+                "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and …",
+                "postingId": "adzuna:5637705988",
+                "confidence": 0.7
+              }
+            ]
+          },
+          {
+            "id": "snapshot-complete required clinical rotations and document supervised competencies",
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "frequency_count": 5,
+            "frequency_percent": 5,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Get to Know Us : At Montrose Dental , we believe exceptional dentistry starts with a strong, supported clinical team -and our dental hygienists are at the heart of everything we do",
+                "postingId": "adzuna:5648990129",
+                "confidence": 0.84
+              },
+              {
+                "source": "adzuna",
+                "quote": "Responsibilities: * Provide dental hygiene functions as directed by the doctor * Clinical duties including bonding brackets, repositioning and repairin…",
+                "postingId": "adzuna:5660125510",
+                "confidence": 0.84
+              }
+            ]
+          },
+          {
+            "id": "snapshot-demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+            "normalized_key": "demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+            "label": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+            "frequency_count": 2,
+            "frequency_percent": 2,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+                "postingId": "adzuna:5605564311",
+                "confidence": 0.84
+              },
+              {
+                "source": "adzuna",
+                "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+                "postingId": "adzuna:5649697933",
+                "confidence": 0.84
+              }
+            ]
+          },
+          {
+            "id": "snapshot-obtain required certification with active status",
+            "normalized_key": "obtain required certification with active status",
+            "label": "Obtain required certification with active status",
+            "frequency_count": 2,
+            "frequency_percent": 2,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flex…",
+                "postingId": "adzuna:5652158085",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flexible locum dentist, Enspire make…",
+                "postingId": "adzuna:4937314453",
+                "confidence": 0.9
+              }
+            ]
+          }
+        ],
+        "topTools": [],
+        "gateBlockers": [
+          {
+            "id": "blocker-confirm regional licensing and certification requirements before applying",
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "frequency_count": 16,
+            "frequency_percent": 16,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "docbraces Toronto Bloor West has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Toronto, ON team",
+                "postingId": "adzuna:5636473973",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "docbraces Waterloo has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Waterloo, ON team for Thursdays",
+                "postingId": "adzuna:5648911947",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "blocker-obtain required certification with active status",
+            "normalized_key": "obtain required certification with active status",
+            "label": "Obtain required certification with active status",
+            "frequency_count": 2,
+            "frequency_percent": 2,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flex…",
+                "postingId": "adzuna:5652158085",
+                "confidence": 0.9
+              },
+              {
+                "source": "adzuna",
+                "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flexible locum dentist, Enspire make…",
+                "postingId": "adzuna:4937314453",
+                "confidence": 0.9
+              }
+            ]
+          },
+          {
+            "id": "blocker-obtain job description job description registered dental hygienist required at our cambridge on office",
+            "normalized_key": "obtain job description job description registered dental hygienist required at our cambridge on office",
+            "label": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+            "frequency_count": 1,
+            "frequency_percent": 1,
+            "evidenceQuote": [
+              {
+                "source": "adzuna",
+                "quote": "Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+                "postingId": "adzuna:5637696968",
+                "confidence": 0.9
+              }
+            ]
+          }
+        ]
+      },
+      "mustHaves": [
+        {
+          "id": "must-confirm regional licensing and certification requirements before applying",
+          "normalized_key": "confirm regional licensing and certification requirements before applying",
+          "label": "Confirm regional licensing and certification requirements before applying",
+          "frequency_count": 16,
+          "frequency_percent": 16,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "docbraces Toronto Bloor West has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Toronto, ON team",
+              "postingId": "adzuna:5636473973",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "docbraces Waterloo has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Waterloo, ON team for Thursdays",
+              "postingId": "adzuna:5648911947",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain required certification with active status",
+          "normalized_key": "obtain required certification with active status",
+          "label": "Obtain required certification with active status",
+          "frequency_count": 2,
+          "frequency_percent": 2,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flex…",
+              "postingId": "adzuna:5652158085",
+              "confidence": 0.9
+            },
+            {
+              "source": "adzuna",
+              "quote": "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flexible locum dentist, Enspire make…",
+              "postingId": "adzuna:4937314453",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain job description job description registered dental hygienist required at our cambridge on office",
+          "normalized_key": "obtain job description job description registered dental hygienist required at our cambridge on office",
+          "label": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+              "postingId": "adzuna:5637696968",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain looking for a talented registered dental hygienist to join our ottawa on team",
+          "normalized_key": "obtain looking for a talented registered dental hygienist to join our ottawa on team",
+          "label": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+              "postingId": "adzuna:5667945986",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain must be a registered dental hygienist",
+          "normalized_key": "obtain must be a registered dental hygienist",
+          "label": "Obtain Must be a Registered Dental Hygienist",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Must be a Registered Dental Hygienist",
+              "postingId": "adzuna:4725862681",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain must be a registered dental hygienist in good standing with the cdho",
+          "normalized_key": "obtain must be a registered dental hygienist in good standing with the cdho",
+          "label": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Must be a Registered Dental Hygienist in good standing with the CDHO",
+              "postingId": "adzuna:4725862916",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain our established dental practice is looking for a registered dental hygienist to join our dental family",
+          "normalized_key": "obtain our established dental practice is looking for a registered dental hygienist to join our dental family",
+          "label": "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+              "postingId": "adzuna:4725862916",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain registered dental hygienist rdh superior staff it inc",
+          "normalized_key": "obtain registered dental hygienist rdh superior staff it inc",
+          "label": "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Registered Dental Hygienist (RDH) Superior Staff it Inc",
+              "postingId": "adzuna:5655384519",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        },
+        {
+          "id": "must-obtain required license before independent work",
+          "normalized_key": "obtain required license before independent work",
+          "label": "Obtain required license before independent work",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Salary negotiable based on experience Candidate must be a Licensed/Certified Dental Hygienist in Ontario and also member in good standing with the ODHA",
+              "postingId": "adzuna:5666260548",
+              "confidence": 0.9
+            }
+          ],
+          "status": "missing",
+          "howToGet": "Review regional regulator requirements, start application, and keep status verification ready.",
+          "timeEstimate": "1-8 weeks (varies by region)"
+        }
+      ],
+      "niceToHaves": [
+        {
+          "id": "nice-collaborate across teams to deliver role critical milestones on time",
+          "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "If you're looking for a welcoming practice that values teamwork and work-life balance, Arthur Dental could be the right fit for you",
+              "postingId": "adzuna:5649001157",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and …",
+              "postingId": "adzuna:5637705988",
+              "confidence": 0.7
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Document concrete examples with outcomes instead of generic claims."
+        },
+        {
+          "id": "nice-complete required clinical rotations and document supervised competencies",
+          "normalized_key": "complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Get to Know Us : At Montrose Dental , we believe exceptional dentistry starts with a strong, supported clinical team -and our dental hygienists are at the heart of everything we do",
+              "postingId": "adzuna:5648990129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Responsibilities: * Provide dental hygiene functions as directed by the doctor * Clinical duties including bonding brackets, repositioning and repairin…",
+              "postingId": "adzuna:5660125510",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+          "normalized_key": "demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+          "label": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+          "frequency_count": 2,
+          "frequency_percent": 2,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "postingId": "adzuna:5605564311",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "postingId": "adzuna:5649697933",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+          "normalized_key": "demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+          "label": "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Located in Niagara Falls, our practice has proudly served the community for over 25 years, building lasting relationships through compassionate, preventive-focused care",
+              "postingId": "adzuna:5648990129",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+          "normalized_key": "demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+          "label": "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Cedars Dental has been proudly serving the Ottawa community for nearly 30 years, offering compassionate, patient-focused care in a welcoming, modern setting",
+              "postingId": "adzuna:5620754603",
+              "confidence": 0.84
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations."
+        },
+        {
+          "id": "nice-maintain accurate patient records and charting",
+          "normalized_key": "maintain accurate patient records and charting",
+          "label": "Maintain accurate patient records and charting",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Maintain accurate patient records and charting",
+              "postingId": "adzuna:5666260548",
+              "confidence": 0.8
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Complete one role-specific task and publish a measurable work sample."
+        },
+        {
+          "id": "nice-maintain calm reassuring and friendly demeanor",
+          "normalized_key": "maintain calm reassuring and friendly demeanor",
+          "label": "maintain calm, reassuring, and friendly demeanor",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "If you are an exceptional Registered Dental Hygienist available to work Thursdays, we are looking for you! The ideal candidate: Will have a calm, reassuring, and friendly demeanor as well as the ability to multitask i...",
+              "postingId": "adzuna:4725862681",
+              "confidence": 0.9
+            }
+          ],
+          "gapLevel": "missing",
+          "howToLearn": "Document concrete examples with outcomes instead of generic claims."
+        }
+      ],
+      "coreTasks": [
+        {
+          "id": "task-collaborate across teams to deliver role critical milestones on time",
+          "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+          "label": "Collaborate across teams to deliver role-critical milestones on time",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "If you're looking for a welcoming practice that values teamwork and work-life balance, Arthur Dental could be the right fit for you",
+              "postingId": "adzuna:5649001157",
+              "confidence": 0.7
+            },
+            {
+              "source": "adzuna",
+              "quote": "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and …",
+              "postingId": "adzuna:5637705988",
+              "confidence": 0.7
+            }
+          ],
+          "task": "Collaborate across teams to deliver role-critical milestones on time",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-complete required clinical rotations and document supervised competencies",
+          "normalized_key": "complete required clinical rotations and document supervised competencies",
+          "label": "Complete required clinical rotations and document supervised competencies",
+          "frequency_count": 5,
+          "frequency_percent": 5,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Get to Know Us : At Montrose Dental , we believe exceptional dentistry starts with a strong, supported clinical team -and our dental hygienists are at the heart of everything we do",
+              "postingId": "adzuna:5648990129",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "Responsibilities: * Provide dental hygiene functions as directed by the doctor * Clinical duties including bonding brackets, repositioning and repairin…",
+              "postingId": "adzuna:5660125510",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Complete required clinical rotations and document supervised competencies",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+          "normalized_key": "demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+          "label": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+          "frequency_count": 2,
+          "frequency_percent": 2,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "postingId": "adzuna:5605564311",
+              "confidence": 0.84
+            },
+            {
+              "source": "adzuna",
+              "quote": "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "postingId": "adzuna:5649697933",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+          "normalized_key": "demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+          "label": "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Located in Niagara Falls, our practice has proudly served the community for over 25 years, building lasting relationships through compassionate, preventive-focused care",
+              "postingId": "adzuna:5648990129",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+          "normalized_key": "demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+          "label": "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Cedars Dental has been proudly serving the Ottawa community for nearly 30 years, offering compassionate, patient-focused care in a welcoming, modern setting",
+              "postingId": "adzuna:5620754603",
+              "confidence": 0.84
+            }
+          ],
+          "task": "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-maintain accurate patient records and charting",
+          "normalized_key": "maintain accurate patient records and charting",
+          "label": "Maintain accurate patient records and charting",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "Maintain accurate patient records and charting",
+              "postingId": "adzuna:5666260548",
+              "confidence": 0.8
+            }
+          ],
+          "task": "Maintain accurate patient records and charting",
+          "gapLevel": "missing"
+        },
+        {
+          "id": "task-maintain calm reassuring and friendly demeanor",
+          "normalized_key": "maintain calm reassuring and friendly demeanor",
+          "label": "maintain calm, reassuring, and friendly demeanor",
+          "frequency_count": 1,
+          "frequency_percent": 1,
+          "evidenceQuote": [
+            {
+              "source": "adzuna",
+              "quote": "If you are an exceptional Registered Dental Hygienist available to work Thursdays, we are looking for you! The ideal candidate: Will have a calm, reassuring, and friendly demeanor as well as the ability to multitask i...",
+              "postingId": "adzuna:4725862681",
+              "confidence": 0.9
+            }
+          ],
+          "task": "maintain calm, reassuring, and friendly demeanor",
+          "gapLevel": "missing"
+        }
+      ],
+      "toolsPlatformsEquipment": [],
+      "transferableStrengths": [],
+      "plan30_60_90": {
+        "days30": [
+          {
+            "id": "d30-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "d30-2",
+            "goal": "Obtain required certification with active status",
+            "actions": [
+              "Close obtain required certification with active status with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain required certification with active status"
+            ]
+          },
+          {
+            "id": "d30-3",
+            "goal": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+            "actions": [
+              "Close obtain job description job description registered dental hygienist required at our cambridge, on office with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain job description job description registered dental hygienist required at our cambridge on office"
+            ]
+          }
+        ],
+        "days60": [
+          {
+            "id": "d60-1",
+            "goal": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+            "actions": [
+              "Close obtain looking for a talented registered dental hygienist to join our ottawa, on team with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain looking for a talented registered dental hygienist to join our ottawa on team"
+            ]
+          },
+          {
+            "id": "d60-2",
+            "goal": "Obtain Must be a Registered Dental Hygienist",
+            "actions": [
+              "Close obtain must be a registered dental hygienist with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain must be a registered dental hygienist"
+            ]
+          },
+          {
+            "id": "d60-3",
+            "goal": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+            "actions": [
+              "Close obtain must be a registered dental hygienist in good standing with the cdho with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain must be a registered dental hygienist in good standing with the cdho"
+            ]
+          }
+        ],
+        "days90": [
+          {
+            "id": "d90-1",
+            "goal": "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+            "actions": [
+              "Close obtain our established dental practice is looking for a registered dental hygienist to join our dental family with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain our established dental practice is looking for a registered dental hygienist to join our dental family"
+            ]
+          },
+          {
+            "id": "d90-2",
+            "goal": "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc",
+            "actions": [
+              "Close obtain registered dental hygienist (rdh) superior staff it inc with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain registered dental hygienist rdh superior staff it inc"
+            ]
+          },
+          {
+            "id": "d90-3",
+            "goal": "Obtain required license before independent work",
+            "actions": [
+              "Close obtain required license before independent work with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain required license before independent work"
+            ]
+          }
+        ],
+        "fastestPathToApply": [
+          {
+            "id": "fast-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "fast-2",
+            "goal": "Obtain required certification with active status",
+            "actions": [
+              "Close obtain required certification with active status with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain required certification with active status"
+            ]
+          },
+          {
+            "id": "fast-3",
+            "goal": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+            "actions": [
+              "Close obtain job description job description registered dental hygienist required at our cambridge, on office with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain job description job description registered dental hygienist required at our cambridge on office"
+            ]
+          }
+        ],
+        "strongCandidatePath": [
+          {
+            "id": "strong-1",
+            "goal": "Confirm regional licensing and certification requirements before applying",
+            "actions": [
+              "Close confirm regional licensing and certification requirements before applying with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "confirm regional licensing and certification requirements before applying"
+            ]
+          },
+          {
+            "id": "strong-2",
+            "goal": "Obtain required certification with active status",
+            "actions": [
+              "Close obtain required certification with active status with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain required certification with active status"
+            ]
+          },
+          {
+            "id": "strong-3",
+            "goal": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+            "actions": [
+              "Close obtain job description job description registered dental hygienist required at our cambridge, on office with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain job description job description registered dental hygienist required at our cambridge on office"
+            ]
+          },
+          {
+            "id": "strong-4",
+            "goal": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+            "actions": [
+              "Close obtain looking for a talented registered dental hygienist to join our ottawa, on team with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain looking for a talented registered dental hygienist to join our ottawa on team"
+            ]
+          },
+          {
+            "id": "strong-5",
+            "goal": "Obtain Must be a Registered Dental Hygienist",
+            "actions": [
+              "Close obtain must be a registered dental hygienist with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain must be a registered dental hygienist"
+            ]
+          },
+          {
+            "id": "strong-6",
+            "goal": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+            "actions": [
+              "Close obtain must be a registered dental hygienist in good standing with the cdho with one measurable readiness example.",
+              "Add the result to your resume bullets and interview story bank."
+            ],
+            "linkedRequirements": [
+              "obtain must be a registered dental hygienist in good standing with the cdho"
+            ]
+          }
+        ]
+      },
+      "evidenceTransparency": {
+        "employerPostings": {
+          "source": "adzuna_cached",
+          "count": 100,
+          "lastUpdated": "2026-03-16T00:36:53.193+00:00",
+          "usedCache": true
+        },
+        "userProvidedPosting": {
+          "included": false
+        },
+        "baselineOnet": {
+          "included": false
+        },
+        "baselineOnlyWarning": null
+      }
+    },
+    "executionStrategy": {
+      "whereYouStandNow": {
+        "strengths": [
+          {
+            "summary": "This background signal supports transition readiness for Dental hygienists and dental therapists.",
+            "resumeSignal": "Testing transition from Cashier to Dental Hygienist with measurable weekly output and customer-facing experience. token:mmsvekjw",
+            "countsToward": [
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain required certification with active status"
+            ]
+          }
+        ],
+        "missingMandatoryRequirements": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain required certification with active status",
+            "label": "Obtain required certification with active status",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain job description job description registered dental hygienist required at our cambridge on office",
+            "label": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain looking for a talented registered dental hygienist to join our ottawa on team",
+            "label": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain must be a registered dental hygienist",
+            "label": "Obtain Must be a Registered Dental Hygienist",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain must be a registered dental hygienist in good standing with the cdho",
+            "label": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain our established dental practice is looking for a registered dental hygienist to join our dental family",
+            "label": "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          },
+          {
+            "normalized_key": "obtain registered dental hygienist rdh superior staff it inc",
+            "label": "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc",
+            "blockerClass": "legal_certification",
+            "reason": "This apply gate still needs a verified credential or registration step."
+          }
+        ],
+        "competitiveDisadvantages": [
+          {
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+            "label": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+            "label": "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+            "label": "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+            "blockerClass": "experience",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "maintain accurate patient records and charting",
+            "label": "Maintain accurate patient records and charting",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          },
+          {
+            "normalized_key": "maintain calm reassuring and friendly demeanor",
+            "label": "maintain calm, reassuring, and friendly demeanor",
+            "blockerClass": "skill",
+            "reason": "This hiring signal still needs stronger evidence from your background, a project, or a recent example."
+          }
+        ]
+      },
+      "realBlockers": {
+        "requiredToApply": [
+          {
+            "normalized_key": "confirm regional licensing and certification requirements before applying",
+            "label": "Confirm regional licensing and certification requirements before applying",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "docbraces Toronto Bloor West has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Toronto, ON team",
+              "docbraces Waterloo has an exciting part-time opportunity, looking for a talented Registered Dental Hygienist to join our Waterloo, ON team for Thursdays"
+            ]
+          },
+          {
+            "normalized_key": "obtain required certification with active status",
+            "label": "Obtain required certification with active status",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flex…",
+              "Whether you're an experienced front desk coordinator, a certified dental assistant (CDA), a registered dental hygienist (RDH), or a flexible locum dentist, Enspire make…"
+            ]
+          },
+          {
+            "normalized_key": "obtain job description job description registered dental hygienist required at our cambridge on office",
+            "label": "Obtain Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office"
+            ]
+          },
+          {
+            "normalized_key": "obtain looking for a talented registered dental hygienist to join our ottawa on team",
+            "label": "Obtain Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team"
+            ]
+          },
+          {
+            "normalized_key": "obtain must be a registered dental hygienist",
+            "label": "Obtain Must be a Registered Dental Hygienist",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Must be a Registered Dental Hygienist"
+            ]
+          },
+          {
+            "normalized_key": "obtain must be a registered dental hygienist in good standing with the cdho",
+            "label": "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Must be a Registered Dental Hygienist in good standing with the CDHO"
+            ]
+          },
+          {
+            "normalized_key": "obtain our established dental practice is looking for a registered dental hygienist to join our dental family",
+            "label": "Obtain Our established dental practice is looking for a Registered Dental Hygienist to join our dental family",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Our established dental practice is looking for a Registered Dental Hygienist to join our dental family"
+            ]
+          },
+          {
+            "normalized_key": "obtain registered dental hygienist rdh superior staff it inc",
+            "label": "Obtain Registered Dental Hygienist (RDH) Superior Staff it Inc",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Registered Dental Hygienist (RDH) Superior Staff it Inc"
+            ]
+          },
+          {
+            "normalized_key": "obtain required license before independent work",
+            "label": "Obtain required license before independent work",
+            "blockerClass": "legal_certification",
+            "whyItMatters": "This is a direct apply gate in current hiring signals.",
+            "howToClose": "Review regional regulator requirements, start application, and keep status verification ready.",
+            "timeEstimate": "1-8 weeks (varies by region)",
+            "evidenceQuote": [
+              "Salary negotiable based on experience Candidate must be a Licensed/Certified Dental Hygienist in Ontario and also member in good standing with the ODHA"
+            ]
+          }
+        ],
+        "requiredToCompete": [
+          {
+            "normalized_key": "collaborate across teams to deliver role critical milestones on time",
+            "label": "Collaborate across teams to deliver role-critical milestones on time",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Document concrete examples with outcomes instead of generic claims.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "If you're looking for a welcoming practice that values teamwork and work-life balance, Arthur Dental could be the right fit for you",
+              "Our guiding principles are that of Operational Excellence, Patient Intimacy, Teamwork Support and …"
+            ]
+          },
+          {
+            "normalized_key": "complete required clinical rotations and document supervised competencies",
+            "label": "Complete required clinical rotations and document supervised competencies",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "Get to Know Us : At Montrose Dental , we believe exceptional dentistry starts with a strong, supported clinical team -and our dental hygienists are at the heart of everything we do",
+              "Responsibilities: * Provide dental hygiene functions as directed by the doctor * Clinical duties including bonding brackets, repositioning and repairin…"
+            ]
+          },
+          {
+            "normalized_key": "demonstrate 19 years of experience in 19 years and has a calm relaxed and supportive work environment",
+            "label": "Demonstrate 19 years of experience in 19 years and has a calm, relaxed, and supportive work environment",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment",
+              "This independently owned practice has been proudly serving the community for 19 years and has a calm, relaxed, and supportive work environment"
+            ]
+          },
+          {
+            "normalized_key": "demonstrate 25 years of experience in niagara falls our practice has proudly served the community for over 25 years",
+            "label": "Demonstrate 25 years of experience in Niagara Falls, our practice has proudly served the community for over 25 years,",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "Located in Niagara Falls, our practice has proudly served the community for over 25 years, building lasting relationships through compassionate, preventive-focused care"
+            ]
+          },
+          {
+            "normalized_key": "demonstrate 30 years of experience in nearly 30 years offering compassionate patient focused care in a welcoming mo",
+            "label": "Demonstrate 30 years of experience in nearly 30 years, offering compassionate, patient-focused care in a welcoming, mo",
+            "blockerClass": "experience",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Build measurable evidence in a project or volunteer scope that mirrors target-role expectations.",
+            "timeEstimate": "4-12 weeks",
+            "evidenceQuote": [
+              "Cedars Dental has been proudly serving the Ottawa community for nearly 30 years, offering compassionate, patient-focused care in a welcoming, modern setting"
+            ]
+          },
+          {
+            "normalized_key": "maintain accurate patient records and charting",
+            "label": "Maintain accurate patient records and charting",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Complete one role-specific task and publish a measurable work sample.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "Maintain accurate patient records and charting"
+            ]
+          },
+          {
+            "normalized_key": "maintain calm reassuring and friendly demeanor",
+            "label": "maintain calm, reassuring, and friendly demeanor",
+            "blockerClass": "skill",
+            "whyItMatters": "This increases shortlist and interview competitiveness.",
+            "howToClose": "Document concrete examples with outcomes instead of generic claims.",
+            "timeEstimate": "2-8 weeks",
+            "evidenceQuote": [
+              "If you are an exceptional Registered Dental Hygienist available to work Thursdays, we are looking for you! The ideal candidate: Will have a calm, reassuring, and friendly demeanor as well as the ability to multitask i..."
+            ]
+          }
+        ]
+      },
+      "transferableEdge": {
+        "translations": [
+          {
+            "fromResume": "Testing transition from Cashier to Dental Hygienist with measurable weekly output and customer-facing experience. token:mmsvekjw",
+            "toTargetRole": "Apply this as obtain must be a registered dental hygienist in good standing with the cdho work in Dental hygienists and dental therapists settings, then quantify the outcome.",
+            "countsToward": [
+              "Obtain Must be a Registered Dental Hygienist in good standing with the CDHO"
+            ]
+          }
+        ]
+      },
+      "plan90Day": {
+        "month1": {
+          "label": "Month 1: Foundations",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month1-1",
+              "task": "Confirm and complete regional licensing and certification requirements before applying, then keep proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "confirm regional licensing and certification requirements before applying"
+              ]
+            },
+            {
+              "id": "month1-2",
+              "task": "Book and complete required certification with active status, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain required certification with active status"
+              ]
+            },
+            {
+              "id": "month1-3",
+              "task": "Book and complete Job Description Job Description Registered Dental Hygienist required at our Cambridge, ON office, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain job description job description registered dental hygienist required at our cambridge on office"
+              ]
+            },
+            {
+              "id": "month1-4",
+              "task": "Book and complete Looking for a talented Registered Dental Hygienist to join our Ottawa, ON team, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain looking for a talented registered dental hygienist to join our ottawa on team"
+              ]
+            },
+            {
+              "id": "month1-5",
+              "task": "Book and complete Must be a Registered Dental Hygienist, then keep active proof ready.",
+              "volumeTarget": "1 completion milestone/week",
+              "learningTarget": "Review pass criteria and compliance rules",
+              "proofTarget": "Save certificate or registration confirmation",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain must be a registered dental hygienist"
+              ]
+            }
+          ]
+        },
+        "month2": {
+          "label": "Month 2: Positioning",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month2-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "obtain must be a registered dental hygienist in good standing with the cdho"
+              ]
+            }
+          ]
+        },
+        "month3": {
+          "label": "Month 3: Conversion",
+          "weeklyTimeInvestment": "10-14 hours/week",
+          "actions": [
+            {
+              "id": "month3-free-summary",
+              "task": "Upgrade to Pro to unlock the full weekly action sequence for this month.",
+              "volumeTarget": "Locked on Free plan",
+              "learningTarget": "Full sequencing available on Pro",
+              "proofTarget": "Full proof checklist available on Pro",
+              "weeklyTime": "10-14 hours/week",
+              "linkedRequirements": [
+                "collaborate across teams to deliver role critical milestones on time"
+              ]
+            }
+          ]
+        }
+      },
+      "probabilityRealityCheck": {
+        "difficulty": "This is a hard transition right now, but it is realistic if you execute a strict weekly plan.",
+        "whatIncreasesOdds": [
+          "Close apply blockers first, then run 10 targeted applications/week.",
+          "Execute 10 targeted outreach messages/week and follow up until each lead has an outcome.",
+          "Publish 1 measurable readiness example/week so interviews focus on evidence, not claims."
+        ],
+        "commonFailureModes": [
+          "Applying passively through portals with no direct outreach.",
+          "Spending time on low-impact learning without work samples or verification items.",
+          "Skipping follow-up after first contact or first rejection."
+        ]
+      },
+      "behavioralExecution": {
+        "minimumWeeklyEffort": "10-14 hours/week for 12 consecutive weeks.",
+        "consistencyLooksLike": [
+          "Block execution time on your calendar before discretionary tasks.",
+          "Track applications, outreach, and readiness examples every weekday.",
+          "Review blockers weekly and adjust next-week actions immediately."
+        ],
+        "whatNotToDo": [
+          "Do not wait for perfect readiness before contacting employers.",
+          "Do not submit untailored applications with generic resume bullets.",
+          "Do not stop outreach after one rejection or one no-response week."
+        ]
+      }
+    },
+    "marketEvidence": {
+      "enabled": true,
+      "used": true,
+      "baselineOnly": false,
+      "usedCache": true,
+      "postingsCount": 100,
+      "llmNormalizedCount": 0,
+      "fetchedAt": "2026-03-16T00:36:53.193+00:00",
+      "query": {
+        "role": "dental hygienists and dental therapists",
+        "location": "ontario, canada",
+        "country": "ca"
+      },
+      "sourcePriority": [
+        "user_posting",
+        "adzuna",
+        "onet"
+      ]
+    },
+    "bottleneck": {
+      "title": "Confirm regional licensing and certification requirements before applying",
+      "why": "Dental hygienists and dental therapists demand signals weight this requirement heavily.",
+      "nextAction": "complete one scoped project proving Confirm regional licensing and certification requirements before applying in 7-14 days and add the result to your resume.",
+      "estimatedEffort": "6-12 months"
+    },
+    "dataTransparency": {
+      "inputsUsed": [
+        "currentRole",
+        "targetRole",
+        "experienceText",
+        "skills",
+        "location",
+        "timeline",
+        "education"
+      ],
+      "datasetsUsed": [
+        "occupations",
+        "occupation_skills",
+        "occupation_requirements",
+        "occupation_wages",
+        "trade_requirements",
+        "job_queries",
+        "job_postings",
+        "job_requirements"
+      ],
+      "fxRateUsed": "USD/CAD 1.3689 (2026-02-20)"
+    },
+    "careerPathwayProfile": null,
+    "sourceEnrichment": {
+      "trainingCards": [
+        {
+          "cost": null,
+          "name": "Algonquin College Dental Hygiene Program",
+          "length": "3 years",
+          "modality": "In-person",
+          "provider": "Algonquin College",
+          "sourceUrl": "https://www.algonquincollege.com/programs/dental-hygiene/",
+          "sourceType": "verified",
+          "sourceLabel": "Algonquin College Dental Hygiene Program"
+        },
+        {
+          "cost": null,
+          "name": "APLUS Institute Dental Hygiene Program",
+          "length": "72 weeks",
+          "modality": "In-person",
+          "provider": "APLUS Institute",
+          "sourceUrl": "https://www.aplusinstitute.com/programs/dental-hygiene/",
+          "sourceType": "verified",
+          "sourceLabel": "APLUS Institute Dental Hygiene Program"
+        },
+        {
+          "cost": null,
+          "name": "Cambrian College Dental Hygiene Program",
+          "length": "3 years",
+          "modality": "In-person",
+          "provider": "Cambrian College",
+          "sourceUrl": "https://cambriancollege.ca/programs/dental-hygiene/",
+          "sourceType": "verified",
+          "sourceLabel": "Cambrian College Dental Hygiene Program"
+        }
+      ],
+      "certificationCards": [
+        {
+          "name": "Obtain required license before independent work",
+          "provider": "Employer evidence",
+          "sourceUrl": null,
+          "sourceType": "derived",
+          "sourceLabel": "Employer evidence"
+        },
+        {
+          "name": "National Dental Hygiene Certification Examination (NDHCE)",
+          "provider": "Federation of Dental Hygiene Regulators of Canada",
+          "sourceUrl": "https://www.fdhrc.ca/pages/ndhce/",
+          "sourceType": "verified",
+          "sourceLabel": "FDHRC"
+        }
+      ],
+      "wageFallback": {
+        "low": 33,
+        "high": 53.67,
+        "median": 44,
+        "region": "ON",
+        "asOfDate": "2026-03-16T06:25:49.787Z",
+        "currency": "CAD",
+        "sourceUrl": "https://www.jobbank.gc.ca/marketreport/wages-occupation/18325/ON",
+        "sourceName": "Job Bank",
+        "sourceType": "verified"
+      },
+      "tradeFacts": null,
+      "entryRoles": [],
+      "sourcePath": {
+        "training": "web_search",
+        "wage": "web_search",
+        "entryRoles": "none",
+        "certifications": "web_search"
+      },
+      "cache": {
+        "hit": true,
+        "expiresAt": "2026-03-23T06:25:49.787+00:00"
+      }
+    },
+    "transitionMode": {
+      "careerPathType": "HEALTHCARE_LICENSED",
+      "templateKey": "regulated_profession",
+      "difficulty": {
+        "score": 9.8,
+        "label": "Very Hard",
+        "why": [
+          "This target has 9 formal gates you need to respect early.",
+          "Your current education profile does not create a major extra delay.",
+          "4 high-value requirements still need stronger proof."
+        ]
+      },
+      "timeline": {
+        "minMonths": 7,
+        "maxMonths": 20,
+        "assumptions": [
+          "You verify education and licensure steps before spending money.",
+          "You move one admissions, exam, or paperwork task forward every week.",
+          "You keep a realistic timeline for supervised practice and first employable milestones."
+        ]
+      },
+      "routes": {
+        "primary": {
+          "title": "Primary route: education, clinical hours, and licensing",
+          "reason": "This move depends on an accredited program, required clinical placements and patient chairside competencies, and registration with the College of Dental Hygienists of Ontario (CDHO) or your provincial dental hygiene regulator for Ontario, Canada. The fastest path is the one that clears those gates in order.",
+          "firstStep": "Confirm the exact program, admissions requirements, the NDHCE and regulator registration requirements, and registration path for Ontario, Canada."
+        },
+        "secondary": {
+          "title": "Secondary route: adjacent patient-care support role",
+          "reason": "If the full program takes time, a support role can help you build field exposure, references, and confidence while you move through the education and licensing sequence.",
+          "firstStep": "Shortlist 5 support roles that sit close to Dental Hygienist and can build patient-care exposure while you qualify."
+        },
+        "contingency": {
+          "title": "Contingency route: prerequisite and admissions bridge",
+          "reason": "If you are missing prerequisite courses or admissions requirements, solve those first instead of paying for the wrong school or applying too early.",
+          "firstStep": "Map the prerequisite courses, admissions tests, or bridge programs you can close in the next 30 days."
+        }
+      },
+      "roadmapGuide": {
+        "phases": [
+          {
+            "label": "0-30 Days",
+            "focus": "1 regulator checklist",
+            "steps": [
+              {
+                "title": "Confirm the accredited program, admissions prerequisites, the NDHCE and regulator registration requirements, and provincial registration sequence for Ontario, Canada.",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, program, or regulator path.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Baseline education: Dental therapists are required to complete a two- to three- year college diploma from an approved dental institution program.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Obtain required certification with active status."
+                ],
+                "proofChecklist": [
+                  "1 regulator checklist.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Write down the province-specific rule, regulator, or admission requirement you confirmed."
+                ]
+              },
+              {
+                "title": "Compare program options by length, tuition, and required clinical placements and patient chairside competencies.",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, program, or regulator path.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Baseline education: Dental therapists are required to complete a two- to three- year college diploma from an approved dental institution program.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Obtain required certification with active status."
+                ],
+                "proofChecklist": [
+                  "3 route comparisons.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Write down the province-specific rule, regulator, or admission requirement you confirmed."
+                ]
+              },
+              {
+                "title": "Speak with 3 practitioners or advisors aligned to Dental Hygienist so you understand the real path before you commit.",
+                "whyItMatters": "This keeps you from wasting time or money on the wrong province, program, or regulator path.",
+                "timeRange": "1-2 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Baseline education: Dental therapists are required to complete a two- to three- year college diploma from an approved dental institution program.",
+                  "Confirm regional licensing and certification requirements before applying.",
+                  "Obtain required certification with active status."
+                ],
+                "proofChecklist": [
+                  "3 field conversations.",
+                  "Save one dated note, email, or checklist that proves this step moved.",
+                  "Write down the province-specific rule, regulator, or admission requirement you confirmed."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "30-90 Days",
+            "focus": "2 admissions tasks closed",
+            "steps": [
+              {
+                "title": "Start prerequisite coursework, transcripts, or admissions steps for the accredited program.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$150-CA$2,500+ (varies by province, school, and regulator)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "2 admissions tasks closed.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Build relevant exposure through volunteer, support, or adjacent healthcare roles connected to Dental Hygienist.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$50-CA$750+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 prerequisite milestone.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Map funding, schedule, and placement constraints before accepting a program.",
+                "whyItMatters": "This turns the plan into proof employers or regulators can actually trust.",
+                "timeRange": "2-6 weeks",
+                "costRange": "CA$0-CA$250 now (document requests or consults can vary by province/regulator)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 patient-care exposure plan.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          },
+          {
+            "label": "3-12 Months",
+            "focus": "1 program completion milestone",
+            "steps": [
+              {
+                "title": "Complete the accredited program and required supervised placements.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$50-CA$750+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 program completion milestone.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Prepare for the NDHCE and regulator registration requirements and final regulator submission.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$150-CA$2,500+ (varies by province, school, and regulator)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 licensing exam plan.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              },
+              {
+                "title": "Target entry-level healthcare roles as you clear the final regulator checkpoint.",
+                "whyItMatters": "This keeps momentum moving toward stronger eligibility, better interviews, and better pay.",
+                "timeRange": "1-3 months",
+                "costRange": "CA$50-CA$750+ (varies by province/employer)",
+                "prereqs": [
+                  "Confirm regional licensing and certification requirements before applying."
+                ],
+                "proofChecklist": [
+                  "1 regulator submission checklist.",
+                  "Save one artifact that proves this step moved this week."
+                ]
+              }
+            ]
+          }
+        ],
+        "next7Days": [
+          "Confirm the exact program, admissions requirements, the NDHCE and regulator registration requirements, and registration path for Ontario, Canada.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain required certification with active status in short daily blocks.",
+          "Ask one regulator, school, or licensing contact to confirm the right first checkpoint for your province."
+        ]
+      },
+      "plan90": [
+        {
+          "phase": "Weeks 1-4",
+          "weeks": "1-4",
+          "tasks": [
+            "Confirm the accredited program, admissions prerequisites, the NDHCE and regulator registration requirements, and provincial registration sequence for Ontario, Canada.",
+            "Compare program options by length, tuition, and required clinical placements and patient chairside competencies.",
+            "Speak with 3 practitioners or advisors aligned to Dental Hygienist so you understand the real path before you commit."
+          ],
+          "weeklyTargets": [
+            "1 regulator checklist",
+            "3 route comparisons",
+            "3 field conversations",
+            "1 admissions timeline"
+          ],
+          "timePerWeekHours": 8
+        },
+        {
+          "phase": "Months 2-6",
+          "weeks": "5-24",
+          "tasks": [
+            "Start prerequisite coursework, transcripts, or admissions steps for the accredited program.",
+            "Build relevant exposure through volunteer, support, or adjacent healthcare roles connected to Dental Hygienist.",
+            "Map funding, schedule, and placement constraints before accepting a program."
+          ],
+          "weeklyTargets": [
+            "2 admissions tasks closed",
+            "1 prerequisite milestone",
+            "1 patient-care exposure plan",
+            "1 funding plan"
+          ],
+          "timePerWeekHours": 10
+        },
+        {
+          "phase": "Final licensing phase",
+          "weeks": "24+",
+          "tasks": [
+            "Complete the accredited program and required supervised placements.",
+            "Prepare for the NDHCE and regulator registration requirements and final regulator submission.",
+            "Target entry-level healthcare roles as you clear the final regulator checkpoint."
+          ],
+          "weeklyTargets": [
+            "1 program completion milestone",
+            "1 licensing exam plan",
+            "1 regulator submission checklist",
+            "5 entry-role targets"
+          ],
+          "timePerWeekHours": 10
+        }
+      ],
+      "execution": {
+        "dailyRoutine": [
+          "15 minutes: move one admissions, paperwork, or regulator task forward.",
+          "15 minutes: maintain one healthcare relationship with an instructor, advisor, recruiter, or Dental Hygienist practitioner.",
+          "15 minutes: review your next education, placement, or licensing checkpoint."
+        ],
+        "weeklyCadence": [
+          "2 admissions or regulator tasks",
+          "2 program or prerequisite steps",
+          "2 healthcare field conversations",
+          "1 timeline review"
+        ],
+        "outreachTemplates": {
+          "call": "Hi, I am planning a move into Dental Hygienist. I want to make sure I follow the right program, placement, and licensing sequence for Ontario, Canada. Who can confirm the correct first step so I do not waste time or tuition?",
+          "email": "Subject: Clarifying the path into Dental Hygienist Hi, I am planning a transition into Dental Hygienist. I am mapping the right education program, required clinical placements and patient chairside competencies, and licensing sequence and want to make sure I start with the correct first step. If you can point me to the best first action, I would appreciate it. Best, Your Name"
+        }
+      },
+      "gaps": {
+        "strengths": [
+          "You already bring some usable overlap into this move.",
+          "Lead with the strongest overlap when you apply or reach out.",
+          "Use the clearest transferable signal as early interview proof."
+        ],
+        "missing": [
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain required certification with active status in short daily blocks.",
+          "Learn the core role fundamentals in short daily blocks.",
+          "Learn the basics of obtain looking for a talented registered dental hygienist to join our ottawa, on team in short daily blocks."
+        ],
+        "first3Steps": [
+          "Confirm the exact program, admissions requirements, the NDHCE and regulator registration requirements, and registration path for Ontario, Canada.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain required certification with active status in short daily blocks."
+        ]
+      },
+      "earnings": [
+        {
+          "stage": "Year 1",
+          "rangeLow": 22,
+          "rangeHigh": 24,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 2",
+          "rangeLow": 22,
+          "rangeHigh": 26,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Year 3",
+          "rangeLow": 26,
+          "rangeHigh": 29,
+          "unit": "USD/hour"
+        },
+        {
+          "stage": "Fully Qualified",
+          "rangeLow": 26,
+          "rangeHigh": 31,
+          "unit": "USD/hour"
+        }
+      ],
+      "reality": {
+        "barriers": [
+          "The sequence matters here. Skipping education or licensure steps wastes time.",
+          "This is a regulated profession. Licensing, credential recognition, and timelines can vary by province in Canada.",
+          "Confirm regional licensing and certification requirements before applying."
+        ],
+        "mitigations": [
+          "Confirm the province-specific regulator, credential-recognition rules, and first application checkpoint before you spend money.",
+          "Confirm regional licensing and certification requirements before applying in short daily blocks.",
+          "Learn the basics of obtain required certification with active status in short daily blocks."
+        ]
+      },
+      "resources": {
+        "local": [
+          {
+            "label": "Provincial dental hygiene regulator",
+            "url": ""
+          },
+          {
+            "label": "Accredited dental hygiene programs (starting points)",
+            "url": ""
+          }
+        ],
+        "online": [
+          {
+            "label": "NDHCE and registration pathway overview",
+            "url": ""
+          },
+          {
+            "label": "Healthcare program admissions guidance",
+            "url": ""
+          }
+        ],
+        "internal": [
+          {
+            "label": "CareerHeap Blog",
+            "url": "/blog"
+          },
+          {
+            "label": "Career Tools",
+            "url": "/tools"
+          },
+          {
+            "label": "Run This Plan Again",
+            "url": "/tools/career-switch-planner"
+          }
+        ]
+      }
+    },
+    "transitionStructuredPlan": {
+      "summary": "Transitioning from Cashier to Dental Hygienist in Ontario, Canada requires completing a 2-3 year college diploma from an approved dental institution, obtaining regional licensing and certification, and gaining supervised clinical experience. The path is challenging with multiple formal requirements and a timeline of approximately 7 to 20 months. Entry-level roles demand maintaining accurate patient records, collaborating with teams, and demonstrating a calm, supportive demeanor. Employers require active certification and registration with the College of Dental Hygienists of Ontario (CDHO).",
+      "compatibility_level": "Low",
+      "timeline_estimate": "7-20 months",
+      "required_certifications": [
+        "Complete a 2-3 year college diploma from an approved dental institution program",
+        "Obtain and maintain active regional licensing and certification with the CDHO"
+      ],
+      "required_experience": [
+        "Maintain accurate patient records and charting",
+        "Complete required clinical rotations and document supervised competencies",
+        "Collaborate across teams to deliver role-critical milestones on time",
+        "Demonstrate a calm, reassuring, and friendly demeanor in a supportive work environment"
+      ],
+      "action_steps": [
+        "Confirm the exact dental hygiene program, admissions requirements, and registration path for Ontario, Canada",
+        "Confirm regional licensing and certification requirements before applying",
+        "Begin obtaining required certification with active status by preparing and submitting applications"
+      ],
+      "salary_projection": "Year 1: $22-24 USD/hour; Fully Qualified: $26-31 USD/hour, with potential for meaningful wage increases as qualifications and scope expand",
+      "narrative_sections": {
+        "intro": "This plan outlines the practical steps to become a Dental Hygienist in Ontario, Canada, detailing the skills you will build and the credentials employers require.",
+        "skills_you_build": [
+          {
+            "title": "Core job skills",
+            "summary": "Practical skills essential for Dental Hygienists in Ontario.",
+            "bullets": [
+              "Maintain accurate patient records and charting"
+            ]
+          },
+          {
+            "title": "Work habits employers notice fast",
+            "summary": "Habits that build trust and reliability in entry-level candidates.",
+            "bullets": [
+              "Collaborate across teams to meet role-critical milestones on time",
+              "Complete required clinical rotations and document supervised competencies",
+              "Maintain a calm, reassuring, and friendly demeanor in a supportive work environment"
+            ]
+          }
+        ],
+        "credentials_you_need": [
+          {
+            "title": "Before you get hired",
+            "summary": "Education and certification requirements typically screened at entry level.",
+            "bullets": [
+              "Complete a 2-3 year college diploma from an approved dental institution",
+              "Confirm regional licensing and certification requirements before applying",
+              "Obtain required certification with active status"
+            ]
+          },
+          {
+            "title": "What full qualification usually requires",
+            "summary": "Further qualifications and registrations expected beyond entry level.",
+            "bullets": [
+              "Maintain active certification and registration with the College of Dental Hygienists of Ontario (CDHO)",
+              "Meet specific employer requirements such as being a Registered Dental Hygienist in good standing"
+            ]
+          }
+        ],
+        "soft_skills_that_matter": [
+          "Collaboration and teamwork",
+          "Attention to detail in clinical documentation",
+          "Calm and supportive patient interaction",
+          "Reliability and professionalism"
+        ],
+        "why_this_path_can_pay_off": [
+          "Starting wage ranges from $22 to $24 USD per hour in the first year",
+          "Fully qualified Dental Hygienists earn between $26 and $31 USD per hour",
+          "Wages increase with experience, proof of skills, and expanded scope of practice",
+          "Demand for qualified Dental Hygienists in Ontario supports stable employment"
+        ],
+        "start_from_zero": [
+          "Confirm the exact program, admissions requirements, and registration path for Ontario",
+          "Confirm regional licensing and certification requirements before applying",
+          "Begin learning the certification process and prepare documentation in short daily sessions"
+        ]
+      }
+    },
+    "transitionPlanScripts": {
+      "call": "Hello, my name is [Your Name]. I am exploring opportunities to become a Registered Dental Hygienist in Ontario and would like to inquire if your practice is currently hiring or offering training pathway pathways. May I schedule a brief follow-up to discuss potential entry routes?",
+      "email": "Subject: Inquiry About Entry-Level Opportunities for Dental Hygienist in Ontario Dear [Hiring Manager], I am interested in transitioning into the Dental Hygienist profession in Ontario and am seeking information about training pathway or entry-level opportunities within your practice. Could you please advise if you are currently hiring or supporting candidates pursuing certification and registration? I would appreciate the chance to discuss how I might contribute and learn under your guidance. Thank you for your time and consideration. Sincerely, [Your Name]",
+      "source": "gpt"
+    },
+    "transitionPlanCacheMeta": {
+      "version": "transition-plan-v4",
+      "generatedAt": "2026-03-16T07:37:29.756Z",
+      "region": "Ontario, Canada",
+      "experienceLevelBucket": "entry",
+      "cacheHit": false
+    },
+    "previewLimited": false,
+    "v3Diagnostics": {
+      "missingFields": [],
+      "placeholderSignals": [],
+      "stageFailures": [],
+      "role_match_explanation": {
+        "current": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.077,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        },
+        "target": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.154,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": [
+            "Natural and applied science policy researchers, consultants and program officers"
+          ]
+        }
+      },
+      "generatedAt": "2026-03-16T07:37:40.528Z"
+    },
+    "roleResolution": {
+      "current": {
+        "input": "Cashier",
+        "matched": {
+          "occupationId": "74c96646-1119-4fe6-bc5c-5888a491627f",
+          "title": "Cashiers",
+          "code": "74c96646-1119-4fe6-bc5c-5888a491627f",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.957,
+          "stage": null,
+          "specialization": null,
+          "rawInputTitle": "Cashier",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.077,
+            "industryMatch": 0.9,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": []
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "title": "Retail sales supervisors",
+            "code": "16723617-a7d5-47f3-9704-3e8e71ed72c2",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.832
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.077,
+          "industryMatch": 0.9,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": []
+        }
+      },
+      "target": {
+        "input": "Dental Hygienist",
+        "matched": {
+          "occupationId": "0625c8c7-7792-4b4b-bee2-a7eb9ed9d539",
+          "title": "Dental hygienists and dental therapists",
+          "code": "0625c8c7-7792-4b4b-bee2-a7eb9ed9d539",
+          "region": "CA",
+          "source": "NOC",
+          "lastUpdated": "2025-11-19",
+          "confidence": 0.979,
+          "stage": null,
+          "specialization": null,
+          "rawInputTitle": "Dental Hygienist",
+          "matchExplanation": {
+            "titleSimilarity": 1,
+            "skillOverlap": 0.154,
+            "industryMatch": 1,
+            "experienceMatch": 1,
+            "trainingOverlap": 0,
+            "rejectedCandidates": [
+              "Natural and applied science policy researchers, consultants and program officers"
+            ]
+          }
+        },
+        "suggestions": [
+          {
+            "occupationId": "8687eb63-f45a-4783-a8c3-dd1f0b6fa28d",
+            "title": "College and other vocational instructors",
+            "code": "8687eb63-f45a-4783-a8c3-dd1f0b6fa28d",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.748
+          },
+          {
+            "occupationId": "db59899e-777e-4427-b825-0929db26f67f",
+            "title": "Dental assistants and dental laboratory assistants",
+            "code": "db59899e-777e-4427-b825-0929db26f67f",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.725
+          },
+          {
+            "occupationId": "15a90fd1-c9b7-4f7e-8f89-1cc685d603ca",
+            "title": "Dental technologists and technicians",
+            "code": "15a90fd1-c9b7-4f7e-8f89-1cc685d603ca",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.725
+          },
+          {
+            "occupationId": "6b93292e-916e-4416-988f-bead0386753a",
+            "title": "Dentists, General",
+            "code": "6b93292e-916e-4416-988f-bead0386753a",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.61
+          },
+          {
+            "occupationId": "64937d9f-f7d8-4986-8891-30c4ccb1f3b4",
+            "title": "Denturists",
+            "code": "64937d9f-f7d8-4986-8891-30c4ccb1f3b4",
+            "region": "CA",
+            "source": "NOC",
+            "confidence": 0.586
+          }
+        ],
+        "matchExplanation": {
+          "titleSimilarity": 1,
+          "skillOverlap": 0.154,
+          "industryMatch": 1,
+          "experienceMatch": 1,
+          "trainingOverlap": 0,
+          "rejectedCandidates": [
+            "Natural and applied science policy researchers, consultants and program officers"
+          ]
+        }
+      }
+    }
+  },
+  "reportId": null,
+  "scoring": {
+    "total_score": 44,
+    "breakdown": {
+      "skill_overlap": 0,
+      "experience_similarity": 16.3,
+      "education_alignment": 10,
+      "certification_gap": 15,
+      "timeline_feasibility": 2.2
+    },
+    "top_occupation_id": "0625c8c7-7792-4b4b-bee2-a7eb9ed9d539"
+  },
+  "usage": {
+    "plan": "free",
+    "isUnlimited": false,
+    "canUse": true,
+    "used": 0,
+    "limit": 3,
+    "usesRemaining": 3,
+    "byTool": {}
+  },
+  "previewLimited": false
+}

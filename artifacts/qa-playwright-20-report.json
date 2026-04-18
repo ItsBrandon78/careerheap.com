@@ -1,0 +1,663 @@
+{
+  "summary": {
+    "startedAt": "2026-03-16T00:35:23.760Z",
+    "finishedAt": "2026-03-16T00:48:19.503Z",
+    "baseUrl": "http://127.0.0.1:3000",
+    "total": 20,
+    "dashboard": 17,
+    "roleSelectionRequired": 3,
+    "errors": 0,
+    "unknown": 0,
+    "http200": 17,
+    "http409": 3,
+    "httpOther": 0
+  },
+  "results": [
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Licensed Practical Nurse",
+      "startedAt": "2026-03-16T00:35:23.760Z",
+      "finishedAt": "2026-03-16T00:36:04.221Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\01-cashier-to-licensed-practical-nurse.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Licensed+Practical+Nurse&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Registered Nurse",
+      "startedAt": "2026-03-16T00:36:04.222Z",
+      "finishedAt": "2026-03-16T00:36:40.544Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\02-cashier-to-registered-nurse.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Registered+Nurse&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Dental Hygienist",
+      "startedAt": "2026-03-16T00:36:40.545Z",
+      "finishedAt": "2026-03-16T00:37:37.415Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\03-cashier-to-dental-hygienist.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Dental+Hygienist&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Pharmacy Technician",
+      "startedAt": "2026-03-16T00:37:37.416Z",
+      "finishedAt": "2026-03-16T00:38:26.077Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\04-cashier-to-pharmacy-technician.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Pharmacy+Technician&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Accountant",
+      "startedAt": "2026-03-16T00:38:26.077Z",
+      "finishedAt": "2026-03-16T00:39:27.449Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\05-cashier-to-accountant.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Accountant&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Human Resources Manager",
+      "startedAt": "2026-03-16T00:39:27.449Z",
+      "finishedAt": "2026-03-16T00:40:17.421Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\06-cashier-to-human-resources-manager.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Human+Resources+Manager&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Operations Coordinator",
+      "startedAt": "2026-03-16T00:40:17.422Z",
+      "finishedAt": "2026-03-16T00:40:19.034Z",
+      "status": "role_selection_required",
+      "generationStatus": 409,
+      "generationError": "ROLE_SELECTION_REQUIRED",
+      "generationMessage": "Resolved to Facility operation and maintenance managers (0.68 confidence). Choose a different match if wrong.",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\07-cashier-to-operations-coordinator.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Operations+Coordinator&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 409,
+          "ok": false,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Administrative Assistant",
+      "startedAt": "2026-03-16T00:40:19.035Z",
+      "finishedAt": "2026-03-16T00:41:01.579Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\08-cashier-to-administrative-assistant.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Administrative+Assistant&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Software Developer",
+      "startedAt": "2026-03-16T00:41:01.580Z",
+      "finishedAt": "2026-03-16T00:41:46.657Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\09-cashier-to-software-developer.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Software+Developer&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Cashier",
+      "targetRole": "Data Scientist",
+      "startedAt": "2026-03-16T00:41:46.658Z",
+      "finishedAt": "2026-03-16T00:42:34.394Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\10-cashier-to-data-scientist.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Data+Scientist&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Electrician",
+      "startedAt": "2026-03-16T00:42:34.394Z",
+      "finishedAt": "2026-03-16T00:43:16.469Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\11-retail-associate-to-electrician.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Electrician&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Millwright",
+      "startedAt": "2026-03-16T00:43:16.469Z",
+      "finishedAt": "2026-03-16T00:44:07.561Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\12-retail-associate-to-millwright.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Millwright&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Plumber",
+      "startedAt": "2026-03-16T00:44:07.561Z",
+      "finishedAt": "2026-03-16T00:44:44.135Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\13-retail-associate-to-plumber.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Plumber&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "HVAC Technician",
+      "startedAt": "2026-03-16T00:44:44.135Z",
+      "finishedAt": "2026-03-16T00:45:18.898Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\14-retail-associate-to-hvac-technician.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=HVAC+Technician&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Carpenter",
+      "startedAt": "2026-03-16T00:45:18.898Z",
+      "finishedAt": "2026-03-16T00:46:06.728Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\15-retail-associate-to-carpenter.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Carpenter&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Cybersecurity Analyst",
+      "startedAt": "2026-03-16T00:46:06.728Z",
+      "finishedAt": "2026-03-16T00:46:49.831Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\16-retail-associate-to-cybersecurity-analyst.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Cybersecurity+Analyst&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "UX Designer",
+      "startedAt": "2026-03-16T00:46:49.831Z",
+      "finishedAt": "2026-03-16T00:46:51.114Z",
+      "status": "role_selection_required",
+      "generationStatus": 409,
+      "generationError": "ROLE_SELECTION_REQUIRED",
+      "generationMessage": "Resolved to Computer engineers (except software engineers and designers) (0.68 confidence). Choose a different match if wrong.",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\17-retail-associate-to-ux-designer.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 409,
+          "ok": false,
+          "method": "POST"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=UX+Designer&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Project Coordinator",
+      "startedAt": "2026-03-16T00:46:51.115Z",
+      "finishedAt": "2026-03-16T00:47:34.923Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\18-retail-associate-to-project-coordinator.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Project+Coordinator&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Customer Success Manager",
+      "startedAt": "2026-03-16T00:47:34.923Z",
+      "finishedAt": "2026-03-16T00:47:36.215Z",
+      "status": "role_selection_required",
+      "generationStatus": 409,
+      "generationError": "ROLE_SELECTION_REQUIRED",
+      "generationMessage": "Resolved to Customer service representatives supervisors - financial services (0.68 confidence). Choose a different match if wrong.",
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\19-retail-associate-to-customer-success-manager.png",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Customer+Success+Manager&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 409,
+          "ok": false,
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "currentRole": "Retail Associate",
+      "targetRole": "Bookkeeper",
+      "startedAt": "2026-03-16T00:47:36.215Z",
+      "finishedAt": "2026-03-16T00:48:19.462Z",
+      "status": "dashboard",
+      "generationStatus": 200,
+      "generationError": null,
+      "generationMessage": null,
+      "screenshotPath": "C:\\dev\\careerheap-app\\artifacts\\qa-playwright-20-screenshots\\20-retail-associate-to-bookkeeper.png",
+      "consoleErrors": [],
+      "network": [
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner?plan=pro&uses=0",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/career-map/occupations?q=Bookkeeper&limit=8&region=CA",
+          "status": 200,
+          "ok": true,
+          "method": "GET"
+        },
+        {
+          "url": "http://127.0.0.1:3000/api/tools/career-switch-planner",
+          "status": 200,
+          "ok": true,
+          "method": "POST"
+        }
+      ]
+    }
+  ]
+}

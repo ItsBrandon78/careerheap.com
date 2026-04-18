@@ -2433,12 +2433,14 @@ export function PathForwardCard({
   cardId,
   isCardChecked,
   onToggleCard,
+  onSelectAlternativeRole,
 }: {
   model: PlannerDashboardV3Model;
   primaryScenarioSteps: PlannerDashboardV3Model['fastestPath']['steps'];
   cardId: string;
   isCardChecked: boolean;
   onToggleCard: (cardId: string) => void;
+  onSelectAlternativeRole?: (title: string) => void;
 }) {
   const steps =
     primaryScenarioSteps.length > 0
@@ -2485,6 +2487,11 @@ export function PathForwardCard({
         ))}
       </ol>
 
+      <BackupPaths
+        model={model}
+        onSelectAlternativeRole={onSelectAlternativeRole}
+      />
+
       <div className="mt-4 flex items-center justify-end">
         <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
           <input
@@ -2497,6 +2504,85 @@ export function PathForwardCard({
         </label>
       </div>
     </FocusCard>
+  );
+}
+
+function BackupPaths({
+  model,
+  onSelectAlternativeRole,
+}: {
+  model: PlannerDashboardV3Model;
+  onSelectAlternativeRole?: (title: string) => void;
+}) {
+  const { fastestEntry, closestMatch, bestLongTermUpside } = model.adjacentEntryOptions;
+  const targetKey = (model.decision.targetRole || '').trim().toLowerCase();
+  const rawOptions: Array<{ label: string; option: typeof fastestEntry }> = [
+    { label: 'Fastest way in', option: fastestEntry },
+    { label: 'Closest match', option: closestMatch },
+    { label: 'Long-term upside', option: bestLongTermUpside },
+  ];
+  const seenTitles = new Set<string>();
+  if (targetKey) seenTitles.add(targetKey);
+  const options = rawOptions.filter((entry) => {
+    if (!entry.option) return false;
+    const key = entry.option.title.trim().toLowerCase();
+    if (!key || seenTitles.has(key)) return false;
+    seenTitles.add(key);
+    return true;
+  });
+
+  if (options.length === 0) return null;
+
+  return (
+    <div className="mt-5 border-t border-border-light pt-4">
+      <p className="mb-2 text-[11px] font-bold uppercase tracking-[1.05px] text-text-tertiary">
+        If this path stalls, try one of these
+      </p>
+      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        {options.map((entry) => {
+          const option = entry.option!;
+          const body = (
+            <>
+              <p className="text-[10px] font-bold uppercase tracking-[1px] text-accent">
+                {entry.label}
+              </p>
+              <p className="mt-1 text-[13px] font-bold leading-[1.35] text-text-primary">
+                {option.title}
+              </p>
+              <p className="mt-1 text-[11.5px] font-medium text-text-secondary">
+                {option.difficulty} · {option.timeline}
+              </p>
+              {option.reason ? (
+                <p className="mt-1.5 text-[12px] leading-[1.5] text-text-secondary">
+                  {option.reason}
+                </p>
+              ) : null}
+            </>
+          );
+
+          if (onSelectAlternativeRole) {
+            return (
+              <button
+                key={entry.label}
+                type="button"
+                onClick={() => onSelectAlternativeRole(option.title)}
+                className="rounded-xl border border-border-light bg-bg-secondary p-3 text-left transition hover:border-accent/40 hover:bg-accent-light/30"
+              >
+                {body}
+              </button>
+            );
+          }
+          return (
+            <div
+              key={entry.label}
+              className="rounded-xl border border-border-light bg-bg-secondary p-3"
+            >
+              {body}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -2515,19 +2601,28 @@ export function StartHereCard({
   isItemChecked: (itemId: string) => boolean;
   onToggleItem: (itemId: string) => void;
 }) {
-  const applyFirstRole = model.adjacentEntryOptions.fastestEntry?.title || model.decision.targetRole;
+  const targetRole = model.decision.targetRole;
+  const fastestEntry = model.adjacentEntryOptions.fastestEntry?.title;
   const firstCredential =
     model.certEducation.required[0] || model.certEducation.recommended[0] || 'Confirm the entry credential for this role';
   const thisWeek =
     model.actionWindow14.thisWeek.length > 0 ? model.actionWindow14.thisWeek : model.checklist.immediate;
+  const proofToCollect =
+    model.actionWindow14.proofToCollect.length > 0
+      ? model.actionWindow14.proofToCollect
+      : model.resumeEvidence.stillNeedsProof;
 
   const items: string[] = [
-    `Start applying to: ${applyFirstRole}`,
+    `Line up first outreach for ${targetRole}`,
+    fastestEntry && fastestEntry.trim().toLowerCase() !== targetRole.trim().toLowerCase()
+      ? `Consider a faster bridge role: ${fastestEntry}`
+      : '',
     `Sign up for: ${firstCredential}`,
     ...thisWeek.slice(0, 3),
   ];
 
   const deduped = Array.from(new Set(items.filter(Boolean))).slice(0, 5);
+  const proofItems = Array.from(new Set(proofToCollect.filter(Boolean))).slice(0, 3);
 
   return (
     <FocusCard
@@ -2550,6 +2645,25 @@ export function StartHereCard({
           );
         })}
       </ul>
+
+      {proofItems.length > 0 ? (
+        <div className="mt-5 rounded-lg border border-accent/20 bg-accent-light/30 p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[1.05px] text-accent">
+            Proof to collect this week
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {proofItems.map((item, idx) => (
+              <li
+                key={`${item}-${idx}`}
+                className="flex gap-2 text-[13px] leading-[1.55] text-text-secondary"
+              >
+                <span className="text-accent">·</span>
+                <span className="min-w-0 break-words">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="mt-4 flex items-center justify-end">
         <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
@@ -2585,18 +2699,29 @@ export function StandOutCard({
   const signals = model.resumeEvidence.stillNeedsProof.slice(0, 3);
   const advantages = model.strengths.slice(0, 2);
 
-  const sections: Array<{ heading: string; kind: string; items: string[] }> = [
-    {
-      heading: 'Helpful certifications',
-      kind: 'cert',
-      items: certifications,
-    },
-    {
-      heading: 'Experience signals employers look for',
-      kind: 'signal',
-      items: signals,
-    },
-  ];
+  const courseByNormalizedName = new Map<
+    string,
+    { sourceUrl: string | null; provider: string; sourceLabel: string }
+  >();
+  for (const course of model.training.courses) {
+    const key = course.name.trim().toLowerCase();
+    if (!key) continue;
+    courseByNormalizedName.set(key, {
+      sourceUrl: course.sourceUrl ?? null,
+      provider: course.provider,
+      sourceLabel: course.sourceLabel,
+    });
+  }
+
+  const findCourseLink = (label: string) => {
+    const normalized = label.trim().toLowerCase();
+    const exact = courseByNormalizedName.get(normalized);
+    if (exact) return exact;
+    for (const [key, value] of courseByNormalizedName.entries()) {
+      if (normalized.includes(key) || key.includes(normalized)) return value;
+    }
+    return null;
+  };
 
   return (
     <FocusCard
@@ -2604,30 +2729,75 @@ export function StandOutCard({
       hint="What hiring managers actually notice. Nail these and you'll move ahead of the pile."
     >
       <div className="space-y-4">
-        {sections.map((section) =>
-          section.items.length > 0 ? (
-            <div key={section.heading}>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-[1.05px] text-text-tertiary">
-                {section.heading}
-              </p>
-              <ul className="space-y-2">
-                {section.items.map((item, idx) => {
-                  const itemId = toChecklistKey('stand-out', section.kind, idx, item);
-                  return (
-                    <li key={itemId}>
-                      <FocusCheckRow
-                        text={item}
+        {certifications.length > 0 ? (
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[1.05px] text-text-tertiary">
+              Helpful certifications
+            </p>
+            <ul className="space-y-2">
+              {certifications.map((item, idx) => {
+                const itemId = toChecklistKey('stand-out', 'cert', idx, item);
+                const link = findCourseLink(item);
+                return (
+                  <li key={itemId}>
+                    <div
+                      className={`flex items-start gap-3 rounded-lg border px-3.5 py-3 transition ${isItemChecked(itemId) ? 'border-success/30 bg-success/5' : 'border-border-light bg-bg-secondary'}`}
+                    >
+                      <input
+                        id={itemId}
+                        type="checkbox"
                         checked={isItemChecked(itemId)}
-                        onToggle={onToggleItem}
-                        itemId={itemId}
+                        onChange={() => onToggleItem(itemId)}
+                        className="mt-0.5 h-4 w-4 rounded border-border"
                       />
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ) : null
-        )}
+                      <div className="min-w-0 flex-1">
+                        <label
+                          htmlFor={itemId}
+                          className={`block cursor-pointer text-[13.5px] font-medium leading-[1.55] ${isItemChecked(itemId) ? 'text-text-tertiary line-through' : 'text-text-primary'}`}
+                        >
+                          {item}
+                        </label>
+                        {link?.sourceUrl ? (
+                          <a
+                            href={link.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-[11.5px] font-semibold text-accent hover:underline"
+                          >
+                            {link.provider || link.sourceLabel || 'Official source'} ↗
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+
+        {signals.length > 0 ? (
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[1.05px] text-text-tertiary">
+              Experience signals employers look for
+            </p>
+            <ul className="space-y-2">
+              {signals.map((item, idx) => {
+                const itemId = toChecklistKey('stand-out', 'signal', idx, item);
+                return (
+                  <li key={itemId}>
+                    <FocusCheckRow
+                      text={item}
+                      checked={isItemChecked(itemId)}
+                      onToggle={onToggleItem}
+                      itemId={itemId}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
 
         {advantages.length > 0 ? (
           <div className="rounded-lg border border-success/25 bg-success/5 p-4">
@@ -2765,11 +2935,33 @@ export function TimelineCard({
 
   const estimate = model.decision.estimatedTimeline || model.hero.timeline.value;
 
+  const payProgression = [
+    { label: 'Entry', value: model.marketSnapshot.entryWage?.value },
+    { label: 'Mid-career', value: model.marketSnapshot.midCareerSalary?.value },
+    { label: 'Top earners', value: model.marketSnapshot.topEarners?.value },
+  ].filter((entry) => entry.value && !/unavailable/i.test(entry.value));
+
   return (
     <FocusCard
       title="Timeline"
       hint={`Realistic pace for this switch. Most people in your situation take ${estimate || '6–12 months'} — longer if you stop, shorter if you pick up momentum early.`}
     >
+      {payProgression.length > 0 ? (
+        <div className="mb-4 rounded-lg border border-border-light bg-bg-secondary p-4">
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-text-tertiary">
+            Money reality
+          </p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            {payProgression.map((entry) => (
+              <div key={entry.label}>
+                <p className="text-[11px] font-semibold text-text-tertiary">{entry.label}</p>
+                <p className="text-[13px] font-bold text-text-primary">{entry.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="space-y-3">
         {windows.slice(0, 3).map((window, idx) => (
           <div

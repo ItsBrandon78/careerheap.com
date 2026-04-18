@@ -712,9 +712,11 @@ async function loadOccupationIndex(region?: RegionCode) {
   let supabase: ReturnType<typeof createAdminClient>
   try {
     supabase = createAdminClient()
-  } catch {
-    indexCache.set(cacheKey, { createdAt: Date.now(), rows: [] })
-    return []
+  } catch (error) {
+    console.error('[resolveOccupation] failed to create Supabase admin client:',
+      error instanceof Error ? error.message : String(error)
+    )
+    throw error
   }
 
   let query = supabase
@@ -754,8 +756,11 @@ async function loadOccupationById(occupationId: string) {
   let supabase: ReturnType<typeof createAdminClient>
   try {
     supabase = createAdminClient()
-  } catch {
-    return null
+  } catch (error) {
+    console.error('[resolveOccupation] failed to create Supabase admin client:',
+      error instanceof Error ? error.message : String(error)
+    )
+    throw error
   }
 
   const { data, error } = await supabase
