@@ -10,6 +10,7 @@ import ToolCard from '@/components/ToolCard';
 import { ToolGlyph } from '@/components/Icons';
 import type {
   DashboardFallbackValue,
+  PlannerDashboardAlternative,
   PlannerDashboardRoadmapPhase,
   PlannerDashboardTask,
   PlannerDashboardV3Model,

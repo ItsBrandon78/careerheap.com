@@ -571,7 +571,7 @@ export function PlannerDashboardV3({
         const nextCheckedCardIds = { ...defaultCheckedCardIds };
         const cardIds = new Set(actionableCardIds);
         for (const [cardId, checked] of Object.entries(parsed.checkedCardIds)) {
-          if (cardIds.has(cardId)) nextCheckedCardIds[cardId] = Boolean(checked);
+          if ((cardIds as Set<string>).has(cardId)) (nextCheckedCardIds as Record<string, boolean>)[cardId] = Boolean(checked);
         }
         setCheckedCardIds(nextCheckedCardIds);
       }

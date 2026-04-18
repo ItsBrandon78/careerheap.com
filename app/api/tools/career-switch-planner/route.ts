@@ -660,7 +660,17 @@ function shouldReturnUnmappedRole(
 ) {
   if (!inputValue.trim()) return false
   if (resolution.resolved) return false
+  if (!resolution.occupationId && resolution.alternatives.length === 0) return false
   if (!resolution.occupationId) return true
+
+  if (
+    isExactLikeRoleMatch(inputValue, resolution.title) ||
+    resolution.alternatives.some((candidate) =>
+      isExactLikeRoleMatch(inputValue, candidate.title)
+    )
+  ) {
+    return false
+  }
 
   const canonicalIntent = resolveCanonicalRoleIntent(inputValue)
   if (canonicalIntent && canonicalIntent.confidence >= 0.66) {
@@ -1936,10 +1946,15 @@ export async function POST(request: Request) {
             stack: error instanceof Error ? error.stack ?? null : null
           }
         : null
+    const message =
+      error instanceof Error &&
+      /Missing NEXT_PUBLIC_SUPABASE_URL and\/or SUPABASE_SECRET_KEY/.test(error.message)
+        ? 'Career planner backend is not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) in your environment.'
+        : 'Unable to generate a plan right now.'
     return NextResponse.json(
       {
         error: 'GENERATION_FAILED',
-        message: 'Unable to generate a plan right now.',
+        message,
         ...(localDebug ? { debug: localDebug } : {})
       },
       { status: 500 }
