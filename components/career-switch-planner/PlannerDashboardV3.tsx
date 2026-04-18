@@ -2,23 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Action14DaySection,
-  AdjacentEntryOptionsSection,
   AiSignalCard,
-  BestRouteSection,
-  BlockersSection,
   buildTrainingCards,
-  CertificationsEducationSection,
-  CollapsibleSection,
   DecisionHeader,
   GuestPreviewLimitSection,
-  RequirementsGapsSection,
+  PathForwardCard,
   RelatedToolsSection,
-  ResumeEvidenceSection,
-  RoadmapSection,
-  SalaryMarketSection,
-  SkillsBucketsSection,
+  SkillsToBuildCard,
+  StandOutCard,
+  StartHereCard,
   StickyExecutionPanel,
+  TimelineCard,
   TrustFaqSection,
   toChecklistKey,
 } from '@/components/career-switch-planner/PlannerDashboardSections'
@@ -865,20 +859,18 @@ export function PlannerDashboardV3({
             onToggleHeroCard={() => toggleCardChecklist(ACTIONABLE_CARD_IDS.hero)}
           />
 
-          <Action14DaySection
-            model={model}
-            cardId={ACTIONABLE_CARD_IDS.action14}
-            isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.action14])}
-            onToggleCard={toggleCardChecklist}
-            isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
-            onToggleItem={toggleItemChecklist}
-          />
-
-          <BestRouteSection
+          <PathForwardCard
             model={model}
             primaryScenarioSteps={primaryScenarioSteps}
             cardId={ACTIONABLE_CARD_IDS.bestRoute}
             isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.bestRoute])}
+            onToggleCard={toggleCardChecklist}
+          />
+
+          <StartHereCard
+            model={model}
+            cardId={ACTIONABLE_CARD_IDS.action14}
+            isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.action14])}
             onToggleCard={toggleCardChecklist}
             isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
             onToggleItem={toggleItemChecklist}
@@ -888,96 +880,30 @@ export function PlannerDashboardV3({
             <GuestPreviewLimitSection />
           ) : (
             <>
-              <BlockersSection
+              <StandOutCard
                 model={model}
-                cardId={ACTIONABLE_CARD_IDS.blockers}
-                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.blockers])}
+                cardId={ACTIONABLE_CARD_IDS.resumeEvidence}
+                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.resumeEvidence])}
                 onToggleCard={toggleCardChecklist}
                 isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
                 onToggleItem={toggleItemChecklist}
               />
 
-              <AdjacentEntryOptionsSection
+              <SkillsToBuildCard
                 model={model}
-                onSelectAlternativeRole={onSelectAlternativeRole}
-                cardId={ACTIONABLE_CARD_IDS.adjacent}
-                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.adjacent])}
+                cardId={ACTIONABLE_CARD_IDS.skills}
+                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.skills])}
                 onToggleCard={toggleCardChecklist}
                 isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
                 onToggleItem={toggleItemChecklist}
               />
 
-              <SalaryMarketSection
+              <TimelineCard
                 model={model}
-                cardId={ACTIONABLE_CARD_IDS.salaryMarket}
-                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.salaryMarket])}
+                cardId={ACTIONABLE_CARD_IDS.roadmap}
+                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.roadmap])}
                 onToggleCard={toggleCardChecklist}
-                isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
-                onToggleItem={toggleItemChecklist}
               />
-
-              <CollapsibleSection
-                title="Gaps to close"
-                subtitle="Requirements, skills, certifications, and resume evidence — expand to drill in."
-              >
-                <div className="space-y-4">
-                  <RequirementsGapsSection
-                    model={model}
-                    cardId={ACTIONABLE_CARD_IDS.requirements}
-                    isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.requirements])}
-                    onToggleCard={toggleCardChecklist}
-                    isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
-                    onToggleItem={toggleItemChecklist}
-                  />
-                  <SkillsBucketsSection
-                    model={model}
-                    cardId={ACTIONABLE_CARD_IDS.skills}
-                    isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.skills])}
-                    onToggleCard={toggleCardChecklist}
-                    isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
-                    onToggleItem={toggleItemChecklist}
-                  />
-                  <CertificationsEducationSection
-                    model={model}
-                    trainingCards={trainingCards}
-                    completedTrainingIds={completedTrainingIds}
-                    onToggleTrainingCard={toggleTrainingCard}
-                    cardId={ACTIONABLE_CARD_IDS.certifications}
-                    isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.certifications])}
-                    onToggleCard={toggleCardChecklist}
-                    isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
-                    onToggleItem={toggleItemChecklist}
-                  />
-                  <ResumeEvidenceSection
-                    model={model}
-                    cardId={ACTIONABLE_CARD_IDS.resumeEvidence}
-                    isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.resumeEvidence])}
-                    onToggleCard={toggleCardChecklist}
-                    isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
-                    onToggleItem={toggleItemChecklist}
-                  />
-                </div>
-              </CollapsibleSection>
-
-              <CollapsibleSection
-                title="Longer-term roadmap"
-                subtitle="0–30, 30–90, and 3–12 month checkpoints."
-              >
-                <RoadmapSection
-                  roadmapPhases={roadmapPhases}
-                  phaseStats={phaseStats}
-                  checkedTaskIds={checkedTaskIds}
-                  toggleRoadmapPhase={toggleRoadmapPhase}
-                  toggleChecklistTask={toggleChecklistTask}
-                  nowCompletion={nowCompletion}
-                  nowTasks={nowTasks}
-                  nextCompletion={nextCompletion}
-                  blockedTasks={blockedTasks}
-                  cardId={ACTIONABLE_CARD_IDS.roadmap}
-                  isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.roadmap])}
-                  onToggleCard={toggleCardChecklist}
-                />
-              </CollapsibleSection>
 
               <TrustFaqSection faqItems={faqItems} methodology={model.methodology} />
               <RelatedToolsSection relatedTools={relatedTools} />

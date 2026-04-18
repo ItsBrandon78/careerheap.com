@@ -2209,12 +2209,12 @@ export function StickyExecutionPanel({
 
 function verdictTone(verdict: 'Strong' | 'Possible' | 'Stretch') {
   if (verdict === 'Strong') {
-    return { badge: 'success' as const, label: 'Doable' };
+    return { badge: 'success' as const, label: 'You can do this' };
   }
   if (verdict === 'Possible') {
     return { badge: 'info' as const, label: 'Doable with effort' };
   }
-  return { badge: 'warning' as const, label: 'Stretch — plan carefully' };
+  return { badge: 'warning' as const, label: 'A stretch — but possible' };
 }
 
 export function DecisionHeader({
@@ -2260,30 +2260,19 @@ export function DecisionHeader({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-text-tertiary">
-            Transition plan
+            Your career switch
           </p>
           <h1 className="mt-1 break-words text-[22px] font-bold leading-tight text-text-primary md:text-[26px]">
             {decision.currentRole} <span className="text-text-tertiary">→</span> {decision.targetRole}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={tone.badge}>{tone.label}</Badge>
-          <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-text-secondary">
-            <input
-              type="checkbox"
-              checked={heroCardChecked}
-              onChange={onToggleHeroCard}
-              className="h-3.5 w-3.5 rounded border-border"
-            />
-            Done
-          </label>
-        </div>
+        <Badge variant={tone.badge}>{tone.label}</Badge>
       </div>
 
-      <p className="mt-2 text-sm leading-[1.55] text-text-secondary">{hero.insight}</p>
+      <p className="mt-2.5 text-[14px] leading-[1.6] text-text-secondary">{hero.insight}</p>
 
-      <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-        {metrics.map((metric) => (
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        {metrics.slice(0, 3).map((metric) => (
           <div
             key={metric.label}
             className="rounded-xl border border-border-light bg-bg-secondary p-3"
@@ -2314,16 +2303,28 @@ export function DecisionHeader({
         ))}
       </div>
 
-      {hero.fastestRoute ? (
-        <div className="mt-3 rounded-lg border border-accent/25 bg-accent-light/40 px-3 py-2">
-          <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">
-            Fastest route
+      {metrics[3]?.value && metrics[3].value !== '—' ? (
+        <div className="mt-3 rounded-lg border border-warning/25 bg-warning-light/50 px-3.5 py-2.5">
+          <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-warning">
+            What to focus on first
           </p>
-          <p className="mt-0.5 text-sm font-semibold leading-[1.4] text-text-primary">
-            {hero.fastestRoute}
+          <p className="mt-0.5 text-sm font-semibold leading-[1.45] text-text-primary">
+            {metrics[3].value}
           </p>
         </div>
       ) : null}
+
+      <div className="mt-4 flex items-center justify-end">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+          <input
+            type="checkbox"
+            checked={heroCardChecked}
+            onChange={onToggleHeroCard}
+            className="h-3.5 w-3.5 rounded border-border"
+          />
+          I've read this
+        </label>
+      </div>
     </Card>
   );
 }
@@ -2362,6 +2363,452 @@ export function CollapsibleSection({
       </button>
       {open ? <div className="border-t border-border-light px-5 py-5 md:px-6">{children}</div> : null}
     </Card>
+  );
+}
+
+function FocusCard({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="p-5 shadow-card md:p-6">
+      <div className="mb-4">
+        <h2 className="text-[17px] font-bold text-text-primary md:text-[18px]">{title}</h2>
+        {hint ? (
+          <p className="mt-1 text-[13px] leading-[1.55] text-text-secondary">{hint}</p>
+        ) : null}
+      </div>
+      {children}
+    </Card>
+  );
+}
+
+function FocusCheckRow({
+  text,
+  checked,
+  onToggle,
+  itemId,
+  index,
+}: {
+  text: string;
+  checked: boolean;
+  onToggle: (id: string) => void;
+  itemId: string;
+  index?: number;
+}) {
+  return (
+    <label
+      htmlFor={itemId}
+      className={`flex cursor-pointer items-start gap-3 rounded-lg border px-3.5 py-3 transition hover:border-accent/40 hover:bg-accent-light/30 ${checked ? 'border-success/30 bg-success/5' : 'border-border-light bg-bg-secondary'}`}
+    >
+      <input
+        id={itemId}
+        type="checkbox"
+        checked={checked}
+        onChange={() => onToggle(itemId)}
+        className="mt-0.5 h-4 w-4 rounded border-border"
+      />
+      <div className="min-w-0 flex-1">
+        {typeof index === 'number' ? (
+          <span className="mr-1.5 text-[13px] font-bold text-accent">{index + 1}.</span>
+        ) : null}
+        <span
+          className={`text-[13.5px] leading-[1.55] ${checked ? 'text-text-tertiary line-through' : 'text-text-primary'}`}
+        >
+          {text}
+        </span>
+      </div>
+    </label>
+  );
+}
+
+export function PathForwardCard({
+  model,
+  primaryScenarioSteps,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+}: {
+  model: PlannerDashboardV3Model;
+  primaryScenarioSteps: PlannerDashboardV3Model['fastestPath']['steps'];
+  cardId: string;
+  isCardChecked: boolean;
+  onToggleCard: (cardId: string) => void;
+}) {
+  const steps =
+    primaryScenarioSteps.length > 0
+      ? primaryScenarioSteps
+      : model.fastestPath.steps.length > 0
+        ? model.fastestPath.steps
+        : model.fastestPath.strongestPath;
+  const route = model.hero.fastestRoute || model.decision.fastestRoute;
+
+  return (
+    <FocusCard
+      title="Your path forward"
+      hint={`Here's how to move from ${model.decision.currentRole} to ${model.decision.targetRole}. Short, doable steps — not a lecture.`}
+    >
+      {route ? (
+        <div className="mb-4 rounded-lg border border-accent/25 bg-accent-light/40 px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">
+            Route
+          </p>
+          <p className="mt-1 text-sm font-semibold leading-[1.45] text-text-primary">{route}</p>
+        </div>
+      ) : null}
+
+      <ol className="space-y-2.5">
+        {steps.slice(0, 5).map((step, idx) => (
+          <li
+            key={`${step.label}-${idx}`}
+            className="flex items-start gap-3 rounded-lg border border-border-light bg-bg-secondary px-3.5 py-3"
+          >
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">
+              {idx + 1}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[14px] font-semibold leading-[1.4] text-text-primary">
+                {step.label}
+              </p>
+              {step.detail ? (
+                <p className="mt-1 text-[12.5px] leading-[1.55] text-text-secondary">
+                  {step.detail}
+                </p>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-4 flex items-center justify-end">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+          <input
+            type="checkbox"
+            checked={isCardChecked}
+            onChange={() => onToggleCard(cardId)}
+            className="h-3.5 w-3.5 rounded border-border"
+          />
+          Mark section reviewed
+        </label>
+      </div>
+    </FocusCard>
+  );
+}
+
+export function StartHereCard({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model;
+  cardId: string;
+  isCardChecked: boolean;
+  onToggleCard: (cardId: string) => void;
+  isItemChecked: (itemId: string) => boolean;
+  onToggleItem: (itemId: string) => void;
+}) {
+  const applyFirstRole = model.adjacentEntryOptions.fastestEntry?.title || model.decision.targetRole;
+  const firstCredential =
+    model.certEducation.required[0] || model.certEducation.recommended[0] || 'Confirm the entry credential for this role';
+  const thisWeek =
+    model.actionWindow14.thisWeek.length > 0 ? model.actionWindow14.thisWeek : model.checklist.immediate;
+
+  const items: string[] = [
+    `Start applying to: ${applyFirstRole}`,
+    `Sign up for: ${firstCredential}`,
+    ...thisWeek.slice(0, 3),
+  ];
+
+  const deduped = Array.from(new Set(items.filter(Boolean))).slice(0, 5);
+
+  return (
+    <FocusCard
+      title="What to do first (next 7–14 days)"
+      hint="Concrete moves you can make this week. Pick one, finish it, then come back."
+    >
+      <ul className="space-y-2.5">
+        {deduped.map((item, idx) => {
+          const itemId = toChecklistKey('start-here', idx, item);
+          return (
+            <li key={itemId}>
+              <FocusCheckRow
+                text={item}
+                checked={isItemChecked(itemId)}
+                onToggle={onToggleItem}
+                itemId={itemId}
+                index={idx}
+              />
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="mt-4 flex items-center justify-end">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+          <input
+            type="checkbox"
+            checked={isCardChecked}
+            onChange={() => onToggleCard(cardId)}
+            className="h-3.5 w-3.5 rounded border-border"
+          />
+          Done for now
+        </label>
+      </div>
+    </FocusCard>
+  );
+}
+
+export function StandOutCard({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model;
+  cardId: string;
+  isCardChecked: boolean;
+  onToggleCard: (cardId: string) => void;
+  isItemChecked: (itemId: string) => boolean;
+  onToggleItem: (itemId: string) => void;
+}) {
+  const certifications = model.certEducation.required.slice(0, 3);
+  const signals = model.resumeEvidence.stillNeedsProof.slice(0, 3);
+  const advantages = model.strengths.slice(0, 2);
+
+  const sections: Array<{ heading: string; kind: string; items: string[] }> = [
+    {
+      heading: 'Helpful certifications',
+      kind: 'cert',
+      items: certifications,
+    },
+    {
+      heading: 'Experience signals employers look for',
+      kind: 'signal',
+      items: signals,
+    },
+  ];
+
+  return (
+    <FocusCard
+      title="Ways to stand out"
+      hint="What hiring managers actually notice. Nail these and you'll move ahead of the pile."
+    >
+      <div className="space-y-4">
+        {sections.map((section) =>
+          section.items.length > 0 ? (
+            <div key={section.heading}>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[1.05px] text-text-tertiary">
+                {section.heading}
+              </p>
+              <ul className="space-y-2">
+                {section.items.map((item, idx) => {
+                  const itemId = toChecklistKey('stand-out', section.kind, idx, item);
+                  return (
+                    <li key={itemId}>
+                      <FocusCheckRow
+                        text={item}
+                        checked={isItemChecked(itemId)}
+                        onToggle={onToggleItem}
+                        itemId={itemId}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null
+        )}
+
+        {advantages.length > 0 ? (
+          <div className="rounded-lg border border-success/25 bg-success/5 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[1.05px] text-success">
+              What you already bring
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {advantages.map((advantage, idx) => (
+                <li
+                  key={`${advantage.advantage}-${idx}`}
+                  className="text-[13px] font-medium leading-[1.55] text-text-primary"
+                >
+                  <span className="mr-1.5 text-success">✓</span>
+                  {advantage.advantage}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-4 flex items-center justify-end">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+          <input
+            type="checkbox"
+            checked={isCardChecked}
+            onChange={() => onToggleCard(cardId)}
+            className="h-3.5 w-3.5 rounded border-border"
+          />
+          Section reviewed
+        </label>
+      </div>
+    </FocusCard>
+  );
+}
+
+export function SkillsToBuildCard({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+  isItemChecked,
+  onToggleItem,
+}: {
+  model: PlannerDashboardV3Model;
+  cardId: string;
+  isCardChecked: boolean;
+  onToggleCard: (cardId: string) => void;
+  isItemChecked: (itemId: string) => boolean;
+  onToggleItem: (itemId: string) => void;
+}) {
+  const focus = Array.from(
+    new Set(
+      [
+        ...model.skillsBuckets.needSoon,
+        ...model.requirementsGaps.missingNow,
+      ].map((item) => item.trim()).filter(Boolean)
+    )
+  ).slice(0, 4);
+
+  const alreadyHave = model.skillsBuckets.alreadyHave.slice(0, 3);
+
+  return (
+    <FocusCard
+      title="Skills to build"
+      hint="Focus on these — they'll make the biggest difference in getting hired. Skip the rest for now."
+    >
+      {focus.length > 0 ? (
+        <ul className="space-y-2">
+          {focus.map((item, idx) => {
+            const itemId = toChecklistKey('skills-focus', idx, item);
+            return (
+              <li key={itemId}>
+                <FocusCheckRow
+                  text={item}
+                  checked={isItemChecked(itemId)}
+                  onToggle={onToggleItem}
+                  itemId={itemId}
+                  index={idx}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="rounded-lg border border-border-light bg-bg-secondary p-3 text-[13px] text-text-secondary">
+          We'll highlight specific skills once the career data is connected to your plan.
+        </p>
+      )}
+
+      {alreadyHave.length > 0 ? (
+        <div className="mt-4 rounded-lg border border-success/25 bg-success/5 p-3.5">
+          <p className="text-[11px] font-bold uppercase tracking-[1.05px] text-success">
+            You've already got
+          </p>
+          <p className="mt-1.5 text-[13px] leading-[1.55] text-text-primary">
+            {alreadyHave.join(' · ')}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex items-center justify-end">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+          <input
+            type="checkbox"
+            checked={isCardChecked}
+            onChange={() => onToggleCard(cardId)}
+            className="h-3.5 w-3.5 rounded border-border"
+          />
+          Section reviewed
+        </label>
+      </div>
+    </FocusCard>
+  );
+}
+
+export function TimelineCard({
+  model,
+  cardId,
+  isCardChecked,
+  onToggleCard,
+}: {
+  model: PlannerDashboardV3Model;
+  cardId: string;
+  isCardChecked: boolean;
+  onToggleCard: (cardId: string) => void;
+}) {
+  const windows =
+    model.longerTermRoadmap.windows.length > 0
+      ? model.longerTermRoadmap.windows
+      : model.roadmap.phases.map((phase) => ({
+          label: phase.title,
+          actions: phase.actions.slice(0, 3),
+        }));
+
+  const estimate = model.decision.estimatedTimeline || model.hero.timeline.value;
+
+  return (
+    <FocusCard
+      title="Timeline"
+      hint={`Realistic pace for this switch. Most people in your situation take ${estimate || '6–12 months'} — longer if you stop, shorter if you pick up momentum early.`}
+    >
+      <div className="space-y-3">
+        {windows.slice(0, 3).map((window, idx) => (
+          <div
+            key={`${window.label}-${idx}`}
+            className="rounded-lg border border-border-light bg-bg-secondary p-4"
+          >
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">
+                {idx + 1}
+              </span>
+              <p className="text-[13px] font-bold text-text-primary">{window.label}</p>
+            </div>
+            <ul className="mt-2 space-y-1.5">
+              {window.actions.slice(0, 3).map((action, actionIdx) => (
+                <li
+                  key={`${window.label}-${actionIdx}-${action}`}
+                  className="flex gap-2 text-[13px] leading-[1.55] text-text-secondary"
+                >
+                  <span className="text-accent">·</span>
+                  <span className="min-w-0 break-words">{action}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 flex items-center justify-end">
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-text-secondary">
+          <input
+            type="checkbox"
+            checked={isCardChecked}
+            onChange={() => onToggleCard(cardId)}
+            className="h-3.5 w-3.5 rounded border-border"
+          />
+          Section reviewed
+        </label>
+      </div>
+    </FocusCard>
   );
 }
 
