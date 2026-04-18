@@ -2207,3 +2207,161 @@ export function StickyExecutionPanel({
   );
 }
 
+function verdictTone(verdict: 'Strong' | 'Possible' | 'Stretch') {
+  if (verdict === 'Strong') {
+    return { badge: 'success' as const, label: 'Doable' };
+  }
+  if (verdict === 'Possible') {
+    return { badge: 'info' as const, label: 'Doable with effort' };
+  }
+  return { badge: 'warning' as const, label: 'Stretch — plan carefully' };
+}
+
+export function DecisionHeader({
+  model,
+  heroCardChecked,
+  onToggleHeroCard,
+}: {
+  model: PlannerDashboardV3Model;
+  heroCardChecked: boolean;
+  onToggleHeroCard: () => void;
+}) {
+  const { decision, hero, marketSnapshot } = model;
+  const tone = verdictTone(decision.transitionVerdict);
+
+  const metrics: Array<{
+    label: string;
+    value: string;
+    badge?: DashboardFallbackValue<string>['badge'];
+  }> = [
+    {
+      label: 'Difficulty',
+      value: hero.difficulty.value,
+      badge: hero.difficulty.badge,
+    },
+    {
+      label: 'Timeline',
+      value: decision.estimatedTimeline || hero.timeline.value,
+      badge: hero.timeline.badge,
+    },
+    {
+      label: 'Entry pay',
+      value: marketSnapshot.entryWage.value,
+      badge: marketSnapshot.entryWage.badge,
+    },
+    {
+      label: 'Biggest blocker',
+      value: decision.biggestBlocker || hero.biggestBlocker || '—',
+    },
+  ];
+
+  return (
+    <Card className="p-5 md:p-6 shadow-card">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-text-tertiary">
+            Transition plan
+          </p>
+          <h1 className="mt-1 break-words text-[22px] font-bold leading-tight text-text-primary md:text-[26px]">
+            {decision.currentRole} <span className="text-text-tertiary">→</span> {decision.targetRole}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant={tone.badge}>{tone.label}</Badge>
+          <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-text-secondary">
+            <input
+              type="checkbox"
+              checked={heroCardChecked}
+              onChange={onToggleHeroCard}
+              className="h-3.5 w-3.5 rounded border-border"
+            />
+            Done
+          </label>
+        </div>
+      </div>
+
+      <p className="mt-2 text-sm leading-[1.55] text-text-secondary">{hero.insight}</p>
+
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+        {metrics.map((metric) => (
+          <div
+            key={metric.label}
+            className="rounded-xl border border-border-light bg-bg-secondary p-3"
+          >
+            <div className="flex items-center gap-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-[1px] text-text-tertiary">
+                {metric.label}
+              </p>
+              {metric.badge ? (
+                <Badge
+                  variant={
+                    metric.badge === 'Needs data'
+                      ? 'warning'
+                      : metric.badge === 'Estimate'
+                        ? 'info'
+                        : 'default'
+                  }
+                  className="px-1! py-0! text-[8px]! leading-[1.05]!"
+                >
+                  {metric.badge === 'Estimate' ? 'Est.' : metric.badge}
+                </Badge>
+              ) : null}
+            </div>
+            <p className="mt-1.5 break-words text-[13px] font-bold leading-[1.3] text-text-primary">
+              {metric.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {hero.fastestRoute ? (
+        <div className="mt-3 rounded-lg border border-accent/25 bg-accent-light/40 px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-[1.05px] text-accent">
+            Fastest route
+          </p>
+          <p className="mt-0.5 text-sm font-semibold leading-[1.4] text-text-primary">
+            {hero.fastestRoute}
+          </p>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
+export function CollapsibleSection({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card className="overflow-hidden p-0 shadow-card">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition hover:bg-bg-secondary md:px-6"
+      >
+        <div className="min-w-0">
+          <p className="text-[15px] font-bold text-text-primary">{title}</p>
+          {subtitle ? (
+            <p className="mt-0.5 text-[12px] font-medium text-text-secondary">{subtitle}</p>
+          ) : null}
+        </div>
+        <span
+          aria-hidden
+          className={`flex h-7 w-7 items-center justify-center rounded-full border border-border-light bg-surface text-[11px] font-bold text-text-secondary transition ${open ? 'rotate-180' : ''}`}
+        >
+          ▾
+        </span>
+      </button>
+      {open ? <div className="border-t border-border-light px-5 py-5 md:px-6">{children}</div> : null}
+    </Card>
+  );
+}
+
