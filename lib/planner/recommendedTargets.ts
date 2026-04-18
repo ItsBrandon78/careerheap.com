@@ -135,15 +135,25 @@ function fallbackCardsFromExamples(
   const currentKey = singularTitleKey(input.currentRoleInput)
   const targetKey = singularTitleKey(input.targetRoleInput ?? '')
 
-  const relevantExamples = PLANNER_EXAMPLE_SCENARIOS.filter((scenario) => {
-    if (titleKey(scenario.currentRole) === currentKey) return true
-    if (titleKey(scenario.currentRole).includes(currentKey) || currentKey.includes(titleKey(scenario.currentRole))) {
-      return true
-    }
-    return false
-  })
+  const scoredExamples = PLANNER_EXAMPLE_SCENARIOS
+    .map((scenario) => {
+      const targetMatch = roleTitleSimilarity(scenario.targetRole, input.targetRoleInput ?? '')
+      const currentMatch = roleTitleSimilarity(scenario.currentRole, input.currentRoleInput)
+      const targetOfScenarioMatchesUserCurrent = roleTitleSimilarity(scenario.targetRole, input.currentRoleInput)
+      const currentOfScenarioMatchesUserTarget = roleTitleSimilarity(scenario.currentRole, input.targetRoleInput ?? '')
+      const score =
+        targetMatch * 2 +
+        currentMatch * 1.5 +
+        targetOfScenarioMatchesUserCurrent * 0.25 +
+        currentOfScenarioMatchesUserTarget * 0.25
+      return { scenario, score }
+    })
+    .sort((a, b) => b.score - a.score)
 
-  const pool = (relevantExamples.length > 0 ? relevantExamples : PLANNER_EXAMPLE_SCENARIOS)
+  const hasAnyRelevant = scoredExamples.some((entry) => entry.score > 0)
+  const ordered = hasAnyRelevant ? scoredExamples.map((entry) => entry.scenario) : PLANNER_EXAMPLE_SCENARIOS
+
+  const pool = ordered
     .map((scenario) => ({
       title: scenario.targetRole,
       why: [

@@ -11,5 +11,5 @@ const source = readFileSync(toolTemplatePath, 'utf8')
 
 test('generic tool template supports locked query-state rendering', () => {
   assert.match(source, /searchParams\.get\('locked'\)\s*===\s*'1'/)
-  assert.match(source, /<PaywallBanner usesRemaining=\{0\} \/>/)
+  assert.match(source, /<PaywallBanner usesRemaining=\{usage\?\.usesRemaining \?\? 0\} \/>/)
 })
