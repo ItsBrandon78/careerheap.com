@@ -9,7 +9,7 @@ import {
   ToolHero
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
 import PlannerIntakeWizard from '@/components/career-switch-planner/PlannerIntakeWizard'
-import PlannerDashboardV3 from '@/components/career-switch-planner/PlannerDashboardV3'
+import PlannerResultsPrototype from '@/components/career-switch-planner/PlannerResultsPrototype'
 import {
   careerSwitchFaqs,
   careerSwitchMoreTools
@@ -2694,7 +2694,7 @@ export default function CareerSwitchPlannerPage({
               </Card>
             </div>
           ) : showDashboard ? (
-              <PlannerDashboardV3
+              <PlannerResultsPrototype
                 model={v3DashboardModel}
                 hasDraftChanges={hasDraftChanges}
                 isGuestPreview={isGuestPreview}

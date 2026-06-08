@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import AuthConfigNotice from '@/components/AuthConfigNotice'
+import AuthShell from '@/components/AuthShell'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthCallbackUrl } from '@/lib/supabase/authRedirect'
 
@@ -235,19 +236,22 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-[170px]">
-      <div className="mx-auto w-full max-w-[460px] rounded-lg border border-border bg-surface p-8 shadow-panel">
-        <header className="text-center">
-          <p className="text-xs font-semibold tracking-[1.5px] text-accent">ACCOUNT</p>
-          <h1 className="mt-3 text-[32px] font-bold text-text-primary">Sign In</h1>
-          <p className="mt-2 text-sm text-text-secondary">
-            Access your tools and usage history.
-          </p>
-        </header>
+    <AuthShell
+      title="Welcome back"
+      sub="Log in to pick up your plan where you left off."
+      footer={
+        <>
+          New to CareerHeap?{' '}
+          <Link href="/signup" className="font-bold text-accent">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <div>
+        <AuthConfigNotice className="mb-5" />
 
-        <AuthConfigNotice className="mt-5" />
-
-        <div className="mt-6">
+        <div>
           <Button
             type="button"
             variant="outline"
@@ -419,13 +423,7 @@ export default function LoginPage() {
           </Link>
           .
         </p>
-        <p className="mt-3 text-center text-sm text-text-secondary">
-          Need an account?{' '}
-          <Link href="/signup" className="text-accent hover:text-accent-hover">
-            Create one
-          </Link>
-        </p>
       </div>
-    </section>
+    </AuthShell>
   )
 }

@@ -28,11 +28,11 @@ export const CTASection: React.FC<CTASectionProps> = ({
 }) => {
   return (
     <section className={`px-4 py-section lg:px-[170px] ${className}`}>
-      <div className="mx-auto max-w-content rounded-lg bg-bg-dark px-8 py-10 text-center">
-        <h2 className="text-[32px] font-bold text-text-on-dark">{title}</h2>
-        <p className="mt-3 text-base text-text-on-dark-muted">{subtitle}</p>
+      <div className="mx-auto max-w-content rounded-lg bg-bg-dark px-5 py-8 text-center sm:px-6 sm:py-9 md:px-8 md:py-10">
+        <h2 className="text-[28px] font-bold leading-[1.2] text-text-on-dark md:text-[32px]">{title}</h2>
+        <p className="mt-2.5 text-[15px] leading-[1.65] text-text-on-dark-muted md:text-base">{subtitle}</p>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
           {primaryHref ? (
             <Link href={primaryHref}>
               <Button variant="primary">

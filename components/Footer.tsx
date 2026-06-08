@@ -2,47 +2,84 @@ import React from 'react'
 import Link from 'next/link'
 import BrandLogo from './BrandLogo'
 
+const COLUMNS: { title: string; links: [string, string][] }[] = [
+  {
+    title: 'Product',
+    links: [
+      ['Career Planner', '/tools/career-switch-planner'],
+      ['All tools', '/tools'],
+      ['Pricing', '/pricing']
+    ]
+  },
+  {
+    title: 'Company',
+    links: [
+      ['About', '/about'],
+      ['Blog', '/blog'],
+      ['Contact', '/contact']
+    ]
+  },
+  {
+    title: 'Legal',
+    links: [
+      ['Privacy', '/privacy'],
+      ['Terms', '/terms']
+    ]
+  }
+]
+
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="w-full bg-bg-dark px-4 py-12 md:px-6 lg:px-10">
-      <div className="mx-auto flex w-full max-w-wide flex-col gap-10">
-        <div className="flex flex-col justify-between gap-10 lg:flex-row">
-          <div className="max-w-[280px] space-y-3">
+    <footer className="w-full bg-bg-dark px-4 py-10 md:px-6 lg:px-10">
+      <div className="mx-auto flex w-full max-w-wide flex-col gap-8">
+        <div className="flex flex-col justify-between gap-8 lg:flex-row">
+          <div className="max-w-[280px] space-y-4">
             <BrandLogo variant="white" size="sm" />
-            <p className="text-sm leading-[1.6] text-text-on-dark-muted">
-              Province-aware Canadian career roadmaps built to make the next step clearer before you commit.
+            <p className="text-sm leading-[1.65] text-text-on-dark-muted">
+              Canada-first career planning. Real roles, honest timelines, and a plan you&apos;ll
+              actually follow — built for people starting with zero experience.
             </p>
+            <div className="flex gap-2">
+              {['Source-backed', 'No invented data'].map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center rounded-pill bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-text-on-dark-muted"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-8 sm:grid-cols-3 lg:gap-16">
-            <div className="space-y-3">
-              <p className="text-[13px] font-semibold text-text-on-dark">Product</p>
-              <Link href="/tools" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Tools</Link>
-              <Link href="/pricing" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Pricing</Link>
-              <Link href="/blog" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Blog</Link>
-            </div>
-            <div className="space-y-3">
-              <p className="text-[13px] font-semibold text-text-on-dark">Company</p>
-              <Link href="/about" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">About</Link>
-              <Link href="/contact" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Contact</Link>
-              <Link href="/careers" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Careers</Link>
-            </div>
-            <div className="space-y-3">
-              <p className="text-[13px] font-semibold text-text-on-dark">Legal</p>
-              <Link href="/privacy" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Privacy</Link>
-              <Link href="/terms" className="block text-sm text-text-on-dark-muted hover:text-text-on-dark">Terms</Link>
-            </div>
+            {COLUMNS.map((col) => (
+              <div key={col.title} className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-[0.6px] text-text-on-dark">
+                  {col.title}
+                </p>
+                <div className="space-y-3">
+                  {col.links.map(([label, href]) => (
+                    <Link
+                      key={label}
+                      href={href}
+                      className="block text-sm text-text-on-dark-muted hover:text-text-on-dark"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-bg-dark-surface pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[13px] text-text-on-dark-muted">&copy; {currentYear} CareerHeap. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-sm text-text-on-dark-muted">
-            <span aria-hidden="true">X</span>
-            <span aria-hidden="true">in</span>
-          </div>
+        <div className="flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[12.5px] text-text-on-dark-muted">
+            &copy; {currentYear} CareerHeap. All rights reserved.
+          </p>
+          <p className="text-[12.5px] text-text-on-dark-muted">Made in Canada 🍁</p>
         </div>
       </div>
     </footer>
@@ -50,4 +87,3 @@ export const Footer: React.FC = () => {
 }
 
 export default Footer
-

@@ -48,4 +48,5 @@ export interface BlogPost extends BlogPostSummary {
   seoTitle?: string | null
   seoDescription?: string | null
   author?: BlogAuthor | null
+  tags?: string[]
 }

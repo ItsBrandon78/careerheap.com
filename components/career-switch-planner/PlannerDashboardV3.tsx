@@ -1,11 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { track } from '@vercel/analytics';
 import {
   AiSignalCard,
   buildTrainingCards,
-  DecisionHeader,
+  CertificationsEducationSection,
+  CollapsibleSection,
   GuestPreviewLimitSection,
+  LiveMarketProofCard,
+  OutreachSection,
   PathForwardCard,
   RelatedToolsSection,
   SkillsToBuildCard,
@@ -16,6 +20,7 @@ import {
   TrustFaqSection,
   toChecklistKey,
 } from '@/components/career-switch-planner/PlannerDashboardSections'
+import PlannerCommandCenter from '@/components/career-switch-planner/PlannerCommandCenter'
 import type {
   PlannerDashboardTask,
   PlannerDashboardV3Model,
@@ -80,6 +85,51 @@ function taskMatches(task: PlannerDashboardTask, pattern: RegExp) {
   return pattern.test(task.label.toLowerCase());
 }
 
+function normalizeSignalKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function deriveStandOutSignals(model: PlannerDashboardV3Model) {
+  const certLikePattern =
+    /\b(whmis|working at heights?|worker health and safety awareness|health and safety awareness|first aid|cpr|certificate|certification|license|licensing|red seal|qualification exam)\b/i;
+  const trainingKeys = new Set(
+    [
+      ...model.training.courses.map((course) => course.name),
+      ...model.certEducation.required,
+      ...model.certEducation.recommended,
+    ]
+      .map(normalizeSignalKey)
+      .filter(Boolean)
+  );
+
+  const isCertificationLike = (value: string) => {
+    if (certLikePattern.test(value)) return true;
+    const normalized = normalizeSignalKey(value);
+    if (!normalized) return false;
+    for (const key of trainingKeys) {
+      if (!key) continue;
+      if (normalized.includes(key) || key.includes(normalized)) return true;
+    }
+    return false;
+  };
+
+  const fromProof = model.resumeEvidence.stillNeedsProof
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter((item) => !isCertificationLike(item));
+
+  if (fromProof.length > 0) return fromProof.slice(0, 3);
+
+  const fromArtifacts = model.resumeEvidence.artifacts
+    .map((item) => item.replace(/^resume bullet\s*\+\s*artifact for:\s*/i, '').trim())
+    .filter(Boolean)
+    .filter((item) => !isCertificationLike(item))
+    .slice(0, 3);
+  if (fromArtifacts.length > 0) return fromArtifacts;
+
+  return [];
+}
+
 function deriveSuggestedOutreachTarget(
   phase:
     | PlannerDashboardV3Model['roadmap']['phases'][number]
@@ -118,14 +168,12 @@ const ACTIONABLE_CARD_IDS = {
   hero: 'card-hero-summary',
   action14: 'card-14-day-action',
   bestRoute: 'card-best-route',
-  blockers: 'card-blockers',
-  requirements: 'card-requirements-gaps',
   skills: 'card-skills',
   certifications: 'card-certifications-education',
   resumeEvidence: 'card-resume-evidence',
-  adjacent: 'card-adjacent-entry-options',
+  outreach: 'card-outreach-toolkit',
+  timeline: 'card-timeline',
   salaryMarket: 'card-salary-market',
-  roadmap: 'card-longer-term-roadmap',
 } as const
 
 export function PlannerDashboardV3({
@@ -155,11 +203,7 @@ export function PlannerDashboardV3({
   initialProgressState,
   onProgressStateChange,
 }: PlannerDashboardV3Props) {
-  const scenarioLabels = useMemo(
-    () => model.hero.scenarioModes.map((mode) => mode.label),
-    [model.hero.scenarioModes]
-  );
-  const [selectedScenario, setSelectedScenario] = useState<string>(scenarioLabels[0] ?? 'Fastest');
+  const [isMobileCompact, setIsMobileCompact] = useState(false);
   const roadmapPhases = useMemo(() => model.roadmap.phases.slice(0, 4), [model.roadmap.phases]);
   const roadmapTasks = useMemo(() => model.progress.tasks, [model.progress.tasks]);
   const roadmapTaskMap = useMemo(
@@ -177,8 +221,11 @@ export function PlannerDashboardV3({
     [roadmapPhases, roadmapTasks]
   );
   const defaultExpandedPhaseIds = useMemo(
-    () => roadmapPhases.map((phase) => phase.id),
-    [roadmapPhases]
+    () =>
+      isMobileCompact
+        ? roadmapPhases.slice(0, 1).map((phase) => phase.id)
+        : roadmapPhases.map((phase) => phase.id),
+    [isMobileCompact, roadmapPhases]
   );
   const defaultCheckedTaskIds = useMemo(
     () =>
@@ -213,19 +260,18 @@ export function PlannerDashboardV3({
     [model.actionWindow14.proofToCollect, model.resumeEvidence.stillNeedsProof]
   );
   const bestRouteSequence = useMemo(() => model.fastestPath.steps.slice(0, 4), [model.fastestPath.steps]);
+  const standOutSignals = useMemo(() => deriveStandOutSignals(model), [model]);
   const actionableCardIds = useMemo(
     () => [
       ACTIONABLE_CARD_IDS.hero,
       ACTIONABLE_CARD_IDS.action14,
       ACTIONABLE_CARD_IDS.bestRoute,
-      ACTIONABLE_CARD_IDS.blockers,
-      ACTIONABLE_CARD_IDS.requirements,
       ACTIONABLE_CARD_IDS.skills,
       ACTIONABLE_CARD_IDS.certifications,
       ACTIONABLE_CARD_IDS.resumeEvidence,
-      ACTIONABLE_CARD_IDS.adjacent,
+      ACTIONABLE_CARD_IDS.outreach,
+      ACTIONABLE_CARD_IDS.timeline,
       ACTIONABLE_CARD_IDS.salaryMarket,
-      ACTIONABLE_CARD_IDS.roadmap,
     ],
     []
   );
@@ -239,7 +285,7 @@ export function PlannerDashboardV3({
       toChecklistKey(
         'action-priority',
         'apply-first',
-        model.adjacentEntryOptions.fastestEntry?.title || model.decision.targetRole
+        model.decision.targetRole
       ),
       toChecklistKey(
         'action-priority',
@@ -258,26 +304,16 @@ export function PlannerDashboardV3({
       ids.push(toChecklistKey('best-route', 'sequence', idx, step.label, step.detail))
     );
 
-    model.blockers.slice(0, 4).forEach((item, idx) =>
-      ids.push(toChecklistKey('blockers', idx, item.blocker))
-    );
-    model.requirementsGaps.mustHave.slice(0, 5).forEach((item, idx) =>
-      ids.push(toChecklistKey('requirements-gaps', 'must-have', idx, item))
-    );
-    model.requirementsGaps.niceToHave.slice(0, 5).forEach((item, idx) =>
-      ids.push(toChecklistKey('requirements-gaps', 'nice-to-have', idx, item))
-    );
-    model.requirementsGaps.missingNow.slice(0, 5).forEach((item, idx) =>
-      ids.push(toChecklistKey('requirements-gaps', 'missing-right-now', idx, item))
-    );
-    model.skillsBuckets.alreadyHave.slice(0, 5).forEach((item, idx) =>
-      ids.push(toChecklistKey('skills-buckets', 'already-have', idx, item))
-    );
-    model.skillsBuckets.needSoon.slice(0, 5).forEach((item, idx) =>
-      ids.push(toChecklistKey('skills-buckets', 'need-soon', idx, item))
-    );
-    model.skillsBuckets.laterStage.slice(0, 5).forEach((item, idx) =>
-      ids.push(toChecklistKey('skills-buckets', 'later-stage', idx, item))
+    Array.from(
+      new Set(
+        [...model.skillsBuckets.needSoon, ...model.requirementsGaps.missingNow]
+          .map((item) => item.trim())
+          .filter(Boolean)
+      )
+    )
+      .slice(0, 4)
+      .forEach((item, idx) =>
+      ids.push(toChecklistKey('skills-focus', idx, item))
     );
     model.certEducation.required.slice(0, 5).forEach((item, idx) =>
       ids.push(toChecklistKey('cert-education', 'required', idx, item))
@@ -288,24 +324,8 @@ export function PlannerDashboardV3({
     model.certEducation.optional.slice(0, 5).forEach((item, idx) =>
       ids.push(toChecklistKey('cert-education', 'optional', idx, item))
     );
-    model.resumeEvidence.alreadyProves.slice(0, 4).forEach((item, idx) =>
-      ids.push(toChecklistKey('resume-evidence', 'already-proves', idx, item))
-    );
-    model.resumeEvidence.stillNeedsProof.slice(0, 4).forEach((item, idx) =>
-      ids.push(toChecklistKey('resume-evidence', 'still-needs-proof', idx, item))
-    );
-    model.resumeEvidence.artifacts.slice(0, 4).forEach((item, idx) =>
-      ids.push(toChecklistKey('resume-evidence', 'artifacts-to-add', idx, item))
-    );
-
-    ids.push(
-      toChecklistKey('adjacent-entry-options', 'fastest-entry', model.adjacentEntryOptions.fastestEntry?.title),
-      toChecklistKey('adjacent-entry-options', 'closest-match', model.adjacentEntryOptions.closestMatch?.title),
-      toChecklistKey(
-        'adjacent-entry-options',
-        'best-long-term-upside',
-        model.adjacentEntryOptions.bestLongTermUpside?.title
-      )
+    standOutSignals.forEach((item, idx) =>
+      ids.push(toChecklistKey('stand-out', 'signal', idx, item))
     );
 
     ['Entry pay', 'Long-term pay', 'Market demand', 'Hiring environment'].forEach((label) =>
@@ -318,21 +338,11 @@ export function PlannerDashboardV3({
     action14Proof,
     action14ThisWeek,
     bestRouteSequence,
-    model.adjacentEntryOptions.bestLongTermUpside?.title,
-    model.adjacentEntryOptions.closestMatch?.title,
-    model.adjacentEntryOptions.fastestEntry?.title,
-    model.blockers,
     model.certEducation,
     model.decision.targetRole,
     model.fastestPath.bestEntryStrategy,
+    standOutSignals,
     model.requirementsGaps.missingNow,
-    model.requirementsGaps.mustHave,
-    model.requirementsGaps.niceToHave,
-    model.resumeEvidence.alreadyProves,
-    model.resumeEvidence.artifacts,
-    model.resumeEvidence.stillNeedsProof,
-    model.skillsBuckets.alreadyHave,
-    model.skillsBuckets.laterStage,
     model.skillsBuckets.needSoon,
   ]);
   const defaultCheckedCardIds = useMemo(
@@ -396,13 +406,18 @@ export function PlannerDashboardV3({
   const [lastTaskDelta, setLastTaskDelta] = useState<number | null>(null);
   const [hasHydratedProgressState, setHasHydratedProgressState] = useState(false);
   const [hasHydratedActionChecklist, setHasHydratedActionChecklist] = useState(false);
+  const trackedMilestonesRef = useRef<Set<number>>(new Set());
+  const hasTrackedFirstCompletionRef = useRef(false);
+  const hasTrackedDashboardViewRef = useRef(false);
 
   useEffect(() => {
-    if (scenarioLabels.length === 0) return;
-    if (!scenarioLabels.includes(selectedScenario)) {
-      setSelectedScenario(scenarioLabels[0]);
-    }
-  }, [scenarioLabels, selectedScenario]);
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(max-width: 640px)');
+    const sync = () => setIsMobileCompact(mediaQuery.matches);
+    sync();
+    mediaQuery.addEventListener('change', sync);
+    return () => mediaQuery.removeEventListener('change', sync);
+  }, []);
 
   useEffect(() => {
     const {
@@ -618,17 +633,33 @@ export function PlannerDashboardV3({
   };
 
   const toggleCardChecklist = useCallback((cardId: string) => {
-    setCheckedCardIds((previous) => ({
-      ...previous,
-      [cardId]: !previous[cardId],
-    }));
+    setCheckedCardIds((previous) => {
+      const nextValue = !previous[cardId];
+      if (nextValue) {
+        track('planner_card_reviewed', {
+          card_id: cardId,
+        });
+      }
+      return {
+        ...previous,
+        [cardId]: nextValue,
+      };
+    });
   }, []);
 
   const toggleItemChecklist = useCallback((itemId: string) => {
-    setCheckedItemIds((previous) => ({
-      ...previous,
-      [itemId]: !previous[itemId],
-    }));
+    setCheckedItemIds((previous) => {
+      const nextValue = !previous[itemId];
+      if (nextValue) {
+        track('planner_item_completed', {
+          item_id: itemId.slice(0, 80),
+        });
+      }
+      return {
+        ...previous,
+        [itemId]: nextValue,
+      };
+    });
   }, []);
 
   const trainingCards = buildTrainingCards(model.training.courses);
@@ -742,29 +773,15 @@ export function PlannerDashboardV3({
       .slice(0, 4 - stickyNextSteps.length)
       .forEach((item) => stickyNextSteps.push(item));
   }
-  const selectedScenarioKey = selectedScenario.toLowerCase();
-  const primaryScenarioSteps =
-    selectedScenarioKey === 'low risk' ? model.fastestPath.strongestPath : model.fastestPath.steps;
-  const secondaryScenarioSteps =
-    selectedScenarioKey === 'fastest' ? model.fastestPath.strongestPath : model.fastestPath.steps;
-  const primaryScenarioTitle =
-    selectedScenarioKey === 'fastest'
-      ? 'Fastest Path to Apply'
-      : selectedScenarioKey === 'low risk'
-        ? 'Lower-Risk Path'
-        : 'Balanced Path';
-  const secondaryScenarioTitle =
-    selectedScenarioKey === 'fastest' ? 'Strong Candidate Path' : 'Fastest Route';
+  const primaryScenarioSteps = model.fastestPath.steps;
+  const secondaryScenarioSteps = model.fastestPath.strongestPath;
+  const primaryScenarioTitle = 'Fastest Path to Apply';
+  const secondaryScenarioTitle = 'Strong Candidate Path';
   const scenarioLeadAction =
-    selectedScenarioKey === 'low risk'
-      ? blockedTasks.find((task) => !checkedTaskIds[task.id])?.label ||
-        model.fastestPath.strongestPath[0]?.detail ||
-        model.stickyPanel.nextBestAction
-      : selectedScenarioKey === 'balanced'
-        ? model.fastestPath.strongestPath[0]?.detail ||
-          stickyNextSteps[0] ||
-          model.stickyPanel.nextBestAction
-        : stickyNextSteps[0] || model.stickyPanel.nextBestAction;
+    stickyNextSteps[0] ||
+    blockedTasks.find((task) => !checkedTaskIds[task.id])?.label ||
+    model.fastestPath.strongestPath[0]?.detail ||
+    model.stickyPanel.nextBestAction;
   const readinessChecks = useMemo(
     () => [
       {
@@ -843,18 +860,54 @@ export function PlannerDashboardV3({
     lastTaskDelta === null
       ? null
       : `${lastTaskDelta > 0 ? '+' : ''}${lastTaskDelta}% from the latest task.`;
+
+  useEffect(() => {
+    if (hasTrackedDashboardViewRef.current) return;
+    hasTrackedDashboardViewRef.current = true;
+    track('planner_dashboard_view', {
+      guest_preview: isGuestPreview,
+      compact_mobile: isMobileCompact,
+      pathway: model.pathwayWeighting.type,
+      target_role: model.decision.targetRole.slice(0, 64),
+    });
+  }, [isGuestPreview, isMobileCompact, model.decision.targetRole, model.pathwayWeighting.type]);
+
+  useEffect(() => {
+    const completionCount = completedCardCount + completedActionItemCount;
+    if (!hasTrackedFirstCompletionRef.current && completionCount > 0) {
+      hasTrackedFirstCompletionRef.current = true;
+      track('planner_first_completion', {
+        completion_count: completionCount,
+        progress_to_offer: liveProgressToOffer,
+      });
+    }
+
+    for (const milestone of [3, 8, 15]) {
+      if (completionCount >= milestone && !trackedMilestonesRef.current.has(milestone)) {
+        trackedMilestonesRef.current.add(milestone);
+        track('planner_completion_milestone', {
+          milestone,
+          completion_count: completionCount,
+          progress_to_offer: liveProgressToOffer,
+        });
+      }
+    }
+  }, [completedActionItemCount, completedCardCount, liveProgressToOffer]);
+
   return (
-    <div className="space-y-4 md:space-y-5">
+    <div className="space-y-3.5 md:space-y-5">
       {hasDraftChanges ? (
         <div className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
           This report is from previous inputs.
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="space-y-4 md:space-y-5">
-          <DecisionHeader
-            model={model}
+      <div className="grid gap-4 md:gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="space-y-3.5 md:space-y-5">
+          <PlannerCommandCenter
+            hero={model.hero}
+            decision={model.decision}
+            pathwayWeighting={model.pathwayWeighting}
             heroCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.hero])}
             onToggleHeroCard={() => toggleCardChecklist(ACTIONABLE_CARD_IDS.hero)}
           />
@@ -865,7 +918,12 @@ export function PlannerDashboardV3({
             cardId={ACTIONABLE_CARD_IDS.bestRoute}
             isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.bestRoute])}
             onToggleCard={toggleCardChecklist}
-            onSelectAlternativeRole={onSelectAlternativeRole}
+            onSelectAlternativeRole={(title) => {
+              track('planner_alternative_role_select', {
+                role: title.slice(0, 64),
+              });
+              onSelectAlternativeRole(title);
+            }}
           />
 
           <StartHereCard
@@ -883,6 +941,7 @@ export function PlannerDashboardV3({
             <>
               <StandOutCard
                 model={model}
+                signals={standOutSignals}
                 cardId={ACTIONABLE_CARD_IDS.resumeEvidence}
                 isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.resumeEvidence])}
                 onToggleCard={toggleCardChecklist}
@@ -899,15 +958,67 @@ export function PlannerDashboardV3({
                 onToggleItem={toggleItemChecklist}
               />
 
+              <CertificationsEducationSection
+                model={model}
+                trainingCards={trainingCards}
+                completedTrainingIds={completedTrainingIds}
+                onToggleTrainingCard={toggleTrainingCard}
+                cardId={ACTIONABLE_CARD_IDS.certifications}
+                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.certifications])}
+                onToggleCard={toggleCardChecklist}
+                isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
+                onToggleItem={toggleItemChecklist}
+              />
+
               <TimelineCard
                 model={model}
-                cardId={ACTIONABLE_CARD_IDS.roadmap}
-                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.roadmap])}
+                roadmapPhases={roadmapPhases}
+                phaseStats={phaseStats}
+                checkedTaskIds={checkedTaskIds}
+                toggleRoadmapPhase={toggleRoadmapPhase}
+                toggleChecklistTask={toggleChecklistTask}
+                nowCompletion={nowCompletion}
+                nextCompletion={nextCompletion}
+                blockedTasks={blockedTasks}
+                cardId={ACTIONABLE_CARD_IDS.timeline}
+                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.timeline])}
                 onToggleCard={toggleCardChecklist}
               />
 
-              <TrustFaqSection faqItems={faqItems} methodology={model.methodology} />
-              <RelatedToolsSection relatedTools={relatedTools} />
+              <LiveMarketProofCard
+                model={model}
+                cardId={ACTIONABLE_CARD_IDS.salaryMarket}
+                isCardChecked={Boolean(checkedCardIds[ACTIONABLE_CARD_IDS.salaryMarket])}
+                onToggleCard={toggleCardChecklist}
+              />
+
+              <OutreachSection
+                readinessChecks={readinessChecks}
+                outreachTracker={outreachTracker}
+                suggestedOutreachTarget={suggestedOutreachTarget}
+                resumeToolkitDraft={resumeToolkitDraft}
+                emailToolkitDraft={emailToolkitDraft}
+                callToolkitDraft={callToolkitDraft}
+                onOutreachTrackerChange={onOutreachTrackerChange}
+                onResumeToolkitDraftChange={onResumeToolkitDraftChange}
+                onEmailToolkitDraftChange={onEmailToolkitDraftChange}
+                onCallToolkitDraftChange={onCallToolkitDraftChange}
+              />
+
+              <CollapsibleSection
+                title="FAQ and Method"
+                subtitle="How this planner makes recommendations and what data it uses."
+                defaultOpen={false}
+              >
+                <TrustFaqSection faqItems={faqItems} methodology={model.methodology} />
+              </CollapsibleSection>
+              <CollapsibleSection
+                title="Related Tools"
+                subtitle="Optional extras once your core plan is in motion."
+                defaultOpen={false}
+              >
+                <RelatedToolsSection relatedTools={relatedTools} />
+              </CollapsibleSection>
             </>
           )}
         </div>
@@ -924,12 +1035,40 @@ export function PlannerDashboardV3({
               isItemChecked={(itemId) => Boolean(checkedItemIds[itemId])}
               onToggleItem={toggleItemChecklist}
               savePlanLabel={savePlanLabel}
-              onRegenerate={onRegenerate}
-              onEditInputs={onEditInputs}
-              onStartNewPlan={onStartNewPlan}
-              onExportPlan={onExportPlan}
-              onDownloadPdf={onDownloadPdf}
-              onSavePlan={onSavePlan}
+              onRegenerate={() => {
+                track('planner_regenerate_click', {
+                  progress_to_offer: liveProgressToOffer,
+                });
+                onRegenerate();
+              }}
+              onEditInputs={() => {
+                track('planner_edit_inputs_click');
+                onEditInputs();
+              }}
+              onStartNewPlan={() => {
+                track('planner_start_new_click', {
+                  progress_to_offer: liveProgressToOffer,
+                });
+                onStartNewPlan();
+              }}
+              onExportPlan={() => {
+                track('planner_export_click', {
+                  progress_to_offer: liveProgressToOffer,
+                });
+                onExportPlan();
+              }}
+              onDownloadPdf={() => {
+                track('planner_pdf_click', {
+                  progress_to_offer: liveProgressToOffer,
+                });
+                onDownloadPdf();
+              }}
+              onSavePlan={() => {
+                track('planner_save_click', {
+                  progress_to_offer: liveProgressToOffer,
+                });
+                onSavePlan();
+              }}
             />
           </div>
         ) : null}

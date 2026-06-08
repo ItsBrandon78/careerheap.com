@@ -28,7 +28,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({
       : `${Math.max(usesRemaining, 0)} Free ${Math.max(usesRemaining, 0) === 1 ? 'Use' : 'Uses'}`
 
   return (
-    <Card className="flex h-full flex-col gap-4 p-6">
+    <Card className="flex h-full flex-col gap-3.5 p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-light text-accent">
           <ToolGlyph kind={icon} className="h-5 w-5" />
@@ -40,8 +40,8 @@ export const ToolCard: React.FC<ToolCardProps> = ({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2">
-        <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+      <div className="flex flex-1 flex-col gap-1.5">
+        <h3 className="text-[17px] font-semibold leading-[1.3] text-text-primary">{title}</h3>
         <p className="text-sm leading-[1.6] text-text-secondary">{description}</p>
       </div>
 

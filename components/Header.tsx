@@ -2,10 +2,24 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import Button from './Button'
 import Badge from './Badge'
 import { useAuth } from '@/lib/auth/context'
 import BrandLogo from './BrandLogo'
+import { Icon } from './ui/Icon'
+
+const NAV: { label: string; href: string }[] = [
+  { label: 'Tools', href: '/tools' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'About', href: '/about' }
+]
+
+function isActive(pathname: string | null, href: string) {
+  if (!pathname) return false
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
 
 function initialsFromEmail(email?: string | null) {
   if (!email) return 'CH'
@@ -119,6 +133,7 @@ function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { user, isLoading, signOut } = useAuth()
+  const pathname = usePathname()
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null)
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -160,27 +175,31 @@ export const Header: React.FC = () => {
   }, [isOpen])
 
   return (
-    <header className="w-full border-b border-border bg-surface/95 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-wide items-center justify-between px-4 py-4 md:px-6 lg:px-10">
-        <div className="flex items-center gap-4 md:gap-8">
-          <Link href="/" className="flex items-center gap-2" aria-label="CareerHeap home">
-            <BrandLogo size="sm" />
-          </Link>
+    <header className="sticky top-0 z-40 border-b border-border-light bg-bg-primary/[0.82] backdrop-blur-[12px] backdrop-saturate-[180%]">
+      <div className="mx-auto flex h-[68px] w-full max-w-content items-center justify-between px-4 sm:px-6">
+        <Link href="/" className="flex items-center" aria-label="CareerHeap home">
+          <BrandLogo size="sm" />
+        </Link>
 
-          <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
-            <Link href="/tools" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
-              Tools
-            </Link>
-            <Link href="/pricing" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
-              Pricing
-            </Link>
-            <Link href="/blog" className="text-[15px] font-medium text-text-secondary hover:text-text-primary">
-              Blog
-            </Link>
-          </nav>
-        </div>
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
+          {NAV.map((item) => {
+            const active = isActive(pathname, item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={`text-[14.5px] ${
+                  active ? 'font-bold text-accent' : 'font-medium text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
 
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-3">
           {!isLoading && user ? (
             <>
               <div className="hidden md:block">
@@ -190,15 +209,15 @@ export const Header: React.FC = () => {
             </>
           ) : !isLoading ? (
             <>
-              <Link href="/login" className="hidden text-[15px] font-medium text-text-secondary md:block">
-                Log In
+              <Link
+                href="/login"
+                className="hidden text-[14.5px] font-semibold text-text-secondary hover:text-text-primary md:block"
+              >
+                Log in
               </Link>
-              <Link href="/signup" className="hidden text-[15px] font-medium text-text-secondary md:block">
-                Sign Up
-              </Link>
-              <Link href="/tools/career-switch-planner">
-                <Button variant="primary" size="md">
-                  Try Free
+              <Link href="/tools/career-switch-planner" className="hidden md:block">
+                <Button variant="primary" size="sm">
+                  <Icon name="arrow" size={16} /> Start free
                 </Button>
               </Link>
             </>
@@ -208,7 +227,7 @@ export const Header: React.FC = () => {
             ref={mobileMenuButtonRef}
             type="button"
             onClick={() => setIsOpen((state) => !state)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-bg-primary text-text-secondary md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-text-secondary md:hidden"
             aria-label="Toggle navigation menu"
             aria-expanded={isOpen}
             aria-controls="mobile-navigation-drawer"
@@ -229,34 +248,28 @@ export const Header: React.FC = () => {
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation"
-          className="border-t border-border px-4 py-3 md:hidden"
+          className="border-t border-border-light bg-bg-primary px-4 py-3 md:hidden"
         >
-          <nav aria-label="Mobile" className="mx-auto flex max-w-wide flex-col gap-2">
-            <Link
-              href="/tools"
-              className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
-              onClick={() => setIsOpen(false)}
-            >
-              Tools
-            </Link>
-            <Link
-              href="/pricing"
-              className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
-              onClick={() => setIsOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/blog"
-              className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
-              onClick={() => setIsOpen(false)}
-            >
-              Blog
-            </Link>
+          <nav aria-label="Mobile" className="mx-auto flex max-w-content flex-col gap-1">
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive(pathname, item.href) ? 'page' : undefined}
+                className={`rounded-md px-3 py-2 text-[15px] ${
+                  isActive(pathname, item.href)
+                    ? 'bg-accent-light font-semibold text-accent'
+                    : 'text-text-secondary hover:bg-bg-secondary'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
 
             {!isLoading && user && (
               <>
-                <div className="my-2 border-t border-border" />
+                <div className="my-2 border-t border-border-light" />
                 <div className="px-3 py-1">
                   <PlanBadge />
                 </div>
@@ -296,24 +309,17 @@ export const Header: React.FC = () => {
 
             {!isLoading && !user && (
               <>
-                <div className="my-2 border-t border-border" />
+                <div className="my-2 border-t border-border-light" />
                 <Link
                   href="/login"
                   className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
-                  Log In
-                </Link>
-                <Link
-                  href="/signup"
-                  className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign Up
+                  Log in
                 </Link>
                 <Link href="/tools/career-switch-planner" onClick={() => setIsOpen(false)}>
                   <Button variant="primary" size="md" className="w-full">
-                    Try Free
+                    <Icon name="arrow" size={16} /> Start free
                   </Button>
                 </Link>
               </>
@@ -326,4 +332,3 @@ export const Header: React.FC = () => {
 }
 
 export default Header
-

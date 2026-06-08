@@ -35,6 +35,7 @@ module.exports = {
         sm: tokens.radius.sm,
         md: tokens.radius.md,
         lg: tokens.radius.lg,
+        xl: tokens.radius.xl,
         pill: tokens.radius.pill
       },
       boxShadow: {

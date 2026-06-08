@@ -1,28 +1,18 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 import { PortableText } from '@portabletext/react'
 import { notFound } from 'next/navigation'
-import Button from '@/components/Button'
 import ContentTypography from '@/components/blog/ContentTypography'
-import InlineCTA from '@/components/blog/InlineCTA'
-import NoCoverState from '@/components/blog/NoCoverState'
-import PostMetaRow from '@/components/blog/PostMetaRow'
 import PostViewTracker from '@/components/blog/PostViewTracker'
-import RelatedPostsGrid from '@/components/blog/RelatedPostsGrid'
+import ReadingProgress from '@/components/blog/ReadingProgress'
+import BlogCover from '@/components/blog/BlogCover'
 import { portableTextComponents } from '@/components/blog/portableTextComponents'
-import ToolCard from '@/components/ToolCard'
-import { getDefaultOgImageUrl, getSiteBaseUrl } from '@/lib/blog/utils'
-import {
-  getBlogPostBySlug,
-  getBlogSlugs,
-  getRelatedBlogPosts
-} from '@/lib/sanity/api'
+import { Icon } from '@/components/ui/Icon'
+import { formatPublishedDate, getDefaultOgImageUrl, getSiteBaseUrl, toReadTimeLabel } from '@/lib/blog/utils'
+import { getBlogPostBySlug, getBlogSlugs, getRelatedBlogPosts } from '@/lib/sanity/api'
 
 interface BlogPostPageProps {
-  params: Promise<{
-    slug: string
-  }>
+  params: Promise<{ slug: string }>
 }
 
 export const revalidate = 120
@@ -32,16 +22,12 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }))
 }
 
-export async function generateMetadata({
-  params
-}: BlogPostPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params
   const post = await getBlogPostBySlug(slug)
 
   if (!post) {
-    return {
-      title: 'Post Not Found | CareerHeap Blog'
-    }
+    return { title: 'Post Not Found | CareerHeap Blog' }
   }
 
   const title = post.seoTitle || post.title
@@ -52,30 +38,28 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical
-    },
+    alternates: { canonical },
     openGraph: {
       title,
       description,
       type: 'article',
       url: canonical,
       publishedTime: post.publishedAt,
-      images: [
-        {
-          url: ogImage,
-          alt: post.coverImage?.alt || post.title
-        }
-      ]
+      images: [{ url: ogImage, alt: post.coverImage?.alt || post.title }]
     },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [ogImage]
-    }
+    twitter: { card: 'summary_large_image', title, description, images: [ogImage] }
   }
 }
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return `${parts[0]?.[0] ?? ''}${parts[1]?.[0] ?? ''}`.toUpperCase() || 'CH'
+}
+
+const teal = 'inline-flex w-fit items-center rounded-pill bg-[#e3f7f6] px-2.5 py-1 text-[12px] font-semibold text-[#0a7f7e]'
+const neutral = 'inline-flex w-fit items-center rounded-pill bg-bg-secondary px-2.5 py-1 text-[11px] font-semibold text-text-secondary'
+const btnPrimary =
+  'inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-[22px] py-[13px] text-[15px] font-semibold text-white shadow-button transition-all duration-150 hover:bg-accent-hover hover:-translate-y-px'
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
@@ -88,18 +72,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const relatedPosts = await getRelatedBlogPosts({
     postId: post.id,
     categorySlug: post.category.slug,
-    limit: 3
+    limit: 2
   })
+  // getRelatedBlogPosts returns same-category posts, falling back to any category
+  // only when none exist — so only claim "More in {category}" when it's accurate.
+  const sameCategoryRelated =
+    relatedPosts.length > 0 && relatedPosts.every((p) => p.category.slug === post.category.slug)
+  const relatedHeading = sameCategoryRelated ? `More in ${post.category.title}` : 'Keep reading'
   const canonicalUrl = `${getSiteBaseUrl()}/blog/${post.slug}`
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     datePublished: post.publishedAt,
-    author: {
-      '@type': 'Person',
-      name: post.authorName
-    },
+    author: { '@type': 'Person', name: post.authorName },
     image: post.coverImage?.url || getDefaultOgImageUrl(),
     mainEntityOfPage: canonicalUrl,
     description: post.seoDescription || post.excerpt
@@ -107,104 +93,106 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
+      <ReadingProgress />
       <PostViewTracker slug={post.slug} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <section className="px-4 py-16 lg:px-[170px]">
-        <div className="mx-auto flex max-w-content flex-col gap-6">
-          <span className="w-fit rounded-pill border border-accent/20 bg-accent-light px-3 py-1 text-xs font-semibold tracking-[0.5px] text-accent">
-            {post.category.title.toUpperCase()}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+      <article className="mx-auto max-w-tool px-4 sm:px-6" style={{ paddingTop: 48, paddingBottom: 64 }}>
+        <Link href="/blog" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-accent">
+          <Icon name="arrowLeft" size={15} /> All articles
+        </Link>
+
+        <div className="mt-6">
+          <span className={teal}>{post.category.title}</span>
+        </div>
+
+        <h1 className="mt-4 font-extrabold leading-[1.15]" style={{ fontSize: 'clamp(28px,4vw,40px)' }}>
+          {post.title}
+        </h1>
+
+        <div className="mt-[18px] flex flex-wrap items-center gap-3 text-[14px] text-text-tertiary">
+          <span className="grid h-[34px] w-[34px] place-items-center rounded-pill bg-accent-light text-[13px] font-bold text-accent">
+            {initials(post.authorName)}
           </span>
+          <span className="font-semibold text-text-secondary">{post.authorName}</span>
+          <span>·</span>
+          <span>{formatPublishedDate(post.publishedAt)}</span>
+          <span>·</span>
+          <span>{toReadTimeLabel(post.readTimeMinutes)}</span>
+        </div>
 
-          <h1 className="max-w-[820px] text-[34px] font-bold leading-[1.15] text-text-primary md:text-[40px]">
-            {post.title}
-          </h1>
-
-          <PostMetaRow
-            authorName={post.authorName}
-            publishedAt={post.publishedAt}
-            readTimeMinutes={post.readTimeMinutes}
+        <div className="mt-7 overflow-hidden rounded-lg">
+          <BlogCover
+            category={post.category.title}
+            imageUrl={post.coverImage?.url ?? null}
+            imageAlt={post.coverImage?.alt || `${post.title} cover illustration`}
+            height={400}
           />
+        </div>
 
-          <div className="relative h-[220px] w-full overflow-hidden rounded-lg bg-accent-light md:h-[420px]">
-            {post.coverImage ? (
-              <Image
-                src={post.coverImage.url}
-                alt={post.coverImage.alt || `${post.title} cover illustration`}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 1280px) 100vw, 1100px"
-              />
-            ) : (
-              <NoCoverState title={post.title} />
-            )}
+        {post.excerpt ? (
+          <p className="mt-8 text-[19px] font-medium leading-[1.7] text-text-primary">{post.excerpt}</p>
+        ) : null}
+
+        <div className="mt-7">
+          <ContentTypography>
+            <PortableText value={post.body} components={portableTextComponents} />
+          </ContentTypography>
+        </div>
+
+        {/* #tags */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-border-light pt-6">
+            <span className="self-center text-[13px] font-semibold text-text-tertiary">Tags:</span>
+            {post.tags.map((t) => (
+              <span
+                key={t}
+                className="rounded-pill border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-text-secondary"
+              >
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* single clean CTA */}
+        <div className="relative mt-11 overflow-hidden rounded-xl bg-bg-dark" style={{ padding: '28px 30px' }}>
+          <div
+            className="absolute inset-0"
+            style={{ background: 'radial-gradient(circle at 90% 0%, rgba(36,93,255,0.4), transparent 50%)' }}
+          />
+          <div className="relative">
+            <h3 className="text-[21px] font-extrabold text-white">Ready to put this into a real plan?</h3>
+            <p className="mt-2 text-[15px] text-text-on-dark-muted">
+              Build your free, source-backed roadmap in four minutes.
+            </p>
+            <Link href="/tools/career-switch-planner" className={`${btnPrimary} mt-[18px]`}>
+              <Icon name="rocket" size={16} /> Build my plan
+            </Link>
           </div>
         </div>
-      </section>
+      </article>
 
-      <section className="px-4 pb-16 lg:px-[170px]">
-        <div className="mx-auto flex max-w-content flex-col gap-8 lg:flex-row lg:items-start">
-          <article className="w-full max-w-tool space-y-8">
-            {post.excerpt ? (
-              <p className="text-[17px] leading-[1.8] text-text-secondary">
-                {post.excerpt}
-              </p>
-            ) : null}
-
-            <InlineCTA />
-
-            <ContentTypography>
-              <PortableText value={post.body} components={portableTextComponents} />
-            </ContentTypography>
-          </article>
-
-          <aside className="w-full lg:sticky lg:top-24 lg:w-[300px]">
-            <InlineCTA compact />
-          </aside>
-        </div>
-      </section>
-
-      <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
-        <div className="mx-auto max-w-content space-y-6">
-          <h2 className="text-[32px] font-bold text-text-primary">Related posts</h2>
-          <RelatedPostsGrid posts={relatedPosts} />
-        </div>
-      </section>
-
-      <section className="px-4 py-16 lg:px-[170px]">
-        <div className="mx-auto max-w-content space-y-6">
-          <h2 className="text-[32px] font-bold text-text-primary">Try the tools</h2>
-          <p className="max-w-[760px] text-base leading-[1.7] text-text-secondary">
-            Move from insight to action with the flagship Career Switch Planner,
-            then unlock unlimited workflows on pricing.
-          </p>
-          <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-            <ToolCard
-              slug="career-switch-planner"
-              title="Career Switch Planner"
-              description="Generate a personalized roadmap with role-fit diagnostics, transition priorities, and resume-ready positioning."
-              icon="planner"
-              isActive
-            />
-            <div className="rounded-lg border border-border bg-bg-secondary p-5 shadow-card">
-              <h3 className="text-lg font-bold text-text-primary">
-                Need unlimited access?
-              </h3>
-              <p className="mt-2 text-sm leading-[1.65] text-text-secondary">
-                Compare Free, Pro ($7/month), and Lifetime ($49 one-time) plans.
-              </p>
-              <div className="mt-4">
-                <Link href="/pricing">
-                  <Button variant="outline">See Pricing</Button>
-                </Link>
-              </div>
-            </div>
+      {relatedPosts.length > 0 && (
+        <section className="mx-auto max-w-tool px-4 sm:px-6" style={{ paddingBottom: 72 }}>
+          <h3 className="text-[20px] font-extrabold">{relatedHeading}</h3>
+          <div className="mt-[18px] grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {relatedPosts.slice(0, 2).map((p) => (
+              <Link
+                key={p.slug}
+                href={`/blog/${p.slug}`}
+                className="flex flex-col gap-2 rounded-lg border border-border-light bg-surface p-[22px] shadow-card transition-shadow hover:shadow-panel"
+              >
+                <span className={neutral}>{p.category.title}</span>
+                <h4 className="text-[16.5px] font-bold leading-[1.3]">{p.title}</h4>
+                <span className="text-[12.5px] text-text-tertiary">
+                  {formatPublishedDate(p.publishedAt)} · {toReadTimeLabel(p.readTimeMinutes)}
+                </span>
+              </Link>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   )
 }

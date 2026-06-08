@@ -10,6 +10,7 @@ const apiSource = readFileSync(path.resolve(__dirname, '../lib/sanity/api.ts'), 
 const postCardSource = readFileSync(path.resolve(__dirname, '../components/blog/PostCard.tsx'), 'utf8')
 const featuredSource = readFileSync(path.resolve(__dirname, '../components/blog/FeaturedPostCard.tsx'), 'utf8')
 const detailSource = readFileSync(path.resolve(__dirname, '../app/blog/[slug]/page.tsx'), 'utf8')
+const blogCoverSource = readFileSync(path.resolve(__dirname, '../components/blog/BlogCover.tsx'), 'utf8')
 
 test('blog API maps Sanity cover image to typed coverImage contract', () => {
   assert.match(apiSource, /function buildCoverImage/)
@@ -23,6 +24,9 @@ test('blog API maps Sanity cover image to typed coverImage contract', () => {
 test('blog UI uses deterministic no-cover state and not random placeholders', () => {
   assert.match(postCardSource, /NoCoverState/)
   assert.match(featuredSource, /NoCoverState/)
-  assert.match(detailSource, /NoCoverState/)
+  // The article detail hero uses the deterministic category-themed BlogCover
+  // (real Sanity image when present, fixed gradient fallback otherwise).
+  assert.match(detailSource, /BlogCover/)
   assert.doesNotMatch(apiSource, /unsplash|fallbackImages|picsum|ui-avatars|random/i)
+  assert.doesNotMatch(blogCoverSource, /unsplash|fallbackImages|picsum|ui-avatars|Math\.random/i)
 })

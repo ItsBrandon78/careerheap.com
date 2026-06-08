@@ -31,7 +31,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
 }) => {
   return (
     <Card
-      className={`p-8 shadow-panel ${
+      className={`p-6 shadow-panel md:p-7 ${
         highlighted ? 'border-2 border-accent' : 'border border-border'
       }`}
     >
@@ -39,11 +39,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         <p className="mb-2 text-[13px] font-semibold text-accent">{badge ?? 'Best Value'}</p>
       )}
       <p className="text-sm font-semibold text-text-secondary">{name}</p>
-      <p className="mt-3 text-[44px] font-bold leading-none text-text-primary">{price}</p>
+      <p className="mt-2.5 text-[38px] font-bold leading-none text-text-primary md:text-[42px]">{price}</p>
       <p className="mt-2 text-sm text-text-secondary">{subtitle}</p>
       {detailsSlot ? <div className="mt-4">{detailsSlot}</div> : null}
 
-      <ul className="mt-6 space-y-3 text-[15px] text-text-primary">
+      <ul className="mt-5 space-y-2.5 text-[15px] text-text-primary">
         {features.map((feature) => (
           <li key={feature} className="flex items-start gap-2">
             <CheckIcon className="mt-0.5 h-4 w-4 flex-none text-success" />
@@ -52,7 +52,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         ))}
       </ul>
 
-      <div className="mt-8">
+      <div className="mt-6">
         {href ? (
           <Link href={href}>
             <Button variant="primary" className="w-full">

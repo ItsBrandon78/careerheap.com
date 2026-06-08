@@ -31,6 +31,7 @@ const postFields = groq`
       asset
     }
   },
+  tags,
   body
 `
 

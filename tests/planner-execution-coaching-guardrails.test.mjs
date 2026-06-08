@@ -182,7 +182,7 @@ test('deterministic execution strategy enforces minimum actions and linked requi
 test('legacy execution strategy block is removed and V3 dashboard sections are present', () => {
   assert.match(plannerClientSource, /PlannerDashboardV3/)
   assert.doesNotMatch(plannerClientSource, /Personalized execution strategy/)
-  assert.match(dashboardSource, /<DecisionHeader/)
+  assert.match(dashboardSource, /<(DecisionHeader|PlannerCommandCenter)/)
   assert.match(dashboardSource, /<PathForwardCard/)
   assert.match(dashboardSource, /<StartHereCard/)
   assert.match(dashboardSource, /<StandOutCard/)

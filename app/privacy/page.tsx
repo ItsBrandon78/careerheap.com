@@ -1,58 +1,107 @@
+import type { Metadata } from 'next'
+import LegalDoc, { type LegalSection } from '@/components/LegalDoc'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy — CareerHeap',
+  description:
+    'How CareerHeap collects, uses, and protects your information. We don’t sell your data, and we don’t invent facts about you.',
+  alternates: { canonical: '/privacy' }
+}
+
+const SECTIONS: LegalSection[] = [
+  {
+    h: 'Who we are',
+    p: [
+      'CareerHeap is a Canada-first career-planning service operated from Ontario, Canada. This policy applies to our website, the Career Switch Planner, and related tools (the “Service”).'
+    ]
+  },
+  {
+    h: 'Information we collect',
+    list: [
+      'Account details — your name and email when you create an account (authentication is handled by our infrastructure provider, Supabase).',
+      'Planner inputs — the situation, skills, education, location, timeline, and goals you enter to generate a plan.',
+      'Résumé text — if you choose to upload a résumé, we process its text to extract skills and experience. Raw résumé files are not stored as permanent profile data, and an optional mode lets you keep only the structured extraction.',
+      'Usage data — pages visited and tools used, to improve the product (privacy-respecting analytics).',
+      'Billing details — if you upgrade, payment is processed by Stripe. We never see or store full card numbers.'
+    ]
+  },
+  {
+    h: 'How we use your information',
+    list: [
+      'To generate your plan — matching your inputs against occupation and wage datasets to build roadmaps, skill gaps, and recommendations.',
+      'To save and sync your plans across your devices.',
+      'To improve matching — using only aggregated, de-identified signals (for example, which starter steps people complete first). We never replay one person’s plan into another’s.',
+      'To process payments, provide support, and send essential service messages.'
+    ]
+  },
+  {
+    h: 'The datasets behind your plan',
+    p: [
+      'Your recommendations are built on public and licensed reference data, including O*NET (occupations and skills), Job Bank and ESDC (Canadian wages and employment outlook), and Skilled Trades Ontario (trade requirements). Where a number is an estimate rather than a sourced figure, we label it as such inside your plan.'
+    ]
+  },
+  {
+    h: 'How we share information',
+    p: [
+      'We do not sell your personal information. We share data only with service providers who help us run CareerHeap, under contract and only as needed:'
+    ],
+    list: [
+      'Supabase — authentication and database hosting.',
+      'Stripe — payment processing for paid plans.',
+      'Privacy-respecting analytics — aggregate usage measurement.',
+      'Legal — if required by law or to protect rights and safety.'
+    ]
+  },
+  {
+    h: 'Data retention and your controls',
+    p: ['You stay in control of what we keep. From your account you can:'],
+    list: [
+      'Delete a saved plan at any time.',
+      'Delete your résumé extraction data.',
+      'Choose not to store your raw résumé file (structured extraction only).',
+      'Export your plan, or request deletion of your entire account by emailing privacy@careerheap.ca.'
+    ]
+  },
+  {
+    h: 'Security',
+    p: [
+      'We use encryption in transit, access controls, and reputable infrastructure providers. No system is perfectly secure, but we work to protect your information and to limit what we collect in the first place.'
+    ]
+  },
+  {
+    h: 'Cookies and analytics',
+    p: [
+      'We use essential cookies to keep you signed in and a lightweight analytics layer to understand which features help people. We do not use advertising trackers.'
+    ]
+  },
+  {
+    h: 'Your rights under Canadian law',
+    p: [
+      'Under PIPEDA and applicable provincial laws, you have the right to access, correct, and delete your personal information, and to withdraw consent. If you are outside Canada, your data may be processed in Canada and other countries where our providers operate.'
+    ]
+  },
+  {
+    h: 'Children',
+    p: [
+      'CareerHeap is not directed at children under 16, and we do not knowingly collect their personal information.'
+    ]
+  },
+  {
+    h: 'Changes to this policy',
+    p: [
+      'If we make material changes, we’ll update the date above and, where appropriate, notify you in the product. Continued use after an update means you accept the revised policy.'
+    ]
+  }
+]
+
 export default function PrivacyPage() {
   return (
-    <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
-      <article className="mx-auto max-w-[860px] rounded-lg border border-border bg-surface p-8 shadow-card">
-        <p className="text-xs font-semibold tracking-[1.5px] text-accent">LEGAL</p>
-        <h1 className="mt-3 text-[40px] font-bold text-text-primary">Privacy Policy</h1>
-
-        <div className="mt-8 space-y-8 text-sm leading-[1.7] text-text-secondary">
-          <section>
-            <h2 className="text-2xl font-bold text-text-primary">Introduction</h2>
-            <p className="mt-3">
-              CareerHeap (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) operates career tools and educational
-              content. This policy explains how we collect, use, and protect your information.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-text-primary">Information We Collect</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-6">
-              <li>Email address for account and authentication.</li>
-              <li>Usage data for tool limits and billing state.</li>
-              <li>Tool inputs processed for analysis (not stored as permanent profile content).</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-text-primary">How We Use Data</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-6">
-              <li>Provide tool results and account access.</li>
-              <li>Apply free usage limits and subscription features.</li>
-              <li>Maintain service reliability and security.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-text-primary">Third-Party Services</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-6">
-              <li>Supabase for authentication and database.</li>
-              <li>Stripe for secure payment processing.</li>
-              <li>OpenAI for AI-powered generation and analysis.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold text-text-primary">Contact</h2>
-            <p className="mt-3">
-              Questions about privacy can be sent to{' '}
-              <a href="mailto:privacy@careerheap.com" className="text-accent hover:text-accent-hover">
-                privacy@careerheap.com
-              </a>
-              .
-            </p>
-          </section>
-        </div>
-      </article>
-    </section>
+    <LegalDoc
+      active="privacy"
+      badge="Your privacy"
+      title="Privacy Policy"
+      intro="CareerHeap helps you plan a career path, so you trust us with information about where you are and where you want to go. This policy explains what we collect, why, and the control you keep over it. In plain terms: we don’t sell your data, and we don’t invent facts about you."
+      sections={SECTIONS}
+    />
   )
 }

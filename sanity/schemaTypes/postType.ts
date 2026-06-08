@@ -31,5 +31,12 @@ export const postType = defineType({
       type: 'array',
       of: [{type: 'block'}],
     }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      of: [{type: 'string'}],
+      options: {layout: 'tags'},
+    }),
   ],
 })

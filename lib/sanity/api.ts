@@ -48,6 +48,7 @@ interface SanityPostValue {
   coverImage?: SanityImageValue
   category?: SanityCategoryValue
   author?: SanityAuthorValue
+  tags?: unknown
   body?: BlogBodyBlock[]
 }
 
@@ -140,7 +141,10 @@ function normalizePost(post: SanityPostValue): BlogPost | null {
       : null,
     body,
     seoTitle: post.seoTitle || null,
-    seoDescription: post.seoDescription || null
+    seoDescription: post.seoDescription || null,
+    tags: Array.isArray(post.tags)
+      ? post.tags.map((t) => (typeof t === 'string' ? t.trim() : '')).filter(Boolean)
+      : []
   }
 }
 

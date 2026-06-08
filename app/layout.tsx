@@ -7,6 +7,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AccessibilityMenu from '@/components/AccessibilityMenu';
+import ConsentBanner from '@/components/ConsentBanner';
 import AuthRecoveryHandler from '@/components/AuthRecoveryHandler';
 import { AuthProvider } from '@/lib/auth/context';
 import { accessibilityInitScript } from '@/lib/accessibility/preferences';
@@ -90,6 +91,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <AccessibilityMenu />
+          <ConsentBanner />
         </AuthProvider>
         <Analytics />
         <SpeedInsights />

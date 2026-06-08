@@ -1,4 +1,4 @@
-import type { PlannerResultView } from '@/lib/planner/types'
+﻿import type { PlannerResultView } from '@/lib/planner/types'
 
 export type PlannerViewMode = 'intake' | 'dashboard'
 
@@ -224,6 +224,17 @@ export interface PlannerDashboardV3Model {
     hiringRequirements: DashboardFallbackValue<string>
     wageSourceLabel: string
     demandSourceLabel: string
+  }
+  marketProof: {
+    summary: string
+    postingsCount: number | null
+    baselineOnlyWarning: string | null
+    requirements: Array<{
+      label: string
+      frequency: string
+      evidence: string
+      source: string
+    }>
   }
   outreach: {
     intro: string
@@ -657,6 +668,7 @@ type StarterCertificationCandidate = {
   sourceType: SourceType
   sourceUrl?: string | null
   provider: string
+  cost?: string | null
 }
 
 const STARTER_CERTIFICATION_PATTERNS: Array<{
@@ -690,6 +702,23 @@ function collectStarterCertifications(args: {
   }>
   sourceUrl?: string | null
 }) {
+  const extractCostHintFromText = (value: string | null | undefined) => {
+    if (!value) return null
+    const matches = [...value.matchAll(/\$([\d.]+)\s*([kK])?/g)]
+    if (matches.length === 0) return null
+    const numbers = matches
+      .map((match) => {
+        const raw = Number(match[1])
+        if (!Number.isFinite(raw)) return null
+        return match[2] ? raw * 1000 : raw
+      })
+      .filter((item): item is number => item !== null)
+    if (numbers.length === 0) return null
+    const min = Math.min(...numbers)
+    const max = Math.max(...numbers)
+    return formatCurrencyRange(min, max, 'CAD').replace(/^CA\$/i, '$')
+  }
+
   const seen = new Set<string>()
   const output: StarterCertificationCandidate[] = []
 
@@ -705,7 +734,8 @@ function collectStarterCertifications(args: {
       sourceLabel: cleanGeneratedLabel(String(item?.source_title ?? '')).trim() || 'Career pathway profile',
       sourceType: 'verified',
       sourceUrl: item?.source_url ?? args.sourceUrl ?? null,
-      provider: cleanGeneratedLabel(String(item?.provider ?? '')).trim() || 'Official requirement source'
+      provider: cleanGeneratedLabel(String(item?.provider ?? '')).trim() || 'Official requirement source',
+      cost: extractCostHintFromText(String(item?.details ?? '').trim())
     })
   }
 
@@ -749,7 +779,8 @@ function collectStarterCertifications(args: {
         sourceLabel: source.sourceLabel,
         sourceType: source.sourceType,
         sourceUrl: args.sourceUrl ?? null,
-        provider: source.sourceLabel === 'Employer evidence' ? 'Employer evidence' : 'Official requirement source'
+        provider: source.sourceLabel === 'Employer evidence' ? 'Employer evidence' : 'Official requirement source',
+        cost: null
       })
     }
   }
@@ -769,6 +800,33 @@ function normalizeRoadmapActions(items: string[]) {
   return items.slice(0, 4)
 }
 
+function isLockedOrPlaceholderRoadmapAction(value: string) {
+  const normalized = value.trim().toLowerCase()
+  if (!normalized || normalized === '.' || normalized === '-' || normalized === 'â€¢') return true
+  return /\b(upgrade to pro|unlock the full weekly action sequence|weekly action sequence)\b/.test(normalized)
+}
+
+function buildTimelineWindows(args: {
+  windows: Array<{ label: string; actions: string[]; fallback: string[] }>
+  pathwayWeightingType: PlannerPathwayWeightingType
+}) {
+  return args.windows.map((window) => {
+    const rankedPrimary = rankContentByPathway(
+      window.actions.filter((item) => !isLockedOrPlaceholderRoadmapAction(item)),
+      args.pathwayWeightingType,
+      3
+    )
+    const rankedFallback = rankContentByPathway(
+      window.fallback.filter((item) => !isLockedOrPlaceholderRoadmapAction(item)),
+      args.pathwayWeightingType,
+      3
+    )
+    return {
+      label: window.label,
+      actions: rankedPrimary.length > 0 ? rankedPrimary : rankedFallback
+    }
+  })
+}
 function uniqueNormalizedStrings(values: string[]) {
   const seen = new Set<string>()
   const output: string[] = []
@@ -1902,6 +1960,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       ? uniqueNormalizedStrings([...enrichedEntryRoles, ...profileEntryRoles]).slice(0, 3)
       : []
   const marketSnapshot = input.report?.transitionReport?.marketSnapshot
+  const evidenceTransparency = input.report?.transitionReport?.evidenceTransparency
   const fullQualificationWindow = formatQualificationWindow(pathwayProfile)
   const tradeFacts =
     careerPathType === 'TRADES'
@@ -1975,9 +2034,63 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
       : [],
     sourceUrl: profileOfficialLinks[0]?.url ?? null
   })
+  const certificationLinkCandidates = [
+    ...normalizedCertificationCards
+      .filter((card: { sourceUrl?: string | null }) => Boolean(card.sourceUrl))
+      .map((card: { name: string; sourceLabel: string; sourceUrl?: string | null }) => ({
+        label: `${card.name} ${card.sourceLabel}`,
+        url: card.sourceUrl as string
+      })),
+    ...profileOfficialLinks
+      .filter((item: { url?: string }) => Boolean(item?.url))
+      .map((item: { title?: string; url?: string }) => ({
+        label: cleanGeneratedLabel(String(item?.title ?? '')).trim(),
+        url: String(item?.url ?? '')
+      }))
+  ]
+  const certTokens = (value: string) => {
+    const normalized = cleanGeneratedLabel(value)
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    const tokens = new Set<string>()
+    if (normalized) tokens.add(normalized)
+    if (/\bwhmis\b/i.test(value)) tokens.add('whmis')
+    if (/\bworking at heights?\b/i.test(value)) tokens.add('working at heights')
+    if (/\b(worker health|health and safety awareness|4 step|four step)\b/i.test(value)) {
+      tokens.add('worker health and safety awareness')
+    }
+    if (/\bfirst aid\b/i.test(value)) tokens.add('first aid')
+    if (/\bcpr\b/i.test(value)) tokens.add('cpr')
+    return Array.from(tokens)
+  }
+  const resolveCertificationSourceUrl = (name: string) => {
+    const targetTokens = certTokens(name)
+    for (const targetToken of targetTokens) {
+      for (const candidate of certificationLinkCandidates) {
+        const candidateTokens = certTokens(candidate.label)
+        if (candidateTokens.some((token) => token === targetToken || token.includes(targetToken) || targetToken.includes(token))) {
+          return candidate.url
+        }
+      }
+    }
+    return profileOfficialLinks[0]?.url ?? null
+  }
   const starterCertificationsWithBackfill = (() => {
-    if (starterCertifications.length >= 3) return starterCertifications.slice(0, 3)
-    if (normalizedCertificationCards.length === 0) return starterCertifications.slice(0, 3)
+    if (starterCertifications.length >= 3) {
+      return starterCertifications.slice(0, 3).map((item) => ({
+        ...item,
+        sourceUrl: item.sourceUrl ?? resolveCertificationSourceUrl(item.name)
+      }))
+    }
+    if (normalizedCertificationCards.length === 0) {
+      return starterCertifications.slice(0, 3).map((item) => ({
+        ...item,
+        sourceUrl: item.sourceUrl ?? resolveCertificationSourceUrl(item.name)
+      }))
+    }
 
     const seen = new Set(
       starterCertifications.map((item) =>
@@ -1994,13 +2107,31 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         name: card.name,
         sourceLabel: card.sourceLabel,
         sourceType: card.sourceType,
-        sourceUrl: card.sourceUrl ?? null,
-        provider: card.provider
+        sourceUrl: card.sourceUrl ?? resolveCertificationSourceUrl(card.name),
+        provider: card.provider,
+        cost: null
       })
     }
-    return merged.slice(0, 3)
+    return merged.slice(0, 3).map((item) => ({
+      ...item,
+      sourceUrl: item.sourceUrl ?? resolveCertificationSourceUrl(item.name)
+    }))
   })()
-  const trainingCourses: PlannerDashboardV3Model['training']['courses'] =
+  const normalizedMatcherKey = (value: string) =>
+    cleanGeneratedLabel(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
+  const resolveTrainingCardCost = (name: string) => {
+    const target = normalizedMatcherKey(name)
+    if (!target || filteredEnrichedTrainingCards.length === 0) return null
+    for (const card of filteredEnrichedTrainingCards) {
+      const candidate = normalizedMatcherKey(card.name)
+      if (!candidate) continue
+      if (candidate === target || candidate.includes(target) || target.includes(candidate)) {
+        return card.cost ?? null
+      }
+    }
+    return null
+  }
+  const rawTrainingCourses: PlannerDashboardV3Model['training']['courses'] =
     starterCertificationsWithBackfill.length > 0
       ? starterCertificationsWithBackfill.map((item, index) => ({
           id: toStableTrainingId(item.name, index),
@@ -2008,7 +2139,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           provider: item.provider,
           priorityLabel: 'Get first' as const,
           length: null,
-          cost: null,
+          cost: item.cost ?? resolveTrainingCardCost(item.name),
           modality: null,
           sourceUrl: item.sourceUrl ?? null,
           sourceType: item.sourceType,
@@ -2121,9 +2252,150 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
             }
           ]
 
+  const trainingCostFallbackByName = (name: string) => {
+    const normalized = cleanGeneratedLabel(name).toLowerCase()
+    if (/\bwhmis\b/.test(normalized)) return '$20-$80'
+    if (/\bworking at heights?\b|\bfall protection\b/.test(normalized)) return '$120-$250'
+    if (/\bworker health and safety awareness\b|\bhealth and safety awareness\b/.test(normalized)) {
+      return '$0-$60'
+    }
+    if (/\b(first aid|cpr)\b/.test(normalized)) return '$120-$300'
+    if (/\b(csts)\b/.test(normalized)) return '$0-$120'
+    if (/\bconfined space\b|\blockout\s*tagout\b|\bloto\b|\belevated work platform\b|\bboom lift\b|\bscissor lift\b/.test(normalized)) {
+      return '$150-$500'
+    }
+    return null
+  }
+
+  const isPlaceholderSourceLabel = (value: string) =>
+    /\b(official requirement source|target requirements|training source)\b/i.test(value.trim())
+
+  const trainingCourses = rawTrainingCourses.map((course) => {
+    const sourceUrl = course.sourceUrl ?? null
+    const providerFromUrl = sourceUrl ? providerNameFromUrl(sourceUrl) : null
+    const hasGenericProvider = !course.provider || /\b(official requirement source|confirm with local provider|official provider listing)\b/i.test(course.provider)
+    const provider = hasGenericProvider && providerFromUrl ? providerFromUrl : course.provider || 'Official provider listing'
+    const sourceLabel =
+      isPlaceholderSourceLabel(course.sourceLabel) && providerFromUrl
+        ? `Official source: ${providerFromUrl}`
+        : course.sourceLabel
+
+    return {
+      ...course,
+      provider,
+      sourceLabel,
+      sourceType: sourceUrl ? (course.sourceType === 'estimate' ? 'derived' : course.sourceType) : course.sourceType,
+      cost: course.cost ?? trainingCostFallbackByName(course.name)
+    }
+  })
+
   pushIfMissing(missingFields, 'training.certifications', trainingNames.length === 0)
 
   const localDemandLabel = normalizeLocalDemandLabel(marketSnapshot?.summaryLine, input.locationText)
+  const postingsCountFromSummary = (() => {
+    const raw = String(marketSnapshot?.summaryLine ?? '')
+    const match = raw.match(/based on\s+(\d+)\s+recent postings/i)
+    if (!match) return null
+    const parsed = Number(match[1])
+    return Number.isFinite(parsed) ? parsed : null
+  })()
+  const postingsCountFromEvidence =
+    typeof evidenceTransparency?.employerPostings?.count === 'number' &&
+    Number.isFinite(evidenceTransparency.employerPostings.count)
+      ? evidenceTransparency.employerPostings.count
+      : null
+  const marketTopRequirements = Array.isArray(marketSnapshot?.topRequirements) ? marketSnapshot.topRequirements : []
+  const marketProofRequirementsFromTop = marketTopRequirements
+    .slice(0, 3)
+    .map((item: {
+      label?: string
+      frequency_count?: number
+      frequency_percent?: number | null
+      evidenceQuote?: Array<{
+        source?: 'adzuna' | 'user_posting' | 'onet'
+        quote?: string
+      }>
+    }) => {
+      const firstEvidence = Array.isArray(item.evidenceQuote) ? item.evidenceQuote[0] : null
+      const evidenceText = cleanGeneratedLabel(String(firstEvidence?.quote ?? '')).trim()
+      const sourceLabel =
+        firstEvidence?.source === 'user_posting'
+          ? 'Your posting'
+          : firstEvidence?.source === 'adzuna'
+            ? 'Live postings'
+            : 'Baseline dataset'
+      const frequency =
+        typeof item.frequency_percent === 'number' && Number.isFinite(item.frequency_percent)
+          ? `${Math.max(1, Math.round(item.frequency_percent))}% of postings`
+          : typeof item.frequency_count === 'number' && Number.isFinite(item.frequency_count)
+            ? `${Math.max(1, Math.round(item.frequency_count))} postings`
+            : 'Employer signal'
+
+      return {
+        label: cleanGeneratedLabel(String(item.label ?? '')).trim() || 'Employer requirement',
+        frequency,
+        evidence: evidenceText || 'Evidence quote unavailable.',
+        source: sourceLabel
+      }
+    })
+
+  const marketProofRequirementsFromTransitions = [
+    ...(((input.report?.transitionSections?.mandatoryGateRequirements as Array<{
+      label?: string
+      frequency?: number
+      evidence?: Array<{ source?: 'adzuna' | 'user_posting' | 'onet'; quote?: string }>
+      evidenceLabel?: string
+    }> | undefined) ?? [])),
+    ...(((input.report?.transitionSections?.coreHardSkills as Array<{
+      label?: string
+      frequency?: number
+      evidence?: Array<{ source?: 'adzuna' | 'user_posting' | 'onet'; quote?: string }>
+      evidenceLabel?: string
+    }> | undefined) ?? []))
+  ]
+    .slice(0, 6)
+    .map((item) => {
+      const firstEvidence = Array.isArray(item.evidence) ? item.evidence[0] : null
+      const evidenceText = cleanGeneratedLabel(String(firstEvidence?.quote ?? '')).trim()
+      const sourceLabel =
+        firstEvidence?.source === 'user_posting'
+          ? 'Your posting'
+          : firstEvidence?.source === 'adzuna'
+            ? 'Live postings'
+            : 'Baseline dataset'
+      const frequency =
+        typeof item.frequency === 'number' && Number.isFinite(item.frequency)
+          ? `${Math.max(1, Math.round(item.frequency))} postings`
+          : 'Requirement signal'
+      return {
+        label: cleanGeneratedLabel(String(item.label ?? '')).trim() || 'Employer requirement',
+        frequency,
+        evidence: evidenceText || cleanGeneratedLabel(String(item.evidenceLabel ?? '')).trim() || 'Evidence summary unavailable.',
+        source: sourceLabel
+      }
+    })
+    .filter((item) => item.label)
+
+  const marketProofRequirementsFromTargets = uniqueNormalizedStrings([
+    ...(((input.report?.targetRequirements?.hardGates as string[] | undefined) ?? [])),
+    ...(((input.report?.targetRequirements?.certifications as string[] | undefined) ?? [])),
+    ...(((input.report?.targetRequirements?.employerSignals as string[] | undefined) ?? []))
+  ])
+    .slice(0, 3)
+    .map((label) => ({
+      label: cleanGeneratedLabel(label).trim(),
+      frequency: 'Target requirement',
+      evidence: 'Derived from your target role requirement profile.',
+      source: 'Target requirements'
+    }))
+
+  const marketProofRequirements = (
+    marketProofRequirementsFromTop.length > 0
+      ? marketProofRequirementsFromTop
+      : marketProofRequirementsFromTransitions.length > 0
+        ? marketProofRequirementsFromTransitions
+        : marketProofRequirementsFromTargets
+  ).slice(0, 3)
 
   pushIfMissing(missingFields, 'market.local_demand', !marketSnapshot?.summaryLine)
 
@@ -2285,6 +2557,18 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           careerPathType
         )
       })) ?? []
+  const targetRoleKey = normalizedLabelKey(roleTargetDisplay)
+  const uniqueAlternatives = (() => {
+    const seen = new Set<string>()
+    const output: PlannerDashboardAlternative[] = []
+    for (const option of alternatives) {
+      const key = normalizedLabelKey(option.title)
+      if (!key || key === targetRoleKey || seen.has(key)) continue
+      seen.add(key)
+      output.push(option)
+    }
+    return output
+  })()
 
   pushIfMissing(missingFields, 'alternatives.cards', alternatives.length === 0)
 
@@ -2417,7 +2701,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     ]
   }
   const fallbackCards: PlannerDashboardAlternative[] = fallbackCardsByPath[careerPathType] ?? fallbackCardsByPath.GENERAL
-  const alternativeCards = alternatives.length > 0 ? alternatives : fallbackCards
+  const alternativeCards = uniqueAlternatives.length > 0 ? uniqueAlternatives : fallbackCards
   const compareA = alternativeCards[0] ?? fallbackCards[0]
   const compareB = alternativeCards[1] ?? fallbackCards[1]
 
@@ -2520,18 +2804,33 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const normalizeKey = (value: string) =>
     cleanGeneratedLabel(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
 
+  const month1PlanActions =
+    ((input.report?.executionStrategy?.plan90Day?.month1?.actions as Array<{ task?: string }> | undefined) ?? [])
+      .map((item) => sanitizePlannerCopy(String(item.task ?? ''), careerPathType))
+      .filter(Boolean)
+      .filter((item) => !isLockedOrPlaceholderRoadmapAction(item))
+  const month2PlanActions =
+    ((input.report?.executionStrategy?.plan90Day?.month2?.actions as Array<{ task?: string }> | undefined) ?? [])
+      .map((item) => sanitizePlannerCopy(String(item.task ?? ''), careerPathType))
+      .filter(Boolean)
+      .filter((item) => !isLockedOrPlaceholderRoadmapAction(item))
+  const month3PlanActions =
+    ((input.report?.executionStrategy?.plan90Day?.month3?.actions as Array<{ task?: string }> | undefined) ?? [])
+      .map((item) => sanitizePlannerCopy(String(item.task ?? ''), careerPathType))
+      .filter(Boolean)
+      .filter((item) => !isLockedOrPlaceholderRoadmapAction(item))
+
   const actionThisWeekCandidates = [
     ...(checklistImmediate.length > 0 ? checklistImmediate : nowFallback),
     ...((input.report?.transitionMode?.roadmapGuide?.next7Days as string[] | undefined) ?? []),
-    ...((input.report?.transitionMode?.gaps?.first3Steps as string[] | undefined) ?? [])
+    ...((input.report?.transitionMode?.gaps?.first3Steps as string[] | undefined) ?? []),
+    ...month1PlanActions
   ].map((item) => sanitizePlannerCopy(item, careerPathType))
 
   const actionNextWeekCandidates = [
     ...(checklistShortTerm.length > 0 ? checklistShortTerm : shortFallback),
     ...fastestPath.map((step) => step.detail),
-    ...((input.report?.executionStrategy?.plan90Day?.month2?.actions as Array<{ task?: string }> | undefined)?.map(
-      (item) => String(item.task ?? '')
-    ) ?? [])
+    ...month2PlanActions
   ].map((item) => sanitizePlannerCopy(item, careerPathType))
 
   const proofTargets = (
@@ -2799,42 +3098,46 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const sortedByUpside = [...alternativeCards].sort(
     (left, right) => parseSalaryUpperBound(right.salary.value) - parseSalaryUpperBound(left.salary.value)
   )
-  const adjacentFastest = sortedByFastest[0] ?? null
-  const adjacentClosest = alternativeCards[0] ?? sortedByFastest[0] ?? null
-  const adjacentUpside = sortedByUpside[0] ?? alternativeCards[2] ?? alternativeCards[0] ?? null
+  const usedAdjacentTitles = new Set<string>()
+  const pickAdjacent = (candidates: PlannerDashboardAlternative[]) => {
+    for (const candidate of candidates) {
+      const key = normalizedLabelKey(candidate.title)
+      if (!key || usedAdjacentTitles.has(key)) continue
+      usedAdjacentTitles.add(key)
+      return candidate
+    }
+    return null
+  }
+  const adjacentFastest = pickAdjacent(sortedByFastest)
+  const adjacentClosest = pickAdjacent(alternativeCards)
+  const adjacentUpside = pickAdjacent(sortedByUpside)
 
-  const longerTermRoadmapWindows = [
+  const longerTermRoadmapWindows = buildTimelineWindows({
+    windows: [
     {
       label: '30 Days',
-      actions: rankContentByPathway(
-        (checklistImmediate.length > 0 ? checklistImmediate : nowFallback).map((item) =>
-          sanitizePlannerCopy(item, careerPathType)
-        ),
-        pathwayWeightingType,
-        3
+      actions: month1PlanActions,
+      fallback: (checklistImmediate.length > 0 ? checklistImmediate : nowFallback).map((item) =>
+        sanitizePlannerCopy(item, careerPathType)
       )
     },
     {
       label: '60 Days',
-      actions: rankContentByPathway(
-        (checklistShortTerm.length > 0 ? checklistShortTerm : shortFallback).map((item) =>
-          sanitizePlannerCopy(item, careerPathType)
-        ),
-        pathwayWeightingType,
-        3
+      actions: month2PlanActions,
+      fallback: (checklistShortTerm.length > 0 ? checklistShortTerm : shortFallback).map((item) =>
+        sanitizePlannerCopy(item, careerPathType)
       )
     },
     {
       label: '90 Days+',
-      actions: rankContentByPathway(
-        (checklistLongTerm.length > 0 ? checklistLongTerm : longFallback).map((item) =>
-          sanitizePlannerCopy(item, careerPathType)
-        ),
-        pathwayWeightingType,
-        3
+      actions: month3PlanActions,
+      fallback: (checklistLongTerm.length > 0 ? checklistLongTerm : longFallback).map((item) =>
+        sanitizePlannerCopy(item, careerPathType)
       )
     }
-  ]
+    ],
+    pathwayWeightingType
+  })
 
   return {
     missingFields: missingFallbackFields,
@@ -3090,6 +3393,19 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
             : 'Employer evidence'
           : 'Needs stronger source coverage'
     },
+    marketProof: {
+      summary:
+        cleanGeneratedLabel(String(marketSnapshot?.summaryLine ?? '')).trim() ||
+        (marketProofRequirements.length > 0
+          ? `Using available requirement signals for ${roleTargetDisplay}. Add a target posting to strengthen live evidence.`
+          : `Market evidence is still building for ${roleTargetDisplay}.`),
+      postingsCount: postingsCountFromEvidence ?? postingsCountFromSummary,
+      baselineOnlyWarning:
+        typeof evidenceTransparency?.baselineOnlyWarning === 'string'
+          ? cleanGeneratedLabel(evidenceTransparency.baselineOnlyWarning).trim() || null
+          : null,
+      requirements: marketProofRequirements
+    },
     outreach: {
       intro: 'Use concise, evidence-based messaging tied to real employer requirements.'
     },
@@ -3226,3 +3542,5 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     }
   }
 }
+
+
