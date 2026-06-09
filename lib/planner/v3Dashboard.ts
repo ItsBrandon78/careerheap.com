@@ -603,7 +603,9 @@ function normalizeLocalDemandLabel(summaryLine: string | null | undefined, locat
 
   const postingsMatch = raw.match(/(\d+)\s+recent postings in\s+(.+?)(?:\.|$)/i)
   if (postingsMatch) {
-    return `Based on ${postingsMatch[1]} recent postings in ${postingsMatch[2].trim()}.`
+    // Title-case the location so "ontario, canada" renders as "Ontario, Canada".
+    const place = postingsMatch[2].trim().replace(/\b([a-z])/g, (m) => m.toUpperCase())
+    return `Based on ${postingsMatch[1]} recent postings in ${place}.`
   }
 
   if (raw.length <= 72) return raw
@@ -931,6 +933,29 @@ function sanitizePlannerCopy(value: string, careerPathType: DashboardCareerPathT
     .trim()
 }
 
+// Guard for short, user-facing claim phrases (strength advantages / why-it-matters).
+// Rejects leaked posting prose and implausible experience numbers (e.g. "60 years
+// of experience"), returning the safe fallback instead of shipping garbage.
+function sanitizeShortClaim(value: string, fallback: string): string {
+  const cleaned = (value || '').replace(/\s+/g, ' ').trim()
+  if (!cleaned) return fallback
+  const lower = cleaned.toLowerCase()
+  const implausibleYears = /\b(\d{3,}|[3-9]\d)\s*\+?\s*years?\b/.test(lower) // >= 30 years
+  const postingProse =
+    /\b(we have provided|we provide|we offer|benefit programs?|our team|you will receive|supplemental)\b/.test(lower)
+  const tooLong = cleaned.length > 180 || cleaned.split(/\s+/).length > 28
+  if (implausibleYears || postingProse || tooLong) return fallback
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+}
+
+// Sentence-case a label's first letter without disturbing acronyms in the rest
+// (e.g. "analyze data" -> "Analyze data", "SQL reporting" stays "SQL reporting").
+function capitalizeFirst(value: string): string {
+  const v = (value || '').trim()
+  if (!v) return v
+  return v.charAt(0).toUpperCase() + v.slice(1)
+}
+
 function inferPhaseOutcome(title: string, summary: string, actions: string[]) {
   const normalized = `${title} ${summary} ${actions.join(' ')}`.toLowerCase()
   if (/\b(cert|credential|course|license|licen|training|safety|exam)\b/.test(normalized)) {
@@ -1199,10 +1224,19 @@ function formatQualificationWindow(profile: DashboardMapperInput['report']['care
   const minYears = minMonths / 12
   const maxYears = maxMonths / 12
   if (Math.abs(minYears - Math.round(minYears)) < 0.01 && Math.abs(maxYears - Math.round(maxYears)) < 0.01) {
-    return `${Math.round(minYears)}-${Math.round(maxYears)} years`
+    return formatUnitRange(Math.round(minYears), Math.round(maxYears), 'year')
   }
 
-  return `${minMonths}-${maxMonths} months`
+  return formatUnitRange(minMonths, maxMonths, 'month')
+}
+
+// Render a numeric range, collapsing equal bounds ("12-12 months" -> "12 months")
+// and pluralizing the single-value case correctly.
+function formatUnitRange(min: number, max: number, unit: 'month' | 'year') {
+  const lo = Math.min(min, max)
+  const hi = Math.max(min, max)
+  if (lo === hi) return `${lo} ${unit}${lo === 1 ? '' : 's'}`
+  return `${lo}-${hi} ${unit}s`
 }
 
 function trainingPriorityLabel(args: {
@@ -1287,8 +1321,12 @@ function salaryRangeToLabel(low: number | null | undefined, high: number | null 
     currency,
     maximumFractionDigits: 0
   })
-  const lowLabel = formatter.format(normalizeHourlyCompensation(low)).replace(/^CA\$/i, '$')
-  const highLabel = formatter.format(normalizeHourlyCompensation(high)).replace(/^CA\$/i, '$')
+  const normLow = normalizeHourlyCompensation(low)
+  const normHigh = normalizeHourlyCompensation(high)
+  const lowLabel = formatter.format(normLow).replace(/^CA\$/i, '$')
+  const highLabel = formatter.format(normHigh).replace(/^CA\$/i, '$')
+  // Collapse equal (or inverted) bounds so we never render "$67-$67/hr".
+  if (Math.round(normLow) >= Math.round(normHigh)) return `${lowLabel}/hr`
   return `${lowLabel}-${highLabel}/hr`
 }
 
@@ -1608,9 +1646,14 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         }
       : null
   const salaryCurrency = effectiveWageSource?.currency === 'CAD' ? 'CAD' : 'USD'
-  const salaryPotential = salaryRangeToLabel(effectiveWageSource?.low, effectiveWageSource?.high, salaryCurrency)
+  // Hero "starting salary" is the entry band (low–median), never the full low–high
+  // range — $high is the top-earner figure, not what a beginner starts at.
+  const salaryPotential = salaryRangeToLabel(effectiveWageSource?.low, effectiveWageSource?.median, salaryCurrency)
   const entryWage = salaryRangeToLabel(effectiveWageSource?.low, effectiveWageSource?.median, salaryCurrency)
-  const midWage = hourlyValueToLabel(effectiveWageSource?.median, salaryCurrency)
+  // Mid-career is a distinct band (median–high), not just the median repeated.
+  const midWage =
+    salaryRangeToLabel(effectiveWageSource?.median, effectiveWageSource?.high, salaryCurrency) ??
+    hourlyValueToLabel(effectiveWageSource?.median, salaryCurrency)
   const topEarners = hourlyValueToLabel(effectiveWageSource?.high, salaryCurrency)
 
   pushIfMissing(missingFields, 'market.entry_wage', !entryWage)
@@ -1686,7 +1729,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const transferable =
     uniqueNormalizedStrings(transferableStrengths).length > 0
       ? uniqueNormalizedStrings(transferableStrengths).slice(0, 5).map((label, index) => ({
-          label,
+          label: capitalizeFirst(label),
           progress: 78 - index * 8
         }))
       : [
@@ -1698,7 +1741,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const required =
     skillGaps.length > 0
       ? uniqueNormalizedStrings(skillGaps.map((item) => item.label)).slice(0, 5).map((label, index) => ({
-          label,
+          label: capitalizeFirst(label),
           progress: skillGaps.find((item) => item.label === label)?.progress ?? Math.max(25, 55 - index * 10)
         }))
         : [
@@ -3143,8 +3186,15 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     missingFields: missingFallbackFields,
     summaryStrip: {
       planScore: `${compatibilityScore} / 100`,
+      // Plain, non-alarming readiness bands (no confusing "Week 2"/"Recovery" framing).
       planStatus:
-        compatibilityScore >= 70 ? 'On Track (Week 2)' : compatibilityScore >= 55 ? 'At Risk (Week 2)' : 'Recovery Plan',
+        compatibilityScore >= 80
+          ? 'Strong starting point'
+          : compatibilityScore >= 65
+            ? 'Solid foundation'
+            : compatibilityScore >= 45
+              ? 'Promising — gaps to close'
+              : 'Early — plan builds it up',
       confidenceTrend: `${trendEndPercent - trendStartPercent >= 0 ? '+' : ''}${trendEndPercent - trendStartPercent} pts`,
       modelVersion: 'Career Graph v2.3',
       dataFreshness: toReadableShortDate(input.lastGeneratedAt)
@@ -3178,8 +3228,8 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     },
     blockers: weightedBlockers,
     strengths: weightedStrengths.map((item) => ({
-      advantage: item.label,
-      whyItMatters: item.why
+      advantage: sanitizeShortClaim(item.label, 'Relevant transferable strength'),
+      whyItMatters: sanitizeShortClaim(item.why, `Directly supports employer signals for ${roleTargetDisplay}.`)
     })),
     requirementsGaps: {
       mustHave: rankedMustHave,

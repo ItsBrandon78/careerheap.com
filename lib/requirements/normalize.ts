@@ -65,7 +65,7 @@ function stripFillerPrefix(value: string) {
 }
 
 function startsWithVerbPhrase(value: string) {
-  return /^(build|create|deliver|design|develop|execute|install|inspect|maintain|manage|operate|perform|prepare|run|support|troubleshoot|use|verify|obtain|complete|demonstrate|ship|document|analyze|coordinate)\b/i.test(
+  return /^(build|create|deliver|design|develop|execute|install|inspect|maintain|manage|operate|perform|prepare|run|support|troubleshoot|use|verify|obtain|complete|demonstrate|ship|document|analyze|coordinate|apply|meet|register|submit|pass|attend|secure|earn|hold|provide)\b/i.test(
     value
   )
 }
@@ -79,7 +79,7 @@ function hasExperienceSignalPhrase(value: string) {
 function expandSingleTokenLabel(token: string, type: RequirementType) {
   const normalized = normalizeRequirementKey(token)
   if (!normalized) return null
-  if (type === 'gate') return `Obtain ${token}`
+  if (type === 'gate') return startsWithVerbPhrase(token) ? token : `Obtain ${token}`
   if (type === 'tool') return `Use ${token} ${TOOL_CONTEXT_SUFFIX}`
   return null
 }
@@ -119,7 +119,7 @@ export function toTaskLevelLabel(input: string, type: RequirementType) {
     return `Demonstrate ${stripped} with measurable outcomes`
   }
 
-  if (type === 'gate') return `Obtain ${stripped}`
+  if (type === 'gate') return startsWithVerbPhrase(stripped) ? stripped : `Obtain ${stripped}`
   if (type === 'tool') return `Use ${stripped} ${TOOL_CONTEXT_SUFFIX}`
   return `Perform ${stripped} ${HARD_SKILL_CONTEXT_SUFFIX}`
 }
