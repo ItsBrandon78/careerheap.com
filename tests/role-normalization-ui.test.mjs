@@ -79,7 +79,7 @@ test('similar roles display is gated by non-Exact confidence', () => {
     /setHasClosestMatches\([\s\S]*bestMatch\.confidence < 0\.72[\s\S]*\)/
   )
   assert.match(plannerComponentsSource, /hasClosestMatches \? \(/)
-  assert.match(intakeWizardSource, /Choose your closest match for the \{roleSelectionPrompt\.role\} role/)
+  assert.match(intakeWizardSource, /Choose your closest match for the \$\{roleSelectionPrompt\.role\} role/)
   assert.match(intakeWizardSource, /roleMatchStrengthLabel\(option\.confidence\)/)
   assert.doesNotMatch(plannerClientSource, /function RoleNormalizationCard/)
 })

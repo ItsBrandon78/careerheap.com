@@ -10,6 +10,7 @@ import {
 import PlannerIntakeWizard from '@/components/career-switch-planner/PlannerIntakeWizard'
 import PlannerResultsPrototype from '@/components/career-switch-planner/PlannerResultsPrototype'
 import { Icon } from '@/components/ui/Icon'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import {
   careerSwitchFaqs,
   careerSwitchMoreTools
@@ -728,40 +729,56 @@ const FREE_LIMIT = 3
 const WIZARD_STEPS: Array<{
   id: WizardStep
   title: string
+  titleFr: string
   short: string
+  shortFr: string
   eyebrow: string
+  eyebrowFr: string
   helper: string
+  helperFr: string
 }> = [
   {
     id: 0,
     title: 'Where are you starting from?',
+    titleFr: 'D’où partez-vous?',
     short: 'About you',
+    shortFr: 'À propos de vous',
     eyebrow: 'Step 1 of 3',
-    helper: 'No résumé needed — just paint the picture. There are no wrong answers here.'
+    eyebrowFr: 'Étape 1 sur 3',
+    helper: 'No résumé needed — just paint the picture. There are no wrong answers here.',
+    helperFr: 'Aucun CV requis — brossez simplement le portrait. Il n’y a pas de mauvaise réponse ici.'
   },
   {
     id: 1,
     title: 'What can you already do?',
+    titleFr: 'Que savez-vous déjà faire?',
     short: 'Skills',
+    shortFr: 'Compétences',
     eyebrow: 'Step 2 of 3',
-    helper: 'Skills from a part-time job, a class, or a club all count. We map them to real roles.'
+    eyebrowFr: 'Étape 2 sur 3',
+    helper: 'Skills from a part-time job, a class, or a club all count. We map them to real roles.',
+    helperFr: 'Les compétences d’un emploi à temps partiel, d’un cours ou d’un club comptent toutes. Nous les associons à de vrais rôles.'
   },
   {
     id: 2,
     title: "What's the goal?",
+    titleFr: 'Quel est l’objectif?',
     short: 'Goal',
+    shortFr: 'Objectif',
     eyebrow: 'Step 3 of 3',
-    helper: 'This shapes the pace and shape of your plan — change it anytime later.'
+    eyebrowFr: 'Étape 3 sur 3',
+    helper: 'This shapes the pace and shape of your plan — change it anytime later.',
+    helperFr: 'Cela façonne le rythme et la forme de votre plan — modifiable à tout moment.'
   }
 ]
 // Prototype "Generating" moment (app/Generating.jsx): five labeled stages with
 // supporting detail, advanced by the loading-stage timer below.
-const PLANNER_LOADING_STAGES: Array<{ icon: string; label: string; detail: string }> = [
-  { icon: 'compass', label: 'Reading your profile', detail: 'Situation, skills, timeline' },
-  { icon: 'database', label: 'Matching 900+ occupations', detail: 'Skill-vector + title similarity' },
-  { icon: 'target', label: 'Scoring your fit', detail: 'Skill overlap · adjacency · feasibility' },
-  { icon: 'chart', label: 'Pulling live wage & demand', detail: 'Job Bank · ESDC · ON' },
-  { icon: 'map', label: 'Building your week-by-week plan', detail: 'Paced to your goal' }
+const PLANNER_LOADING_STAGES: Array<{ icon: string; label: string; labelFr: string; detail: string; detailFr: string }> = [
+  { icon: 'compass', label: 'Reading your profile', labelFr: 'Lecture de votre profil', detail: 'Situation, skills, timeline', detailFr: 'Situation, compétences, échéancier' },
+  { icon: 'database', label: 'Matching 900+ occupations', labelFr: 'Correspondance avec 900+ professions', detail: 'Skill-vector + title similarity', detailFr: 'Vecteur de compétences + similarité de titre' },
+  { icon: 'target', label: 'Scoring your fit', labelFr: 'Évaluation de votre adéquation', detail: 'Skill overlap · adjacency · feasibility', detailFr: 'Chevauchement de compétences · proximité · faisabilité' },
+  { icon: 'chart', label: 'Pulling live wage & demand', labelFr: 'Extraction des salaires et de la demande', detail: 'Job Bank · ESDC · ON', detailFr: 'Guichet-Emplois · EDSC · ON' },
+  { icon: 'map', label: 'Building your week-by-week plan', labelFr: 'Construction de votre plan semaine par semaine', detail: 'Paced to your goal', detailFr: 'Rythmé selon votre objectif' }
 ]
 
 // Five rising bars echoing the logo staircase (prototype HeapBuild).
@@ -1072,6 +1089,7 @@ export default function CareerSwitchPlannerPage({
   const searchParams = useSearchParams()
   const { getUsage } = useToolUsage()
   const { user, plan } = useAuth()
+  const t = useT()
 
   const [plannerState, setPlannerState] = useState<PlannerState>('idle')
   const [viewMode, setViewMode] = useState<PlannerViewMode>('intake')
@@ -2219,13 +2237,13 @@ export default function CareerSwitchPlannerPage({
   )
   const generateButtonLabel = user || localUnsignedBypass
     ? hasDraftChanges
-      ? 'Generate Updated Plan'
+      ? t('Generate Updated Plan', 'Générer le plan mis à jour')
       : hasPlannerResults
-        ? 'Generate Again'
-        : 'Generate My Data-Backed Plan'
+        ? t('Generate Again', 'Générer à nouveau')
+        : t('Generate My Data-Backed Plan', 'Générer mon plan fondé sur des données')
     : hasPlannerResults
-      ? 'Regenerate Preview'
-      : 'Generate Preview'
+      ? t('Regenerate Preview', 'Régénérer l’aperçu')
+      : t('Generate Preview', 'Générer l’aperçu')
   const v3DashboardModel = useMemo(
     () =>
       buildPlannerDashboardV3Model({
@@ -2543,7 +2561,13 @@ export default function CareerSwitchPlannerPage({
 
   const intakeWizardProps = {
     activeWizardStep,
-    wizardSteps: WIZARD_STEPS,
+    wizardSteps: WIZARD_STEPS.map((step) => ({
+      id: step.id,
+      title: t(step.title, step.titleFr),
+      short: t(step.short, step.shortFr),
+      eyebrow: t(step.eyebrow, step.eyebrowFr),
+      helper: t(step.helper, step.helperFr)
+    })),
     roleAutocompleteRegion,
     currentRoleText,
     targetRoleText,
@@ -2688,17 +2712,20 @@ export default function CareerSwitchPlannerPage({
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Badge className="gap-1 !px-2 !py-0.5 !text-[11px]">{usageLabel(usage, previewLocked, effectivePlan)}</Badge>
             <Badge className="gap-1 !border-border-light !bg-surface !px-2 !py-0.5 !text-[11px] !font-medium !text-text-tertiary">
-              Province-aware
+              {t('Province-aware', 'Adapté à la province')}
             </Badge>
             <Badge className="gap-1 !border-border-light !bg-surface !px-2 !py-0.5 !text-[11px] !font-medium !text-text-tertiary">
-              Resume Upload (Pro)
+              {t('Resume Upload (Pro)', 'Téléversement de CV (Pro)')}
             </Badge>
           </div>
           <h1 className="max-w-[760px] text-[40px] font-bold leading-tight text-text-primary md:text-[48px]">
-            Career Switch Planner
+            {t('Career Switch Planner', 'Planificateur de réorientation')}
           </h1>
           <p className="max-w-[720px] text-base leading-[1.7] text-text-secondary md:text-lg">
-            Build a structured Canadian transition roadmap with clearer timelines, province-aware context, and practical weekly next steps.
+            {t(
+              'Build a structured Canadian transition roadmap with clearer timelines, province-aware context, and practical weekly next steps.',
+              'Bâtissez une feuille de route de transition canadienne structurée, avec des échéanciers plus clairs, un contexte adapté à la province et des prochaines étapes hebdomadaires concrètes.'
+            )}
           </p>
         </ToolHero>
       ) : null}
@@ -2711,9 +2738,9 @@ export default function CareerSwitchPlannerPage({
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
                   <HeapBuild active={loadingStageIndex} />
                 </div>
-                <h2 style={{ fontSize: 26, fontWeight: 800 }}>Building your plan</h2>
+                <h2 style={{ fontSize: 26, fontWeight: 800 }}>{t('Building your plan', 'Construction de votre plan')}</h2>
                 <p style={{ marginTop: 10, fontSize: 15, color: 'var(--text-secondary)' }}>
-                  Every number gets traced to a source as we go.
+                  {t('Every number gets traced to a source as we go.', 'Chaque chiffre est rattaché à une source au fur et à mesure.')}
                 </p>
 
                 <div className="card" style={{ marginTop: 30, padding: 14, textAlign: 'left' }}>
@@ -2764,12 +2791,12 @@ export default function CareerSwitchPlannerPage({
                           )}
                         </span>
                         <div style={{ flex: 1 }}>
-                          <p style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-primary)' }}>{stage.label}</p>
-                          <p style={{ fontSize: 12.5, color: 'var(--text-tertiary)', marginTop: 2 }}>{stage.detail}</p>
+                          <p style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-primary)' }}>{t(stage.label, stage.labelFr)}</p>
+                          <p style={{ fontSize: 12.5, color: 'var(--text-tertiary)', marginTop: 2 }}>{t(stage.detail, stage.detailFr)}</p>
                         </div>
                         {done && (
                           <span className="badge badge-success" style={{ fontSize: 11 }}>
-                            Done
+                            {t('Done', 'Terminé')}
                           </span>
                         )}
                       </div>
@@ -2779,7 +2806,7 @@ export default function CareerSwitchPlannerPage({
 
                 <p style={{ marginTop: 20, fontSize: 12.5, color: 'var(--text-tertiary)' }}>
                   <Icon name="shield" size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
-                  No data is invented. Unknowns are labeled, never guessed.
+                  {t('No data is invented. Unknowns are labeled, never guessed.', 'Aucune donnée n’est inventée. Les inconnues sont étiquetées, jamais devinées.')}
                 </p>
               </div>
             </div>

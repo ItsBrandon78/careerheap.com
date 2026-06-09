@@ -6,6 +6,7 @@ import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import { Icon } from '@/components/ui/Icon'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import type { ProvinceCode } from '@/lib/client/provinceSession'
 import {
   DetectedSectionsChips,
@@ -340,6 +341,7 @@ export function PlannerIntakeWizard({
   onStartNewPlan,
   onGenerate
 }: PlannerIntakeWizardProps) {
+  const t = useT()
   const activeWizardMeta = wizardSteps[activeWizardStep]
   const [resumeOpen, setResumeOpen] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -396,14 +398,16 @@ export function PlannerIntakeWizard({
       </span>
       <div style={{ flex: 1, minWidth: 200 }}>
         <p style={{ fontSize: 14.5, fontWeight: 700 }}>
-          {resumeAttached ? 'Résumé attached — details added below' : 'Have a résumé? Autofill in seconds'}
+          {resumeAttached
+            ? t('Résumé attached — details added below', 'CV joint — détails ajoutés ci-dessous')
+            : t('Have a résumé? Autofill in seconds', 'Vous avez un CV? Remplissage automatique en quelques secondes')}
         </p>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
           {resumeAttached
-            ? 'You can still edit anything we detected.'
+            ? t('You can still edit anything we detected.', 'Vous pouvez encore modifier tout ce que nous avons détecté.')
             : isProUser
-              ? 'We detect your skills and experience so you don’t retype them.'
-              : 'Résumé autofill is a Pro feature — or add your skills by hand below.'}
+              ? t('We detect your skills and experience so you don’t retype them.', 'Nous détectons vos compétences et votre expérience pour éviter de tout retaper.')
+              : t('Résumé autofill is a Pro feature — or add your skills by hand below.', 'Le remplissage automatique du CV est une fonction Pro — ou ajoutez vos compétences à la main ci-dessous.')}
         </p>
       </div>
       <button
@@ -412,10 +416,10 @@ export function PlannerIntakeWizard({
         onClick={() => setResumeOpen(true)}
       >
         {resumeAttached ? (
-          'Re-upload'
+          t('Re-upload', 'Téléverser à nouveau')
         ) : (
           <>
-            <Icon name="download" size={15} /> Upload résumé
+            <Icon name="download" size={15} /> {t('Upload résumé', 'Téléverser un CV')}
           </>
         )}
       </button>
@@ -440,28 +444,31 @@ export function PlannerIntakeWizard({
         {/* STEP 1 — About you */}
         {activeWizardStep === 0 ? (
           <div className="card" style={{ marginTop: 28, padding: 'clamp(22px, 4vw, 34px)', display: 'flex', flexDirection: 'column', gap: 28 }}>
-            <FieldBlock label="What best describes you right now?">
+            <FieldBlock label={t('What best describes you right now?', 'Qu’est-ce qui vous décrit le mieux en ce moment?')}>
               <ChipSelect
                 options={situationOptions.map((o) => ({ value: o, label: o }))}
                 value={situation}
                 onChange={onSetSituation}
               />
             </FieldBlock>
-            <FieldBlock label="Highest education">
+            <FieldBlock label={t('Highest education', 'Plus haut niveau de scolarité')}>
               <ChipSelect
                 options={educationOptions.map((o) => ({ value: o.value, label: o.label }))}
                 value={educationLevel}
                 onChange={(value) => onSetEducationLevel(value as EducationLevelValue)}
               />
             </FieldBlock>
-            <FieldBlock label="Where do you want to work?">
+            <FieldBlock label={t('Where do you want to work?', 'Où voulez-vous travailler?')}>
               <ChipSelect
                 options={workRegionOptions.map((o) => ({ value: o.value, label: o.label }))}
                 value={workRegion}
                 onChange={(value) => onSetWorkRegion(value as WorkRegionValue)}
               />
             </FieldBlock>
-            <FieldBlock label="City (optional)" help="Sharpens wages and local demand. Type your city, or use a custom one.">
+            <FieldBlock
+              label={t('City (optional)', 'Ville (optionnel)')}
+              help={t('Sharpens wages and local demand. Type your city, or use a custom one.', 'Précise les salaires et la demande locale. Tapez votre ville ou utilisez-en une personnalisée.')}
+            >
               <div style={{ position: 'relative' }}>
                 <Icon
                   name="pin"
@@ -473,27 +480,27 @@ export function PlannerIntakeWizard({
                   style={{ paddingLeft: 40 }}
                   value={locationText}
                   onChange={(event) => onSetLocationText(event.target.value)}
-                  placeholder="e.g. Toronto, ON"
+                  placeholder={t('e.g. Toronto, ON', 'p. ex. Toronto, ON')}
                 />
               </div>
             </FieldBlock>
             <FieldBlock
-              label="A role you're aiming for? (optional)"
-              help="If you have one in mind, type it — otherwise we'll suggest matches."
+              label={t("A role you're aiming for? (optional)", 'Un rôle que vous visez? (optionnel)')}
+              help={t("If you have one in mind, type it — otherwise we'll suggest matches.", 'Si vous en avez un en tête, tapez-le — sinon, nous suggérerons des correspondances.')}
             >
               <RoleAutocomplete
                 id="target-role"
                 label=""
                 value={targetRoleText}
-                placeholder="e.g. Junior Data Analyst"
+                placeholder={t('e.g. Junior Data Analyst', 'p. ex. Analyste de données junior')}
                 region={roleAutocompleteRegion}
                 onChange={onTargetRoleInputChange}
                 onSuggestionSelect={onTargetRoleSuggestionSelect}
               />
             </FieldBlock>
             <FieldBlock
-              label="What are you drawn to? (optional)"
-              help="A sentence is plenty — interests, subjects you liked, the kind of day you'd enjoy."
+              label={t('What are you drawn to? (optional)', 'Qu’est-ce qui vous attire? (optionnel)')}
+              help={t("A sentence is plenty — interests, subjects you liked, the kind of day you'd enjoy.", 'Une phrase suffit — intérêts, matières que vous aimiez, le genre de journée qui vous plairait.')}
             >
               <textarea
                 className="field"
@@ -501,7 +508,7 @@ export function PlannerIntakeWizard({
                 style={{ resize: 'vertical' }}
                 value={interests}
                 onChange={(event) => onSetInterests(event.target.value)}
-                placeholder="e.g. I like solving puzzles, working with data, and I'm comfortable talking to people…"
+                placeholder={t("e.g. I like solving puzzles, working with data, and I'm comfortable talking to people…", 'p. ex. J’aime résoudre des casse-têtes, travailler avec des données, et je suis à l’aise pour parler aux gens…')}
               />
             </FieldBlock>
           </div>
@@ -511,8 +518,8 @@ export function PlannerIntakeWizard({
         {activeWizardStep === 1 ? (
           <div className="card" style={{ marginTop: 28, padding: 'clamp(22px, 4vw, 34px)', display: 'flex', flexDirection: 'column', gap: 28 }}>
             <FieldBlock
-              label="Skills you already have"
-              help="Add anything — even 'reliable' or 'good with customers'. We'll translate them into role-relevant strengths."
+              label={t('Skills you already have', 'Les compétences que vous avez déjà')}
+              help={t("Add anything — even 'reliable' or 'good with customers'. We'll translate them into role-relevant strengths.", 'Ajoutez n’importe quoi — même « fiable » ou « bon avec la clientèle ». Nous les traduirons en forces pertinentes pour le rôle.')}
             >
               <SkillsChipsInput
                 id="skills-input"
@@ -520,14 +527,14 @@ export function PlannerIntakeWizard({
                 skills={skills}
                 suggestions={suggestedSkillSuggestions}
                 suggestionEndpoint="/api/career-map/skills"
-                placeholder="Type a skill and press Enter, or paste from your resume."
+                placeholder={t('Type a skill and press Enter, or paste from your resume.', 'Tapez une compétence et appuyez sur Entrée, ou collez depuis votre CV.')}
                 helperText=""
                 onChange={onSkillsChange}
               />
             </FieldBlock>
             <FieldBlock
-              label="Any experience so far? (optional)"
-              help="Jobs, volunteering, school projects, clubs — all of it counts toward a real first role."
+              label={t('Any experience so far? (optional)', 'Une expérience jusqu’à présent? (optionnel)')}
+              help={t('Jobs, volunteering, school projects, clubs — all of it counts toward a real first role.', 'Emplois, bénévolat, projets scolaires, clubs — tout cela compte pour un vrai premier rôle.')}
             >
               <textarea
                 className="field"
@@ -535,7 +542,7 @@ export function PlannerIntakeWizard({
                 style={{ resize: 'vertical', minHeight: 110, lineHeight: 1.7 }}
                 value={experienceText}
                 onChange={(event) => onExperienceTextChange(event.target.value)}
-                placeholder="e.g. Part-time retail for two years, treasurer of a club, one class project…"
+                placeholder={t('e.g. Part-time retail for two years, treasurer of a club, one class project…', 'p. ex. Commerce de détail à temps partiel pendant deux ans, trésorier d’un club, un projet de classe…')}
               />
             </FieldBlock>
             <div
@@ -550,8 +557,10 @@ export function PlannerIntakeWizard({
             >
               <Icon name="lightbulb" size={18} style={{ color: '#0a7f7e', marginTop: 1 }} />
               <p style={{ fontSize: 13.5, color: '#0a6a69', lineHeight: 1.6 }}>
-                <strong>Zero experience is a starting line, not a wall.</strong> Most first roles are won with
-                proof-of-work, not years. Your plan will build that proof.
+                {t(
+                  'Zero experience is a starting line, not a wall. Most first roles are won with proof-of-work, not years. Your plan will build that proof.',
+                  'Zéro expérience est une ligne de départ, pas un mur. La plupart des premiers rôles s’obtiennent grâce à des preuves de travail, pas à des années. Votre plan bâtira cette preuve.'
+                )}
               </p>
             </div>
           </div>
@@ -560,7 +569,7 @@ export function PlannerIntakeWizard({
         {/* STEP 3 — Goal */}
         {activeWizardStep === 2 ? (
           <div className="card" style={{ marginTop: 28, padding: 'clamp(22px, 4vw, 34px)', display: 'flex', flexDirection: 'column', gap: 28 }}>
-            <FieldBlock label="How soon do you want to land a role?">
+            <FieldBlock label={t('How soon do you want to land a role?', 'Dans combien de temps voulez-vous décrocher un rôle?')}>
               <ChipSelect
                 options={timelineOptions.map((o) => ({ value: o.value, label: o.label }))}
                 value={timelineBucket}
@@ -568,8 +577,8 @@ export function PlannerIntakeWizard({
               />
             </FieldBlock>
             <FieldBlock
-              label="Income you're hoping for"
-              help="We use this to keep matches realistic — never to gatekeep. Honest ranges only."
+              label={t("Income you're hoping for", 'Le revenu que vous espérez')}
+              help={t('We use this to keep matches realistic — never to gatekeep. Honest ranges only.', 'Nous l’utilisons pour garder des correspondances réalistes — jamais pour exclure. Des fourchettes honnêtes seulement.')}
             >
               <ChipSelect
                 options={incomeTargetOptions.map((o) => ({ value: o.value, label: o.label }))}
@@ -577,24 +586,24 @@ export function PlannerIntakeWizard({
                 onChange={(value) => onSetIncomeTarget(value as IncomeTargetValue)}
               />
             </FieldBlock>
-            <FieldBlock label="Your name (optional)" help="Just to make the plan feel like yours.">
+            <FieldBlock label={t('Your name (optional)', 'Votre nom (optionnel)')} help={t('Just to make the plan feel like yours.', 'Juste pour que le plan vous ressemble.')}>
               <input
                 className="field"
                 style={{ maxWidth: 320 }}
                 value={userName}
                 onChange={(event) => onSetUserName(event.target.value)}
-                placeholder="First name"
+                placeholder={t('First name', 'Prénom')}
               />
             </FieldBlock>
 
             {/* Advanced: employer evidence (wired, optional) */}
             <div className="rounded-xl border border-border-light bg-bg-secondary p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-text-primary">Employer evidence (optional)</p>
+                <p className="text-sm font-semibold text-text-primary">{t('Employer evidence (optional)', 'Preuves d’employeur (optionnel)')}</p>
                 {marketEvidenceAvailable ? (
-                  <Toggle checked={useMarketEvidence} onChange={onSetUseMarketEvidence} label="Use market evidence (beta)" />
+                  <Toggle checked={useMarketEvidence} onChange={onSetUseMarketEvidence} label={t('Use market evidence (beta)', 'Utiliser les données du marché (bêta)')} />
                 ) : (
-                  <Badge variant="warning">Market evidence unavailable</Badge>
+                  <Badge variant="warning">{t('Market evidence unavailable', 'Données du marché indisponibles')}</Badge>
                 )}
               </div>
               <button
@@ -603,23 +612,23 @@ export function PlannerIntakeWizard({
                 style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                 onClick={() => setShowAdvanced((prev) => !prev)}
               >
-                {showAdvanced ? 'Hide details' : 'Paste a target job posting'}
+                {showAdvanced ? t('Hide details', 'Masquer les détails') : t('Paste a target job posting', 'Coller une offre d’emploi cible')}
               </button>
               {showAdvanced ? (
                 <label className="mt-3 flex flex-col gap-1.5">
-                  <span className="text-[13px] font-semibold text-text-primary">Paste target job posting (optional)</span>
+                  <span className="text-[13px] font-semibold text-text-primary">{t('Paste target job posting (optional)', 'Coller l’offre d’emploi cible (optionnel)')}</span>
                   <textarea
                     rows={5}
                     value={userPostingText}
                     onChange={(event) => onSetUserPostingText(event.target.value)}
-                    placeholder="Paste full requirements section from a posting."
+                    placeholder={t('Paste full requirements section from a posting.', 'Collez la section complète des exigences d’une offre.')}
                     className="field"
                     style={{ resize: 'vertical', lineHeight: 1.6 }}
                   />
                   <span className="help">
                     {hasPostingText
-                      ? 'We will prioritize direct requirement matching in this run.'
-                      : 'Leave blank to use live market evidence and your inputs.'}
+                      ? t('We will prioritize direct requirement matching in this run.', 'Nous prioriserons la correspondance directe des exigences pour cette génération.')
+                      : t('Leave blank to use live market evidence and your inputs.', 'Laissez vide pour utiliser les données du marché en temps réel et vos saisies.')}
                   </span>
                 </label>
               ) : null}
@@ -631,13 +640,18 @@ export function PlannerIntakeWizard({
       {/* alerts */}
       {hasPendingResumeReview ? (
         <p className="mt-4 rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
-          Resume detections are waiting for review. Open the upload to apply them to your skills.
+          {t(
+            'Resume detections are waiting for review. Open the upload to apply them to your skills.',
+            'Des détections de CV attendent votre révision. Ouvrez le téléversement pour les appliquer à vos compétences.'
+          )}
         </p>
       ) : null}
       {hasDraftChanges ? (
         <p className="mt-4 rounded-md border border-accent/20 bg-accent-light px-3 py-2 text-sm text-text-secondary">
-          You have updated the form since the last run. The report below is still showing your previous plan until you
-          generate again.
+          {t(
+            'You have updated the form since the last run. The report below is still showing your previous plan until you generate again.',
+            'Vous avez modifié le formulaire depuis la dernière génération. Le rapport ci-dessous montre encore votre plan précédent jusqu’à la prochaine génération.'
+          )}
         </p>
       ) : null}
       {inputError ? (
@@ -646,11 +660,17 @@ export function PlannerIntakeWizard({
       {roleSelectionPrompt ? (
         <Card className="mt-4 p-4">
           <p className="text-sm font-semibold text-text-primary">
-            Choose your closest match for the {roleSelectionPrompt.role} role
+            {t(
+              `Choose your closest match for the ${roleSelectionPrompt.role} role`,
+              `Choisissez la correspondance la plus proche pour le rôle ${roleSelectionPrompt.role === 'current' ? 'actuel' : 'cible'}`
+            )}
           </p>
           <p className="mt-1 text-xs text-text-secondary">
             {roleSelectionPrompt.message ||
-              `We found multiple close matches for "${roleSelectionPrompt.input || 'your entry'}". Pick the closest occupation so the plan stays on the right pathway.`}
+              t(
+                `We found multiple close matches for "${roleSelectionPrompt.input || 'your entry'}". Pick the closest occupation so the plan stays on the right pathway.`,
+                `Nous avons trouvé plusieurs correspondances proches pour « ${roleSelectionPrompt.input || 'votre saisie'} ». Choisissez la profession la plus proche pour que le plan reste sur la bonne voie.`
+              )}
           </p>
           <div className="mt-3 grid gap-2">
             {roleSelectionPrompt.alternatives.map((option) => (
@@ -690,7 +710,7 @@ export function PlannerIntakeWizard({
         <div className="flex flex-wrap items-center gap-2">
           {canGoBackWizard ? (
             <button type="button" className="btn btn-ghost" onClick={onBack}>
-              <Icon name="arrowLeft" size={16} /> {activeWizardStep === 0 ? 'Back' : 'Previous'}
+              <Icon name="arrowLeft" size={16} /> {activeWizardStep === 0 ? t('Back', 'Retour') : t('Previous', 'Précédent')}
             </button>
           ) : null}
           {hasAnyDraftInput ? (
@@ -700,7 +720,7 @@ export function PlannerIntakeWizard({
               onClick={onStartNewPlan}
               disabled={plannerState === 'loading'}
             >
-              Start New Plan
+              {t('Start New Plan', 'Nouveau plan')}
             </button>
           ) : null}
         </div>
@@ -716,7 +736,7 @@ export function PlannerIntakeWizard({
             </button>
           ) : (
             <button type="button" className="btn btn-primary btn-lg" onClick={handleNextClick} disabled={!canNext}>
-              Continue <Icon name="arrow" size={16} />
+              {t('Continue', 'Continuer')} <Icon name="arrow" size={16} />
             </button>
           )}
         </div>
@@ -755,8 +775,8 @@ export function PlannerIntakeWizard({
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold text-text-primary">Resume Upload (Pro)</p>
-                <p className="mt-1 text-xs text-text-tertiary">We detect skills, certifications, and experience.</p>
+                <p className="text-sm font-semibold text-text-primary">{t('Resume Upload (Pro)', 'Téléversement de CV (Pro)')}</p>
+                <p className="mt-1 text-xs text-text-tertiary">{t('We detect skills, certifications, and experience.', 'Nous détectons les compétences, certifications et l’expérience.')}</p>
               </div>
               <button
                 type="button"
@@ -776,17 +796,19 @@ export function PlannerIntakeWizard({
             {!isProUser ? (
               <div className="mt-4">
                 <p className="text-sm text-text-secondary">
-                  Résumé autofill is a Pro feature. Upgrade to upload a PDF/DOCX and auto-fill your background, or close
-                  this and add your skills by hand.
+                  {t(
+                    'Résumé autofill is a Pro feature. Upgrade to upload a PDF/DOCX and auto-fill your background, or close this and add your skills by hand.',
+                    'Le remplissage automatique du CV est une fonction Pro. Passez à Pro pour téléverser un PDF/DOCX et remplir automatiquement votre parcours, ou fermez ceci et ajoutez vos compétences à la main.'
+                  )}
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Link href="/pricing">
                     <button type="button" className="btn btn-primary btn-sm">
-                      Upgrade to unlock upload
+                      {t('Upgrade to unlock upload', 'Passer à Pro pour le téléversement')}
                     </button>
                   </Link>
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setResumeOpen(false)}>
-                    Add skills manually
+                    {t('Add skills manually', 'Ajouter des compétences à la main')}
                   </button>
                 </div>
               </div>
@@ -802,7 +824,7 @@ export function PlannerIntakeWizard({
                 ) : null}
                 {uploadState === 'error' ? (
                   <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">
-                    {uploadError || 'Upload a DOCX or searchable PDF, then try again.'}
+                    {uploadError || t('Upload a DOCX or searchable PDF, then try again.', 'Téléversez un DOCX ou un PDF interrogeable, puis réessayez.')}
                   </p>
                 ) : null}
                 {uploadState === 'success' ? (
@@ -813,27 +835,29 @@ export function PlannerIntakeWizard({
                       </p>
                     ) : null}
                     <p className="text-xs text-text-tertiary">
-                      Parsed text was added to your experience.
-                      {uploadStats ? ` Characters extracted: ${uploadStats.meaningfulChars}.` : ''}
+                      {t('Parsed text was added to your experience.', 'Le texte analysé a été ajouté à votre expérience.')}
+                      {uploadStats ? t(` Characters extracted: ${uploadStats.meaningfulChars}.`, ` Caractères extraits : ${uploadStats.meaningfulChars}.`) : ''}
                     </p>
                     <DetectedSectionsChips detected={detectedSections} />
                     {hasPendingResumeReview ? (
                       <div className="rounded-md border border-border-light bg-surface p-2.5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                            Detections ready
+                            {t('Detections ready', 'Détections prêtes')}
                           </p>
                           <button
                             type="button"
                             className="text-xs font-semibold text-accent hover:text-accent-hover"
                             onClick={() => onSetResumeReviewExpanded(!resumeReviewExpanded)}
                           >
-                            {resumeReviewExpanded ? 'Hide review' : 'Review details'}
+                            {resumeReviewExpanded ? t('Hide review', 'Masquer la révision') : t('Review details', 'Voir les détails')}
                           </button>
                         </div>
                         <p className="mt-1 text-xs leading-normal text-text-secondary">
-                          {pendingResumeSkills.length} skills, {pendingResumeCertifications.length} certifications
-                          {pendingResumeRoleCandidate ? ', and 1 role candidate' : ''} detected.
+                          {t(
+                            `${pendingResumeSkills.length} skills, ${pendingResumeCertifications.length} certifications${pendingResumeRoleCandidate ? ', and 1 role candidate' : ''} detected.`,
+                            `${pendingResumeSkills.length} compétences, ${pendingResumeCertifications.length} certifications${pendingResumeRoleCandidate ? ', et 1 rôle candidat' : ''} détectés.`
+                          )}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           <Button
@@ -843,10 +867,10 @@ export function PlannerIntakeWizard({
                               setResumeOpen(false)
                             }}
                           >
-                            Apply detected data
+                            {t('Apply detected data', 'Appliquer les données détectées')}
                           </Button>
                           <Button size="sm" variant="ghost" onClick={onDismissDetectedResumeData}>
-                            Dismiss
+                            {t('Dismiss', 'Ignorer')}
                           </Button>
                         </div>
                       </div>
