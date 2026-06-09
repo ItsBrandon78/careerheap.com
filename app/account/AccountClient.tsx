@@ -7,6 +7,7 @@ import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import { useAuth } from '@/lib/auth/context'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import { createClient } from '@/lib/supabase/client'
 
 type AccountTab = 'profile' | 'security' | 'billing' | 'usage'
@@ -14,12 +15,6 @@ type AccountTab = 'profile' | 'security' | 'billing' | 'usage'
 function tabFromQuery(value: string | null): AccountTab {
   if (value === 'security' || value === 'billing' || value === 'usage') return value
   return 'profile'
-}
-
-function planLabel(plan: 'free' | 'pro' | 'lifetime') {
-  if (plan === 'pro') return 'Pro'
-  if (plan === 'lifetime') return 'Lifetime'
-  return 'Free'
 }
 
 function initialsFromEmail(email?: string | null) {
@@ -35,6 +30,7 @@ export default function AccountPage() {
 
   const { user, plan, subscriptionStatus, usage, isLoading, signOut, isUnlimited, refreshUsage } =
     useAuth()
+  const t = useT()
   const [fullName, setFullName] = useState('')
   const [toast, setToast] = useState('')
   const [securityError, setSecurityError] = useState('')
@@ -121,9 +117,9 @@ export default function AccountPage() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-      setToast('Password updated.')
+      setToast(t('Password updated.', 'Mot de passe mis à jour.'))
     } catch (error) {
-      setSecurityError(error instanceof Error ? error.message : 'Unable to update password.')
+      setSecurityError(error instanceof Error ? error.message : t('Unable to update password.', 'Impossible de mettre à jour le mot de passe.'))
     } finally {
       setSecurityLoading(false)
     }
@@ -173,7 +169,7 @@ export default function AccountPage() {
       }
 
       await refreshUsage()
-      setToast('Billing status synced.')
+      setToast(t('Billing status synced.', 'Statut de facturation synchronisé.'))
     } catch (error) {
       setBillingError(
         error instanceof Error ? error.message : 'Unable to sync billing status.'
@@ -187,8 +183,8 @@ export default function AccountPage() {
     if (tab === 'security') {
       return (
         <Card className="p-6">
-          <h2 className="text-xl font-bold text-text-primary">Security</h2>
-          <p className="mt-1 text-sm text-text-secondary">Update your password to keep your account secure.</p>
+          <h2 className="text-xl font-bold text-text-primary">{t('Security', 'Sécurité')}</h2>
+          <p className="mt-1 text-sm text-text-secondary">{t('Update your password to keep your account secure.', 'Mettez à jour votre mot de passe pour protéger votre compte.')}</p>
 
           {securityError && (
             <p
@@ -202,7 +198,7 @@ export default function AccountPage() {
 
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="text-sm font-semibold text-text-primary">Current password</span>
+              <span className="text-sm font-semibold text-text-primary">{t('Current password', 'Mot de passe actuel')}</span>
               <input
                 type="password"
                 value={currentPassword}
@@ -211,7 +207,7 @@ export default function AccountPage() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-text-primary">New password</span>
+              <span className="text-sm font-semibold text-text-primary">{t('New password', 'Nouveau mot de passe')}</span>
               <input
                 type="password"
                 value={newPassword}
@@ -220,7 +216,7 @@ export default function AccountPage() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-text-primary">Confirm new password</span>
+              <span className="text-sm font-semibold text-text-primary">{t('Confirm new password', 'Confirmer le nouveau mot de passe')}</span>
               <input
                 type="password"
                 value={confirmPassword}
@@ -237,10 +233,10 @@ export default function AccountPage() {
               isLoading={securityLoading}
               disabled={securityLoading}
             >
-              Update Password
+              {t('Update Password', 'Mettre à jour le mot de passe')}
             </Button>
             <Link href="/forgot-password" className="text-sm font-medium text-accent">
-              Forgot password?
+              {t('Forgot password?', 'Mot de passe oublié?')}
             </Link>
           </div>
         </Card>
@@ -250,19 +246,19 @@ export default function AccountPage() {
     if (tab === 'billing') {
       return (
         <Card className="p-6">
-          <h2 className="text-xl font-bold text-text-primary">Billing</h2>
+          <h2 className="text-xl font-bold text-text-primary">{t('Billing', 'Facturation')}</h2>
           {plan === 'free' ? (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-text-secondary">Current plan: Free</p>
+              <p className="text-sm text-text-secondary">{t('Current plan: Free', 'Forfait actuel : Gratuit')}</p>
               <p className="text-sm text-text-secondary">
-                No payment method or subscription history yet.
+                {t('No payment method or subscription history yet.', 'Aucun mode de paiement ni historique d’abonnement pour l’instant.')}
               </p>
               <p className="text-sm text-text-secondary">
-                You have used {usage?.used ?? 0} of {usage?.limit ?? 3} lifetime uses.
+                {t(`You have used ${usage?.used ?? 0} of ${usage?.limit ?? 3} lifetime uses.`, `Vous avez utilisé ${usage?.used ?? 0} de ${usage?.limit ?? 3} essais à vie.`)}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link href="/pricing">
-                  <Button variant="primary">See Plans</Button>
+                  <Button variant="primary">{t('See Plans', 'Voir les forfaits')}</Button>
                 </Link>
                 <Button
                   variant="outline"
@@ -270,18 +266,18 @@ export default function AccountPage() {
                   isLoading={billingSyncLoading}
                   disabled={billingSyncLoading}
                 >
-                  Sync Billing Status
+                  {t('Sync Billing Status', 'Synchroniser la facturation')}
                 </Button>
               </div>
             </div>
           ) : plan === 'pro' ? (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-text-secondary">Current plan: Pro</p>
+              <p className="text-sm text-text-secondary">{t('Current plan: Pro', 'Forfait actuel : Pro')}</p>
               <p className="text-sm text-text-secondary">
-                Subscription status: {subscriptionStatus || 'active'}
+                {t('Subscription status:', 'Statut de l’abonnement :')} {subscriptionStatus || 'active'}
               </p>
               <p className="text-sm text-text-secondary">
-                Payment method details and invoice history are managed in Stripe Billing Portal.
+                {t('Payment method details and invoice history are managed in Stripe Billing Portal.', 'Le mode de paiement et l’historique des factures sont gérés dans le portail de facturation Stripe.')}
               </p>
               {billingError ? (
                 <p
@@ -299,7 +295,7 @@ export default function AccountPage() {
                   isLoading={billingLoading}
                   disabled={billingLoading}
                 >
-                  Manage Billing
+                  {t('Manage Billing', 'Gérer la facturation')}
                 </Button>
                 <Button
                   variant="outline"
@@ -307,19 +303,19 @@ export default function AccountPage() {
                   isLoading={billingSyncLoading}
                   disabled={billingSyncLoading}
                 >
-                  Sync Billing Status
+                  {t('Sync Billing Status', 'Synchroniser la facturation')}
                 </Button>
               </div>
             </div>
           ) : (
             <div className="mt-4 space-y-4">
-              <p className="text-sm text-text-secondary">Current plan: Lifetime</p>
-              <p className="text-sm text-text-secondary">No renewal. Your access is permanent.</p>
+              <p className="text-sm text-text-secondary">{t('Current plan: Lifetime', 'Forfait actuel : À vie')}</p>
+              <p className="text-sm text-text-secondary">{t('No renewal. Your access is permanent.', 'Aucun renouvellement. Votre accès est permanent.')}</p>
               <p className="text-sm text-text-secondary">
-                Purchase receipts and payment details are available from Stripe emails.
+                {t('Purchase receipts and payment details are available from Stripe emails.', 'Les reçus d’achat et les détails de paiement sont disponibles dans les courriels Stripe.')}
               </p>
               <p className="rounded-md border border-success/20 bg-success-light px-3 py-2 text-sm text-success">
-                Thank you for supporting CareerHeap as an early adopter.
+                {t('Thank you for supporting CareerHeap as an early adopter.', 'Merci de soutenir CareerHeap en tant qu’adopteur précoce.')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button
@@ -328,7 +324,7 @@ export default function AccountPage() {
                   isLoading={billingSyncLoading}
                   disabled={billingSyncLoading}
                 >
-                  Sync Billing Status
+                  {t('Sync Billing Status', 'Synchroniser la facturation')}
                 </Button>
               </div>
             </div>
@@ -340,15 +336,15 @@ export default function AccountPage() {
     if (tab === 'usage') {
       return (
         <Card className="p-6">
-          <h2 className="text-xl font-bold text-text-primary">Usage</h2>
+          <h2 className="text-xl font-bold text-text-primary">{t('Usage', 'Utilisation')}</h2>
           <p className="mt-1 text-sm text-text-secondary">
-            {isUnlimited ? 'Unlimited usage enabled on your plan.' : `${usage?.usesRemaining ?? 3} of 3 lifetime uses left.`}
+            {isUnlimited ? t('Unlimited usage enabled on your plan.', 'Utilisation illimitée activée sur votre forfait.') : t(`${usage?.usesRemaining ?? 3} of 3 lifetime uses left.`, `${usage?.usesRemaining ?? 3} de 3 essais à vie restants.`)}
           </p>
           <div className="mt-5 space-y-2">
             {usageRows.map(([slug, count]) => (
               <div key={slug} className="flex items-center justify-between rounded-md border border-border bg-bg-secondary px-3 py-2 text-sm">
                 <span className="capitalize text-text-secondary">{slug.replace(/-/g, ' ')}</span>
-                <span className="font-semibold text-text-primary">{isUnlimited ? 'Unlimited' : count}</span>
+                <span className="font-semibold text-text-primary">{isUnlimited ? t('Unlimited', 'Illimité') : count}</span>
               </div>
             ))}
           </div>
@@ -359,10 +355,10 @@ export default function AccountPage() {
     return (
       <div className="space-y-6">
         <Card className="p-6">
-          <h2 className="text-xl font-bold text-text-primary">Profile</h2>
+          <h2 className="text-xl font-bold text-text-primary">{t('Profile', 'Profil')}</h2>
           <div className="mt-5 space-y-4">
             <label className="block">
-              <span className="text-sm font-semibold text-text-primary">Full name</span>
+              <span className="text-sm font-semibold text-text-primary">{t('Full name', 'Nom complet')}</span>
               <input
                 type="text"
                 value={effectiveFullName}
@@ -371,7 +367,7 @@ export default function AccountPage() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-text-primary">Email</span>
+              <span className="text-sm font-semibold text-text-primary">{t('Email', 'Courriel')}</span>
               <input
                 type="email"
                 value={user.email ?? ''}
@@ -381,23 +377,23 @@ export default function AccountPage() {
             </label>
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Button variant="primary" onClick={() => setToast('Profile updated.')}>
-              Save changes
+            <Button variant="primary" onClick={() => setToast(t('Profile updated.', 'Profil mis à jour.'))}>
+              {t('Save changes', 'Enregistrer les modifications')}
             </Button>
             <button type="button" className="text-sm font-medium text-accent">
-              Resend verification email
+              {t('Resend verification email', 'Renvoyer le courriel de vérification')}
             </button>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h2 className="text-xl font-bold text-text-primary">Security</h2>
+          <h2 className="text-xl font-bold text-text-primary">{t('Security', 'Sécurité')}</h2>
           <p className="mt-1 text-sm text-text-secondary">
-            Manage password and session settings from one place.
+            {t('Manage password and session settings from one place.', 'Gérez le mot de passe et les paramètres de session au même endroit.')}
           </p>
           <div className="mt-4">
             <Link href="/account?tab=security">
-              <Button variant="outline">Open Security Settings</Button>
+              <Button variant="outline">{t('Open Security Settings', 'Ouvrir les paramètres de sécurité')}</Button>
             </Link>
           </div>
         </Card>
@@ -408,8 +404,8 @@ export default function AccountPage() {
   return (
     <section className="bg-bg-secondary px-4 py-16 lg:px-[170px]">
       <div className="mx-auto max-w-content">
-        <p className="text-xs font-semibold tracking-[1.5px] text-accent">ACCOUNT</p>
-        <h1 className="mt-3 text-[40px] font-bold text-text-primary">Account Hub</h1>
+        <p className="text-xs font-semibold tracking-[1.5px] text-accent">{t('ACCOUNT', 'COMPTE')}</p>
+        <h1 className="mt-3 text-[40px] font-bold text-text-primary">{t('Account Hub', 'Espace compte')}</h1>
 
         {toast && (
           <p
@@ -423,15 +419,15 @@ export default function AccountPage() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <Card className="h-fit p-3">
-            {(['profile', 'security', 'billing', 'usage'] as const).map((item) => (
+            {([['profile', t('Profile', 'Profil')], ['security', t('Security', 'Sécurité')], ['billing', t('Billing', 'Facturation')], ['usage', t('Usage', 'Utilisation')]] as const).map(([item, label]) => (
               <Link
                 key={item}
                 href={`/account?tab=${item}`}
-                className={`block rounded-md px-3 py-2 text-sm font-medium capitalize ${
+                className={`block rounded-md px-3 py-2 text-sm font-medium ${
                   tab === item ? 'bg-accent-light text-accent' : 'text-text-secondary hover:bg-bg-secondary'
                 }`}
               >
-                {item}
+                {label}
               </Link>
             ))}
           </Card>
@@ -444,11 +440,11 @@ export default function AccountPage() {
                     {initialsFromEmail(user.email)}
                   </div>
                   <div>
-                    <p className="text-lg font-semibold text-text-primary">{effectiveFullName || 'CareerHeap User'}</p>
-                    <p className="text-sm text-text-secondary">You&apos;re signed in as: {user.email}</p>
+                    <p className="text-lg font-semibold text-text-primary">{effectiveFullName || t('CareerHeap User', 'Utilisateur CareerHeap')}</p>
+                    <p className="text-sm text-text-secondary">{t('You\'re signed in as:', 'Vous êtes connecté en tant que :')} {user.email}</p>
                   </div>
                 </div>
-                <Badge>{planLabel(plan)}</Badge>
+                <Badge>{plan === 'lifetime' ? t('Lifetime', 'À vie') : plan === 'pro' ? 'Pro' : t('Free', 'Gratuit')}</Badge>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Button
@@ -457,10 +453,10 @@ export default function AccountPage() {
                   isLoading={billingLoading}
                   disabled={billingLoading}
                 >
-                  {plan === 'free' ? 'See Plans' : 'Manage Billing'}
+                  {plan === 'free' ? t('See Plans', 'Voir les forfaits') : t('Manage Billing', 'Gérer la facturation')}
                 </Button>
                 <Button variant="outline" onClick={signOut}>
-                  Log out
+                  {t('Log out', 'Déconnexion')}
                 </Button>
               </div>
               {billingError ? (
