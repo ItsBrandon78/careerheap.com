@@ -443,15 +443,18 @@ export function PlannerResultsPrototype(props: PlannerResultsPrototypeProps) {
   }
 
   const toggleTask = (id: string) => {
-    setChecked((prev) => {
-      const next = { ...prev, [id]: !prev[id] }
-      props.onProgressStateChange?.({
-        checkedTaskIds: next,
-        expandedPhaseIds: props.initialProgressState?.expandedPhaseIds ?? [],
-        completedTrainingIds: props.initialProgressState?.completedTrainingIds ?? {},
-        updatedAt: new Date().toISOString()
-      })
-      return next
+    // Compute next state from the current render's `checked` and notify the
+    // parent from THIS event handler. The previous version called
+    // onProgressStateChange (a parent setState) inside the setChecked updater,
+    // which React runs during render — triggering "Cannot update a component
+    // while rendering a different component". Updaters must stay pure.
+    const next = { ...checked, [id]: !checked[id] }
+    setChecked(next)
+    props.onProgressStateChange?.({
+      checkedTaskIds: next,
+      expandedPhaseIds: props.initialProgressState?.expandedPhaseIds ?? [],
+      completedTrainingIds: props.initialProgressState?.completedTrainingIds ?? {},
+      updatedAt: new Date().toISOString()
     })
   }
 

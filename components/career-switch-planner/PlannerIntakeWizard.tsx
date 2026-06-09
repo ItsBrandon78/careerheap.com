@@ -273,6 +273,7 @@ export function PlannerIntakeWizard({
   activeWizardStep,
   wizardSteps,
   roleAutocompleteRegion,
+  currentRoleText,
   targetRoleText,
   suggestedSkillSuggestions,
   situation,
@@ -315,6 +316,8 @@ export function PlannerIntakeWizard({
   educationOptions,
   incomeTargetOptions,
   onSetActiveWizardStep,
+  onCurrentRoleInputChange,
+  onCurrentRoleSuggestionSelect,
   onTargetRoleInputChange,
   onTargetRoleSuggestionSelect,
   onSetSituation,
@@ -483,6 +486,20 @@ export function PlannerIntakeWizard({
                   placeholder={t('e.g. Toronto, ON', 'p. ex. Toronto, ON')}
                 />
               </div>
+            </FieldBlock>
+            <FieldBlock
+              label={t('What do you do now? (optional)', 'Que faites-vous actuellement? (optionnel)')}
+              help={t("Your current or most recent role. Leave blank if you're starting fresh.", "Votre rôle actuel ou le plus récent. Laissez vide si vous débutez.")}
+            >
+              <RoleAutocomplete
+                id="current-role"
+                label=""
+                value={currentRoleText}
+                placeholder={t('e.g. Sous Chef, Retail Associate', 'p. ex. Sous-chef, Vendeur en magasin')}
+                region={roleAutocompleteRegion}
+                onChange={onCurrentRoleInputChange}
+                onSuggestionSelect={onCurrentRoleSuggestionSelect}
+              />
             </FieldBlock>
             <FieldBlock
               label={t("A role you're aiming for? (optional)", 'Un rôle que vous visez? (optionnel)')}

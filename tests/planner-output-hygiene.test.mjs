@@ -13,6 +13,8 @@ const extractor = read('lib/requirements/extractor.ts')
 const careerMapPlanner = read('lib/server/careerMapPlanner.ts')
 const generatePlan = read('lib/transition/generatePlan.ts')
 const plannerClient = read('app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx')
+const resultsPrototype = read('components/career-switch-planner/PlannerResultsPrototype.tsx')
+const intakeWizard = read('components/career-switch-planner/PlannerIntakeWizard.tsx')
 const plannerRoute = read('app/api/tools/career-switch-planner/route.ts')
 const canonical = read('lib/occupations/canonicalRoleRegistry.ts')
 
@@ -150,6 +152,24 @@ test('adjacent "roles you can reach" are relevance-gated by domain (no pet groom
 test('strengths are framed as transferable, not falsely "directly supporting" an unrelated target', () => {
   assert.doesNotMatch(v3, /Directly supports employer signals for/)
   assert.match(v3, /A transferable strength to lead with/)
+})
+
+test('roadmap task toggle does not call onProgressStateChange inside the setChecked updater', () => {
+  // Calling a parent setState inside a state updater runs during render and
+  // triggers "Cannot update a component while rendering a different component".
+  // The updater must stay pure; the parent is notified from the event handler.
+  const toggle = resultsPrototype.slice(
+    resultsPrototype.indexOf('const toggleTask'),
+    resultsPrototype.indexOf('const toggleTask') + 600
+  )
+  assert.doesNotMatch(toggle, /setChecked\(\(prev\)\s*=>[\s\S]*onProgressStateChange/)
+  assert.match(toggle, /const next = \{ \.\.\.checked, \[id\]: !checked\[id\] \}/)
+})
+
+test('intake wizard renders a current-role field (so plans are not stuck on "Career starter")', () => {
+  assert.match(intakeWizard, /id="current-role"/)
+  assert.match(intakeWizard, /value=\{currentRoleText\}/)
+  assert.match(intakeWizard, /onChange=\{onCurrentRoleInputChange\}/)
 })
 
 test('skill-gap / transferable labels run through sanitizeSkillLabel', () => {
