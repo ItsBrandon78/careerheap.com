@@ -11,6 +11,18 @@ const v3 = read('lib/planner/v3Dashboard.ts')
 const normalize = read('lib/requirements/normalize.ts')
 const plannerClient = read('app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx')
 const plannerRoute = read('app/api/tools/career-switch-planner/route.ts')
+const canonical = read('lib/occupations/canonicalRoleRegistry.ts')
+
+test('IT support / help desk maps to an IT-support family (not customer-service manager)', () => {
+  // Verified behaviorally: "IT Support" -> "User support technicians" (0.95).
+  // A canonical it_support family with an exact "it support" alias must exist so it
+  // out-scores the customer_success_manager family's weak "support"-token overlap,
+  // and its constraint must keep manager/personal-services occupations out.
+  assert.match(canonical, /key: 'it_support'/)
+  assert.match(canonical, /'it support'/)
+  assert.match(canonical, /'help desk'/)
+  assert.match(canonical, /blockedKeywords: \[[^\]]*'manager'[^\]]*'personal services'/)
+})
 
 test('current role is never an invented "{skill} specialist" title', () => {
   assert.doesNotMatch(plannerClient, /\$\{confirmedSkills\[0\]\} specialist/)

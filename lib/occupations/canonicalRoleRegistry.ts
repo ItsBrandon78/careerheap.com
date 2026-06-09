@@ -37,6 +37,52 @@ const CANONICAL_ROLE_DEFINITIONS: CanonicalRoleDefinition[] = [
     }
   },
   {
+    key: 'it_support',
+    displayTitle: 'IT Support / Help Desk Technician',
+    careerPathType: 'TECH',
+    aliases: [
+      'it support',
+      'i t support',
+      'it support analyst',
+      'it support technician',
+      'help desk',
+      'help desk technician',
+      'help desk analyst',
+      'service desk',
+      'service desk analyst',
+      'desktop support',
+      'desktop support technician',
+      'technical support',
+      'technical support analyst',
+      'technical support specialist',
+      'user support',
+      'user support technician',
+      'computer technician',
+      'pc technician'
+    ],
+    constraint: {
+      id: 'it_support',
+      allowedKeywords: [
+        'user support',
+        'help desk',
+        'service desk',
+        'desktop support',
+        'technical support',
+        'it support',
+        'information technology',
+        'computer technician',
+        'computer network',
+        'systems support',
+        'support technician',
+        'technicians'
+      ],
+      // IT support is an entry/technician family — keep it out of senior management
+      // and unrelated "customer/personal services" manager occupations.
+      blockedKeywords: ['manager', 'managers', 'director', 'executive', 'personal services'],
+      minKeywordMatches: 1
+    }
+  },
+  {
     key: 'customer_success_manager',
     displayTitle: 'Customer Success Manager',
     careerPathType: 'GENERAL',
