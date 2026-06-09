@@ -4,6 +4,7 @@ import BlogIndexFiltered from '@/components/blog/BlogIndexFiltered'
 import { getDefaultOgImageUrl, getSiteBaseUrl } from '@/lib/blog/utils'
 import { getAllBlogPosts, getBlogCategories } from '@/lib/sanity/api'
 import { getBlogPopularityMap } from '@/lib/server/blogViews'
+import { getServerT } from '@/lib/i18n/server'
 
 export const revalidate = 120
 
@@ -37,13 +38,17 @@ export default async function BlogPage() {
     ...post,
     popularityScore: popularityMap[post.slug] ?? 0
   }))
+  const { t } = await getServerT()
 
   return (
     <>
       <PageHero
-        badge="From the blog"
-        title="Career insights that respect your time"
-        sub="Practical, honest advice for starting out and switching lanes — no fluff, no gatekeeping."
+        badge={t('From the blog', 'Du blogue')}
+        title={t('Career insights that respect your time', 'Des conseils de carrière qui respectent votre temps')}
+        sub={t(
+          'Practical, honest advice for starting out and switching lanes — no fluff, no gatekeeping.',
+          'Des conseils pratiques et honnêtes pour débuter et changer de voie — sans remplissage ni barrières.'
+        )}
       />
 
       <section className="mx-auto max-w-content px-4 sm:px-6" style={{ paddingTop: 48, paddingBottom: 72 }}>

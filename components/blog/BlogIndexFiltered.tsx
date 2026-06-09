@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import BlogCover from '@/components/blog/BlogCover'
 import { Icon } from '@/components/ui/Icon'
 import { formatPublishedDate, toReadTimeLabel } from '@/lib/blog/utils'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import type { BlogCategory, BlogPostSummary } from '@/lib/blog/types'
 
 const teal = 'inline-flex w-fit items-center rounded-pill bg-[#e3f7f6] px-2.5 py-1 text-[12px] font-semibold text-[#0a7f7e]'
@@ -33,6 +34,7 @@ export default function BlogIndexFiltered({
   posts: BlogPostSummary[]
   categories: BlogCategory[]
 }) {
+  const t = useT()
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
   const [category, setCategory] = useState('all')
@@ -92,7 +94,7 @@ export default function BlogIndexFiltered({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
           <Chip active={category === 'all'} onClick={() => setCategory('all')}>
-            All
+            {t('All', 'Tous')}
           </Chip>
           {displayCategories.map((c) => (
             <Chip key={c.slug} active={category === c.slug} onClick={() => setCategory(c.slug)}>
@@ -108,13 +110,13 @@ export default function BlogIndexFiltered({
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search articles…"
-              aria-label="Search articles"
+              placeholder={t('Search articles…', 'Rechercher des articles…')}
+              aria-label={t('Search articles', 'Rechercher des articles')}
               className="w-full rounded-md border border-border bg-surface py-2.5 pl-9 pr-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none sm:w-[240px]"
             />
           </div>
           <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface p-[3px]">
-            {([['newest', 'Latest'], ['popular', 'Popular']] as const).map(([s, label]) => (
+            {([['newest', t('Latest', 'Récents')], ['popular', t('Popular', 'Populaires')]] as const).map(([s, label]) => (
               <button
                 key={s}
                 type="button"
@@ -135,12 +137,12 @@ export default function BlogIndexFiltered({
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-border-light bg-surface px-6 py-12 text-center shadow-card">
           <h3 className="text-xl font-bold text-text-primary">
-            {isDatasetEmpty ? 'No posts yet — coming this week' : 'No posts found'}
+            {isDatasetEmpty ? t('No posts yet — coming this week', 'Aucun article pour l’instant — à venir cette semaine') : t('No posts found', 'Aucun article trouvé')}
           </h3>
           <p className="mt-2 text-sm text-text-secondary">
             {isDatasetEmpty
-              ? "We're publishing practical career guides soon."
-              : 'Try another search or clear your filters.'}
+              ? t("We're publishing practical career guides soon.", 'Nous publierons bientôt des guides de carrière pratiques.')
+              : t('Try another search or clear your filters.', 'Essayez une autre recherche ou effacez vos filtres.')}
           </p>
           {!isDatasetEmpty && (
             <button
@@ -148,7 +150,7 @@ export default function BlogIndexFiltered({
               onClick={clearFilters}
               className="mt-5 inline-flex items-center justify-center rounded-lg border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-text-secondary hover:border-accent hover:text-accent"
             >
-              Clear filters
+              {t('Clear filters', 'Effacer les filtres')}
             </button>
           )}
         </div>

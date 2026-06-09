@@ -10,6 +10,7 @@ import { portableTextComponents } from '@/components/blog/portableTextComponents
 import { Icon } from '@/components/ui/Icon'
 import { formatPublishedDate, getDefaultOgImageUrl, getSiteBaseUrl, toReadTimeLabel } from '@/lib/blog/utils'
 import { getBlogPostBySlug, getBlogSlugs, getRelatedBlogPosts } from '@/lib/sanity/api'
+import { getServerT } from '@/lib/i18n/server'
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -78,7 +79,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // only when none exist — so only claim "More in {category}" when it's accurate.
   const sameCategoryRelated =
     relatedPosts.length > 0 && relatedPosts.every((p) => p.category.slug === post.category.slug)
-  const relatedHeading = sameCategoryRelated ? `More in ${post.category.title}` : 'Keep reading'
+  const { t } = await getServerT()
+  const relatedHeading = sameCategoryRelated
+    ? t(`More in ${post.category.title}`, `Plus dans ${post.category.title}`)
+    : t('Keep reading', 'Continuez la lecture')
   const canonicalUrl = `${getSiteBaseUrl()}/blog/${post.slug}`
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -99,7 +103,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       <article className="mx-auto max-w-tool px-4 sm:px-6" style={{ paddingTop: 48, paddingBottom: 64 }}>
         <Link href="/blog" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-accent">
-          <Icon name="arrowLeft" size={15} /> All articles
+          <Icon name="arrowLeft" size={15} /> {t('All articles', 'Tous les articles')}
         </Link>
 
         <div className="mt-6">
@@ -162,12 +166,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             style={{ background: 'radial-gradient(circle at 90% 0%, rgba(36,93,255,0.4), transparent 50%)' }}
           />
           <div className="relative">
-            <h3 className="text-[21px] font-extrabold text-white">Ready to put this into a real plan?</h3>
+            <h3 className="text-[21px] font-extrabold text-white">{t('Ready to put this into a real plan?', 'Prêt à transformer cela en un vrai plan?')}</h3>
             <p className="mt-2 text-[15px] text-text-on-dark-muted">
-              Build your free, source-backed roadmap in four minutes.
+              {t('Build your free, source-backed roadmap in four minutes.', 'Créez votre feuille de route gratuite et sourcée en quatre minutes.')}
             </p>
             <Link href="/tools/career-switch-planner" className={`${btnPrimary} mt-[18px]`}>
-              <Icon name="rocket" size={16} /> Build my plan
+              <Icon name="rocket" size={16} /> {t('Build my plan', 'Créer mon plan')}
             </Link>
           </div>
         </div>
