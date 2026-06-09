@@ -8,6 +8,7 @@ import AuthConfigNotice from '@/components/AuthConfigNotice'
 import AuthShell from '@/components/AuthShell'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthCallbackUrl } from '@/lib/supabase/authRedirect'
+import { useT } from '@/lib/i18n/LocaleProvider'
 
 type AuthMode = 'magic-link' | 'password'
 
@@ -123,6 +124,7 @@ export default function LoginPage() {
   const [safeNextPath, setSafeNextPath] = useState('/tools')
   const [authMode, setAuthMode] = useState<AuthMode>('magic-link')
   const router = useRouter()
+  const t = useT()
   const statusMessageId = 'login-status-message'
 
   useEffect(() => {
@@ -136,14 +138,15 @@ export default function LoginPage() {
     if (!authError) return
 
     if (authError === 'oauth_cancelled') {
-      setError('Google sign-in was cancelled. Try again or use magic link/password.')
+      setError(t('Google sign-in was cancelled. Try again or use magic link/password.', 'La connexion Google a été annulée. Réessayez ou utilisez le lien magique / mot de passe.'))
       return
     }
     if (authError === 'callback_exchange_failed') {
-      setError('Google sign-in could not be completed. Please try again.')
+      setError(t('Google sign-in could not be completed. Please try again.', "La connexion Google n'a pas pu être complétée. Veuillez réessayer."))
       return
     }
-    setError('Sign-in could not be completed. Please try again.')
+    setError(t('Sign-in could not be completed. Please try again.', "La connexion n'a pas pu être complétée. Veuillez réessayer."))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleGoogleSignIn = async () => {
@@ -162,7 +165,7 @@ export default function LoginPage() {
 
       if (oauthError) throw oauthError
     } catch {
-      setError('Unable to continue with Google right now.')
+      setError(t('Unable to continue with Google right now.', 'Impossible de continuer avec Google pour le moment.'))
       setIsLoading(false)
     }
   }
@@ -189,10 +192,10 @@ export default function LoginPage() {
         return
       }
 
-      setMessage('Check your email for a magic link to log in.')
+      setMessage(t('Check your email for a magic link to log in.', 'Vérifiez votre courriel pour le lien magique de connexion.'))
       setEmail('')
     } catch {
-      setError('We could not send a magic link right now. Please try again.')
+      setError(t('We could not send a magic link right now. Please try again.', "Nous n'avons pas pu envoyer de lien magique. Veuillez réessayer."))
     } finally {
       setIsLoading(false)
     }
@@ -207,10 +210,12 @@ export default function LoginPage() {
     try {
       const lockInfo = getPasswordLockInfo(email)
       if (lockInfo.isLocked) {
+        const mins = formatRemainingMinutes(lockInfo.remainingMs)
         setError(
-          `Too many login attempts. Try again in ${formatRemainingMinutes(
-            lockInfo.remainingMs
-          )} minute(s).`
+          t(
+            `Too many login attempts. Try again in ${mins} minute(s).`,
+            `Trop de tentatives de connexion. Réessayez dans ${mins} minute(s).`
+          )
         )
         return
       }
@@ -229,7 +234,7 @@ export default function LoginPage() {
       clearFailedPasswordAttempts(email)
       router.push(safeNextPath)
     } catch {
-      setError('Invalid email or password.')
+      setError(t('Invalid email or password.', 'Courriel ou mot de passe invalide.'))
     } finally {
       setIsLoading(false)
     }
@@ -237,13 +242,13 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      title="Welcome back"
-      sub="Log in to pick up your plan where you left off."
+      title={t('Welcome back', 'Bon retour')}
+      sub={t('Log in to pick up your plan where you left off.', "Connectez-vous pour reprendre votre plan là où vous l'avez laissé.")}
       footer={
         <>
-          New to CareerHeap?{' '}
+          {t('New to CareerHeap?', 'Nouveau sur CareerHeap?')}{' '}
           <Link href="/signup" className="font-bold text-accent">
-            Create an account
+            {t('Create an account', 'Créer un compte')}
           </Link>
         </>
       }
@@ -259,14 +264,14 @@ export default function LoginPage() {
             onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
-            Continue with Google
+            {t('Continue with Google', 'Continuer avec Google')}
           </Button>
         </div>
 
         <div className="my-6 flex items-center gap-3">
           <div className="h-px flex-1 bg-border" />
           <span className="text-xs font-semibold uppercase tracking-[1.2px] text-text-tertiary">
-            Or
+            {t('Or', 'Ou')}
           </span>
           <div className="h-px flex-1 bg-border" />
         </div>
@@ -286,7 +291,7 @@ export default function LoginPage() {
                 : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            Magic Link
+            {t('Magic Link', 'Lien magique')}
           </button>
           <button
             type="button"
@@ -302,7 +307,7 @@ export default function LoginPage() {
                 : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            Password
+            {t('Password', 'Mot de passe')}
           </button>
         </div>
 
@@ -332,7 +337,7 @@ export default function LoginPage() {
           <form onSubmit={handleMagicLink} className="mt-6 space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-text-primary">
-                Email Address
+                {t('Email Address', 'Adresse courriel')}
               </label>
               <input
                 id="email"
@@ -348,7 +353,7 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
-              Send Magic Link
+              {t('Send Magic Link', 'Envoyer le lien magique')}
             </Button>
           </form>
         ) : (
@@ -358,7 +363,7 @@ export default function LoginPage() {
                 htmlFor="email-password"
                 className="block text-sm font-semibold text-text-primary"
               >
-                Email Address
+                {t('Email Address', 'Adresse courriel')}
               </label>
               <input
                 id="email-password"
@@ -375,7 +380,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-text-primary">
-                Password
+                {t('Password', 'Mot de passe')}
               </label>
               <input
                 id="password"
@@ -391,7 +396,7 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
-              Sign In
+              {t('Sign In', 'Se connecter')}
             </Button>
 
             <Button
@@ -401,25 +406,25 @@ export default function LoginPage() {
               onClick={() => router.push('/signup')}
               disabled={isLoading}
             >
-              Create Account with Email + Password
+              {t('Create Account with Email + Password', 'Créer un compte avec courriel + mot de passe')}
             </Button>
 
             <div className="text-center">
               <Link href="/forgot-password" className="text-sm font-medium text-accent">
-                Forgot password?
+                {t('Forgot password?', 'Mot de passe oublié?')}
               </Link>
             </div>
           </form>
         )}
 
         <p className="mt-6 text-center text-sm text-text-secondary">
-          By continuing, you agree to our{' '}
+          {t('By continuing, you agree to our', 'En continuant, vous acceptez nos')}{' '}
           <Link href="/terms" className="text-accent hover:text-accent-hover">
-            Terms
+            {t('Terms', 'Conditions')}
           </Link>{' '}
-          and{' '}
+          {t('and', 'et')}{' '}
           <Link href="/privacy" className="text-accent hover:text-accent-hover">
-            Privacy Policy
+            {t('Privacy Policy', 'Politique de confidentialité')}
           </Link>
           .
         </p>

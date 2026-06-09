@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
 import AuthConfigNotice from '@/components/AuthConfigNotice'
 import { createClient } from '@/lib/supabase/client'
+import { useT } from '@/lib/i18n/LocaleProvider'
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
@@ -14,6 +15,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const router = useRouter()
+  const t = useT()
   const statusMessageId = 'reset-password-status-message'
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -22,12 +24,12 @@ export default function ResetPasswordPage() {
     setMessage('')
 
     if (password.length < 8) {
-      setError('New password must be at least 8 characters.')
+      setError(t('New password must be at least 8 characters.', 'Le nouveau mot de passe doit comporter au moins 8 caractères.'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError(t('Passwords do not match.', 'Les mots de passe ne correspondent pas.'))
       return
     }
 
@@ -37,12 +39,12 @@ export default function ResetPasswordPage() {
       const { error: updateError } = await supabase.auth.updateUser({ password })
       if (updateError) throw updateError
 
-      setMessage('Password updated. Redirecting to your account...')
+      setMessage(t('Password updated. Redirecting to your account...', 'Mot de passe mis à jour. Redirection vers votre compte...'))
       setTimeout(() => {
         router.replace('/account?tab=security')
       }, 800)
     } catch {
-      setError('Could not reset password. Request a new reset link and try again.')
+      setError(t('Could not reset password. Request a new reset link and try again.', "Impossible de réinitialiser le mot de passe. Demandez un nouveau lien et réessayez."))
     } finally {
       setIsLoading(false)
     }
@@ -52,10 +54,10 @@ export default function ResetPasswordPage() {
     <section className="min-h-[calc(100vh-200px)] bg-bg-secondary px-4 py-16 lg:px-[170px]">
       <div className="mx-auto w-full max-w-[460px] rounded-lg border border-border bg-surface p-8 shadow-panel">
         <header className="text-center">
-          <p className="text-xs font-semibold tracking-[1.5px] text-accent">SECURITY</p>
-          <h1 className="mt-3 text-[30px] font-bold text-text-primary">Set New Password</h1>
+          <p className="text-xs font-semibold tracking-[1.5px] text-accent">{t('SECURITY', 'SÉCURITÉ')}</p>
+          <h1 className="mt-3 text-[30px] font-bold text-text-primary">{t('Set New Password', 'Définir un nouveau mot de passe')}</h1>
           <p className="mt-2 text-sm text-text-secondary">
-            Choose a strong password for your account.
+            {t('Choose a strong password for your account.', 'Choisissez un mot de passe robuste pour votre compte.')}
           </p>
         </header>
 
@@ -86,7 +88,7 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           <div>
             <label htmlFor="password" className="block text-sm font-semibold text-text-primary">
-              New password
+              {t('New password', 'Nouveau mot de passe')}
             </label>
             <input
               id="password"
@@ -106,7 +108,7 @@ export default function ResetPasswordPage() {
               htmlFor="confirm-password"
               className="block text-sm font-semibold text-text-primary"
             >
-              Confirm password
+              {t('Confirm password', 'Confirmer le mot de passe')}
             </label>
             <input
               id="confirm-password"
@@ -122,13 +124,13 @@ export default function ResetPasswordPage() {
           </div>
 
           <Button type="submit" className="w-full" isLoading={isLoading}>
-            Update Password
+            {t('Update Password', 'Mettre à jour le mot de passe')}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-text-secondary">
           <Link href="/login" className="text-accent hover:text-accent-hover">
-            Back to login
+            {t('Back to login', 'Retour à la connexion')}
           </Link>
         </p>
       </div>

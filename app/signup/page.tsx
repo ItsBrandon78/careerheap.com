@@ -8,6 +8,7 @@ import AuthConfigNotice from '@/components/AuthConfigNotice'
 import AuthShell from '@/components/AuthShell'
 import { createClient } from '@/lib/supabase/client'
 import { getAuthCallbackUrl } from '@/lib/supabase/authRedirect'
+import { useT } from '@/lib/i18n/LocaleProvider'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -16,6 +17,7 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const router = useRouter()
+  const t = useT()
   const statusMessageId = 'signup-status-message'
 
   const handleGoogleSignup = async () => {
@@ -30,7 +32,7 @@ export default function SignupPage() {
       })
       if (oauthError) throw oauthError
     } catch {
-      setError('Unable to continue with Google right now.')
+      setError(t('Unable to continue with Google right now.', 'Impossible de continuer avec Google pour le moment.'))
       setIsLoading(false)
     }
   }
@@ -41,11 +43,11 @@ export default function SignupPage() {
     setMessage('')
 
     if (!email || !password) {
-      setError('Email and password are required.')
+      setError(t('Email and password are required.', 'Le courriel et le mot de passe sont requis.'))
       return
     }
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+      setError(t('Password must be at least 8 characters.', 'Le mot de passe doit comporter au moins 8 caractères.'))
       return
     }
 
@@ -63,10 +65,10 @@ export default function SignupPage() {
         router.push('/tools')
         return
       }
-      setMessage('Account created. Check your email for verification instructions.')
+      setMessage(t('Account created. Check your email for verification instructions.', 'Compte créé. Vérifiez votre courriel pour les instructions de vérification.'))
       setPassword('')
     } catch {
-      setError('Unable to create account right now.')
+      setError(t('Unable to create account right now.', 'Impossible de créer le compte pour le moment.'))
     } finally {
       setIsLoading(false)
     }
@@ -74,13 +76,13 @@ export default function SignupPage() {
 
   return (
     <AuthShell
-      title="Create your account"
-      sub="Free to start — no credit card, 3 lifetime analyses included."
+      title={t('Create your account', 'Créez votre compte')}
+      sub={t('Free to start — no credit card, 3 lifetime analyses included.', 'Gratuit pour commencer — sans carte de crédit, 3 analyses à vie incluses.')}
       footer={
         <>
-          Already have an account?{' '}
+          {t('Already have an account?', 'Vous avez déjà un compte?')}{' '}
           <Link href="/login" className="font-bold text-accent">
-            Log in
+            {t('Log in', 'Se connecter')}
           </Link>
         </>
       }
@@ -94,12 +96,12 @@ export default function SignupPage() {
         onClick={handleGoogleSignup}
         disabled={isLoading}
       >
-        Continue with Google
+        {t('Continue with Google', 'Continuer avec Google')}
       </Button>
 
       <div className="my-5 flex items-center gap-3">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-xs font-semibold text-text-tertiary">or</span>
+        <span className="text-xs font-semibold text-text-tertiary">{t('or', 'ou')}</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
@@ -126,7 +128,7 @@ export default function SignupPage() {
 
       <form onSubmit={handleEmailSignup} className="space-y-4">
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold">Email</span>
+          <span className="mb-2 block text-sm font-semibold">{t('Email', 'Courriel')}</span>
           <input
             id="signup-email"
             type="email"
@@ -139,7 +141,7 @@ export default function SignupPage() {
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold">Password</span>
+          <span className="mb-2 block text-sm font-semibold">{t('Password', 'Mot de passe')}</span>
           <input
             id="signup-password"
             type="password"
@@ -148,22 +150,22 @@ export default function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
             aria-describedby={error || message ? statusMessageId : undefined}
             className="w-full rounded-md border border-border bg-surface px-[15px] py-3 text-[15px] focus:border-accent focus:outline-none"
-            placeholder="At least 8 characters"
+            placeholder={t('At least 8 characters', 'Au moins 8 caractères')}
           />
         </label>
         <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
-          Create account
+          {t('Create account', 'Créer un compte')}
         </Button>
       </form>
 
       <p className="mt-3.5 text-center text-xs leading-[1.5] text-text-tertiary">
-        By continuing you agree to our{' '}
+        {t('By continuing you agree to our', 'En continuant, vous acceptez nos')}{' '}
         <Link href="/terms" className="text-accent">
-          Terms
+          {t('Terms', 'Conditions')}
         </Link>{' '}
-        and{' '}
+        {t('and', 'et')}{' '}
         <Link href="/privacy" className="text-accent">
-          Privacy Policy
+          {t('Privacy Policy', 'Politique de confidentialité')}
         </Link>
         .
       </p>
