@@ -960,17 +960,52 @@ function capitalizeFirst(value: string): string {
 // ("Create value at TC Transcontinental, we've got it made…") or implausible
 // numbers. Keep concise, real skill phrases; otherwise fall back to a generic.
 function sanitizeSkillLabel(value: string, fallback: string): string {
-  const cleaned = (value || '').replace(/\s+/g, ' ').trim()
+  let cleaned = (value || '').replace(/\s+/g, ' ').trim()
   if (!cleaned) return fallback
+  // Trim trailing employer-specific context lifted from postings, e.g.
+  // "… equipment in the Plant, processing and production departments" -> "… equipment".
+  // Requires "the" so generic suffixes like "in role-relevant workflows" survive.
+  const ctx = cleaned.match(/^(.{12,}?)\s+(?:in|for|across|within|throughout|at)\s+the\s+.+$/i)
+  if (ctx?.[1] && ctx[1].split(/\s+/).length >= 4) cleaned = ctx[1].replace(/[,;:]\s*$/, '').trim()
   const lower = cleaned.toLowerCase()
   const postingProse =
-    /\b(we['’]ve|we have|we are|we['’]re|our team|join (us|our)|got it made|benefit programs?|supplemental|apply now|equal opportunity)\b/.test(
+    /\b(we['’]ve|we have|we are|we['’]re|our team|join (us|our|the|your)|got it made|benefit programs?|supplemental|apply now|equal opportunity|is seeking|seeking a|looking for a|is hiring|now hiring)\b/.test(
       lower
     )
   const implausibleYears = /\b(\d{3,}|[3-9]\d)\s*\+?\s*years?\b/.test(lower)
-  const tooLong = cleaned.length > 160 || cleaned.split(/\s+/).length > 22
+  const tooLong = cleaned.length > 130 || cleaned.split(/\s+/).length > 16
   if (postingProse || implausibleYears || tooLong) return fallback
   return capitalizeFirst(cleaned)
+}
+
+// Generic occupation-suffix words that should not count as a domain match
+// (so "Dental technicians" doesn't look "adjacent" to "User support technicians").
+const ROLE_SUFFIX_STOPWORDS = new Set([
+  'worker', 'workers', 'technician', 'technicians', 'operator', 'operators',
+  'assistant', 'assistants', 'specialist', 'specialists', 'manager', 'managers',
+  'clerk', 'clerks', 'services', 'service', 'general', 'related', 'other',
+  'occupations', 'occupation', 'roles', 'staff', 'professional', 'professionals'
+])
+
+function domainTokenSet(...values: string[]): Set<string> {
+  const out = new Set<string>()
+  for (const value of values) {
+    for (const token of (value || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/)) {
+      if (token.length >= 4 && !ROLE_SUFFIX_STOPWORDS.has(token)) out.add(token)
+    }
+  }
+  return out
+}
+
+// An adjacent/alternative role is relevant only if it shares a meaningful domain
+// token with the target or current role. Prevents absurd suggestions (e.g.
+// "Pet groomers" / "Sewing machine operators" for an aspiring Electrician).
+function isRelevantAdjacentTitle(title: string, domainTokens: Set<string>): boolean {
+  if (domainTokens.size === 0) return true
+  for (const token of domainTokenSet(title)) {
+    if (domainTokens.has(token)) return true
+  }
+  return false
 }
 
 function inferPhaseOutcome(title: string, summary: string, actions: string[]) {
@@ -1738,7 +1773,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const skillGaps =
     (input.report?.skillGaps as Array<{ skillName?: string; gapLevel?: string }> | undefined)
       ?.map((item) => ({
-        label: cleanGeneratedLabel(String(item.skillName ?? '').trim()),
+        label: sanitizeSkillLabel(cleanGeneratedLabel(String(item.skillName ?? '').trim()), 'Role-relevant technical skill'),
         progress: item.gapLevel === 'met' ? 85 : item.gapLevel === 'partial' ? 55 : 25
       }))
       .filter((item) => item.label.length > 0)
@@ -2622,16 +2657,21 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         )
       })) ?? []
   const targetRoleKey = normalizedLabelKey(roleTargetDisplay)
+  const adjacencyDomainTokens = domainTokenSet(roleTargetDisplay, roleCurrent)
   const uniqueAlternatives = (() => {
     const seen = new Set<string>()
-    const output: PlannerDashboardAlternative[] = []
+    const relevant: PlannerDashboardAlternative[] = []
+    const irrelevant: PlannerDashboardAlternative[] = []
     for (const option of alternatives) {
       const key = normalizedLabelKey(option.title)
       if (!key || key === targetRoleKey || seen.has(key)) continue
       seen.add(key)
-      output.push(option)
+      if (isRelevantAdjacentTitle(option.title, adjacencyDomainTokens)) relevant.push(option)
+      else irrelevant.push(option)
     }
-    return output
+    // Prefer domain-relevant adjacents; only fall back to the (already
+    // rank-ordered) remainder if we'd otherwise show too few.
+    return relevant.length >= 2 ? relevant : [...relevant, ...irrelevant].slice(0, 2)
   })()
 
   pushIfMissing(missingFields, 'alternatives.cards', alternatives.length === 0)
@@ -2949,7 +2989,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     label,
     why:
       transferableStrengthMap.get(normalizeKey(label)) ||
-      `Directly supports employer signals for ${roleTargetDisplay}.`
+      `A transferable strength to lead with while you close the ${roleTargetDisplay} gaps.`
   }))
 
   const blockerCandidates = [
@@ -3250,7 +3290,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
     blockers: weightedBlockers,
     strengths: weightedStrengths.map((item) => ({
       advantage: sanitizeShortClaim(item.label, 'Relevant transferable strength'),
-      whyItMatters: sanitizeShortClaim(item.why, `Directly supports employer signals for ${roleTargetDisplay}.`)
+      whyItMatters: sanitizeShortClaim(item.why, `A transferable strength to lead with while you close the ${roleTargetDisplay} gaps.`)
     })),
     requirementsGaps: {
       mustHave: rankedMustHave,

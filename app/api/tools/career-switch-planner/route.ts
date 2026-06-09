@@ -53,11 +53,14 @@ const GENERATION_CACHE_TTL_HOURS = Number.parseInt(
   process.env.PLANNER_GENERATION_CACHE_TTL_HOURS?.trim() || '72',
   10
 )
+// v3: trades reframed apprentice-first (canonical pathway from trade data, no
+// "get certified before applying"), verb-stacking removed, recruiting-prose
+// guard broadened, adjacency relevance-gated, honest strength framing.
 // v2: hardened requirement extraction — company-age phrases ("over 100 years",
 // "Founded 50 years ago") no longer leak in as "Demonstrate N years of
 // experience" requirements. Bumping invalidates pre-fix cached reports.
 const GENERATION_CACHE_SCHEMA_VERSION =
-  process.env.PLANNER_GENERATION_CACHE_VERSION?.trim() || 'v2'
+  process.env.PLANNER_GENERATION_CACHE_VERSION?.trim() || 'v3'
 
 export async function GET(request: NextRequest) {
   try {

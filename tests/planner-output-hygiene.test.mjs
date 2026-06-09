@@ -11,6 +11,7 @@ const v3 = read('lib/planner/v3Dashboard.ts')
 const normalize = read('lib/requirements/normalize.ts')
 const extractor = read('lib/requirements/extractor.ts')
 const careerMapPlanner = read('lib/server/careerMapPlanner.ts')
+const generatePlan = read('lib/transition/generatePlan.ts')
 const plannerClient = read('app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx')
 const plannerRoute = read('app/api/tools/career-switch-planner/route.ts')
 const canonical = read('lib/occupations/canonicalRoleRegistry.ts')
@@ -110,7 +111,45 @@ test('requirement read-time guard drops cached implausible-years / first-person 
 test('generation cache version is bumped to invalidate pre-fix cached reports', () => {
   // The bad reports lived in planner_generation_cache; the cacheKey embeds the
   // schema version, so the default must move past v1 to force regeneration.
-  assert.match(plannerRoute, /PLANNER_GENERATION_CACHE_VERSION\?\.trim\(\) \|\| 'v2'/)
+  assert.match(plannerRoute, /PLANNER_GENERATION_CACHE_VERSION\?\.trim\(\) \|\| 'v3'/)
+})
+
+test('trades are reframed apprentice-first (canonical pathway from trade data, not "get cert before applying")', () => {
+  assert.match(careerMapPlanner, /function buildTradeApprenticeshipGates/)
+  // The pathway leads with getting hired as an apprentice and ends at the C of Q exam.
+  assert.match(careerMapPlanner, /Apply to apprentice or helper roles/)
+  assert.match(careerMapPlanner, /Pass the Certificate of Qualification exam/)
+  // Posting-scraped trade-cert gates are superseded, and bare trade codes are dropped.
+  assert.match(careerMapPlanner, /function isWrongFramedTradeGate/)
+  assert.match(careerMapPlanner, /309a\|442a/)
+  // The 309A/442A "before applying" gate is no longer scraped from postings.
+  assert.doesNotMatch(extractor, /309a\|442a/)
+})
+
+test('role-family detection tolerates plural occupation titles ("Electricians", "Plumbers")', () => {
+  assert.match(careerMapPlanner, /electricians\?/)
+  assert.match(careerMapPlanner, /weld\(\?:er\|ers\|ing\)/)
+})
+
+test('outer action templates use toRequirementObjectPhrase (no "Start obtain …")', () => {
+  assert.match(normalize, /export function toRequirementObjectPhrase/)
+  assert.match(careerMapPlanner, /toRequirementObjectPhrase\(item\.requirement\.label\)/)
+  assert.match(generatePlan, /toRequirementObjectPhrase\(displayLabel\)/)
+})
+
+test('leaked recruiting prose is rejected at extraction and read time', () => {
+  assert.match(normalize, /is seeking\|are seeking/)
+  assert.match(careerMapPlanner, /is seeking\|are seeking/)
+})
+
+test('adjacent "roles you can reach" are relevance-gated by domain (no pet groomers for electricians)', () => {
+  assert.match(v3, /function isRelevantAdjacentTitle/)
+  assert.match(v3, /domainTokenSet\(roleTargetDisplay, roleCurrent\)/)
+})
+
+test('strengths are framed as transferable, not falsely "directly supporting" an unrelated target', () => {
+  assert.doesNotMatch(v3, /Directly supports employer signals for/)
+  assert.match(v3, /A transferable strength to lead with/)
 })
 
 test('skill-gap / transferable labels run through sanitizeSkillLabel', () => {

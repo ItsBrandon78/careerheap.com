@@ -1,4 +1,5 @@
 import { extractProfileSignals, isPersonalIdentifier } from '@/lib/planner/profileSignals'
+import { toRequirementObjectPhrase } from '@/lib/requirements/normalize'
 import { selectPlanRoute } from '@/lib/transition/selectTemplate'
 import {
   compressSimilarBullets as sharedCompressSimilarBullets,
@@ -507,7 +508,7 @@ function buildActionableGap(
       howToFix: [
         useGenericLabel
           ? 'Start the first formal step for this pathway requirement.'
-          : `Start the first formal step for ${displayLabel.toLowerCase()}.`,
+          : `Start the first formal step for ${toRequirementObjectPhrase(displayLabel)}.`,
         'Confirm the exact local requirement before you spend money.'
       ]
     } satisfies ActionableGap
@@ -520,7 +521,7 @@ function buildActionableGap(
       howToFix: [
         useGenericLabel
           ? 'Get one hands-on practice rep with the core tools or materials used in this field.'
-          : `Get one hands-on practice rep with ${displayLabel.toLowerCase()}.`,
+          : `Get one hands-on practice rep with ${toRequirementObjectPhrase(displayLabel)}.`,
         'Capture a short note or example you can use in applications.'
       ]
     } satisfies ActionableGap
@@ -544,7 +545,7 @@ function buildActionableGap(
       howToFix: [
         useGenericLabel
           ? 'Build 1 concrete example that proves you can handle a core task in this field.'
-          : `Build 1 concrete example that proves ${displayLabel.toLowerCase()}.`,
+          : `Build 1 concrete example that proves ${toRequirementObjectPhrase(displayLabel)}.`,
         'Keep it small, visible, and easy to explain.'
       ]
     } satisfies ActionableGap
@@ -558,7 +559,7 @@ function buildActionableGap(
         ? tradeMode
           ? 'Learn the core job fundamentals in short daily blocks.'
           : 'Learn the core role fundamentals in short daily blocks.'
-        : `Learn the basics of ${displayLabel.toLowerCase()} in short daily blocks.`,
+        : `Learn the basics of ${toRequirementObjectPhrase(displayLabel)} in short daily blocks.`,
       'Turn the learning into one simple proof this month.'
     ]
   } satisfies ActionableGap

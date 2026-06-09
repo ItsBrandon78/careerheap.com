@@ -76,7 +76,11 @@ const NAMED_GATE_PATTERNS: Array<{ pattern: RegExp; name: (match: RegExpMatchArr
         .replace(/\blicen[cs]e\b/i, 'license')
         .replace(/\bdriver(?:'s)?\b/i, "driver's")
   },
-  { pattern: /\b(309a|442a)\b/gi, name: (match) => `${match[1].toUpperCase()} trade certification` },
+  // NOTE: trade codes (309A/442A etc.) are intentionally NOT extracted as
+  // "obtain … before applying" gates. They are the END of a multi-year
+  // apprenticeship, not an entry requirement, and which stream applies is
+  // resolved from structured trade_requirements data (see careerMapPlanner's
+  // buildTradeApprenticeshipGates), not scraped from posting prose.
   { pattern: /\b(pmp|cissp|cisa|cism|ceh|itil)\b/gi, name: (match) => `${match[1].toUpperCase()} certification` }
 ]
 
@@ -258,7 +262,7 @@ function canonicalizePolicyGateLabel(segment: string) {
   if (!key) return null
 
   if (/\bred seal\b|\binterprovincial\b/i.test(key)) {
-    return 'Obtain Red Seal certification before applying'
+    return 'Earn Red Seal certification through the apprenticeship pathway'
   }
 
   const tradeMatch = normalized.match(
@@ -266,7 +270,7 @@ function canonicalizePolicyGateLabel(segment: string) {
   )
   if (tradeMatch?.[1]) {
     const tradeLabel = normalizeWhitespace(tradeMatch[1])
-    return `Obtain ${tradeLabel} trade certification before applying`
+    return `Earn ${tradeLabel} trade certification through the apprenticeship pathway`
   }
 
   if (

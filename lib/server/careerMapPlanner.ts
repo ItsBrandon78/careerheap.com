@@ -10,7 +10,7 @@ import {
   buildEmptyExecutionStrategy,
   generateExecutionStrategyFromContext
 } from '@/lib/server/plannerExecutionCoach'
-import { toTaskLevelLabel } from '@/lib/requirements/normalize'
+import { toRequirementObjectPhrase, toTaskLevelLabel } from '@/lib/requirements/normalize'
 import type {
   AggregatedRequirement,
   RequirementEvidence,
@@ -847,7 +847,7 @@ function normalizeGateSignalLabel(value: string) {
   }
 
   if (/\bred seal\b|\binterprovincial\b/.test(normalized)) {
-    return 'Obtain Red Seal certification before applying'
+    return 'Earn Red Seal certification through the apprenticeship pathway'
   }
 
   const tradeCertificationMatch = trimmed.match(
@@ -855,7 +855,7 @@ function normalizeGateSignalLabel(value: string) {
   )
   if (tradeCertificationMatch?.[1]) {
     const tradeLabel = tradeCertificationMatch[1].trim().replace(/\s+/g, ' ')
-    return `Obtain ${tradeLabel} trade certification before applying`
+    return `Earn ${tradeLabel} trade certification through the apprenticeship pathway`
   }
 
   if (/\bapprenticeship\b/.test(normalized) && /\bhours?\b/.test(normalized)) {
@@ -870,6 +870,45 @@ function normalizeGateSignalLabel(value: string) {
   }
 
   return trimmed
+}
+
+// Build the CORRECT apprentice-first pathway for a regulated/voluntary trade,
+// grounded in structured trade_requirements data (hours, exam, province, the
+// single relevant trade code) rather than scraped posting prose. The trade
+// certificate is the multi-year ENDPOINT, never a pre-application gate.
+function buildTradeApprenticeshipGates(
+  trade: RankedMatch['tradeRequirement'] | null,
+  roleTitle: string
+): string[] {
+  const code = trade?.tradeCode ? trade.tradeCode.toUpperCase() : null
+  const codeSuffix = code ? ` (${code})` : ''
+  const province = (trade?.province && trade.province.trim()) || 'your province'
+  const roleLabel = roleTitle?.trim() || 'the trade'
+
+  const gates: string[] = [
+    `Apply to apprentice or helper roles to get hired by a sponsoring ${roleLabel} employer`,
+    `Register your apprenticeship with ${province}${codeSuffix}`
+  ]
+  gates.push(
+    trade?.hours
+      ? `Complete about ${trade.hours.toLocaleString()} on-the-job apprenticeship hours`
+      : 'Complete your on-the-job apprenticeship hours toward certification'
+  )
+  gates.push('Complete the required in-school training levels')
+  // Exam is required for compulsory trades; default to including it unless we
+  // have explicit data saying otherwise.
+  if (!trade || trade.examRequired !== false) {
+    gates.push(`Pass the Certificate of Qualification exam to certify${codeSuffix}`)
+  }
+  return gates
+}
+
+// A label is a posting-derived trade-cert gate (the wrong "get certified before
+// applying" framing) that the canonical apprenticeship pathway supersedes.
+function isSupersededTradeCertGate(label: string) {
+  return /\b(309a|442a|red seal|interprovincial|certificate of qualification|trade certification|journey(?:person|man))\b/i.test(
+    label
+  )
 }
 
 function baselineStarterRequirements(options: {
@@ -1206,8 +1245,25 @@ function hasImplausibleOrLeakedRequirementClaim(normalized: string) {
   // always garbled posting text (e.g. "over 165 years, Richardson…").
   const yearsMatch = normalized.match(/\b(\d+)\s*\+?\s*(?:years|yrs|year)\b/)
   if (yearsMatch && Number.parseInt(yearsMatch[1], 10) >= 25) return true
-  // First-person recruiting prose that leaked into the requirement label.
-  if (/\b(we['’]re|we are|we have|we['’]ve|our team|join (us|our)|apply now|equal opportunity)\b/.test(normalized)) {
+  // First-person / recruiting-posting prose that leaked into the requirement
+  // label. These rows are often cached from before extraction was hardened, so
+  // this read-time guard is the real enforcement point.
+  if (/\b(we['’]re|we are|we have|we['’]ve|our team|join (us|our|the|your)|apply now|equal opportunity)\b/.test(normalized)) {
+    return true
+  }
+  if (/\b(is seeking|are seeking|seeking a|is looking for|looking for a|is hiring|are hiring|now hiring|is currently|currently recruiting|is recruiting|recruiting for|job description|proudly supported|dedicated to|on a mission)\b/.test(normalized)) {
+    return true
+  }
+  return false
+}
+
+// Posting-derived trade gates use the wrong "get certified before applying"
+// framing (the certificate is the END of a multi-year apprenticeship). Bare
+// trade codes are handled from structured trade data, never scraped prose.
+function isWrongFramedTradeGate(normalized: string) {
+  if (/\b(309a|442a|306a|310s|310t|433a|447a)\b/.test(normalized)) return true
+  if (/\btrade certification before applying\b/.test(normalized)) return true
+  if (/\bcertification before applying\b/.test(normalized) && /\b(trade|journey|red seal|apprentice)\b/.test(normalized)) {
     return true
   }
   return false
@@ -1221,6 +1277,9 @@ function isActionableRequirement(requirement: AggregatedRequirement) {
   // posting prose, or first-person recruiting copy) — including any already
   // persisted in the evidence cache from before extraction was hardened.
   if (hasImplausibleOrLeakedRequirementClaim(normalized)) return false
+  // Drop wrong-framed trade-cert gates ("get 309A before applying"); the correct
+  // apprentice-first pathway is built from structured trade data instead.
+  if (isWrongFramedTradeGate(normalized)) return false
 
   const tokens = tokenize(normalized).filter((token) => token.length >= 2)
   if (tokens.length < 2) return false
@@ -1450,18 +1509,20 @@ function findTransferableEvidence(options: {
 
 function inferExecutionRoleFamily(roleTitle: string, currentRole: string) {
   const text = normalizeText(`${roleTitle} ${currentRole}`)
+  // NOTE: occupation titles are usually plural ("Industrial electricians",
+  // "Plumbers", "Welders…"), so every alternation must tolerate plurals/variants.
   if (
-    /\b(electrician|plumber|welder|hvac|mechanic|carpenter|apprentice|journey|millwright|trades?)\b/.test(
+    /\b(electricians?|plumb(?:er|ers|ing)|weld(?:er|ers|ing)|hvac|mechanics?|carpenters?|apprentices?|journey(?:person|man|men)?|millwrights?|machinists?|pipefitters?|ironworkers?|boilermakers?|steamfitters?|trades?)\b/.test(
       text
     )
   ) {
     return 'trades' as const
   }
-  if (/\b(nurse|rn|clinical|medical|health|therap|pharmacy|caregiver)\b/.test(text)) {
+  if (/\b(nurses?|rn|clinical|medical|health|therap\w*|pharmacy|caregivers?)\b/.test(text)) {
     return 'healthcare' as const
   }
   if (
-    /\b(engineer|developer|software|data|devops|cloud|cyber|it|frontend|backend|full stack|qa)\b/.test(
+    /\b(engineers?|developers?|software|data|devops|cloud|cyber\w*|it|frontend|backend|full stack|qa)\b/.test(
       text
     )
   ) {
@@ -2088,8 +2149,35 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       .filter((certification) => !isPolicyOrJurisdictionLine(certification))
   ).slice(0, 6)
   const primaryCredential = uniqueStrings(best?.certsLicenses ?? [])[0] ?? null
+  // For trades, replace scraped "get certified before applying" gates with the
+  // correct apprentice-first pathway. Prefer structured trade data, but also
+  // fire for any trades-family role so the pathway is never missing.
+  const isTradeTarget = Boolean(best?.tradeRequirement) || roleFamilyBaseline === 'trades'
+  const tradeApprenticeshipGates = isTradeTarget
+    ? buildTradeApprenticeshipGates(best?.tradeRequirement ?? null, best?.title ?? input.targetRole ?? 'the trade')
+    : []
+  const hasCanonicalTradePathway = tradeApprenticeshipGates.length > 0
+  const effectiveRoleHardGates = hasCanonicalTradePathway
+    ? roleHardGates.filter((gate) => !isSupersededTradeCertGate(gate))
+    : roleHardGates
+  const effectiveCertGateLabels = hasCanonicalTradePathway
+    ? normalizedCertGateLabels.filter((cert) => !isSupersededTradeCertGate(cert))
+    : normalizedCertGateLabels
+  // Canonical trade gates are kept separate so they always survive the
+  // baseline-fallback-by-type filter (which would otherwise drop them whenever
+  // postings already supply any gate-type requirement).
+  const tradeGateRequirements = tradeApprenticeshipGates
+    .map((gate, index) =>
+      toBaselineRequirement({
+        type: 'gate',
+        label: gate,
+        quote: `${best?.title ?? 'Trade'} apprenticeship pathway step ${index + 1}: ${gate}`,
+        frequency: 1
+      })
+    )
+    .filter(Boolean) as AggregatedRequirement[]
   const baselineRequirements = [
-    ...roleHardGates.map((gate) =>
+    ...effectiveRoleHardGates.map((gate) =>
       toBaselineRequirement({
         type: 'gate',
         label: gate,
@@ -2097,7 +2185,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
         frequency: 1
       })
     ),
-    ...normalizedCertGateLabels.map((certification) =>
+    ...effectiveCertGateLabels.map((certification) =>
       toBaselineRequirement({
         type: 'gate',
         label: certification,
@@ -2138,21 +2226,44 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
     userPostingText: input.userPostingText
   })
 
-  const evidenceRequirements = filterActionableRequirements(
+  const rawEvidenceRequirements = filterActionableRequirements(
     mergeRequirementsWithPriority([
       evidenceResult.userPostingRequirements,
       evidenceResult.marketRequirements
     ])
   )
+  // When the canonical trade pathway is in play, posting-scraped GATES are
+  // unreliable (wrong "before applying" framing, sentence fragments), so the
+  // apprentice-first pathway + curated/cert data own the gates. Non-gate
+  // evidence (skills, tools, experience signals) still comes from postings.
+  const evidenceRequirements = hasCanonicalTradePathway
+    ? rawEvidenceRequirements.filter((item) => item.type !== 'gate')
+    : rawEvidenceRequirements
   const filteredBaselineRequirements = filterActionableRequirements(baselineRequirements)
   const baselineFallbackRequirements = baselineFallbackByMissingType({
     evidenceRequirements,
     baselineRequirements: filteredBaselineRequirements
   })
-  const allRequirements = mergeRequirementsWithPriority([
+  const mergedRequirements = mergeRequirementsWithPriority([
+    tradeGateRequirements,
     evidenceRequirements,
     baselineFallbackRequirements
   ])
+  // Surface the canonical apprentice-first pathway gates first (they are the
+  // correct sequence); the priority sort would otherwise bury them under
+  // posting-sourced rows.
+  const tradeGateKeys = new Set(tradeGateRequirements.map((item) => item.normalizedKey))
+  const allRequirements =
+    tradeGateKeys.size > 0
+      ? [
+          // Keep the apprentice-first sequence in order (apply -> register ->
+          // hours -> in-school -> C of Q exam), then everything else.
+          ...tradeGateRequirements
+            .map((gate) => mergedRequirements.find((item) => item.normalizedKey === gate.normalizedKey))
+            .filter((item): item is AggregatedRequirement => Boolean(item)),
+          ...mergedRequirements.filter((item) => !tradeGateKeys.has(item.normalizedKey))
+        ]
+      : mergedRequirements
   const hasEffectiveAdzunaEvidence = allRequirements.some((item) =>
     item.evidence.some((evidence) => evidence.source === 'adzuna')
   )
@@ -2377,25 +2488,25 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
   const roadmapPlan = {
     zeroToTwoWeeks: roadmapMissing.slice(0, 3).map((item, index) => ({
       id: `r-0-2-${index + 1}`,
-      action: `Start ${item.requirement.label.toLowerCase()} and publish one verification artifact.`,
+      action: `Start ${toRequirementObjectPhrase(item.requirement.label)} and publish one verification artifact.`,
       tiedRequirement: item.requirement.label
     })),
     oneToThreeMonths: roadmapMissing.slice(3, 6).map((item, index) => ({
       id: `r-1-3-${index + 1}`,
-      action: `Build repeatable evidence for ${item.requirement.label.toLowerCase()} with measurable outcomes.`,
+      action: `Build repeatable evidence for ${toRequirementObjectPhrase(item.requirement.label)} with measurable outcomes.`,
       tiedRequirement: item.requirement.label
     })),
     threeToTwelveMonths: roadmapMissing.slice(6, 9).map((item, index) => ({
       id: `r-3-12-${index + 1}`,
-      action: `Turn ${item.requirement.label.toLowerCase()} into durable credential or portfolio depth.`,
+      action: `Turn ${toRequirementObjectPhrase(item.requirement.label)} into durable credential or portfolio depth.`,
       tiedRequirement: item.requirement.label
     })),
     fastestPathToApply: roadmapMissing
       .slice(0, 3)
-      .map((item) => `Close ${item.requirement.label.toLowerCase()} with one interview-ready artifact.`),
+      .map((item) => `Close the gap on ${toRequirementObjectPhrase(item.requirement.label)} with one interview-ready artifact.`),
     strongCandidatePath: roadmapMissing
       .slice(0, 6)
-      .map((item) => `Build depth in ${item.requirement.label.toLowerCase()} and attach measurable evidence.`)
+      .map((item) => `Build depth in ${toRequirementObjectPhrase(item.requirement.label)} and attach measurable evidence.`)
   }
 
   const dedupeRequirements = (items: AggregatedRequirement[]) => {
@@ -2686,7 +2797,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       .slice(0, 2)
     if (matches.length === 0) continue
     standStrengths.push({
-      summary: `Your background already supports ${matches[0].requirement.label.toLowerCase()}.`,
+      summary: `Your background already supports ${toRequirementObjectPhrase(matches[0].requirement.label)}.`,
       resumeSignal: line,
       countsToward: matches.map((item) => item.requirement.label)
     })

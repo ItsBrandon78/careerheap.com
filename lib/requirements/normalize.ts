@@ -75,8 +75,31 @@ function hasImplausibleOrLeakedClaim(value: string) {
   // 30+ years (or 3-digit) experience claims are implausible / garbled source text.
   if (/\b(\d{3,}|[3-9]\d)\s*\+?\s*years?\b/.test(lower)) return true
   // First-person / recruiting-posting prose that leaked into the requirement text.
-  if (/\b(we['’]re|we are|we have|we['’]ve|our team|join (us|our)|apply now|equal opportunity)\b/.test(lower)) return true
+  if (/\b(we['’]re|we are|we have|we['’]ve|our team|join (us|our|the|your)|apply now|equal opportunity)\b/.test(lower)) return true
+  // Job-ad recruiting prose ("CareRx is seeking…", "looking for a…", "now hiring").
+  if (/\b(is seeking|are seeking|seeking a|is looking for|are looking for|looking for a|is hiring|are hiring|now hiring|is currently|currently hiring|proudly supported|dedicated to)\b/.test(lower)) {
+    return true
+  }
   return false
+}
+
+// Convert a requirement label into a clean object phrase so it can be wrapped by
+// an outer verb template without stacking verbs ("Start obtain X") or trailing
+// boilerplate. e.g. "Obtain 309A trade certification before applying" ->
+// "309A trade certification"; "Demonstrate X with measurable outcomes" -> "X".
+export function toRequirementObjectPhrase(label: string) {
+  let s = normalizeWhitespace(label)
+  s = s.replace(
+    /^(obtain|complete|register(?:\s+for)?|maintain|apply\s+(?:to|for)|apply|meet|submit|pass|attend|secure|earn|hold|provide|demonstrate|perform|use|build|create|deliver|design|develop|execute|install|inspect|operate|prepare|run|support|troubleshoot|verify|ship|document|analyze|coordinate|manage|learn(?:\s+the\s+basics\s+of)?|start|confirm|log)\s+/i,
+    ''
+  )
+  s = s.replace(
+    /\s+(before applying|before role entry|for role eligibility|with measurable outcomes|with active status|in role-relevant workflows|in short daily blocks)\s*\.?\s*$/i,
+    ''
+  )
+  s = trimPunctuation(s).trim()
+  if (!s) return normalizeWhitespace(label)
+  return s.charAt(0).toLowerCase() + s.slice(1)
 }
 
 function hasExperienceSignalPhrase(value: string) {
