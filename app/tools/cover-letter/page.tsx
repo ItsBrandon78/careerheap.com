@@ -10,14 +10,17 @@ import {
   ToolTopBar,
   useToolRun
 } from '@/components/tools/ToolKit'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import type { CoverLetter } from '@/lib/server/toolGeneration'
 
 const COVER_SAMPLE_JOB = `Junior Data Analyst — Toronto, ON
 We're looking for someone curious and detail-oriented to turn data into decisions. You'll write SQL, build dashboards, and share findings with the team. No senior experience required — a portfolio and clear thinking matter most.`
 
 function CoverLetterInner() {
+  const t = useT()
   const { stage, setStage, result, isPro, usesRemaining, error, locked, run, signedIn } =
     useToolRun<CoverLetter>('cover-letter')
+  const letterLabel = t('cover letter', 'la lettre de présentation')
   const [job, setJob] = useState('')
   const [role, setRole] = useState('Junior Data Analyst')
   const [company, setCompany] = useState('')
@@ -41,30 +44,33 @@ function CoverLetterInner() {
       <div className="wrap wrap-tool" style={{ paddingTop: 40 }}>
         <ToolHero
           icon="book"
-          badge="Cover Letter Writer"
-          title="A focused cover letter in one minute"
-          sub="Paste the posting and we’ll draft a letter built from your real background — no clichés, no filler."
+          badge={t('Cover Letter Writer', 'Rédacteur de lettre de présentation')}
+          title={t('A focused cover letter in one minute', 'Une lettre de présentation ciblée en une minute')}
+          sub={t(
+            'Paste the posting and we’ll draft a letter built from your real background — no clichés, no filler.',
+            "Collez l'offre et nous rédigerons une lettre fondée sur votre parcours réel — sans clichés ni remplissage."
+          )}
         />
 
         {stage === 'input' && (
           <div className="card anim-up" style={{ marginTop: 28, padding: 'clamp(20px,4vw,30px)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               <div>
-                <span className="label">Role</span>
+                <span className="label">{t('Role', 'Rôle')}</span>
                 <input className="field" value={role} onChange={(e) => setRole(e.target.value)} />
               </div>
               <div>
-                <span className="label">Company (optional)</span>
-                <input className="field" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Acme Inc." />
+                <span className="label">{t('Company (optional)', 'Entreprise (optionnel)')}</span>
+                <input className="field" value={company} onChange={(e) => setCompany(e.target.value)} placeholder={t('e.g. Acme Inc.', 'p. ex. Acme inc.')} />
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
-              <span className="label" style={{ marginBottom: 0 }}>Paste the job posting</span>
+              <span className="label" style={{ marginBottom: 0 }}>{t('Paste the job posting', "Collez l'offre d'emploi")}</span>
               <button
                 onClick={() => setJob(COVER_SAMPLE_JOB)}
                 style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
               >
-                Use a sample
+                {t('Use a sample', 'Utiliser un exemple')}
               </button>
             </div>
             <textarea
@@ -73,38 +79,44 @@ function CoverLetterInner() {
               style={{ resize: 'vertical', fontSize: 14, lineHeight: 1.6 }}
               value={job}
               onChange={(e) => setJob(e.target.value)}
-              placeholder="Paste the full job description here…"
+              placeholder={t('Paste the full job description here…', 'Collez la description de poste complète ici…')}
             />
-            <span className="label" style={{ marginTop: 14 }}>Your background (optional)</span>
+            <span className="label" style={{ marginTop: 14 }}>{t('Your background (optional)', 'Votre parcours (optionnel)')}</span>
             <textarea
               className="field"
               rows={3}
               style={{ resize: 'vertical', fontSize: 14, lineHeight: 1.6 }}
               value={background}
               onChange={(e) => setBackground(e.target.value)}
-              placeholder="A few lines about your experience so the letter stays true to you…"
+              placeholder={t('A few lines about your experience so the letter stays true to you…', 'Quelques lignes sur votre expérience pour que la lettre vous ressemble…')}
             />
             {error && (
               <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">{error}</p>
             )}
-            {locked && <div style={{ marginTop: 14 }}><ToolPaywall count={2} label="cover letter" /></div>}
+            {locked && <div style={{ marginTop: 14 }}><ToolPaywall count={2} label={letterLabel} /></div>}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
               <button
                 className="btn btn-primary"
                 disabled={job.trim().length < 30}
                 onClick={() => run({ role, company, jobPosting: job, background })}
               >
-                <Icon name="sparkle" size={17} fill /> {signedIn ? 'Write my cover letter' : 'Sign in to write'}
+                <Icon name="sparkle" size={17} fill /> {signedIn ? t('Write my cover letter', 'Rédiger ma lettre') : t('Sign in to write', 'Connectez-vous pour rédiger')}
               </button>
               <span style={{ fontSize: 12.5, color: 'var(--text-tertiary)' }}>
-                {isPro ? 'Pro · unlimited' : 'Free preview · opening only'}
+                {isPro ? t('Pro · unlimited', 'Pro · illimité') : t('Free preview · opening only', 'Aperçu gratuit · introduction seulement')}
               </span>
             </div>
           </div>
         )}
 
         {stage === 'loading' && (
-          <GeneratingCard title="Drafting your letter…" detail={`Matching your background to what ${role || 'the posting'} asks for.`} />
+          <GeneratingCard
+            title={t('Drafting your letter…', 'Rédaction de votre lettre…')}
+            detail={t(
+              `Matching your background to what ${role || 'the posting'} asks for.`,
+              `Adaptation de votre parcours à ce que ${role || "l'offre"} demande.`
+            )}
+          />
         )}
 
         {stage === 'result' && result && (
@@ -132,14 +144,14 @@ function CoverLetterInner() {
             {isPro ? (
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button className="btn btn-primary" onClick={copyLetter}>
-                  <Icon name={copied ? 'check' : 'download'} size={16} /> {copied ? 'Copied' : 'Copy letter'}
+                  <Icon name={copied ? 'check' : 'download'} size={16} /> {copied ? t('Copied', 'Copié') : t('Copy letter', 'Copier la lettre')}
                 </button>
                 <button className="btn btn-outline" onClick={() => setStage('input')}>
-                  <Icon name="refresh" size={16} /> New letter
+                  <Icon name="refresh" size={16} /> {t('New letter', 'Nouvelle lettre')}
                 </button>
               </div>
             ) : (
-              <ToolPaywall count={2} label="cover letter" />
+              <ToolPaywall count={2} label={letterLabel} />
             )}
           </div>
         )}

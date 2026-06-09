@@ -10,13 +10,16 @@ import {
   ToolTopBar,
   useToolRun
 } from '@/components/tools/ToolKit'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import type { InterviewPrep } from '@/lib/server/toolGeneration'
 
 function InterviewPrepInner() {
+  const t = useT()
   const { stage, setStage, result, isPro, usesRemaining, error, locked, run, signedIn } =
     useToolRun<InterviewPrep>('interview-prep')
   const [role, setRole] = useState('')
   const [open, setOpen] = useState(0)
+  const setLabel = t('question set', 'le jeu de questions')
 
   const qs = result?.questions ?? []
   const freeQs = qs.slice(0, 2)
@@ -29,30 +32,33 @@ function InterviewPrepInner() {
       <div className="wrap wrap-tool" style={{ paddingTop: 40 }}>
         <ToolHero
           icon="message"
-          badge="Interview Q&A Prep"
-          title="Walk in knowing what they’ll ask"
-          sub="Get the questions most likely for your target role, with model answers shaped for someone making the leap."
+          badge={t('Interview Q&A Prep', 'Préparation aux entrevues')}
+          title={t('Walk in knowing what they’ll ask', "Entrez en sachant ce qu'on vous demandera")}
+          sub={t(
+            'Get the questions most likely for your target role, with model answers shaped for someone making the leap.',
+            'Obtenez les questions les plus probables pour votre rôle cible, avec des réponses modèles conçues pour une personne qui fait le saut.'
+          )}
         />
 
         {stage === 'input' && (
           <div className="card anim-up" style={{ marginTop: 28, padding: 'clamp(20px,4vw,30px)' }}>
-            <span className="label">Target role</span>
+            <span className="label">{t('Target role', 'Rôle cible')}</span>
             <input
               className="field"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              placeholder="e.g. Junior Data Analyst"
+              placeholder={t('e.g. Junior Data Analyst', 'p. ex. Analyste de données junior')}
             />
             {error && (
               <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">{error}</p>
             )}
-            {locked && <div style={{ marginTop: 14 }}><ToolPaywall count={1} label="question set" /></div>}
+            {locked && <div style={{ marginTop: 14 }}><ToolPaywall count={1} label={setLabel} /></div>}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
               <button className="btn btn-primary" disabled={!role.trim()} onClick={() => run({ role })}>
-                <Icon name="sparkle" size={17} fill /> {signedIn ? 'Generate questions' : 'Sign in to generate'}
+                <Icon name="sparkle" size={17} fill /> {signedIn ? t('Generate questions', 'Générer des questions') : t('Sign in to generate', 'Connectez-vous pour générer')}
               </button>
               <span style={{ fontSize: 12.5, color: 'var(--text-tertiary)' }}>
-                {isPro ? 'Pro · unlimited' : '2 questions free · preview'}
+                {isPro ? t('Pro · unlimited', 'Pro · illimité') : t('2 questions free · preview', '2 questions gratuites · aperçu')}
               </span>
             </div>
           </div>
@@ -60,8 +66,11 @@ function InterviewPrepInner() {
 
         {stage === 'loading' && (
           <GeneratingCard
-            title="Building your question set…"
-            detail={`Tailoring answers for a career-switcher into ${role || 'your target role'}.`}
+            title={t('Building your question set…', 'Construction de votre jeu de questions…')}
+            detail={t(
+              `Tailoring answers for a career-switcher into ${role || 'your target role'}.`,
+              `Adaptation des réponses pour une réorientation vers ${role || 'votre rôle cible'}.`
+            )}
           />
         )}
 
@@ -96,12 +105,12 @@ function InterviewPrepInner() {
             })}
             {!isPro && lockedCount > 0 && (
               <div style={{ marginTop: 8 }}>
-                <ToolPaywall count={lockedCount} label="question set" />
+                <ToolPaywall count={lockedCount} label={setLabel} />
               </div>
             )}
             <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
               <button className="btn btn-outline" onClick={() => setStage('input')}>
-                <Icon name="refresh" size={16} /> New role
+                <Icon name="refresh" size={16} /> {t('New role', 'Nouveau rôle')}
               </button>
             </div>
           </div>

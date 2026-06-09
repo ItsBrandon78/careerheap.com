@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Icon } from '@/components/ui/Icon'
 import { useAuth } from '@/lib/auth/context'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 
 /* Shared prototype-styled primitives + run hook for the companion tools
@@ -13,6 +14,7 @@ import { getSupabaseAuthHeaders } from '@/lib/supabase/authHeaders'
 
 export function ToolTopBar() {
   const router = useRouter()
+  const t = useT()
   return (
     <div className="print-hidden" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)' }}>
       <div className="wrap" style={{ height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -20,10 +22,10 @@ export function ToolTopBar() {
           onClick={() => router.push('/tools')}
           style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text-secondary)', fontWeight: 600, fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
         >
-          <Icon name="arrowLeft" size={16} /> All tools
+          <Icon name="arrowLeft" size={16} /> {t('All tools', 'Tous les outils')}
         </button>
         <Link href="/pricing" className="btn btn-dark btn-sm">
-          <Icon name="sparkle" size={14} fill /> Upgrade
+          <Icon name="sparkle" size={14} fill /> {t('Upgrade', 'Améliorer')}
         </Link>
       </div>
     </div>
@@ -31,6 +33,7 @@ export function ToolTopBar() {
 }
 
 export function FreeMeter({ usesRemaining }: { usesRemaining: number | null }) {
+  const t = useT()
   const left = usesRemaining ?? 0
   return (
     <div
@@ -47,17 +50,26 @@ export function FreeMeter({ usesRemaining }: { usesRemaining: number | null }) {
     >
       <Icon name="zap" size={17} style={{ color: 'var(--warning)' }} />
       <p style={{ fontSize: 13.5, color: '#8a5a09', flex: 1, minWidth: 180 }}>
-        <strong>{left} free {left === 1 ? 'run' : 'runs'} left.</strong> You’re seeing a preview — upgrade for full
-        results and unlimited runs.
+        <strong>
+          {t(
+            `${left} free ${left === 1 ? 'run' : 'runs'} left.`,
+            `${left} ${left === 1 ? 'essai gratuit restant' : 'essais gratuits restants'}.`
+          )}
+        </strong>{' '}
+        {t(
+          'You’re seeing a preview — upgrade for full results and unlimited runs.',
+          'Vous voyez un aperçu — améliorez pour des résultats complets et des essais illimités.'
+        )}
       </p>
       <Link href="/pricing" className="btn btn-dark btn-sm">
-        <Icon name="sparkle" size={14} fill /> Go Pro
+        <Icon name="sparkle" size={14} fill /> {t('Go Pro', 'Passer à Pro')}
       </Link>
     </div>
   )
 }
 
 export function LockedItem({ title }: { title: string }) {
+  const t = useT()
   return (
     <div style={{ position: 'relative', borderRadius: 'var(--r-md)', border: '1px dashed var(--border)', padding: '16px 18px', background: 'var(--bg-primary)', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -66,33 +78,43 @@ export function LockedItem({ title }: { title: string }) {
         </span>
         <p style={{ fontSize: 14.5, fontWeight: 600, flex: 1 }}>{title}</p>
         <Link href="/pricing" className="btn btn-outline btn-sm">
-          Unlock
+          {t('Unlock', 'Débloquer')}
         </Link>
       </div>
       <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 8, filter: 'blur(3px)', userSelect: 'none' }}>
-        This insight is part of your full analysis — upgrade to Pro to see exactly what to change and why it matters for
-        your target role.
+        {t(
+          'This insight is part of your full analysis — upgrade to Pro to see exactly what to change and why it matters for your target role.',
+          'Cet aperçu fait partie de votre analyse complète — passez à Pro pour voir exactement quoi changer et pourquoi cela compte pour votre rôle cible.'
+        )}
       </p>
     </div>
   )
 }
 
 export function ToolPaywall({ count, label }: { count: number; label: string }) {
+  const t = useT()
   return (
     <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--r-lg)', background: 'var(--bg-dark)', padding: 'clamp(24px,4vw,32px)', textAlign: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 80% 0%, rgba(36,93,255,0.4), transparent 55%)' }} />
       <div style={{ position: 'relative' }}>
         <span className="badge">
-          <Icon name="lock" size={12} /> {count} more locked
+          <Icon name="lock" size={12} /> {t(`${count} more locked`, `${count} de plus verrouillés`)}
         </span>
-        <h3 style={{ color: '#fff', fontSize: 22, fontWeight: 800, marginTop: 14 }}>Unlock the full {label}</h3>
+        <h3 style={{ color: '#fff', fontSize: 22, fontWeight: 800, marginTop: 14 }}>
+          {t(`Unlock the full ${label}`, `Débloquez ${label} au complet`)}
+        </h3>
         <p style={{ color: 'var(--on-dark-muted)', fontSize: 15, marginTop: 8, maxWidth: 420, marginInline: 'auto', lineHeight: 1.6 }}>
-          Pro gives you every finding, the exact rewrites, and unlimited runs across all CareerHeap tools.
+          {t(
+            'Pro gives you every finding, the exact rewrites, and unlimited runs across all CareerHeap tools.',
+            'Pro vous donne chaque constat, les réécritures exactes et des essais illimités sur tous les outils CareerHeap.'
+          )}
         </p>
         <Link href="/pricing" className="btn btn-primary btn-lg" style={{ marginTop: 20 }}>
-          <Icon name="sparkle" size={18} fill /> Upgrade to Pro — $15 CAD/mo
+          <Icon name="sparkle" size={18} fill /> {t('Upgrade to Pro — $15 CAD/mo', 'Passer à Pro — 15 $ CAD/mois')}
         </Link>
-        <p style={{ fontSize: 12.5, color: 'var(--on-dark-muted)', marginTop: 12 }}>Cancel anytime · 7-day money-back guarantee</p>
+        <p style={{ fontSize: 12.5, color: 'var(--on-dark-muted)', marginTop: 12 }}>
+          {t('Cancel anytime · 7-day money-back guarantee', 'Annulez à tout moment · garantie de remboursement de 7 jours')}
+        </p>
       </div>
     </div>
   )
@@ -162,6 +184,7 @@ export type RunStage = 'input' | 'loading' | 'result'
 
 export function useToolRun<T>(tool: string) {
   const { plan, user } = useAuth()
+  const t = useT()
   const searchParams = useSearchParams()
   const [stage, setStage] = useState<RunStage>('input')
   const [result, setResult] = useState<T | null>(null)
@@ -191,18 +214,18 @@ export function useToolRun<T>(tool: string) {
         | null
 
       if (response.status === 401) {
-        setError('Sign in to run this tool and save your usage.')
+        setError(t('Sign in to run this tool and save your usage.', 'Connectez-vous pour utiliser cet outil et enregistrer votre utilisation.'))
         setStage('input')
         return
       }
       if (response.status === 402) {
         setLocked(true)
-        setError('You’ve used your free runs. Upgrade to Pro for unlimited access.')
+        setError(t('You’ve used your free runs. Upgrade to Pro for unlimited access.', 'Vous avez utilisé vos essais gratuits. Passez à Pro pour un accès illimité.'))
         setStage('input')
         return
       }
       if (!response.ok || !data?.result) {
-        setError(data?.error || 'Something went wrong. Please try again.')
+        setError(data?.error || t('Something went wrong. Please try again.', "Une erreur s'est produite. Veuillez réessayer."))
         setStage('input')
         return
       }
@@ -211,7 +234,7 @@ export function useToolRun<T>(tool: string) {
       setUsesRemaining(data.usage?.usesRemaining ?? null)
       setStage('result')
     } catch {
-      setError('Network error. Please try again.')
+      setError(t('Network error. Please try again.', 'Erreur réseau. Veuillez réessayer.'))
       setStage('input')
     }
   }

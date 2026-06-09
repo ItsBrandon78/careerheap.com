@@ -28,8 +28,14 @@ export type CoverLetter = {
   closing: string
 }
 
+export type ToolLocale = 'en' | 'fr'
+
 function isConfigured() {
   return Boolean(process.env.OPENAI_API_KEY?.trim())
+}
+
+function localeNote(locale: ToolLocale | undefined) {
+  return locale === 'fr' ? ' Write all output in natural Canadian French (français canadien).' : ''
 }
 
 async function callOpenAIJson<T>(args: {
@@ -185,12 +191,14 @@ function resumeFallback(resumeText: string, targetRole: string): ResumeAnalysis 
 export async function generateResumeAnalysis(input: {
   resumeText: string
   targetRole?: string
+  locale?: ToolLocale
 }): Promise<{ result: ResumeAnalysis; source: 'ai' | 'fallback' }> {
   const targetRole = (input.targetRole || '').trim()
   if (isConfigured()) {
     const ai = await callOpenAIJson<ResumeAnalysis>({
       system:
-        'You are an expert technical recruiter and résumé coach. Analyze the résumé honestly and specifically. Do not invent experience the candidate does not have. Score 0-100 on impact, clarity, and keyword fit. Provide concrete findings and exact line rewrites grounded in the résumé text.',
+        'You are an expert technical recruiter and résumé coach. Analyze the résumé honestly and specifically. Do not invent experience the candidate does not have. Score 0-100 on impact, clarity, and keyword fit. Provide concrete findings and exact line rewrites grounded in the résumé text.' +
+        localeNote(input.locale),
       user: {
         task: 'Analyze this résumé.',
         target_role: targetRole || 'general / unspecified',
@@ -274,12 +282,14 @@ function interviewFallback(role: string): InterviewPrep {
 export async function generateInterviewPrep(input: {
   role: string
   context?: string
+  locale?: ToolLocale
 }): Promise<{ result: InterviewPrep; source: 'ai' | 'fallback' }> {
   const role = input.role.trim()
   if (isConfigured()) {
     const ai = await callOpenAIJson<InterviewPrep>({
       system:
-        'You are an interview coach for career switchers and early-career candidates. Produce realistic questions for the target role with strong, honest model answers and a sharp practical tip for each. Do not invent the candidate’s background.',
+        'You are an interview coach for career switchers and early-career candidates. Produce realistic questions for the target role with strong, honest model answers and a sharp practical tip for each. Do not invent the candidate’s background.' +
+        localeNote(input.locale),
       user: {
         task: 'Generate an interview question set for this role.',
         role,
@@ -327,13 +337,15 @@ export async function generateCoverLetter(input: {
   company?: string
   jobPosting: string
   background?: string
+  locale?: ToolLocale
 }): Promise<{ result: CoverLetter; source: 'ai' | 'fallback' }> {
   const role = input.role.trim()
   const company = (input.company || '').trim()
   if (isConfigured()) {
     const ai = await callOpenAIJson<CoverLetter>({
       system:
-        'You write focused, sincere cover letters for career switchers and early-career candidates. No clichés, no filler, no invented achievements. Ground every claim in the candidate background provided; where background is thin, write honestly about motivation and transferable strengths. Return three parts: opening (hook + why this role), body (1-2 paragraphs of proof + fit), closing (thanks + call to talk).',
+        'You write focused, sincere cover letters for career switchers and early-career candidates. No clichés, no filler, no invented achievements. Ground every claim in the candidate background provided; where background is thin, write honestly about motivation and transferable strengths. Return three parts: opening (hook + why this role), body (1-2 paragraphs of proof + fit), closing (thanks + call to talk).' +
+        localeNote(input.locale),
       user: {
         task: 'Draft a cover letter.',
         role: role || 'the role',
