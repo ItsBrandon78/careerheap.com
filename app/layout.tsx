@@ -10,6 +10,8 @@ import AccessibilityMenu from '@/components/AccessibilityMenu';
 import ConsentBanner from '@/components/ConsentBanner';
 import AuthRecoveryHandler from '@/components/AuthRecoveryHandler';
 import { AuthProvider } from '@/lib/auth/context';
+import { LocaleProvider } from '@/lib/i18n/LocaleProvider';
+import { getServerLocale } from '@/lib/i18n/server';
 import { accessibilityInitScript } from '@/lib/accessibility/preferences';
 import { getSiteBaseUrl } from '@/lib/blog/utils';
 import { reportMissingEnvInDev } from '@/lib/server/envValidation';
@@ -62,15 +64,16 @@ export const viewport: Viewport = {
   themeColor: '#245DFF'
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   reportMissingEnvInDev();
+  const locale = await getServerLocale();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${inter.variable} flex min-h-screen flex-col bg-bg-primary font-body text-text-primary antialiased`}
       >
@@ -83,16 +86,18 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <AuthProvider>
-          <AuthRecoveryHandler />
-          <Header />
-          <main id="main-content" className="flex-1" tabIndex={-1}>
-            {children}
-          </main>
-          <Footer />
-          <AccessibilityMenu />
-          <ConsentBanner />
-        </AuthProvider>
+        <LocaleProvider initialLocale={locale}>
+          <AuthProvider>
+            <AuthRecoveryHandler />
+            <Header />
+            <main id="main-content" className="flex-1" tabIndex={-1}>
+              {children}
+            </main>
+            <Footer />
+            <AccessibilityMenu />
+            <ConsentBanner />
+          </AuthProvider>
+        </LocaleProvider>
         <Analytics />
         <SpeedInsights />
       </body>

@@ -6,14 +6,15 @@ import { usePathname } from 'next/navigation'
 import Button from './Button'
 import Badge from './Badge'
 import { useAuth } from '@/lib/auth/context'
+import { useT } from '@/lib/i18n/LocaleProvider'
 import BrandLogo from './BrandLogo'
 import { Icon } from './ui/Icon'
 
-const NAV: { label: string; href: string }[] = [
-  { label: 'Tools', href: '/tools' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'About', href: '/about' }
+const NAV: { label: string; fr: string; href: string }[] = [
+  { label: 'Tools', fr: 'Outils', href: '/tools' },
+  { label: 'Pricing', fr: 'Tarifs', href: '/pricing' },
+  { label: 'Blog', fr: 'Blogue', href: '/blog' },
+  { label: 'About', fr: 'À propos', href: '/about' }
 ]
 
 function isActive(pathname: string | null, href: string) {
@@ -31,23 +32,29 @@ function initialsFromEmail(email?: string | null) {
 
 function PlanBadge() {
   const { plan, usage } = useAuth()
+  const t = useT()
 
   if (plan === 'pro') {
     return <Badge>Pro</Badge>
   }
 
   if (plan === 'lifetime') {
-    return <Badge>Lifetime</Badge>
+    return <Badge>{t('Lifetime', 'À vie')}</Badge>
   }
 
   const used = usage?.used ?? 0
   const limit = usage?.limit ?? 3
   const remaining = usage?.usesRemaining ?? Math.max(limit - used, 0)
-  return <Badge>{`Free - ${remaining}/${limit} uses left`}</Badge>
+  return (
+    <Badge>
+      {t(`Free - ${remaining}/${limit} uses left`, `Gratuit - ${remaining}/${limit} essais restants`)}
+    </Badge>
+  )
 }
 
 function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
   const { user } = useAuth()
+  const t = useT()
   const [open, setOpen] = useState(false)
   const menuId = 'account-menu'
   const initials = useMemo(() => initialsFromEmail(user?.email), [user?.email])
@@ -102,16 +109,16 @@ function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
         >
           <div className="px-3 py-2 text-xs text-text-tertiary">{user?.email}</div>
           <Link href="/account" role="menuitem" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
-            Account
+            {t('Account', 'Compte')}
           </Link>
           <Link href="/account?tab=billing" role="menuitem" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
-            Billing
+            {t('Billing', 'Facturation')}
           </Link>
           <Link href="/account?tab=usage" role="menuitem" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
-            Usage
+            {t('Usage', 'Utilisation')}
           </Link>
           <Link href="/account?tab=security" role="menuitem" className="block rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary" onClick={() => setOpen(false)}>
-            Settings
+            {t('Settings', 'Paramètres')}
           </Link>
           <button
             type="button"
@@ -122,7 +129,7 @@ function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
             role="menuitem"
             className="mt-1 block w-full rounded-md px-3 py-2 text-left text-sm text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
           >
-            Log out
+            {t('Log out', 'Déconnexion')}
           </button>
         </div>
       )}
@@ -133,6 +140,7 @@ function UserMenuDropdown({ onSignOut }: { onSignOut: () => Promise<void> }) {
 export const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const { user, isLoading, signOut } = useAuth()
+  const t = useT()
   const pathname = usePathname()
   const mobileDrawerRef = useRef<HTMLDivElement | null>(null)
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -193,7 +201,7 @@ export const Header: React.FC = () => {
                   active ? 'font-bold text-accent' : 'font-medium text-text-secondary hover:text-text-primary'
                 }`}
               >
-                {item.label}
+                {t(item.label, item.fr)}
               </Link>
             )
           })}
@@ -213,11 +221,11 @@ export const Header: React.FC = () => {
                 href="/login"
                 className="hidden text-[14.5px] font-semibold text-text-secondary hover:text-text-primary md:block"
               >
-                Log in
+                {t('Log in', 'Connexion')}
               </Link>
               <Link href="/tools/career-switch-planner" className="hidden md:block">
                 <Button variant="primary" size="sm">
-                  <Icon name="arrow" size={16} /> Start free
+                  <Icon name="arrow" size={16} /> {t('Start free', 'Commencer')}
                 </Button>
               </Link>
             </>
@@ -263,7 +271,7 @@ export const Header: React.FC = () => {
                 }`}
                 onClick={() => setIsOpen(false)}
               >
-                {item.label}
+                {t(item.label, item.fr)}
               </Link>
             ))}
 
@@ -278,21 +286,21 @@ export const Header: React.FC = () => {
                   className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
-                  Account
+                  {t('Account', 'Compte')}
                 </Link>
                 <Link
                   href="/account?tab=billing"
                   className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
-                  Billing
+                  {t('Billing', 'Facturation')}
                 </Link>
                 <Link
                   href="/account?tab=usage"
                   className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
-                  Usage
+                  {t('Usage', 'Utilisation')}
                 </Link>
                 <button
                   type="button"
@@ -302,7 +310,7 @@ export const Header: React.FC = () => {
                     setIsOpen(false)
                   }}
                 >
-                  Log out
+                  {t('Log out', 'Déconnexion')}
                 </button>
               </>
             )}
@@ -315,11 +323,11 @@ export const Header: React.FC = () => {
                   className="rounded-md px-3 py-2 text-[15px] text-text-secondary hover:bg-bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
-                  Log in
+                  {t('Log in', 'Connexion')}
                 </Link>
                 <Link href="/tools/career-switch-planner" onClick={() => setIsOpen(false)}>
                   <Button variant="primary" size="md" className="w-full">
-                    <Icon name="arrow" size={16} /> Start free
+                    <Icon name="arrow" size={16} /> {t('Start free', 'Commencer')}
                   </Button>
                 </Link>
               </>
