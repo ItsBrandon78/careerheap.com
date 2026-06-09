@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/ui/Icon'
 import { useAuth } from '@/lib/auth/context'
+import { useT } from '@/lib/i18n/LocaleProvider'
 
 /* ============================================================
    CareerHeap — Résumé Builder / Editor (ported from prototype)
@@ -131,6 +132,7 @@ const TEMPLATE_PRESETS: Array<{ id: string; name: string; desc: string; style: s
 
 /* ---------- skills chip input ---------- */
 function SkillsInput({ skills, setSkills }: { skills: string[]; setSkills: (v: string[]) => void }) {
+  const t = useT()
   const [draft, setDraft] = useState('')
   const add = (s: string) => {
     const v = s.trim()
@@ -154,7 +156,7 @@ function SkillsInput({ skills, setSkills }: { skills: string[]; setSkills: (v: s
       <div style={{ display: 'flex', gap: 10 }}>
         <input
           className="field"
-          placeholder="Type a skill and press Enter…"
+          placeholder={t('Type a skill and press Enter…', 'Tapez une compétence et appuyez sur Entrée…')}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -165,12 +167,12 @@ function SkillsInput({ skills, setSkills }: { skills: string[]; setSkills: (v: s
           }}
         />
         <button className="btn btn-outline" style={{ flexShrink: 0 }} onClick={() => add(draft)} disabled={!draft.trim()}>
-          <Icon name="plus" size={16} /> Add
+          <Icon name="plus" size={16} /> {t('Add', 'Ajouter')}
         </button>
       </div>
       {unused.length > 0 && (
         <div style={{ marginTop: 16 }}>
-          <p className="help" style={{ marginBottom: 9 }}>Common skills — tap to add:</p>
+          <p className="help" style={{ marginBottom: 9 }}>{t('Common skills — tap to add:', 'Compétences courantes — touchez pour ajouter :')}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {unused.slice(0, 8).map((s) => (
               <button key={s} className="chip" style={{ padding: '7px 12px', fontSize: 13 }} onClick={() => add(s)}>
@@ -357,12 +359,27 @@ function RBField({ label, value, onChange, placeholder, area }: { label?: string
   )
 }
 
-const RB_TIPS: Record<string, string[]> = {
-  contact: ['Use a professional email and just your city — not a full street address.', 'Add a portfolio or LinkedIn link recruiters can click.'],
-  summary: ['2–3 lines: lead with the role you want and one concrete proof point.', 'Skip "hardworking team player" — show it with a result instead.'],
-  experience: ['Start each bullet with a verb; end with a number or outcome.', 'Most recent role first, 3–5 bullets each.'],
-  education: ['List most recent or in-progress first.', 'Early-career? Add relevant coursework or certifications.'],
-  skills: ['Mirror the exact terms from the job posting.', 'Lead with tools and hard skills; drop the obvious ones.']
+const RB_TIPS: Record<string, [string, string][]> = {
+  contact: [
+    ['Use a professional email and just your city — not a full street address.', 'Utilisez un courriel professionnel et seulement votre ville — pas une adresse complète.'],
+    ['Add a portfolio or LinkedIn link recruiters can click.', 'Ajoutez un lien de portfolio ou LinkedIn que les recruteurs peuvent cliquer.']
+  ],
+  summary: [
+    ['2–3 lines: lead with the role you want and one concrete proof point.', '2–3 lignes : commencez par le rôle visé et une preuve concrète.'],
+    ['Skip "hardworking team player" — show it with a result instead.', 'Évitez « bon coéquipier travaillant » — montrez-le plutôt avec un résultat.']
+  ],
+  experience: [
+    ['Start each bullet with a verb; end with a number or outcome.', 'Commencez chaque puce par un verbe; terminez par un chiffre ou un résultat.'],
+    ['Most recent role first, 3–5 bullets each.', 'Le rôle le plus récent en premier, 3 à 5 puces chacun.']
+  ],
+  education: [
+    ['List most recent or in-progress first.', 'Indiquez le plus récent ou en cours en premier.'],
+    ['Early-career? Add relevant coursework or certifications.', 'En début de carrière? Ajoutez des cours ou certifications pertinents.']
+  ],
+  skills: [
+    ['Mirror the exact terms from the job posting.', 'Reprenez les termes exacts de l’offre d’emploi.'],
+    ['Lead with tools and hard skills; drop the obvious ones.', 'Mettez en avant les outils et compétences techniques; laissez tomber les évidences.']
+  ]
 }
 
 const RB_KEY = 'careerheap_resume_v1'
@@ -370,6 +387,7 @@ const RB_KEY = 'careerheap_resume_v1'
 export default function ResumeBuilderPage() {
   const router = useRouter()
   const { plan } = useAuth()
+  const t = useT()
   const isPro = plan === 'pro' || plan === 'lifetime'
   const upgrade = () => router.push('/pricing')
 
@@ -421,12 +439,12 @@ export default function ResumeBuilderPage() {
     else action()
   }
   const applyPreset = (preset: (typeof TEMPLATE_PRESETS)[number]) =>
-    confirmThen('Loading this example will replace the details you’ve entered. Your chosen layout stays the same.', () => {
+    confirmThen(t('Loading this example will replace the details you’ve entered. Your chosen layout stays the same.', 'Charger cet exemple remplacera les détails que vous avez saisis. Votre mise en page reste la même.'), () => {
       setR(JSON.parse(JSON.stringify(preset.data)))
       window.scrollTo({ top: 0, behavior: 'smooth' })
     })
   const startFresh = () =>
-    confirmThen('This clears the résumé and starts a blank one. This can’t be undone.', () => {
+    confirmThen(t('This clears the résumé and starts a blank one. This can’t be undone.', 'Ceci efface le CV et en démarre un vierge. Cette action est irréversible.'), () => {
       setR(buildInitialResume())
       window.scrollTo({ top: 0, behavior: 'smooth' })
     })
@@ -451,13 +469,13 @@ export default function ResumeBuilderPage() {
             <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}>
               <span style={{ width: 42, height: 42, borderRadius: 11, background: 'var(--warning-light)', color: 'var(--warning)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Icon name="refresh" size={20} /></span>
               <div>
-                <h3 style={{ fontSize: 17, fontWeight: 800 }}>Replace what you’ve entered?</h3>
+                <h3 style={{ fontSize: 17, fontWeight: 800 }}>{t('Replace what you’ve entered?', 'Remplacer ce que vous avez saisi?')}</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 7, lineHeight: 1.6 }}>{confirmAsk.message}</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 22 }}>
-              <button className="btn btn-outline btn-sm" onClick={() => setConfirmAsk(null)}>Keep editing</button>
-              <button className="btn btn-primary btn-sm" onClick={() => { const a = confirmAsk.action; setConfirmAsk(null); a() }}>Replace it</button>
+              <button className="btn btn-outline btn-sm" onClick={() => setConfirmAsk(null)}>{t('Keep editing', 'Continuer la modification')}</button>
+              <button className="btn btn-primary btn-sm" onClick={() => { const a = confirmAsk.action; setConfirmAsk(null); a() }}>{t('Replace it', 'Remplacer')}</button>
             </div>
           </div>
         </div>
@@ -467,12 +485,12 @@ export default function ResumeBuilderPage() {
       <div className="print-hidden" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border-light)' }}>
         <div className="wrap" style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <button onClick={() => router.push('/tools')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--text-secondary)', fontWeight: 600, fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-            <Icon name="arrowLeft" size={16} /> Tools
+            <Icon name="arrowLeft" size={16} /> {t('Tools', 'Outils')}
           </button>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}><Icon name="check" size={13} style={{ color: 'var(--success)' }} /> Auto-saves</span>
-            <button className="btn btn-outline btn-sm" onClick={() => router.push('/tools/resume-analyzer')}><Icon name="award" size={15} /> <span>Analyze</span></button>
-            <button className="btn btn-primary btn-sm" onClick={download}><Icon name="download" size={15} /> <span>Download PDF{!isPro ? ' (Pro)' : ''}</span></button>
+            <span style={{ fontSize: 12, color: 'var(--text-tertiary)', display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}><Icon name="check" size={13} style={{ color: 'var(--success)' }} /> {t('Auto-saves', 'Sauvegarde auto')}</span>
+            <button className="btn btn-outline btn-sm" onClick={() => router.push('/tools/resume-analyzer')}><Icon name="award" size={15} /> <span>{t('Analyze', 'Analyser')}</span></button>
+            <button className="btn btn-primary btn-sm" onClick={download}><Icon name="download" size={15} /> <span>{t('Download PDF', 'Télécharger le PDF')}{!isPro ? ' (Pro)' : ''}</span></button>
           </div>
         </div>
       </div>
@@ -480,13 +498,13 @@ export default function ResumeBuilderPage() {
       <div className="wrap" style={{ paddingTop: 28, paddingBottom: 60 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
           <div>
-            <span className="badge badge-teal"><Icon name="book" size={13} /> Résumé Builder</span>
-            <h1 style={{ fontSize: 'clamp(22px,3vw,28px)', fontWeight: 800, marginTop: 10 }}>Build a clean, recruiter-ready résumé</h1>
+            <span className="badge badge-teal"><Icon name="book" size={13} /> {t('Résumé Builder', 'Créateur de CV')}</span>
+            <h1 style={{ fontSize: 'clamp(22px,3vw,28px)', fontWeight: 800, marginTop: 10 }}>{t('Build a clean, recruiter-ready résumé', 'Créez un CV soigné, prêt pour les recruteurs')}</h1>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12.5, color: 'var(--text-tertiary)', fontWeight: 600 }}>Template</span>
+            <span style={{ fontSize: 12.5, color: 'var(--text-tertiary)', fontWeight: 600 }}>{t('Template', 'Modèle')}</span>
             <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--pill)', padding: 3 }}>
-              {([['professional', 'Professional', true], ['classic', 'Classic', true], ['modern', 'Modern', isPro]] as Array<[TemplateId, string, boolean]>).map(([k, label, allowed]) => (
+              {([['professional', t('Professional', 'Professionnel'), true], ['classic', t('Classic', 'Classique'), true], ['modern', t('Modern', 'Moderne'), isPro]] as Array<[TemplateId, string, boolean]>).map(([k, label, allowed]) => (
                 <button key={k} onClick={() => (allowed ? setTemplate(k) : upgrade())} style={{ border: 'none', cursor: 'pointer', padding: '6px 14px', borderRadius: 'var(--pill)', fontSize: 12.5, fontWeight: 600, background: template === k ? 'var(--accent)' : 'transparent', color: template === k ? '#fff' : 'var(--text-secondary)' }}>
                   {label}{!allowed ? ' 🔒' : ''}
                 </button>
@@ -498,8 +516,8 @@ export default function ResumeBuilderPage() {
         {/* template gallery */}
         <div className="print-hidden" style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Load example content</p>
-            <button className="btn btn-outline btn-sm" onClick={startFresh}><Icon name="refresh" size={14} /> Start fresh</button>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('Load example content', 'Charger un exemple de contenu')}</p>
+            <button className="btn btn-outline btn-sm" onClick={startFresh}><Icon name="refresh" size={14} /> {t('Start fresh', 'Recommencer à neuf')}</button>
           </div>
           <div className="tmpl-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
             {TEMPLATE_PRESETS.map((p) => (
@@ -515,7 +533,7 @@ export default function ResumeBuilderPage() {
         </div>
 
         <div className="rb-sectionbar print-hidden" style={{ display: 'flex', gap: 8, marginBottom: 18, overflowX: 'auto', paddingBottom: 2 }}>
-          {[['contact', 'Contact', 'pin'], ['summary', 'Summary', 'lightbulb'], ['experience', 'Experience', 'briefcase'], ['education', 'Education', 'grad'], ['skills', 'Skills', 'star']].map(([id, label, icon]) => (
+          {[['contact', t('Contact', 'Coordonnées'), 'pin'], ['summary', t('Summary', 'Résumé'), 'lightbulb'], ['experience', t('Experience', 'Expérience'), 'briefcase'], ['education', t('Education', 'Formation'), 'grad'], ['skills', t('Skills', 'Compétences'), 'star']].map(([id, label, icon]) => (
             <button key={id} onClick={() => setSection(id)} className={'chip' + (section === id ? ' chip-on' : '')} style={{ flexShrink: 0, padding: '8px 14px', fontSize: 13 }}><Icon name={icon} size={14} /> {label}</button>
           ))}
         </div>
@@ -524,27 +542,27 @@ export default function ResumeBuilderPage() {
           {/* EDITOR */}
           <div className="rb-editor print-hidden" style={{ display: tab === 'preview' ? 'none' : 'block' }}>
             <div id="rb-contact" className="card" style={{ padding: 22, display: section === 'contact' ? 'block' : 'none' }}>
-              <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14 }}>Contact</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 14 }}>{t('Contact', 'Coordonnées')}</h2>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <RBField label="Full name" value={r.name} onChange={(v) => set('name', v)} placeholder="Maya Patel" />
-                <RBField label="Headline" value={r.title} onChange={(v) => set('title', v)} placeholder="Aspiring Data Analyst" />
-                <RBField label="Email" value={r.email} onChange={(v) => set('email', v)} placeholder="you@email.com" />
-                <RBField label="Phone" value={r.phone} onChange={(v) => set('phone', v)} placeholder="(416) 555-0199" />
-                <RBField label="Location" value={r.location} onChange={(v) => set('location', v)} placeholder="Toronto, ON" />
-                <RBField label="Links" value={r.links} onChange={(v) => set('links', v)} placeholder="portfolio · linkedin" />
+                <RBField label={t('Full name', 'Nom complet')} value={r.name} onChange={(v) => set('name', v)} placeholder="Maya Patel" />
+                <RBField label={t('Headline', 'Titre')} value={r.title} onChange={(v) => set('title', v)} placeholder={t('Aspiring Data Analyst', 'Analyste de données en devenir')} />
+                <RBField label={t('Email', 'Courriel')} value={r.email} onChange={(v) => set('email', v)} placeholder="you@email.com" />
+                <RBField label={t('Phone', 'Téléphone')} value={r.phone} onChange={(v) => set('phone', v)} placeholder="(416) 555-0199" />
+                <RBField label={t('Location', 'Lieu')} value={r.location} onChange={(v) => set('location', v)} placeholder="Toronto, ON" />
+                <RBField label={t('Links', 'Liens')} value={r.links} onChange={(v) => set('links', v)} placeholder="portfolio · linkedin" />
               </div>
             </div>
 
             <div id="rb-summary" className="card" style={{ padding: 22, display: section === 'summary' ? 'block' : 'none' }}>
-              <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>Summary</h2>
-              <p className="help" style={{ marginBottom: 10 }}>2–3 lines. Lead with your target role and strongest proof.</p>
-              <RBField value={r.summary} onChange={(v) => set('summary', v)} area placeholder="Detail-oriented analyst-in-training with hands-on SQL and a published dashboard project…" />
+              <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>{t('Summary', 'Résumé')}</h2>
+              <p className="help" style={{ marginBottom: 10 }}>{t('2–3 lines. Lead with your target role and strongest proof.', '2–3 lignes. Commencez par le rôle visé et votre meilleure preuve.')}</p>
+              <RBField value={r.summary} onChange={(v) => set('summary', v)} area placeholder={t('Detail-oriented analyst-in-training with hands-on SQL and a published dashboard project…', 'Analyste en formation, minutieux, avec du SQL pratique et un tableau de bord publié…')} />
             </div>
 
             <div id="rb-experience" className="card" style={{ padding: 22, display: section === 'experience' ? 'block' : 'none' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <h2 style={{ fontSize: 15, fontWeight: 800 }}>Experience</h2>
-                <button className="btn btn-outline btn-sm" onClick={() => setR((p) => ({ ...p, experience: [...p.experience, blankExp()] }))}><Icon name="plus" size={14} /> Add</button>
+                <h2 style={{ fontSize: 15, fontWeight: 800 }}>{t('Experience', 'Expérience')}</h2>
+                <button className="btn btn-outline btn-sm" onClick={() => setR((p) => ({ ...p, experience: [...p.experience, blankExp()] }))}><Icon name="plus" size={14} /> {t('Add', 'Ajouter')}</button>
               </div>
               {r.experience.map((e, i) => (
                 <div key={e.id} style={{ padding: 14, border: '1px solid var(--border-light)', borderRadius: 'var(--r-md)', marginBottom: 12 }}>
@@ -554,62 +572,62 @@ export default function ResumeBuilderPage() {
                     <button onClick={() => setR((p) => ({ ...p, experience: p.experience.filter((x) => x.id !== e.id) }))} className="btn btn-ghost btn-sm" style={{ padding: 5, color: 'var(--error)' }} title="Remove"><Icon name="x" size={14} /></button>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    <RBField label="Role" value={e.role} onChange={(v) => setExp(e.id, { role: v })} placeholder="Sales Associate" />
-                    <RBField label="Organization" value={e.org} onChange={(v) => setExp(e.id, { org: v })} placeholder="Retail Co." />
+                    <RBField label={t('Role', 'Rôle')} value={e.role} onChange={(v) => setExp(e.id, { role: v })} placeholder="Sales Associate" />
+                    <RBField label={t('Organization', 'Organisation')} value={e.org} onChange={(v) => setExp(e.id, { org: v })} placeholder="Retail Co." />
                   </div>
-                  <RBField label="Dates" value={e.dates} onChange={(v) => setExp(e.id, { dates: v })} placeholder="2024 – 2026" />
-                  <p className="label" style={{ fontSize: 12.5, marginBottom: 5 }}>Bullet points</p>
+                  <RBField label={t('Dates', 'Dates')} value={e.dates} onChange={(v) => setExp(e.id, { dates: v })} placeholder="2024 – 2026" />
+                  <p className="label" style={{ fontSize: 12.5, marginBottom: 5 }}>{t('Bullet points', 'Puces')}</p>
                   {e.bullets.map((b, bi) => (
                     <div key={bi} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                      <input className="field" style={{ fontSize: 13, padding: '8px 11px' }} value={b} onChange={(ev) => setExp(e.id, { bullets: e.bullets.map((x, k) => (k === bi ? ev.target.value : x)) })} placeholder="Resolved 30+ customer issues per shift with a 96% satisfaction rate" />
+                      <input className="field" style={{ fontSize: 13, padding: '8px 11px' }} value={b} onChange={(ev) => setExp(e.id, { bullets: e.bullets.map((x, k) => (k === bi ? ev.target.value : x)) })} placeholder={t('Resolved 30+ customer issues per shift with a 96% satisfaction rate', 'Résolu plus de 30 problèmes clients par quart avec un taux de satisfaction de 96 %')} />
                       <button onClick={() => setExp(e.id, { bullets: e.bullets.filter((_, k) => k !== bi) })} className="btn btn-ghost btn-sm" style={{ padding: 7, color: 'var(--text-tertiary)' }}><Icon name="x" size={14} /></button>
                     </div>
                   ))}
-                  <button onClick={() => setExp(e.id, { bullets: [...e.bullets, ''] })} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="plus" size={13} /> Add bullet</button>
+                  <button onClick={() => setExp(e.id, { bullets: [...e.bullets, ''] })} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Icon name="plus" size={13} /> {t('Add bullet', 'Ajouter une puce')}</button>
                 </div>
               ))}
             </div>
 
             <div id="rb-education" className="card" style={{ padding: 22, display: section === 'education' ? 'block' : 'none' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <h2 style={{ fontSize: 15, fontWeight: 800 }}>Education</h2>
-                <button className="btn btn-outline btn-sm" onClick={() => setR((p) => ({ ...p, education: [...p.education, blankEdu()] }))}><Icon name="plus" size={14} /> Add</button>
+                <h2 style={{ fontSize: 15, fontWeight: 800 }}>{t('Education', 'Formation')}</h2>
+                <button className="btn btn-outline btn-sm" onClick={() => setR((p) => ({ ...p, education: [...p.education, blankEdu()] }))}><Icon name="plus" size={14} /> {t('Add', 'Ajouter')}</button>
               </div>
               {r.education.map((e) => (
                 <div key={e.id} style={{ padding: 14, border: '1px solid var(--border-light)', borderRadius: 'var(--r-md)', marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
                     <button onClick={() => setR((p) => ({ ...p, education: p.education.filter((x) => x.id !== e.id) }))} className="btn btn-ghost btn-sm" style={{ padding: 5, color: 'var(--error)' }}><Icon name="x" size={14} /></button>
                   </div>
-                  <RBField label="Credential" value={e.credential} onChange={(v) => setEdu(e.id, { credential: v })} placeholder="Bachelor of Commerce (in progress)" />
+                  <RBField label={t('Credential', 'Diplôme / titre')} value={e.credential} onChange={(v) => setEdu(e.id, { credential: v })} placeholder={t('Bachelor of Commerce (in progress)', 'Baccalauréat en commerce (en cours)')} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    <RBField label="School" value={e.school} onChange={(v) => setEdu(e.id, { school: v })} placeholder="University" />
-                    <RBField label="Dates" value={e.dates} onChange={(v) => setEdu(e.id, { dates: v })} placeholder="Expected 2027" />
+                    <RBField label={t('School', 'Établissement')} value={e.school} onChange={(v) => setEdu(e.id, { school: v })} placeholder={t('University', 'Université')} />
+                    <RBField label={t('Dates', 'Dates')} value={e.dates} onChange={(v) => setEdu(e.id, { dates: v })} placeholder={t('Expected 2027', 'Prévu 2027')} />
                   </div>
                 </div>
               ))}
             </div>
 
             <div id="rb-skills" className="card" style={{ padding: 22, display: section === 'skills' ? 'block' : 'none' }}>
-              <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>Skills</h2>
+              <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>{t('Skills', 'Compétences')}</h2>
               <SkillsInput skills={r.skills} setSkills={(v) => set('skills', v)} />
             </div>
 
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
               {(() => {
                 const checks: Array<[string, boolean]> = [
-                  ['Name', !!r.name],
-                  ['Headline', !!r.title],
-                  ['Contact', !!(r.email || r.phone || r.location)],
-                  ['Summary', (r.summary || '').trim().length > 20],
-                  ['Experience', r.experience.some((e) => e.role && e.bullets.some(Boolean))],
-                  ['Education', r.education.some((e) => e.credential || e.school)],
-                  ['Skills (3+)', r.skills.length >= 3]
+                  [t('Name', 'Nom'), !!r.name],
+                  [t('Headline', 'Titre'), !!r.title],
+                  [t('Contact', 'Coordonnées'), !!(r.email || r.phone || r.location)],
+                  [t('Summary', 'Résumé'), (r.summary || '').trim().length > 20],
+                  [t('Experience', 'Expérience'), r.experience.some((e) => e.role && e.bullets.some(Boolean))],
+                  [t('Education', 'Formation'), r.education.some((e) => e.credential || e.school)],
+                  [t('Skills (3+)', 'Compétences (3+)'), r.skills.length >= 3]
                 ]
                 const pct = Math.round((checks.filter((c) => c[1]).length / checks.length) * 100)
                 return (
                   <div className="card" style={{ padding: 20 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 11 }}>
-                      <h3 style={{ fontSize: 14, fontWeight: 800 }}>Résumé strength</h3>
+                      <h3 style={{ fontSize: 14, fontWeight: 800 }}>{t('Résumé strength', 'Force du CV')}</h3>
                       <span style={{ fontSize: 15, fontWeight: 800, color: pct >= 80 ? 'var(--success)' : 'var(--accent)' }}>{pct}%</span>
                     </div>
                     <div style={{ height: 7, borderRadius: 5, background: 'var(--border-light)', overflow: 'hidden' }}><div style={{ width: pct + '%', height: '100%', background: pct >= 80 ? 'var(--success)' : 'var(--accent)', borderRadius: 5, transition: 'width .3s' }} /></div>
@@ -624,20 +642,20 @@ export default function ResumeBuilderPage() {
                 )
               })()}
               <div className="card" style={{ padding: 20, background: 'var(--accent-soft)', boxShadow: 'none', border: '1px solid var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11 }}><Icon name="lightbulb" size={16} style={{ color: 'var(--accent)' }} /><h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent)', textTransform: 'capitalize' }}>Tips · {section}</h3></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 11 }}><Icon name="lightbulb" size={16} style={{ color: 'var(--accent)' }} /><h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--accent)', textTransform: 'capitalize' }}>{t('Tips', 'Conseils')} · {section}</h3></div>
                 <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {(RB_TIPS[section] || []).map((tip, i) => (
-                    <li key={i} style={{ display: 'flex', gap: 9, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}><span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span>{tip}</li>
+                    <li key={i} style={{ display: 'flex', gap: 9, fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}><span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span>{t(tip[0], tip[1])}</li>
                   ))}
                 </ul>
               </div>
               <div className="card" style={{ padding: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <Icon name="target" size={16} style={{ color: 'var(--accent)' }} />
-                  <h3 style={{ fontSize: 14, fontWeight: 800 }}>Keyword targeting</h3>
+                  <h3 style={{ fontSize: 14, fontWeight: 800 }}>{t('Keyword targeting', 'Ciblage de mots-clés')}</h3>
                 </div>
-                <p className="help" style={{ marginBottom: 10 }}>Paste a job posting — see which keywords your résumé already hits and what’s missing.</p>
-                <textarea className="field" rows={4} style={{ resize: 'vertical', fontSize: 13 }} value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder="Paste the job description here…" />
+                <p className="help" style={{ marginBottom: 10 }}>{t('Paste a job posting — see which keywords your résumé already hits and what’s missing.', 'Collez une offre d’emploi — voyez quels mots-clés votre CV couvre déjà et lesquels manquent.')}</p>
+                <textarea className="field" rows={4} style={{ resize: 'vertical', fontSize: 13 }} value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} placeholder={t('Paste the job description here…', 'Collez la description de poste ici…')} />
                 {jobDesc.trim().length > 20 &&
                   (() => {
                     const STOP = new Set(
@@ -658,18 +676,18 @@ export default function ResumeBuilderPage() {
                     return (
                       <div style={{ marginTop: 14 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
-                          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-secondary)' }}>Keyword match</span>
+                          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('Keyword match', 'Correspondance de mots-clés')}</span>
                           <span style={{ fontSize: 14, fontWeight: 800, color: pct >= 70 ? 'var(--success)' : pct >= 40 ? 'var(--accent)' : 'var(--warning)' }}>{pct}%</span>
                         </div>
                         {matched.length > 0 && (
                           <>
-                            <p style={{ fontSize: 11.5, color: 'var(--text-tertiary)', marginBottom: 6 }}>In your résumé</p>
+                            <p style={{ fontSize: 11.5, color: 'var(--text-tertiary)', marginBottom: 6 }}>{t('In your résumé', 'Dans votre CV')}</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>{matched.map((k) => <span key={k} className="badge badge-success" style={{ fontSize: 11 }}><Icon name="check" size={11} /> {k}</span>)}</div>
                           </>
                         )}
                         {missing.length > 0 && (
                           <>
-                            <p style={{ fontSize: 11.5, color: 'var(--text-tertiary)', marginBottom: 6 }}>Missing — tap to add to Skills</p>
+                            <p style={{ fontSize: 11.5, color: 'var(--text-tertiary)', marginBottom: 6 }}>{t('Missing — tap to add to Skills', 'Manquants — touchez pour ajouter aux compétences')}</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{missing.map((k) => <button key={k} onClick={() => { if (!r.skills.includes(k)) set('skills', [...r.skills, k]) }} className="badge badge-warn" style={{ fontSize: 11, cursor: 'pointer', border: 'none' }}><Icon name="plus" size={11} /> {k}</button>)}</div>
                           </>
                         )}
@@ -678,8 +696,8 @@ export default function ResumeBuilderPage() {
                   })()}
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => router.push('/tools/resume-analyzer')}><Icon name="award" size={15} /> Analyze</button>
-                <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={download}><Icon name="download" size={15} /> {isPro ? 'Download' : 'Download (Pro)'}</button>
+                <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={() => router.push('/tools/resume-analyzer')}><Icon name="award" size={15} /> {t('Analyze', 'Analyser')}</button>
+                <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={download}><Icon name="download" size={15} /> {isPro ? t('Download', 'Télécharger') : t('Download (Pro)', 'Télécharger (Pro)')}</button>
               </div>
             </div>
           </div>
@@ -691,7 +709,7 @@ export default function ResumeBuilderPage() {
                 <ResumePreview r={r} template={template} />
               </div>
             </div>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginTop: 10 }}>Live preview · updates as you type</p>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginTop: 10 }}>{t('Live preview · updates as you type', 'Aperçu en direct · se met à jour pendant la saisie')}</p>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import LegalDoc, { type LegalSection } from '@/components/LegalDoc'
+import { getServerT } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — CareerHeap',
@@ -88,13 +89,17 @@ const SECTIONS: LegalSection[] = [
   }
 ]
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const { t } = await getServerT()
   return (
     <LegalDoc
       active="terms"
-      badge="The fine print"
-      title="Terms of Service"
-      intro="These terms govern your use of CareerHeap. We’ve kept them as readable as we can. The short version: use the Service responsibly, our guidance is informational and never a guarantee of a job, and you can cancel a paid plan anytime."
+      badge={t('The fine print', 'Les petits caractères')}
+      title={t('Terms of Service', "Conditions d'utilisation")}
+      intro={t(
+        'These terms govern your use of CareerHeap. We’ve kept them as readable as we can. The short version: use the Service responsibly, our guidance is informational and never a guarantee of a job, and you can cancel a paid plan anytime.',
+        'Ces conditions régissent votre utilisation de CareerHeap. Nous les avons rendues aussi lisibles que possible. En bref : utilisez le Service de façon responsable, nos conseils sont informatifs et ne garantissent jamais un emploi, et vous pouvez annuler un forfait payant à tout moment.'
+      )}
       sections={SECTIONS}
     />
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Icon } from './ui/Icon'
+import { getServerT } from '@/lib/i18n/server'
 
 export const LEGAL_UPDATED = 'June 7, 2026'
 
@@ -10,13 +11,13 @@ export type LegalSection = {
   list?: string[]
 }
 
-const OTHERS: [string, string, string][] = [
-  ['privacy', '/privacy', 'Privacy Policy'],
-  ['terms', '/terms', 'Terms of Service'],
-  ['contact', '/contact', 'Contact']
+const OTHERS: [string, string, string, string][] = [
+  ['privacy', '/privacy', 'Privacy Policy', 'Politique de confidentialité'],
+  ['terms', '/terms', 'Terms of Service', "Conditions d'utilisation"],
+  ['contact', '/contact', 'Contact', 'Contact']
 ]
 
-export default function LegalDoc({
+export default async function LegalDoc({
   active,
   badge,
   title,
@@ -29,6 +30,7 @@ export default function LegalDoc({
   intro: string
   sections: LegalSection[]
 }) {
+  const { locale, t } = await getServerT()
   return (
     <>
       <section className="border-b border-border-light bg-bg-secondary px-4 pb-14 pt-16 text-center">
@@ -45,9 +47,9 @@ export default function LegalDoc({
       <section className="mx-auto max-w-content px-4 pb-20 pt-11">
         <div className="grid items-start gap-12 md:grid-cols-[220px_1fr]">
           <aside className="sticky top-[88px] hidden md:block">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.6px] text-text-tertiary">Legal</p>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.6px] text-text-tertiary">{t('Legal', 'Légal')}</p>
             <div className="flex flex-col gap-1">
-              {OTHERS.map(([key, href, label]) => (
+              {OTHERS.map(([key, href, label, labelFr]) => (
                 <Link
                   key={key}
                   href={href}
@@ -57,17 +59,22 @@ export default function LegalDoc({
                       : 'font-medium text-text-secondary hover:bg-bg-secondary'
                   }`}
                 >
-                  {label}
+                  {t(label, labelFr)}
                 </Link>
               ))}
             </div>
             <div className="mt-5 rounded-md bg-bg-secondary px-3.5 py-3">
-              <p className="text-xs text-text-tertiary">Last updated</p>
+              <p className="text-xs text-text-tertiary">{t('Last updated', 'Dernière mise à jour')}</p>
               <p className="mt-0.5 text-[13.5px] font-semibold">{LEGAL_UPDATED}</p>
             </div>
           </aside>
 
           <div className="max-w-[720px]">
+            {locale === 'fr' ? (
+              <p className="mb-4 rounded-md border border-border-light bg-bg-secondary px-4 py-3 text-[13.5px] leading-[1.6] text-text-secondary">
+                Ce document est fourni en anglais; la version anglaise fait foi.
+              </p>
+            ) : null}
             <p className="mb-2 text-[17px] leading-[1.75] text-text-secondary">{intro}</p>
             <div className="mt-7 flex flex-col gap-[30px]">
               {sections.map((s, i) => (
@@ -99,11 +106,15 @@ export default function LegalDoc({
 
             <div className="mt-10 rounded-lg border border-border-light bg-bg-primary px-[22px] py-5">
               <p className="text-[14.5px] leading-[1.65] text-text-secondary">
-                Questions about this {active === 'privacy' ? 'policy' : active === 'terms' ? 'agreement' : 'page'}? Reach us at{' '}
+                {t(
+                  `Questions about this ${active === 'privacy' ? 'policy' : active === 'terms' ? 'agreement' : 'page'}?`,
+                  `Des questions sur ${active === 'privacy' ? 'cette politique' : active === 'terms' ? 'cet accord' : 'cette page'}?`
+                )}{' '}
+                {t('Reach us at', 'Joignez-nous via')}{' '}
                 <Link href="/contact" className="font-bold text-accent">
-                  our contact page
+                  {t('our contact page', 'notre page de contact')}
                 </Link>{' '}
-                or email <span className="font-semibold text-accent">privacy@careerheap.ca</span>.
+                {t('or email', 'ou par courriel à')} <span className="font-semibold text-accent">privacy@careerheap.ca</span>.
               </p>
             </div>
           </div>

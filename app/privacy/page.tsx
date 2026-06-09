@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import LegalDoc, { type LegalSection } from '@/components/LegalDoc'
+import { getServerT } from '@/lib/i18n/server'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — CareerHeap',
@@ -94,13 +95,17 @@ const SECTIONS: LegalSection[] = [
   }
 ]
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { t } = await getServerT()
   return (
     <LegalDoc
       active="privacy"
-      badge="Your privacy"
-      title="Privacy Policy"
-      intro="CareerHeap helps you plan a career path, so you trust us with information about where you are and where you want to go. This policy explains what we collect, why, and the control you keep over it. In plain terms: we don’t sell your data, and we don’t invent facts about you."
+      badge={t('Your privacy', 'Votre vie privée')}
+      title={t('Privacy Policy', 'Politique de confidentialité')}
+      intro={t(
+        'CareerHeap helps you plan a career path, so you trust us with information about where you are and where you want to go. This policy explains what we collect, why, and the control you keep over it. In plain terms: we don’t sell your data, and we don’t invent facts about you.',
+        'CareerHeap vous aide à planifier un parcours de carrière; vous nous confiez donc des renseignements sur votre situation et vos objectifs. Cette politique explique ce que nous recueillons, pourquoi, et le contrôle que vous conservez. En clair : nous ne vendons pas vos données et nous n’inventons pas de faits à votre sujet.'
+      )}
       sections={SECTIONS}
     />
   )
