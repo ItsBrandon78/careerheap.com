@@ -9,6 +9,18 @@ const read = (rel) => readFileSync(path.resolve(__dirname, '..', rel), 'utf8')
 
 const v3 = read('lib/planner/v3Dashboard.ts')
 const normalize = read('lib/requirements/normalize.ts')
+const plannerClient = read('app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx')
+const plannerRoute = read('app/api/tools/career-switch-planner/route.ts')
+
+test('current role is never an invented "{skill} specialist" title', () => {
+  assert.doesNotMatch(plannerClient, /\$\{confirmedSkills\[0\]\} specialist/)
+  assert.match(plannerClient, /currentRoleFallback = draft\.currentRoleText\.trim\(\) \|\| 'Career starter'/)
+})
+
+test('below-confidence role suggestions are relevance-gated (no irrelevant manager match for "IT Support")', () => {
+  assert.match(plannerRoute, /function isRelevantUnmappedSuggestion/)
+  assert.match(plannerRoute, /alternatives: relevantAlternatives/)
+})
 
 test('requirement gate labels do not double-prefix verb phrases (no "Obtain apply…")', () => {
   // Verb-initial gate phrases must be returned as-is, not prefixed with "Obtain".

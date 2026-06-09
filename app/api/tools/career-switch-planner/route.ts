@@ -387,18 +387,55 @@ function buildRoleSelectionPayload(
   }
 }
 
+// Generic role words carry no topical signal, so they don't count as relevance.
+const NON_TOPICAL_ROLE_TOKENS = new Set([
+  'manager', 'managers', 'specialist', 'coordinator', 'officer', 'assistant',
+  'associate', 'services', 'service', 'support', 'worker', 'workers',
+  'representative', 'related', 'occupations', 'other', 'general'
+])
+
+function meaningfulRoleTokens(value: string): Set<string> {
+  return new Set(
+    value
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) => token.length >= 3 && !NON_TOPICAL_ROLE_TOKENS.has(token))
+  )
+}
+
+// In the below-confidence ("unmapped") case, only offer suggestions that are
+// either clearly strong or share a real topical token with what the user typed —
+// so e.g. "IT Support" never surfaces "Managers in customer and personal services".
+function isRelevantUnmappedSuggestion(inputValue: string, alt: { title: string; confidence?: number }) {
+  if (typeof alt.confidence === 'number' && alt.confidence >= 0.55) return true
+  const inputTokens = meaningfulRoleTokens(inputValue)
+  if (inputTokens.size === 0) return false
+  const titleTokens = meaningfulRoleTokens(alt.title)
+  for (const token of inputTokens) {
+    if (titleTokens.has(token)) return true
+  }
+  return false
+}
+
 function buildUnmappedRolePayload(
   role: 'current' | 'target',
   inputValue: string,
   resolution: ResolvedOccupation
 ) {
   const base = buildRoleSelectionPayload(role, inputValue, resolution)
+  const relevantAlternatives = base.alternatives.filter((alt) =>
+    isRelevantUnmappedSuggestion(inputValue, alt)
+  )
   return {
     ...base,
+    alternatives: relevantAlternatives,
     error: 'UNMAPPED_ROLE' as const,
     message:
-      `We couldn’t confidently map "${inputValue || 'this role'}" yet. ` +
-      'Choose the closest match, or refine the role title with more specific wording.'
+      relevantAlternatives.length > 0
+        ? `We couldn’t confidently map "${inputValue || 'this role'}" yet. ` +
+          'Choose the closest match, or refine the role title with more specific wording.'
+        : `We couldn’t confidently map "${inputValue || 'this role'}" to a known occupation. ` +
+          'Try a more specific or common job title (for example, the official title from a job posting).'
   }
 }
 

@@ -1821,8 +1821,10 @@ export default function CareerSwitchPlannerPage({
         normalizedProfile.skills,
         normalizedProfile.certifications
       )
-      const currentRoleFallback =
-        draft.currentRoleText.trim() || (confirmedSkills.length > 0 ? `${confirmedSkills[0]} specialist` : 'Career transition')
+      // Never synthesize an inflated job title (e.g. "{skill} specialist") — that
+      // invents experience the person doesn't claim. When no current role is given,
+      // use a neutral, honest label and let skills/experience drive the matching.
+      const currentRoleFallback = draft.currentRoleText.trim() || 'Career starter'
       const targetRoleValue = draft.recommendMode ? '' : draft.targetRoleText.trim()
 
       const response = await fetch('/api/tools/career-switch-planner', {
