@@ -164,9 +164,19 @@ function buildEvidence(options: {
 function yearsSignalLabel(segment: string) {
   const match = segment.match(YEARS_PATTERN)
   if (!match?.[1]) return null
+  // Reject implausible / garbled experience counts (e.g. "30 years"/"165 years"
+  // scraped out of posting prose like "over 165 years, Richardson…").
+  const yearsValue = Number.parseInt(match[1], 10)
+  if (Number.isFinite(yearsValue) && yearsValue >= 25) return null
   const roleContextMatch = segment.match(/\b(in|with|for)\s+([a-z0-9\s\-/,]{4,80})/i)
   const context = roleContextMatch?.[2]?.trim()
-  if (context) {
+  // Only keep a context phrase if it reads like a clean role/domain — no digits
+  // (avoids "in over 165 years") and no first-person posting prose.
+  const contextIsClean =
+    !!context &&
+    !/\d/.test(context) &&
+    !/\b(we|our|us|you|your|i|join|apply|team)\b/i.test(context)
+  if (contextIsClean) {
     return `Demonstrate ${match[1]} of experience in ${context}`
   }
   return `Demonstrate ${match[1]} of role-relevant experience`

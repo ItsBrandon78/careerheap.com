@@ -70,6 +70,15 @@ function startsWithVerbPhrase(value: string) {
   )
 }
 
+function hasImplausibleOrLeakedClaim(value: string) {
+  const lower = value.toLowerCase()
+  // 30+ years (or 3-digit) experience claims are implausible / garbled source text.
+  if (/\b(\d{3,}|[3-9]\d)\s*\+?\s*years?\b/.test(lower)) return true
+  // First-person / recruiting-posting prose that leaked into the requirement text.
+  if (/\b(we['’]re|we are|we have|we['’]ve|our team|join (us|our)|apply now|equal opportunity)\b/.test(lower)) return true
+  return false
+}
+
 function hasExperienceSignalPhrase(value: string) {
   return /\b(\d+\+?\s*(years|yrs|year)|portfolio|project|ship(ped)?|clinical|rotation|managed|certif|license|apprentice)\b/i.test(
     value
@@ -102,6 +111,11 @@ export function toTaskLevelLabel(input: string, type: RequirementType) {
 
   const stripped = trimPunctuation(stripFillerPrefix(normalized))
   if (!stripped) return null
+
+  // Reject leaked/garbled source text (implausible experience claims like
+  // "30 years"/"50 years", or job-posting prose) so it never becomes a
+  // requirement label such as "Demonstrate 50 years of experience…".
+  if (hasImplausibleOrLeakedClaim(stripped)) return null
 
   if (isSingleToken(stripped)) {
     if (isVagueRequirementLabel(stripped) && type !== 'tool') return null

@@ -53,8 +53,11 @@ const GENERATION_CACHE_TTL_HOURS = Number.parseInt(
   process.env.PLANNER_GENERATION_CACHE_TTL_HOURS?.trim() || '72',
   10
 )
+// v2: hardened requirement extraction — company-age phrases ("over 100 years",
+// "Founded 50 years ago") no longer leak in as "Demonstrate N years of
+// experience" requirements. Bumping invalidates pre-fix cached reports.
 const GENERATION_CACHE_SCHEMA_VERSION =
-  process.env.PLANNER_GENERATION_CACHE_VERSION?.trim() || 'v1'
+  process.env.PLANNER_GENERATION_CACHE_VERSION?.trim() || 'v2'
 
 export async function GET(request: NextRequest) {
   try {

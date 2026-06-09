@@ -1481,7 +1481,7 @@ export function SkillsToBuildCard({
       {alreadyHave.length > 0 ? (
         <div className="mt-4 rounded-lg border border-success/25 bg-success/5 p-3.5">
           <p className="text-[11px] font-bold uppercase tracking-[1.05px] text-success">
-            You've already got
+            You&rsquo;ve already got
           </p>
           <p className="mt-1.5 text-[13px] leading-[1.55] text-text-primary">
             {alreadyHave.join(' · ')}

@@ -1201,10 +1201,26 @@ function isTemplateRequirementLabel(value: string) {
   return false
 }
 
+function hasImplausibleOrLeakedRequirementClaim(normalized: string) {
+  // 25+ years of experience is implausible for a transition target and almost
+  // always garbled posting text (e.g. "over 165 years, Richardson…").
+  const yearsMatch = normalized.match(/\b(\d+)\s*\+?\s*(?:years|yrs|year)\b/)
+  if (yearsMatch && Number.parseInt(yearsMatch[1], 10) >= 25) return true
+  // First-person recruiting prose that leaked into the requirement label.
+  if (/\b(we['’]re|we are|we have|we['’]ve|our team|join (us|our)|apply now|equal opportunity)\b/.test(normalized)) {
+    return true
+  }
+  return false
+}
+
 function isActionableRequirement(requirement: AggregatedRequirement) {
   const normalized = normalizeText(requirement.label)
   if (!normalized) return false
   if (isTemplateRequirementLabel(normalized)) return false
+  // Drop leaked/garbled labels (implausible "30+ years" experience scraped from
+  // posting prose, or first-person recruiting copy) — including any already
+  // persisted in the evidence cache from before extraction was hardened.
+  if (hasImplausibleOrLeakedRequirementClaim(normalized)) return false
 
   const tokens = tokenize(normalized).filter((token) => token.length >= 2)
   if (tokens.length < 2) return false

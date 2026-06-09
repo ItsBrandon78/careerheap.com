@@ -956,6 +956,23 @@ function capitalizeFirst(value: string): string {
   return v.charAt(0).toUpperCase() + v.slice(1)
 }
 
+// Skill-gap / transferable labels occasionally pick up leaked job-posting prose
+// ("Create value at TC Transcontinental, we've got it made…") or implausible
+// numbers. Keep concise, real skill phrases; otherwise fall back to a generic.
+function sanitizeSkillLabel(value: string, fallback: string): string {
+  const cleaned = (value || '').replace(/\s+/g, ' ').trim()
+  if (!cleaned) return fallback
+  const lower = cleaned.toLowerCase()
+  const postingProse =
+    /\b(we['’]ve|we have|we are|we['’]re|our team|join (us|our)|got it made|benefit programs?|supplemental|apply now|equal opportunity)\b/.test(
+      lower
+    )
+  const implausibleYears = /\b(\d{3,}|[3-9]\d)\s*\+?\s*years?\b/.test(lower)
+  const tooLong = cleaned.length > 160 || cleaned.split(/\s+/).length > 22
+  if (postingProse || implausibleYears || tooLong) return fallback
+  return capitalizeFirst(cleaned)
+}
+
 function inferPhaseOutcome(title: string, summary: string, actions: string[]) {
   const normalized = `${title} ${summary} ${actions.join(' ')}`.toLowerCase()
   if (/\b(cert|credential|course|license|licen|training|safety|exam)\b/.test(normalized)) {
@@ -1613,7 +1630,11 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const timelineLabel =
     typeof input.report?.transitionMode?.timeline?.minMonths === 'number' &&
     typeof input.report?.transitionMode?.timeline?.maxMonths === 'number'
-      ? `${input.report.transitionMode.timeline.minMonths}-${input.report.transitionMode.timeline.maxMonths} months`
+      ? formatUnitRange(
+          input.report.transitionMode.timeline.minMonths,
+          input.report.transitionMode.timeline.maxMonths,
+          'month'
+        )
       : fallbackTimeline(input.timelineBucket)
 
   const primaryCareer = input.report?.suggestedCareers?.[0]
@@ -1729,7 +1750,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const transferable =
     uniqueNormalizedStrings(transferableStrengths).length > 0
       ? uniqueNormalizedStrings(transferableStrengths).slice(0, 5).map((label, index) => ({
-          label: capitalizeFirst(label),
+          label: sanitizeSkillLabel(label, 'Relevant transferable strength'),
           progress: 78 - index * 8
         }))
       : [
@@ -1741,7 +1762,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const required =
     skillGaps.length > 0
       ? uniqueNormalizedStrings(skillGaps.map((item) => item.label)).slice(0, 5).map((label, index) => ({
-          label: capitalizeFirst(label),
+          label: sanitizeSkillLabel(label, 'Role-relevant technical skill'),
           progress: skillGaps.find((item) => item.label === label)?.progress ?? Math.max(25, 55 - index * 10)
         }))
         : [

@@ -9,6 +9,8 @@ const read = (rel) => readFileSync(path.resolve(__dirname, '..', rel), 'utf8')
 
 const v3 = read('lib/planner/v3Dashboard.ts')
 const normalize = read('lib/requirements/normalize.ts')
+const extractor = read('lib/requirements/extractor.ts')
+const careerMapPlanner = read('lib/server/careerMapPlanner.ts')
 const plannerClient = read('app/tools/career-switch-planner/CareerSwitchPlannerClient.tsx')
 const plannerRoute = read('app/api/tools/career-switch-planner/route.ts')
 const canonical = read('lib/occupations/canonicalRoleRegistry.ts')
@@ -75,10 +77,49 @@ test('strength cards run through a short-claim guard (no leaked "60 years"/posti
 })
 
 test('skill labels are sentence-cased (no lowercase "analyze data")', () => {
+  // capitalizeFirst is now applied inside sanitizeSkillLabel, which every skill
+  // label routes through (see "skill-gap / transferable" test below).
   assert.match(v3, /function capitalizeFirst/)
-  assert.match(v3, /label: capitalizeFirst\(label\)/)
+  assert.match(v3, /return capitalizeFirst\(cleaned\)/)
 })
 
 test('local-demand location is title-cased (no "ontario, canada")', () => {
   assert.match(v3, /replace\(\/\\b\(\[a-z\]\)\/g, \(m\) => m\.toUpperCase\(\)\)/)
+})
+
+test('experience extractor caps implausible years (company-age phrases like "over 100 years" do not become requirements)', () => {
+  // "over 100 years"/"Founded 50 years ago" are company history, not experience asks.
+  assert.match(extractor, /yearsValue >= 25/)
+  // Context phrases with digits / first-person posting prose are dropped.
+  assert.match(extractor, /contextIsClean/)
+})
+
+test('experience-signal labels are guarded in normalize (implausible years / posting prose -> null)', () => {
+  assert.match(normalize, /function hasImplausibleOrLeakedClaim/)
+  assert.match(normalize, /if \(hasImplausibleOrLeakedClaim\(stripped\)\) return null/)
+})
+
+test('requirement read-time guard drops cached implausible-years / first-person rows', () => {
+  // Defense-in-depth: even requirements already persisted before the extractor was
+  // hardened must be filtered out when assembled into the report.
+  assert.match(careerMapPlanner, /function hasImplausibleOrLeakedRequirementClaim/)
+  assert.match(careerMapPlanner, /if \(hasImplausibleOrLeakedRequirementClaim\(normalized\)\) return false/)
+  assert.match(careerMapPlanner, /Number\.parseInt\(yearsMatch\[1\], 10\) >= 25/)
+})
+
+test('generation cache version is bumped to invalidate pre-fix cached reports', () => {
+  // The bad reports lived in planner_generation_cache; the cacheKey embeds the
+  // schema version, so the default must move past v1 to force regeneration.
+  assert.match(plannerRoute, /PLANNER_GENERATION_CACHE_VERSION\?\.trim\(\) \|\| 'v2'/)
+})
+
+test('skill-gap / transferable labels run through sanitizeSkillLabel', () => {
+  assert.match(v3, /function sanitizeSkillLabel/)
+  assert.match(v3, /label: sanitizeSkillLabel\(label, 'Relevant transferable strength'\)/)
+  assert.match(v3, /label: sanitizeSkillLabel\(label, 'Role-relevant technical skill'\)/)
+})
+
+test('hero timeline uses formatUnitRange (no "13-13 months")', () => {
+  // The hero metric must route through the equal-bound collapsing formatter.
+  assert.match(v3, /formatUnitRange\(\s*input\.report\.transitionMode\.timeline\.minMonths/)
 })
