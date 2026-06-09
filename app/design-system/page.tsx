@@ -10,9 +10,14 @@ import ToolCard from '@/components/ToolCard'
 import ToolHero from '@/components/ToolHero'
 import ToolUIContainer from '@/components/ToolUIContainer'
 import BrandLogo from '@/components/BrandLogo'
+import { notFound } from 'next/navigation'
 import { pricingFaqs } from '@/src/design/mockupData'
 
 export default function DesignSystemPage() {
+  // Internal design-system preview — never exposed in production.
+  if (process.env.NODE_ENV === 'production') {
+    notFound()
+  }
   return (
     <div className="bg-bg-primary px-4 py-10 lg:px-10">
       <div className="mx-auto flex max-w-wide flex-col gap-12">

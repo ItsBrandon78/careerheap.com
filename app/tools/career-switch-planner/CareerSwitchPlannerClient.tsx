@@ -4,12 +4,12 @@ import { type ComponentProps, useCallback, useEffect, useMemo, useRef, useState 
 import { useSearchParams } from 'next/navigation'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
-import Card from '@/components/Card'
 import {
   ToolHero
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
 import PlannerIntakeWizard from '@/components/career-switch-planner/PlannerIntakeWizard'
 import PlannerResultsPrototype from '@/components/career-switch-planner/PlannerResultsPrototype'
+import { Icon } from '@/components/ui/Icon'
 import {
   careerSwitchFaqs,
   careerSwitchMoreTools
@@ -728,29 +728,65 @@ const FREE_LIMIT = 3
 const WIZARD_STEPS: Array<{
   id: WizardStep
   title: string
+  short: string
   eyebrow: string
   helper: string
 }> = [
   {
     id: 0,
-    title: 'Roles',
+    title: 'Where are you starting from?',
+    short: 'About you',
     eyebrow: 'Step 1 of 3',
-    helper: 'Set the direction before we build the plan.'
+    helper: 'No résumé needed — just paint the picture. There are no wrong answers here.'
   },
   {
     id: 1,
-    title: 'Background',
+    title: 'What can you already do?',
+    short: 'Skills',
     eyebrow: 'Step 2 of 3',
-    helper: 'Add the strongest signals from your resume, skills, and experience.'
+    helper: 'Skills from a part-time job, a class, or a club all count. We map them to real roles.'
   },
   {
     id: 2,
-    title: 'Constraints',
+    title: "What's the goal?",
+    short: 'Goal',
     eyebrow: 'Step 3 of 3',
-    helper: 'Set province, timing, and market evidence before generating.'
+    helper: 'This shapes the pace and shape of your plan — change it anytime later.'
   }
 ]
-const PLANNER_LOADING_STAGES = ['Parsing profile', 'Matching roles', 'Building plan', 'Finalizing']
+// Prototype "Generating" moment (app/Generating.jsx): five labeled stages with
+// supporting detail, advanced by the loading-stage timer below.
+const PLANNER_LOADING_STAGES: Array<{ icon: string; label: string; detail: string }> = [
+  { icon: 'compass', label: 'Reading your profile', detail: 'Situation, skills, timeline' },
+  { icon: 'database', label: 'Matching 900+ occupations', detail: 'Skill-vector + title similarity' },
+  { icon: 'target', label: 'Scoring your fit', detail: 'Skill overlap · adjacency · feasibility' },
+  { icon: 'chart', label: 'Pulling live wage & demand', detail: 'Job Bank · ESDC · ON' },
+  { icon: 'map', label: 'Building your week-by-week plan', detail: 'Paced to your goal' }
+]
+
+// Five rising bars echoing the logo staircase (prototype HeapBuild).
+function HeapBuild({ active }: { active: number }) {
+  const heights = [28, 44, 60, 78, 96]
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 100 }}>
+      {heights.map((h, i) => (
+        <div
+          key={i}
+          style={{
+            width: 18,
+            height: h,
+            borderRadius: 5,
+            background: i <= active ? (i === 4 ? 'var(--teal)' : 'var(--accent)') : 'var(--border)',
+            transformOrigin: 'bottom',
+            transition: 'background .4s var(--ease), transform .5s var(--ease)',
+            transform: i <= active ? 'scaleY(1)' : 'scaleY(0.85)',
+            opacity: i <= active ? 1 : 0.5
+          }}
+        />
+      ))}
+    </div>
+  )
+}
 const FALLBACK_SKILL_SUGGESTIONS = [
   'Stakeholder management',
   'Electrical safety',
@@ -788,6 +824,13 @@ const EDUCATION_OPTIONS: Array<{ value: EducationLevelValue; label: string }> = 
   { value: "Master's", label: "Master's" },
   { value: 'Doctorate', label: 'Doctorate' },
   { value: 'Self-taught / portfolio-based', label: 'Self-taught / portfolio-based' }
+]
+
+const SITUATION_OPTIONS = [
+  'Student / recent grad',
+  'Career switcher',
+  'Returning to work',
+  'First job, no degree'
 ]
 
 const INCOME_TARGET_OPTIONS: Array<{ value: IncomeTargetValue; label: string }> = [
@@ -1110,6 +1153,11 @@ export default function CareerSwitchPlannerPage({
   const [timelineBucket, setTimelineBucket] = useState<TimelineBucketValue>('1-3 months')
   const [educationLevel, setEducationLevel] = useState<EducationLevelValue>("Bachelor's")
   const [incomeTarget, setIncomeTarget] = useState<IncomeTargetValue>('Not sure')
+  // Prototype intake signals (situation/interests/name). situation + interests are
+  // sent to the backend as extra profile context; name personalizes copy only.
+  const [situation, setSituation] = useState('')
+  const [interests, setInterests] = useState('')
+  const [userName, setUserName] = useState('')
   const [userPostingText, setUserPostingText] = useState('')
   const [useMarketEvidence, setUseMarketEvidence] = useState(marketEvidenceAvailable)
   const [detectedSections, setDetectedSections] = useState({
@@ -1193,7 +1241,7 @@ export default function CareerSwitchPlannerPage({
       setLoadingStageIndex((previous) =>
         previous >= PLANNER_LOADING_STAGES.length - 1 ? previous : previous + 1
       )
-    }, 850)
+    }, 700)
 
     return () => {
       if (plannerStageTimerRef.current) {
@@ -1675,7 +1723,9 @@ export default function CareerSwitchPlannerPage({
       targetRoleText,
       currentRoleOccupationId: currentRoleSelectedMatch?.occupationId ?? null,
       targetRoleOccupationId: targetRoleSelectedMatch?.occupationId ?? null,
-      recommendMode,
+      // Prototype intake makes the target role optional: with none, fall back to
+      // recommend mode so the backend suggests matching roles instead of erroring.
+      recommendMode: recommendMode || !targetRoleText.trim(),
       skills,
       experienceText,
       userPostingText,
@@ -1781,7 +1831,10 @@ export default function CareerSwitchPlannerPage({
           notSureMode: draft.recommendMode,
           location: draft.locationText.trim(),
           timeline: draft.timelineBucket,
-          education: draft.educationLevel
+          education: draft.educationLevel,
+          situation: situation.trim(),
+          interests: interests.trim(),
+          name: userName.trim()
         })
       })
 
@@ -1895,8 +1948,14 @@ export default function CareerSwitchPlannerPage({
         draft.currentRoleText.trim() ||
         data?.report?.roleResolution?.current?.matched?.title ||
         currentRoleFallback
+      // In recommend mode the user gave no target, so surface the top
+      // recommended role instead of a generic "Target role" placeholder.
+      const topRecommendedRole =
+        (Array.isArray(plannerResultPayload.recommendedRoles)
+          ? String(plannerResultPayload.recommendedRoles[0]?.title ?? '').trim()
+          : '') || ''
       const resolvedTargetRole = draft.recommendMode
-        ? ''
+        ? topRecommendedRole
         : data?.report?.roleResolution?.target?.matched?.rawInputTitle?.trim() ||
           targetRoleValue ||
           data?.report?.roleResolution?.target?.matched?.title ||
@@ -1905,7 +1964,7 @@ export default function CareerSwitchPlannerPage({
         currentRole: resolvedCurrentRole,
         targetRole: resolvedTargetRole,
         currentRoleInput: draft.currentRoleText.trim() || currentRoleFallback,
-        targetRoleInput: targetRoleValue,
+        targetRoleInput: draft.recommendMode ? topRecommendedRole : targetRoleValue,
         recommendMode: draft.recommendMode,
         timelineBucket: draft.timelineBucket
       })
@@ -2491,6 +2550,10 @@ export default function CareerSwitchPlannerPage({
     showSuggestedTargets,
     assistiveSuggestedTargets,
     suggestedSkillSuggestions: FALLBACK_SKILL_SUGGESTIONS,
+    situation,
+    situationOptions: SITUATION_OPTIONS,
+    interests,
+    userName,
     skills,
     experienceText,
     educationLevel,
@@ -2585,6 +2648,9 @@ export default function CareerSwitchPlannerPage({
       setPendingResumeSkills((previous) => previous.filter((item) => item !== value)),
     onRemovePendingResumeCertification: (value: string) =>
       setPendingResumeCertifications((previous) => previous.filter((item) => item !== value)),
+    onSetSituation: setSituation,
+    onSetInterests: setInterests,
+    onSetUserName: setUserName,
     onSetEducationLevel: setEducationLevel,
     onSetWorkRegion: (value: WorkRegionValue) => {
       const normalizedProvince = normalizeWorkRegionToProvince(value, selectedProvince)
@@ -2640,58 +2706,82 @@ export default function CareerSwitchPlannerPage({
       <section className={`px-4 pb-20 pt-12 lg:px-[170px] ${showDashboard ? 'bg-bg-secondary' : ''}`}>
         <div className={`mx-auto w-full ${plannerShellMaxWidthClass}`}>
           {plannerState === 'loading' ? (
-            <div className="mx-auto w-full max-w-content">
-              <Card className="planner-animate-in p-5" aria-live="polite">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                      Building your transition report
-                    </p>
-                    <h3 className="mt-2 text-lg font-bold text-text-primary">We are assembling the plan in stages</h3>
-                    <p className="mt-2 max-w-[56ch] text-sm leading-[1.7] text-text-secondary">
-                      Matching, scoring, and roadmap generation run in sequence so the report lands in one clean pass.
-                    </p>
-                  </div>
-                  <Badge variant="default">
-                    {Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length)} / {PLANNER_LOADING_STAGES.length}
-                  </Badge>
+            <div className="proto" role="status" aria-live="polite">
+              <div className="anim-up mx-auto w-full" style={{ maxWidth: 480, textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 28 }}>
+                  <HeapBuild active={loadingStageIndex} />
                 </div>
-                <div className="mt-5 h-2 rounded-pill bg-surface">
-                  <div
-                    className="h-full rounded-pill bg-accent transition-all duration-300"
-                    style={{
-                      width: `${(Math.min(loadingStageIndex + 1, PLANNER_LOADING_STAGES.length) / PLANNER_LOADING_STAGES.length) * 100}%`
-                    }}
-                  />
-                </div>
-                <div className="mt-5 grid gap-3 md:grid-cols-4">
-                  {PLANNER_LOADING_STAGES.map((stage, index) => {
-                    const isComplete = index < loadingStageIndex
-                    const isActive = index === loadingStageIndex
+                <h2 style={{ fontSize: 26, fontWeight: 800 }}>Building your plan</h2>
+                <p style={{ marginTop: 10, fontSize: 15, color: 'var(--text-secondary)' }}>
+                  Every number gets traced to a source as we go.
+                </p>
 
+                <div className="card" style={{ marginTop: 30, padding: 14, textAlign: 'left' }}>
+                  {PLANNER_LOADING_STAGES.map((stage, index) => {
+                    const done = index < loadingStageIndex
+                    const now = index === loadingStageIndex
                     return (
                       <div
-                        key={stage}
-                        className={`rounded-xl border p-4 transition-colors ${
-                          isActive
-                            ? 'border-accent bg-surface'
-                            : isComplete
-                              ? 'border-success/20 bg-success/10'
-                              : 'border-border-light bg-bg-secondary'
-                        }`}
+                        key={stage.label}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 14,
+                          padding: '13px 12px',
+                          borderRadius: 'var(--r-md)',
+                          background: now ? 'var(--accent-soft)' : 'transparent',
+                          transition: 'background .3s',
+                          opacity: index <= loadingStageIndex ? 1 : 0.4
+                        }}
                       >
-                        <p className="text-[11px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                          Step {index + 1}
-                        </p>
-                        <p className="mt-2 text-sm font-semibold text-text-primary">{stage}</p>
-                        <p className="mt-2 text-xs text-text-secondary">
-                          {isActive ? 'In progress now.' : isComplete ? 'Completed.' : 'Queued next.'}
-                        </p>
+                        <span
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 10,
+                            display: 'grid',
+                            placeItems: 'center',
+                            flexShrink: 0,
+                            background: done ? 'var(--success-light)' : now ? 'var(--accent-light)' : 'var(--bg-secondary)',
+                            color: done ? 'var(--success)' : now ? 'var(--accent)' : 'var(--text-tertiary)'
+                          }}
+                        >
+                          {done ? (
+                            <Icon name="check" size={18} />
+                          ) : now ? (
+                            <span
+                              style={{
+                                width: 16,
+                                height: 16,
+                                border: '2px solid var(--accent)',
+                                borderRightColor: 'transparent',
+                                borderRadius: '50%',
+                                animation: 'spin .7s linear infinite'
+                              }}
+                            />
+                          ) : (
+                            <Icon name={stage.icon} size={18} />
+                          )}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-primary)' }}>{stage.label}</p>
+                          <p style={{ fontSize: 12.5, color: 'var(--text-tertiary)', marginTop: 2 }}>{stage.detail}</p>
+                        </div>
+                        {done && (
+                          <span className="badge badge-success" style={{ fontSize: 11 }}>
+                            Done
+                          </span>
+                        )}
                       </div>
                     )
                   })}
                 </div>
-              </Card>
+
+                <p style={{ marginTop: 20, fontSize: 12.5, color: 'var(--text-tertiary)' }}>
+                  <Icon name="shield" size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 5 }} />
+                  No data is invented. Unknowns are labeled, never guessed.
+                </p>
+              </div>
             </div>
           ) : showDashboard ? (
               <PlannerResultsPrototype

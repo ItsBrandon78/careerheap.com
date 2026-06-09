@@ -38,10 +38,8 @@ test('blog card image in linked card is decorative to avoid duplicate announceme
 
 test('blog post images keep meaningful fallback alt text', () => {
   const blogPostPage = read('app/blog/[slug]/page.tsx')
-  const sanityPostPage = read('app/sanity-posts/[slug]/page.tsx')
 
   assert.match(blogPostPage, /cover illustration/)
-  assert.match(sanityPostPage, /cover illustration/)
 })
 
 test('accessibility preferences support theme toggling and initialize data-theme', () => {

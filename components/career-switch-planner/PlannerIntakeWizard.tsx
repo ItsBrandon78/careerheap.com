@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Badge from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import { Icon } from '@/components/ui/Icon'
 import type { ProvinceCode } from '@/lib/client/provinceSession'
 import {
   DetectedSectionsChips,
@@ -12,7 +13,6 @@ import {
   ParseProgress,
   ResumeExtractionReviewCard,
   RoleAutocomplete,
-  SelectField,
   SkillsChipsInput,
   Toggle
 } from '@/components/career-switch-planner/CareerSwitchPlannerComponents'
@@ -40,9 +40,6 @@ type IncomeTargetValue =
   | '$150k+'
   | 'Not sure'
 
-// Single-switch compact polish for Step 2. Set to false to fully revert.
-const COMPACT_STEP2_POLISH = true
-
 interface RoleSelectionPrompt {
   role: 'current' | 'target'
   input: string
@@ -64,9 +61,112 @@ function roleMatchStrengthLabel(confidence: number) {
   return 'Broad'
 }
 
+/* ---------- prototype intake chrome (app/Wizard.jsx) ---------- */
+
+// Three-segment progress stepper: thin bars + labels, active/done in accent.
+function Stepper({
+  steps,
+  activeStep,
+  onSelect
+}: {
+  steps: Array<{ id: WizardStep; short: string }>
+  activeStep: WizardStep
+  onSelect: (step: WizardStep) => void
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+      {steps.map((step, i) => (
+        <button
+          key={step.id}
+          type="button"
+          onClick={() => onSelect(step.id)}
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            textAlign: 'left'
+          }}
+        >
+          <span
+            style={{
+              height: 6,
+              borderRadius: 4,
+              background: i <= activeStep ? 'var(--accent)' : 'var(--border)',
+              transition: 'background .3s var(--ease)'
+            }}
+          />
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: i <= activeStep ? 'var(--accent)' : 'var(--text-tertiary)'
+            }}
+          >
+            {step.short}
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Pill chip selector (single-select) mirroring the prototype ChipSelect.
+function ChipSelect({
+  options,
+  value,
+  onChange
+}: {
+  options: ReadonlyArray<{ value: string; label: string }>
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          className={'chip' + (value === o.value ? ' chip-on' : '')}
+          onClick={() => onChange(o.value)}
+        >
+          {value === o.value && <Icon name="check" size={14} />}
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function FieldBlock({
+  label,
+  help,
+  children
+}: {
+  label: string
+  help?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      {help ? (
+        <p className="help" style={{ marginTop: -3, marginBottom: 12 }}>
+          {help}
+        </p>
+      ) : null}
+      {children}
+    </div>
+  )
+}
+
 interface PlannerIntakeWizardProps {
   activeWizardStep: WizardStep
-  wizardSteps: Array<{ id: WizardStep; title: string; eyebrow: string; helper: string }>
+  wizardSteps: Array<{ id: WizardStep; title: string; short: string; eyebrow: string; helper: string }>
   roleAutocompleteRegion: 'US' | 'CA' | 'either'
   currentRoleText: string
   targetRoleText: string
@@ -78,6 +178,10 @@ interface PlannerIntakeWizardProps {
     why: string[]
   }>
   suggestedSkillSuggestions: string[]
+  situation: string
+  situationOptions: string[]
+  interests: string
+  userName: string
   skills: string[]
   experienceText: string
   educationLevel: EducationLevelValue
@@ -132,6 +236,9 @@ interface PlannerIntakeWizardProps {
   onToggleSuggestedTargets: () => void
   onShuffleSuggestedTargets: () => void
   onSelectSuggestedTarget: (title: string) => void
+  onSetSituation: (value: string) => void
+  onSetInterests: (value: string) => void
+  onSetUserName: (value: string) => void
   onSkillsChange: (skills: string[]) => void
   onExperienceTextChange: (value: string) => void
   onParseFile: (file: File | null) => void
@@ -165,11 +272,12 @@ export function PlannerIntakeWizard({
   activeWizardStep,
   wizardSteps,
   roleAutocompleteRegion,
-  currentRoleText,
   targetRoleText,
-  showSuggestedTargets,
-  assistiveSuggestedTargets,
   suggestedSkillSuggestions,
+  situation,
+  situationOptions,
+  interests,
+  userName,
   skills,
   experienceText,
   educationLevel,
@@ -199,7 +307,6 @@ export function PlannerIntakeWizard({
   inputError,
   roleSelectionPrompt,
   canGoBackWizard,
-  canGoNextWizard,
   plannerState,
   generateButtonLabel,
   workRegionOptions,
@@ -207,13 +314,11 @@ export function PlannerIntakeWizard({
   educationOptions,
   incomeTargetOptions,
   onSetActiveWizardStep,
-  onCurrentRoleInputChange,
   onTargetRoleInputChange,
-  onCurrentRoleSuggestionSelect,
   onTargetRoleSuggestionSelect,
-  onToggleSuggestedTargets,
-  onShuffleSuggestedTargets,
-  onSelectSuggestedTarget,
+  onSetSituation,
+  onSetInterests,
+  onSetUserName,
   onSkillsChange,
   onExperienceTextChange,
   onParseFile,
@@ -236,30 +341,21 @@ export function PlannerIntakeWizard({
   onGenerate
 }: PlannerIntakeWizardProps) {
   const activeWizardMeta = wizardSteps[activeWizardStep]
-  const [showEmployerEvidenceDetails, setShowEmployerEvidenceDetails] = useState(false)
-  const stepTwoComplete =
-    skills.length >= 3 || experienceText.trim().length >= 40 || uploadState === 'success'
-  const hasLocation =
-    locationText.trim().length > 0 || workRegionOptions.some((option) => option.value === workRegion)
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const resumeAttached = uploadState === 'success'
   const hasPostingText = userPostingText.trim().length > 0
-  const canGenerateFromStepThree = hasMinimumRequiredInput && hasLocation
-  const selectedProvinceLabel =
-    workRegionOptions.find((option) => option.value === workRegion)?.label || 'Selected province'
-  const resolvedLocationLabel = locationText.trim() || `${selectedProvinceLabel}, Canada`
-  const nonFinalStepHelperText = hasDraftChanges
-    ? 'Current report stays visible until you regenerate.'
-    : COMPACT_STEP2_POLISH
-      ? 'Generate unlocks on Step 3 after constraints review.'
-      : 'The final generate button appears after you review constraints.'
-  const finalStepHelperText = hasDraftChanges
-    ? 'Current report stays visible until you regenerate.'
-    : COMPACT_STEP2_POLISH
-      ? 'Review constraints, then generate.'
-      : 'The final generate button appears after you review constraints.'
+
+  const canNext =
+    activeWizardStep === 0
+      ? Boolean(situation && educationLevel && workRegion)
+      : activeWizardStep === 1
+        ? skills.length >= 1 || experienceText.trim().length >= 20 || resumeAttached
+        : true
 
   const handleNextClick = () => {
     onNext()
-    if (activeWizardStep === 1 && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -270,449 +366,278 @@ export function PlannerIntakeWizard({
     }
   }
 
-  return (
-    <Card className="border border-border-light p-6 md:p-8">
-      <div className="space-y-4 pb-24 md:pb-8">
-        <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card md:p-5 lg:sticky lg:top-3 lg:z-20 lg:backdrop-blur-sm">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                {activeWizardMeta.eyebrow}
-              </p>
-              <h2 className="mt-2 text-xl font-bold text-text-primary md:text-2xl">{activeWizardMeta.title}</h2>
-              <p className="mt-2 max-w-[54ch] text-sm leading-[1.7] text-text-secondary">
-                {activeWizardMeta.helper}
-              </p>
-            </div>
-            <Badge variant="default">
-              {activeWizardStep + 1} / {wizardSteps.length}
-            </Badge>
-          </div>
-          <div className="mt-4">
-            <div className="h-2 rounded-pill bg-surface">
-              <div
-                className="h-full rounded-pill bg-accent transition-all duration-300"
-                style={{ width: `${((activeWizardStep + 1) / wizardSteps.length) * 100}%` }}
-              />
-            </div>
-            <div className="mt-3 grid gap-2 md:grid-cols-3">
-              {wizardSteps.map((step) => (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => onSetActiveWizardStep(step.id)}
-                  className={`rounded-xl border px-4 py-3 text-left transition-colors ${
-                    activeWizardStep === step.id
-                      ? 'border-accent bg-surface'
-                      : 'border-border-light bg-surface/60 hover:border-accent/40'
-                  }`}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                    {step.eyebrow}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-text-primary">{step.title}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+  const resumeBanner = activeWizardStep < 2 ? (
+    <div
+      style={{
+        marginTop: 22,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        padding: '16px 18px',
+        borderRadius: 'var(--r-lg)',
+        border: '1px solid var(--accent)',
+        background: 'linear-gradient(100deg, var(--accent-soft), var(--surface))',
+        flexWrap: 'wrap'
+      }}
+    >
+      <span
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 11,
+          background: 'var(--accent)',
+          color: '#fff',
+          display: 'grid',
+          placeItems: 'center',
+          flexShrink: 0
+        }}
+      >
+        <Icon name="sparkle" size={20} fill />
+      </span>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <p style={{ fontSize: 14.5, fontWeight: 700 }}>
+          {resumeAttached ? 'Résumé attached — details added below' : 'Have a résumé? Autofill in seconds'}
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>
+          {resumeAttached
+            ? 'You can still edit anything we detected.'
+            : isProUser
+              ? 'We detect your skills and experience so you don’t retype them.'
+              : 'Résumé autofill is a Pro feature — or add your skills by hand below.'}
+        </p>
+      </div>
+      <button
+        type="button"
+        className={'btn btn-sm ' + (resumeAttached ? 'btn-outline' : 'btn-primary')}
+        onClick={() => setResumeOpen(true)}
+      >
+        {resumeAttached ? (
+          'Re-upload'
+        ) : (
+          <>
+            <Icon name="download" size={15} /> Upload résumé
+          </>
+        )}
+      </button>
+    </div>
+  ) : null
 
+  return (
+    <div className="proto">
+      <Stepper steps={wizardSteps} activeStep={activeWizardStep} onSelect={onSetActiveWizardStep} />
+
+      <div key={activeWizardStep} className="anim-up" style={{ marginTop: 36 }}>
+        <p className="eyebrow">{activeWizardMeta.eyebrow}</p>
+        <h1 style={{ marginTop: 12, fontSize: 'clamp(26px,4vw,36px)', fontWeight: 800 }}>
+          {activeWizardMeta.title}
+        </h1>
+        <p style={{ marginTop: 12, fontSize: 16, color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: 600 }}>
+          {activeWizardMeta.helper}
+        </p>
+
+        {resumeBanner}
+
+        {/* STEP 1 — About you */}
         {activeWizardStep === 0 ? (
-          <div className="planner-animate-in space-y-3">
-            <h2 className="text-base font-bold text-text-primary">Role setup</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <RoleAutocomplete
-                id="current-role"
-                label="Current Role"
-                value={currentRoleText}
-                placeholder="Type your current role"
-                region={roleAutocompleteRegion}
-                onChange={onCurrentRoleInputChange}
-                onSuggestionSelect={onCurrentRoleSuggestionSelect}
+          <div className="card" style={{ marginTop: 28, padding: 'clamp(22px, 4vw, 34px)', display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <FieldBlock label="What best describes you right now?">
+              <ChipSelect
+                options={situationOptions.map((o) => ({ value: o, label: o }))}
+                value={situation}
+                onChange={onSetSituation}
               />
+            </FieldBlock>
+            <FieldBlock label="Highest education">
+              <ChipSelect
+                options={educationOptions.map((o) => ({ value: o.value, label: o.label }))}
+                value={educationLevel}
+                onChange={(value) => onSetEducationLevel(value as EducationLevelValue)}
+              />
+            </FieldBlock>
+            <FieldBlock label="Where do you want to work?">
+              <ChipSelect
+                options={workRegionOptions.map((o) => ({ value: o.value, label: o.label }))}
+                value={workRegion}
+                onChange={(value) => onSetWorkRegion(value as WorkRegionValue)}
+              />
+            </FieldBlock>
+            <FieldBlock label="City (optional)" help="Sharpens wages and local demand. Type your city, or use a custom one.">
+              <div style={{ position: 'relative' }}>
+                <Icon
+                  name="pin"
+                  size={16}
+                  style={{ position: 'absolute', left: 14, top: 14, color: 'var(--text-tertiary)' }}
+                />
+                <input
+                  className="field"
+                  style={{ paddingLeft: 40 }}
+                  value={locationText}
+                  onChange={(event) => onSetLocationText(event.target.value)}
+                  placeholder="e.g. Toronto, ON"
+                />
+              </div>
+            </FieldBlock>
+            <FieldBlock
+              label="A role you're aiming for? (optional)"
+              help="If you have one in mind, type it — otherwise we'll suggest matches."
+            >
               <RoleAutocomplete
                 id="target-role"
-                label="Target Role"
+                label=""
                 value={targetRoleText}
-                placeholder="Type your target role"
+                placeholder="e.g. Junior Data Analyst"
                 region={roleAutocompleteRegion}
                 onChange={onTargetRoleInputChange}
                 onSuggestionSelect={onTargetRoleSuggestionSelect}
               />
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={onToggleSuggestedTargets}>
-                {showSuggestedTargets ? 'Hide suggested targets' : 'Show suggested targets'}
-              </Button>
-              {showSuggestedTargets ? (
-                <Button variant="outline" size="sm" onClick={onShuffleSuggestedTargets}>
-                  Shuffle
-                </Button>
-              ) : null}
-              <p className="text-xs text-text-secondary">
-                Not sure what to aim for? Pick a suggestion below. Your plan runs after the final step.
-              </p>
-            </div>
-            {showSuggestedTargets ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {assistiveSuggestedTargets.length === 0 ? (
-                  <div className="rounded-lg border border-border-light bg-surface p-4 text-sm text-text-secondary md:col-span-2">
-                    Add your current role first, then use suggestions to narrow the target.
-                  </div>
-                ) : null}
-                {assistiveSuggestedTargets.map((role) => (
-                  <button
-                    key={`assistive-${role.title}`}
-                    type="button"
-                    className="rounded-lg border border-border-light bg-surface p-4 text-left transition hover:border-accent/40 hover:bg-bg-secondary"
-                    onClick={() => onSelectSuggestedTarget(role.title)}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-text-primary">{role.title}</p>
-                      <span className="rounded-pill border border-border px-2 py-0.5 text-[11px] text-text-tertiary">
-                        {role.difficulty} | {role.transitionTime}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-text-secondary">
-                      {role.why[0] ?? 'Suggested from your current role.'}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {activeWizardStep === 1 ? (
-          <div className={`planner-animate-in ${COMPACT_STEP2_POLISH ? 'space-y-3' : 'space-y-4'}`}>
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-base font-bold text-text-primary">Background details</h2>
-                {stepTwoComplete ? <Badge variant="success">Step 2 complete</Badge> : null}
-              </div>
-              <p className="text-sm text-text-secondary">
-                Add your strongest, measurable signals to improve targeting and roadmap quality.
-              </p>
-            </div>
-
-            <div
-              className={`rounded-2xl border border-border-light bg-bg-secondary shadow-card ${
-                COMPACT_STEP2_POLISH ? 'p-3' : 'p-4'
-              }`}
+            </FieldBlock>
+            <FieldBlock
+              label="What are you drawn to? (optional)"
+              help="A sentence is plenty — interests, subjects you liked, the kind of day you'd enjoy."
             >
-              <div className={`grid ${COMPACT_STEP2_POLISH ? 'gap-3' : 'gap-4'}`}>
-                <div
-                  className={`rounded-xl border border-border bg-surface shadow-card ${
-                    COMPACT_STEP2_POLISH ? 'space-y-2.5 p-3' : 'space-y-3 p-4'
-                  }`}
-                >
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                      Core profile signals
-                    </p>
-                    <p className="mt-1 text-xs text-text-secondary">
-                      Skills and quantified outcomes are weighted most heavily in planner confidence.
-                    </p>
-                  </div>
-                  <p
-                    className={`rounded-md border border-border-light bg-bg-secondary px-3 text-xs leading-[1.6] text-text-secondary ${
-                      COMPACT_STEP2_POLISH ? 'py-1.5' : 'py-2'
-                    }`}
-                  >
-                    Tip: add 8-15 role-relevant skills first, then include 2-4 measurable accomplishments.
-                  </p>
+              <textarea
+                className="field"
+                rows={3}
+                style={{ resize: 'vertical' }}
+                value={interests}
+                onChange={(event) => onSetInterests(event.target.value)}
+                placeholder="e.g. I like solving puzzles, working with data, and I'm comfortable talking to people…"
+              />
+            </FieldBlock>
+          </div>
+        ) : null}
 
-                  <SkillsChipsInput
-                    id="skills-input"
-                    label="Skills"
-                    skills={skills}
-                    suggestions={suggestedSkillSuggestions}
-                    suggestionEndpoint="/api/career-map/skills"
-                    placeholder="Type skills or paste from your resume (comma or line separated)."
-                    helperText="Type to search from our skills dataset, or paste skills/resume text. Custom skills are allowed."
-                    onChange={onSkillsChange}
-                  />
-
-                  <label
-                    className={`flex flex-col gap-1.5 rounded-xl border border-border-light bg-bg-secondary ${
-                      COMPACT_STEP2_POLISH ? 'p-2.5' : 'p-3'
-                    }`}
-                  >
-                    <span className="text-[13px] font-semibold text-text-primary">
-                      Add measurable accomplishments (optional)
-                    </span>
-                    <textarea
-                      rows={5}
-                      value={experienceText}
-                      onChange={(event) => onExperienceTextChange(event.target.value)}
-                      placeholder="Example: Led onboarding for 12 teammates, reduced ramp time by 18%, and improved retention by 14%."
-                      className={`w-full resize-y overflow-x-hidden rounded-md border border-border-light bg-surface p-3 text-sm leading-[1.75] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none ${
-                        COMPACT_STEP2_POLISH ? 'min-h-[120px]' : 'min-h-[144px]'
-                      }`}
-                    />
-                    <span className="text-xs text-text-tertiary">
-                      Numbers help (team size, $ impact, time saved, % improved).
-                    </span>
-                  </label>
-                </div>
-
-                <div
-                  className={`rounded-xl border border-border bg-surface shadow-card ${
-                    COMPACT_STEP2_POLISH ? 'space-y-2.5 p-3' : 'space-y-3 p-4'
-                  }`}
-                >
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                      Resume and credential signals
-                    </p>
-                    <p className="mt-1 text-xs text-text-secondary">
-                      Upload and education inputs improve requirement matching and section-level confidence.
-                    </p>
-                  </div>
-
-                  <div
-                    className={`rounded-xl border border-border-light bg-surface shadow-card ${
-                      COMPACT_STEP2_POLISH ? 'p-3' : 'p-4'
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-text-primary">Resume Upload (Pro)</p>
-                      <Badge variant={ocrBadge.variant}>{ocrBadge.label}</Badge>
-                    </div>
-                    {ocrBadge.detail ? (
-                      <p className="mt-1 text-xs text-text-tertiary">{ocrBadge.detail}</p>
-                    ) : null}
-
-                    {!isProUser ? (
-                      <>
-                        <p className="mt-2 text-sm text-text-secondary">
-                          Upgrade to upload PDF/DOCX and auto-fill your background.
-                        </p>
-                        <div className="mt-3">
-                          <Link href="/pricing">
-                            <Button variant="outline">Upgrade to unlock upload</Button>
-                          </Link>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="mt-3">
-                          <DropzoneUpload onFileSelected={onParseFile} />
-                        </div>
-                        {uploadState === 'parsing' ? (
-                          <div className="mt-3">
-                            <ParseProgress progress={uploadProgress} />
-                          </div>
-                        ) : null}
-                        {uploadState === 'success' ? (
-                          <div className="mt-3 space-y-2">
-                            {uploadWarning ? (
-                              <p className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
-                                {uploadWarning}
-                              </p>
-                            ) : null}
-                            <p className="text-xs text-text-tertiary">
-                              Parsed text was inserted into your experience summary.
-                              {uploadStats ? ` Characters extracted: ${uploadStats.meaningfulChars}.` : ''}
-                            </p>
-                            <DetectedSectionsChips detected={detectedSections} />
-                            {hasPendingResumeReview ? (
-                              <div
-                                className={`rounded-md border border-border-light bg-surface ${
-                                  COMPACT_STEP2_POLISH ? 'p-2.5' : 'p-3'
-                                }`}
-                              >
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                  <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
-                                    Resume detections ready
-                                  </p>
-                                  <button
-                                    type="button"
-                                    className="text-xs font-semibold text-accent hover:text-accent-hover"
-                                    onClick={() => onSetResumeReviewExpanded(!resumeReviewExpanded)}
-                                  >
-                                    {resumeReviewExpanded ? 'Hide review' : 'Review details'}
-                                  </button>
-                                </div>
-                                <p
-                                  className={`mt-1 text-text-secondary ${
-                                    COMPACT_STEP2_POLISH ? 'text-xs leading-[1.5]' : 'text-sm'
-                                  }`}
-                                >
-                                  {pendingResumeSkills.length} skills,{' '}
-                                  {pendingResumeCertifications.length} certifications
-                                  {pendingResumeRoleCandidate ? ', and 1 role candidate' : ''} detected.
-                                </p>
-                                <div
-                                  className={`flex flex-wrap ${
-                                    COMPACT_STEP2_POLISH ? 'mt-2 gap-1.5' : 'mt-3 gap-2'
-                                  }`}
-                                >
-                                  <Button size="sm" onClick={onApplyDetectedResumeData}>
-                                    Apply detected data
-                                  </Button>
-                                  <Button size="sm" variant="ghost" onClick={onDismissDetectedResumeData}>
-                                    Dismiss
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : null}
-                            {resumeReviewExpanded && hasPendingResumeReview ? (
-                              <ResumeExtractionReviewCard
-                                detectedRole={pendingResumeRoleCandidate}
-                                skills={pendingResumeSkills}
-                                certifications={pendingResumeCertifications}
-                                onRemoveSkill={onRemovePendingResumeSkill}
-                                onRemoveCertification={onRemovePendingResumeCertification}
-                                onApply={onApplyDetectedResumeData}
-                                onDismiss={onDismissDetectedResumeData}
-                              />
-                            ) : null}
-                          </div>
-                        ) : null}
-                        {uploadState === 'error' ? (
-                          <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">
-                            {uploadError || 'Upload a DOCX or searchable PDF, then try again.'}
-                          </p>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-
-                  <SelectField
-                    id="planner-education"
-                    label="Education Level"
-                    value={educationLevel}
-                    onChange={(value) => onSetEducationLevel(value as EducationLevelValue)}
-                    options={educationOptions}
-                  />
-                </div>
-              </div>
+        {/* STEP 2 — Skills */}
+        {activeWizardStep === 1 ? (
+          <div className="card" style={{ marginTop: 28, padding: 'clamp(22px, 4vw, 34px)', display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <FieldBlock
+              label="Skills you already have"
+              help="Add anything — even 'reliable' or 'good with customers'. We'll translate them into role-relevant strengths."
+            >
+              <SkillsChipsInput
+                id="skills-input"
+                label=""
+                skills={skills}
+                suggestions={suggestedSkillSuggestions}
+                suggestionEndpoint="/api/career-map/skills"
+                placeholder="Type a skill and press Enter, or paste from your resume."
+                helperText=""
+                onChange={onSkillsChange}
+              />
+            </FieldBlock>
+            <FieldBlock
+              label="Any experience so far? (optional)"
+              help="Jobs, volunteering, school projects, clubs — all of it counts toward a real first role."
+            >
+              <textarea
+                className="field"
+                rows={4}
+                style={{ resize: 'vertical', minHeight: 110, lineHeight: 1.7 }}
+                value={experienceText}
+                onChange={(event) => onExperienceTextChange(event.target.value)}
+                placeholder="e.g. Part-time retail for two years, treasurer of a club, one class project…"
+              />
+            </FieldBlock>
+            <div
+              style={{
+                display: 'flex',
+                gap: 10,
+                alignItems: 'flex-start',
+                padding: '14px 16px',
+                background: 'var(--teal-light)',
+                borderRadius: 'var(--r-md)'
+              }}
+            >
+              <Icon name="lightbulb" size={18} style={{ color: '#0a7f7e', marginTop: 1 }} />
+              <p style={{ fontSize: 13.5, color: '#0a6a69', lineHeight: 1.6 }}>
+                <strong>Zero experience is a starting line, not a wall.</strong> Most first roles are won with
+                proof-of-work, not years. Your plan will build that proof.
+              </p>
             </div>
           </div>
         ) : null}
 
+        {/* STEP 3 — Goal */}
         {activeWizardStep === 2 ? (
-          <div className="planner-animate-in space-y-2.5">
-            <div className="space-y-1.5">
-              <h2 className="text-base font-bold text-text-primary">Constraints and evidence</h2>
-              <p className="text-sm leading-[1.65] text-text-secondary">
-                Confirm your constraints, then generate the plan.
-              </p>
-            </div>
+          <div className="card" style={{ marginTop: 28, padding: 'clamp(22px, 4vw, 34px)', display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <FieldBlock label="How soon do you want to land a role?">
+              <ChipSelect
+                options={timelineOptions.map((o) => ({ value: o.value, label: o.label }))}
+                value={timelineBucket}
+                onChange={(value) => onSetTimelineBucket(value as TimelineBucketValue)}
+              />
+            </FieldBlock>
+            <FieldBlock
+              label="Income you're hoping for"
+              help="We use this to keep matches realistic — never to gatekeep. Honest ranges only."
+            >
+              <ChipSelect
+                options={incomeTargetOptions.map((o) => ({ value: o.value, label: o.label }))}
+                value={incomeTarget}
+                onChange={(value) => onSetIncomeTarget(value as IncomeTargetValue)}
+              />
+            </FieldBlock>
+            <FieldBlock label="Your name (optional)" help="Just to make the plan feel like yours.">
+              <input
+                className="field"
+                style={{ maxWidth: 320 }}
+                value={userName}
+                onChange={(event) => onSetUserName(event.target.value)}
+                placeholder="First name"
+              />
+            </FieldBlock>
 
-            <div className="flex flex-wrap gap-2">
-              <div className="inline-flex items-center gap-2 rounded-pill border border-border-light bg-bg-secondary px-3 py-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">Required</span>
-                <span className={`text-sm font-semibold ${canGenerateFromStepThree ? 'text-success' : 'text-warning'}`}>
-                  {canGenerateFromStepThree ? 'Ready' : 'Needs location'}
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-pill border border-border-light bg-bg-secondary px-3 py-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">Timeline</span>
-                <span className="text-sm font-semibold text-text-primary">{timelineBucket}</span>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-pill border border-border-light bg-bg-secondary px-3 py-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-[1.1px] text-text-tertiary">Evidence</span>
-                <span className="text-sm font-semibold text-text-primary">
-                  {hasPostingText ? 'Posting attached' : useMarketEvidence ? 'Live market evidence' : 'Manual only'}
-                </span>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-border-light bg-surface p-4 shadow-card">
-              <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">Required for generation</p>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <SelectField
-                  id="planner-timeline"
-                  label="Timeline"
-                  value={timelineBucket}
-                  onChange={(value) => onSetTimelineBucket(value as TimelineBucketValue)}
-                  options={timelineOptions}
-                />
-                <SelectField
-                  id="planner-work-region"
-                  label="Province"
-                  value={workRegion}
-                  onChange={(value) => onSetWorkRegion(value as WorkRegionValue)}
-                  options={workRegionOptions}
-                />
-              </div>
-              <p className="mt-2 text-xs leading-[1.55] text-text-tertiary">
-                Location is derived from province for matching: {resolvedLocationLabel}.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-border-light bg-bg-secondary p-4 shadow-card">
+            {/* Advanced: employer evidence (wired, optional) */}
+            <div className="rounded-xl border border-border-light bg-bg-secondary p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-text-primary">Employer Evidence (optional)</p>
+                <p className="text-sm font-semibold text-text-primary">Employer evidence (optional)</p>
                 {marketEvidenceAvailable ? (
-                  <Toggle
-                    checked={useMarketEvidence}
-                    onChange={onSetUseMarketEvidence}
-                    label="Use market evidence (beta)"
-                  />
+                  <Toggle checked={useMarketEvidence} onChange={onSetUseMarketEvidence} label="Use market evidence (beta)" />
                 ) : (
                   <Badge variant="warning">Market evidence unavailable</Badge>
                 )}
               </div>
-              <p className="mt-2 text-xs leading-[1.6] text-text-tertiary">
-                {hasPostingText
-                  ? 'Posting text added. We will prioritize direct requirement matching in this run.'
-                  : 'No posting text added. We will use market evidence and your inputs to infer requirements.'}
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mt-1 px-0 text-accent hover:bg-transparent hover:text-accent-hover"
-                onClick={() => setShowEmployerEvidenceDetails((prev) => !prev)}
+              <button
+                type="button"
+                className="mt-1 text-sm font-semibold text-accent hover:text-accent-hover"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                onClick={() => setShowAdvanced((prev) => !prev)}
               >
-                {showEmployerEvidenceDetails ? 'Hide details' : 'Show details'}
-              </Button>
-              {showEmployerEvidenceDetails ? (
-                <>
-                  <p className="mt-3 text-xs leading-[1.6] text-text-tertiary">
-                    Paste a target posting for highest-fidelity requirements. If you leave this blank,
-                    market evidence searches live postings for your target role and location.
-                  </p>
-                  <label className="mt-3 flex flex-col gap-1.5">
-                    <span className="text-[13px] font-semibold text-text-primary">
-                      Paste target job posting (optional)
-                    </span>
-                    <textarea
-                      rows={5}
-                      value={userPostingText}
-                      onChange={(event) => {
-                        const nextValue = event.target.value
-                        onSetUserPostingText(nextValue)
-                        if (nextValue.trim().length > 0) {
-                          setShowEmployerEvidenceDetails(true)
-                        }
-                      }}
-                      placeholder="Paste full requirements section from a posting."
-                      className="w-full rounded-md border border-border bg-surface p-3 text-sm leading-[1.6] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none"
-                    />
-                  </label>
-                </>
+                {showAdvanced ? 'Hide details' : 'Paste a target job posting'}
+              </button>
+              {showAdvanced ? (
+                <label className="mt-3 flex flex-col gap-1.5">
+                  <span className="text-[13px] font-semibold text-text-primary">Paste target job posting (optional)</span>
+                  <textarea
+                    rows={5}
+                    value={userPostingText}
+                    onChange={(event) => onSetUserPostingText(event.target.value)}
+                    placeholder="Paste full requirements section from a posting."
+                    className="field"
+                    style={{ resize: 'vertical', lineHeight: 1.6 }}
+                  />
+                  <span className="help">
+                    {hasPostingText
+                      ? 'We will prioritize direct requirement matching in this run.'
+                      : 'Leave blank to use live market evidence and your inputs.'}
+                  </span>
+                </label>
               ) : null}
             </div>
           </div>
         ) : null}
       </div>
 
-      {!hasMinimumRequiredInput ? (
-        <p className="mt-4 rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
-          Add either a current role, an experience summary, or at least 3 skills to enable generation.
-        </p>
-      ) : null}
+      {/* alerts */}
       {hasPendingResumeReview ? (
         <p className="mt-4 rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-sm text-text-secondary">
-          Resume detections are waiting for review. Apply them if you want them included in scoring.
+          Resume detections are waiting for review. Open the upload to apply them to your skills.
         </p>
       ) : null}
       {hasDraftChanges ? (
         <p className="mt-4 rounded-md border border-accent/20 bg-accent-light px-3 py-2 text-sm text-text-secondary">
-          You have updated the form since the last run. The report below is still showing your previous plan until you generate again.
+          You have updated the form since the last run. The report below is still showing your previous plan until you
+          generate again.
         </p>
       ) : null}
       {inputError ? (
@@ -760,74 +685,194 @@ export function PlannerIntakeWizard({
         </Card>
       ) : null}
 
-      <div className="sticky bottom-2 z-30 mt-2 md:static md:bottom-auto">
-        {activeWizardStep === 2 ? (
-          <div className="space-y-2">
-            <p className="text-center text-xs text-text-tertiary">{finalStepHelperText}</p>
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 shadow-card md:px-4">
-              <div className="flex flex-wrap items-center gap-2">
-                {canGoBackWizard ? (
-                  <Button variant="ghost" onClick={onBack}>
-                    Back
-                  </Button>
-                ) : null}
-                {hasAnyDraftInput ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-border-light text-text-secondary hover:border-border hover:bg-surface hover:text-text-primary"
-                    onClick={onStartNewPlan}
-                    disabled={plannerState === 'loading'}
-                  >
-                    Start New Plan
-                  </Button>
-                ) : null}
-              </div>
-              <div className="w-full sm:w-auto">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto"
-                  onClick={handleGenerateClick}
-                  isLoading={plannerState === 'loading'}
-                  disabled={plannerState === 'loading'}
-                >
-                  {generateButtonLabel}
-                </Button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid gap-3 rounded-xl border border-border-light bg-bg-secondary px-3 py-3 shadow-card md:grid-cols-[auto_1fr_auto] md:items-center md:px-4">
-            <div className="flex flex-wrap items-center gap-2">
-              {canGoBackWizard ? (
-                <Button variant="ghost" onClick={onBack}>
-                  Back
-                </Button>
-              ) : null}
-              {hasAnyDraftInput ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-border-light text-text-secondary hover:border-border hover:bg-surface hover:text-text-primary"
-                  onClick={onStartNewPlan}
-                  disabled={plannerState === 'loading'}
-                >
-                  Start New Plan
-                </Button>
-              ) : null}
-            </div>
-            <p className="text-center text-xs text-text-tertiary">{nonFinalStepHelperText}</p>
-            <div className="flex justify-start md:justify-end">
-              {canGoNextWizard ? (
-                <Button onClick={handleNextClick}>
-                  Next
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        )}
+      {/* footer — prototype CTA bar */}
+      <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {canGoBackWizard ? (
+            <button type="button" className="btn btn-ghost" onClick={onBack}>
+              <Icon name="arrowLeft" size={16} /> {activeWizardStep === 0 ? 'Back' : 'Previous'}
+            </button>
+          ) : null}
+          {hasAnyDraftInput ? (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={onStartNewPlan}
+              disabled={plannerState === 'loading'}
+            >
+              Start New Plan
+            </button>
+          ) : null}
+        </div>
+        <div>
+          {activeWizardStep === 2 ? (
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={handleGenerateClick}
+              disabled={plannerState === 'loading' || !hasMinimumRequiredInput}
+            >
+              <Icon name="sparkle" size={18} fill /> {generateButtonLabel}
+            </button>
+          ) : (
+            <button type="button" className="btn btn-primary btn-lg" onClick={handleNextClick} disabled={!canNext}>
+              Continue <Icon name="arrow" size={16} />
+            </button>
+          )}
+        </div>
       </div>
-    </Card>
+
+      {/* résumé upload modal (Pro-gated), wired to /api/resume/parse */}
+      {resumeOpen ? (
+        <div
+          onClick={() => setResumeOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 120,
+            background: 'rgba(10,19,36,0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'grid',
+            placeItems: 'center',
+            padding: 20
+          }}
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            className="anim-up"
+            style={{
+              width: '100%',
+              maxWidth: 480,
+              maxHeight: '85vh',
+              overflowY: 'auto',
+              background: 'var(--surface)',
+              borderRadius: 'var(--r-xl)',
+              boxShadow: 'var(--sh-panel)',
+              padding: 24
+            }}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-text-primary">Resume Upload (Pro)</p>
+                <p className="mt-1 text-xs text-text-tertiary">We detect skills, certifications, and experience.</p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ padding: 7 }}
+                onClick={() => setResumeOpen(false)}
+              >
+                <Icon name="x" size={16} />
+              </button>
+            </div>
+
+            <div className="mt-2">
+              <Badge variant={ocrBadge.variant}>{ocrBadge.label}</Badge>
+              {ocrBadge.detail ? <p className="mt-1 text-xs text-text-tertiary">{ocrBadge.detail}</p> : null}
+            </div>
+
+            {!isProUser ? (
+              <div className="mt-4">
+                <p className="text-sm text-text-secondary">
+                  Résumé autofill is a Pro feature. Upgrade to upload a PDF/DOCX and auto-fill your background, or close
+                  this and add your skills by hand.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Link href="/pricing">
+                    <button type="button" className="btn btn-primary btn-sm">
+                      Upgrade to unlock upload
+                    </button>
+                  </Link>
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setResumeOpen(false)}>
+                    Add skills manually
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="mt-4">
+                  <DropzoneUpload onFileSelected={onParseFile} />
+                </div>
+                {uploadState === 'parsing' ? (
+                  <div className="mt-3">
+                    <ParseProgress progress={uploadProgress} />
+                  </div>
+                ) : null}
+                {uploadState === 'error' ? (
+                  <p className="mt-3 rounded-md border border-error bg-error-light px-3 py-2 text-sm text-error">
+                    {uploadError || 'Upload a DOCX or searchable PDF, then try again.'}
+                  </p>
+                ) : null}
+                {uploadState === 'success' ? (
+                  <div className="mt-3 space-y-2">
+                    {uploadWarning ? (
+                      <p className="rounded-md border border-warning/25 bg-warning-light px-3 py-2 text-xs text-text-secondary">
+                        {uploadWarning}
+                      </p>
+                    ) : null}
+                    <p className="text-xs text-text-tertiary">
+                      Parsed text was added to your experience.
+                      {uploadStats ? ` Characters extracted: ${uploadStats.meaningfulChars}.` : ''}
+                    </p>
+                    <DetectedSectionsChips detected={detectedSections} />
+                    {hasPendingResumeReview ? (
+                      <div className="rounded-md border border-border-light bg-surface p-2.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-[1.1px] text-text-tertiary">
+                            Detections ready
+                          </p>
+                          <button
+                            type="button"
+                            className="text-xs font-semibold text-accent hover:text-accent-hover"
+                            onClick={() => onSetResumeReviewExpanded(!resumeReviewExpanded)}
+                          >
+                            {resumeReviewExpanded ? 'Hide review' : 'Review details'}
+                          </button>
+                        </div>
+                        <p className="mt-1 text-xs leading-normal text-text-secondary">
+                          {pendingResumeSkills.length} skills, {pendingResumeCertifications.length} certifications
+                          {pendingResumeRoleCandidate ? ', and 1 role candidate' : ''} detected.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              onApplyDetectedResumeData()
+                              setResumeOpen(false)
+                            }}
+                          >
+                            Apply detected data
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={onDismissDetectedResumeData}>
+                            Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                    {resumeReviewExpanded && hasPendingResumeReview ? (
+                      <ResumeExtractionReviewCard
+                        detectedRole={pendingResumeRoleCandidate}
+                        skills={pendingResumeSkills}
+                        certifications={pendingResumeCertifications}
+                        onRemoveSkill={onRemovePendingResumeSkill}
+                        onRemoveCertification={onRemovePendingResumeCertification}
+                        onApply={() => {
+                          onApplyDetectedResumeData()
+                          setResumeOpen(false)
+                        }}
+                        onDismiss={onDismissDetectedResumeData}
+                      />
+                    ) : null}
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }
 

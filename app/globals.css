@@ -193,6 +193,12 @@ html[data-a11y-motion='reduced'] * {
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .anim-up {
   animation: anim-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
