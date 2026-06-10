@@ -113,7 +113,7 @@ test('requirement read-time guard drops cached implausible-years / first-person 
 test('generation cache version is bumped to invalidate pre-fix cached reports', () => {
   // The bad reports lived in planner_generation_cache; the cacheKey embeds the
   // schema version, so the default must move past v1 to force regeneration.
-  assert.match(plannerRoute, /PLANNER_GENERATION_CACHE_VERSION\?\.trim\(\) \|\| 'v3'/)
+  assert.match(plannerRoute, /PLANNER_GENERATION_CACHE_VERSION\?\.trim\(\) \|\| 'v4'/)
 })
 
 test('trades are reframed apprentice-first (canonical pathway from trade data, not "get cert before applying")', () => {
@@ -170,6 +170,21 @@ test('intake wizard renders a current-role field (so plans are not stuck on "Car
   assert.match(intakeWizard, /id="current-role"/)
   assert.match(intakeWizard, /value=\{currentRoleText\}/)
   assert.match(intakeWizard, /onChange=\{onCurrentRoleInputChange\}/)
+})
+
+test('invented salary figures are stripped from the narrative (structured cards own salary)', () => {
+  assert.match(v3, /function stripSalaryClaims/)
+  assert.match(v3, /insight:\s*\n?\s*stripSalaryClaims\(/)
+})
+
+test('trades wage shows an honest apprentice note (no invented apprentice figure)', () => {
+  assert.match(v3, /Qualified rate — apprentices start lower/)
+  assert.match(v3, /sourceLabel: withWageStageNote\(/)
+})
+
+test('evidence quotes are stripped of job-board nav cruft', () => {
+  assert.match(extractor, /navigation\/breadcrumb cruft/)
+  assert.match(extractor, /full\[ -\]\?time\|part\[ -\]\?time\|immediately/)
 })
 
 test('skill-gap / transferable labels run through sanitizeSkillLabel', () => {

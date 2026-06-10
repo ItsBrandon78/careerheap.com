@@ -933,6 +933,28 @@ function sanitizePlannerCopy(value: string, careerPathType: DashboardCareerPathT
     .trim()
 }
 
+// Remove salary/earnings claims from free-text narrative so the structured,
+// sourced wage cards are the single source of truth. The LLM otherwise invents
+// figures and currencies (e.g. "$19-24 USD/hour") that contradict the real
+// wage data — unacceptable on a paid product.
+function stripSalaryClaims(text: string): string {
+  if (!text) return text
+  const sentences = text.split(/(?<=[.!?])\s+/)
+  const kept = sentences.filter((sentence) => {
+    if (/\$\s?\d/.test(sentence)) return false
+    const lower = sentence.toLowerCase()
+    if (
+      /\b(salar(?:y|ies)|wages?|per hour|\/\s?hour|\/\s?hr|hourly|usd\/hour|cad\/hour|income of|pay of|paid|earn(?:s|ing)?\s+(?:between|about|around|up to|\$|\d))\b/.test(
+        lower
+      )
+    ) {
+      return false
+    }
+    return true
+  })
+  return kept.join(' ').replace(/\s+/g, ' ').trim()
+}
+
 // Guard for short, user-facing claim phrases (strength advantages / why-it-matters).
 // Rejects leaked posting prose and implausible experience numbers (e.g. "60 years
 // of experience"), returning the safe fallback instead of shipping garbage.
@@ -1807,6 +1829,14 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         ]
 
   const careerPathType = inferCareerPathTypeFromReport(input.report)
+  // Wage data is the QUALIFIED occupation rate. For trades, apprentices start
+  // below this while training — say so honestly rather than invent an apprentice
+  // figure we cannot source.
+  const wageStageNote =
+    careerPathType === 'TRADES'
+      ? 'Qualified rate — apprentices start lower and earn raises each level'
+      : null
+  const withWageStageNote = (base: string) => (wageStageNote ? `${base} · ${wageStageNote}` : base)
 
   const roadmapFromGuide = Array.isArray(input.report?.transitionMode?.roadmapGuide?.phases)
     ? input.report.transitionMode.roadmapGuide.phases
@@ -3334,7 +3364,9 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
           ? `Mapped to Ontario pathway: ${mappedTradePathLabel}`
           : undefined,
       insight:
-        sanitizePlannerCopy(input.report?.transitionStructuredPlan?.summary || '', careerPathType) ||
+        stripSalaryClaims(
+          sanitizePlannerCopy(input.report?.transitionStructuredPlan?.summary || '', careerPathType)
+        ) ||
         'A realistic switch with strong upside. Your highest-leverage moves are completing credentials quickly and maintaining weekly outreach consistency.',
       scenarioModes: [
         { label: 'Fastest', active: true },
@@ -3386,7 +3418,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         value: salaryPotential || 'Province wage data unavailable',
         badge: !salaryPotential ? 'Estimate' : undefined,
         sourceType: salaryPotential ? 'verified' : 'estimate',
-        sourceLabel: effectiveWageSource?.sourceName?.trim() || 'Regional wage estimate',
+        sourceLabel: withWageStageNote(effectiveWageSource?.sourceName?.trim() || 'Regional wage estimate'),
         updatedAt: effectiveWageSource?.asOfDate || undefined
       }
     },
@@ -3462,7 +3494,7 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
         value: entryWage || 'Province wage data unavailable',
         badge: !entryWage ? 'Estimate' : undefined,
         sourceType: entryWage ? 'verified' : 'estimate',
-        sourceLabel: effectiveWageSource?.sourceName?.trim() || 'Regional wage estimate',
+        sourceLabel: withWageStageNote(effectiveWageSource?.sourceName?.trim() || 'Regional wage estimate'),
         updatedAt: effectiveWageSource?.asOfDate || undefined
       },
       midCareerSalary: {

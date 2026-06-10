@@ -146,7 +146,16 @@ function splitSegments(input: string) {
 }
 
 function clipQuote(input: string) {
+  // Strip job-board navigation/breadcrumb cruft that leaks into scraped quotes,
+  // e.g. "» Full Time » Immediately » 504 Albany Ave » 42 minutes ago practiced…".
   const normalized = normalizeWhitespace(input)
+    .replace(
+      /^(?:[»>|·•\-\s]*(?:full[ -]?time|part[ -]?time|immediately|apply now|featured|new|urgent|\d+\s*(?:minute|hour|day|week|month)s?\s*ago|[\d ,]*[A-Za-z]{2,}\s*\d{5})[»>|·•,\s]*)+/i,
+      ''
+    )
+    .replace(/^[»>|·•\-\s]+/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
   if (normalized.length <= 220) return normalized
   return `${normalized.slice(0, 217).trimEnd()}...`
 }

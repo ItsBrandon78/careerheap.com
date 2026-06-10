@@ -53,6 +53,8 @@ const GENERATION_CACHE_TTL_HOURS = Number.parseInt(
   process.env.PLANNER_GENERATION_CACHE_TTL_HOURS?.trim() || '72',
   10
 )
+// v4: salary trust (strip invented narrative wages; honest trades apprentice
+// note), evidence-quote nav-cruft cleanup, current-role captured in intake.
 // v3: trades reframed apprentice-first (canonical pathway from trade data, no
 // "get certified before applying"), verb-stacking removed, recruiting-prose
 // guard broadened, adjacency relevance-gated, honest strength framing.
@@ -60,7 +62,7 @@ const GENERATION_CACHE_TTL_HOURS = Number.parseInt(
 // "Founded 50 years ago") no longer leak in as "Demonstrate N years of
 // experience" requirements. Bumping invalidates pre-fix cached reports.
 const GENERATION_CACHE_SCHEMA_VERSION =
-  process.env.PLANNER_GENERATION_CACHE_VERSION?.trim() || 'v3'
+  process.env.PLANNER_GENERATION_CACHE_VERSION?.trim() || 'v4'
 
 export async function GET(request: NextRequest) {
   try {
