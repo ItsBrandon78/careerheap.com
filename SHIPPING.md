@@ -81,7 +81,10 @@ See `.env.local.example` for the full annotated list.
 - [ ] Run a planner generation end-to-end (a trade like Electrician + a
       non-trade like Bookkeeper); output reads honest and correct.
 - [ ] Run each tool once (resume analyzer, cover letter, interview prep,
-      resume builder) → real output, no errors.
+      resume builder) → real output, no errors. For a fast automated check,
+      run `npm run qa:tools` (15 varied generations + edge cases against a
+      running server; `QA_BASE_URL=https://… npm run qa:tools` for preview).
+      Exits non-zero on any unexpected failure.
 - [ ] Hit the free limit (3 uses) → paywall shows → upgrade → unlimited.
 - [ ] Stripe portal → cancel → access reverts on next period.
 - [ ] Mobile pass on `/`, `/pricing`, planner dashboard.
