@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fetchJobsPaged, isAdzunaConfigured } from '@/lib/server/adzuna'
 import { aggregateRequirements, extractRequirementsFromText } from '@/lib/requirements/extractor'
 import { scoreRequirementFit } from '@/lib/planner/jobFit'
+import { isRelevantJobTitle } from '@/lib/planner/jobRelevance'
 import { rankScoredJobs } from '@/lib/planner/jobSearchRanking'
 import { consumeRateLimit, getClientIp, toRateLimitHeaders } from '@/lib/server/rateLimit'
 import type { ScoredJob } from '@/lib/planner/jobRecommendations'
@@ -83,9 +84,12 @@ export async function POST(request: Request) {
   try {
     const scored: ScoredJob[] = []
     for (const role of roles) {
-      const postings = await fetchJobsPaged({ role, location, country, maxPages: 1 })
+      const postings = await fetchJobsPaged({ role, location, country, maxPages: 2 })
       for (const posting of postings) {
         if (!posting.title || !posting.sourceUrl) continue
+        // Relevance gate: drop loose Adzuna keyword matches whose title doesn't
+        // plausibly match any searched role (e.g. "Technician" for "Electrician").
+        if (!isRelevantJobTitle(posting.title, roles)) continue
         const requirements = posting.description
           ? aggregateRequirements(
               extractRequirementsFromText({ source: 'adzuna', text: posting.description })
