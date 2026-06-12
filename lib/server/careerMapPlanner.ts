@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { CareerPathwayProfile } from '@/lib/career-pathway/schema'
 import { CAREER_MAP_SCORE_WEIGHTS } from '@/lib/planner/contract'
+import { rankSuggestedCareers } from '@/lib/planner/suggestedCareers'
 import { getCareerPathwayProfile } from '@/lib/server/careerPathwayProfiles'
 import {
   ensureEvidenceRequirements,
@@ -121,6 +122,7 @@ interface RankedMatch {
   region: CountryCode
   score: number
   roleProximity: number
+  targetRoleSimilarity: number
   skillOverlapRatio: number
   breakdown: MatchBreakdown
   topReasons: string[]
@@ -2047,6 +2049,7 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       region: occupation.region,
       score,
       roleProximity,
+      targetRoleSimilarity,
       skillOverlapRatio: skillOverlap,
       breakdown,
       topReasons,
@@ -3046,7 +3049,11 @@ export async function generateCareerMapPlannerAnalysis(input: CareerPlannerInput
       breakdown: best?.breakdown ?? { skill_overlap: 0, experience_similarity: 0, education_alignment: 0, certification_gap: 0, timeline_feasibility: 0 },
       topReasons: best?.topReasons ?? ['No compatibility reasons available.']
     },
-    suggestedCareers: top.map((match) => {
+    suggestedCareers: rankSuggestedCareers(orderedRanked, {
+      explicitTargetId: explicitTargetCandidate?.occupationId ?? null,
+      hasExplicitTarget: Boolean((input.targetRole ?? '').trim()) && !input.notSureMode,
+      fallback: top
+    }).map((match) => {
       const native = match.wage
       const usd = !native
         ? null

@@ -2691,17 +2691,16 @@ export function buildPlannerDashboardV3Model(input: DashboardMapperInput): Plann
   const uniqueAlternatives = (() => {
     const seen = new Set<string>()
     const relevant: PlannerDashboardAlternative[] = []
-    const irrelevant: PlannerDashboardAlternative[] = []
     for (const option of alternatives) {
       const key = normalizedLabelKey(option.title)
       if (!key || key === targetRoleKey || seen.has(key)) continue
       seen.add(key)
+      // Only show genuinely domain-relevant adjacents. Never pad with off-domain
+      // roles (which produced absurd suggestions like "Letter carriers" for an
+      // aspiring electrician) — an empty list hides the section, which is honest.
       if (isRelevantAdjacentTitle(option.title, adjacencyDomainTokens)) relevant.push(option)
-      else irrelevant.push(option)
     }
-    // Prefer domain-relevant adjacents; only fall back to the (already
-    // rank-ordered) remainder if we'd otherwise show too few.
-    return relevant.length >= 2 ? relevant : [...relevant, ...irrelevant].slice(0, 2)
+    return relevant
   })()
 
   pushIfMissing(missingFields, 'alternatives.cards', alternatives.length === 0)
