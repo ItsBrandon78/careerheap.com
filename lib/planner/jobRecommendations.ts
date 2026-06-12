@@ -76,6 +76,11 @@ export type ScoredJob = PlannerJobRecommendationInput & {
   fit: JobFit
 }
 
+export type JobsSearchView =
+  | { status: 'loading' }
+  | { status: 'error' }
+  | { status: 'success'; jobs: ScoredJob[] }
+
 export function derivePlannerJobRecommendationView(input: {
   status: 'loading' | 'error' | 'idle' | 'success'
   jobs: PlannerJobRecommendationInput[]

@@ -10,6 +10,7 @@ import type {
   DashboardFallbackValue,
   SourceType
 } from '@/lib/planner/v3Dashboard'
+import type { JobFitTier, JobsSearchView, ScoredJob } from '@/lib/planner/jobRecommendations'
 
 /**
  * Prototype-styled planner results (ResultsCommand/Extras/Plan.jsx) rendered
@@ -63,6 +64,13 @@ export interface PlannerResultsPrototypeProps {
     completedTrainingIds: Record<string, boolean>
     updatedAt: string
   }) => void
+  jobsView?: JobsSearchView
+  isProUser?: boolean
+  loggedJobIds?: Record<string, boolean>
+  onLogJobApplication?: (job: ScoredJob) => void
+  onJobCoverLetter?: (job: ScoredJob) => void
+  onJobTailorResume?: (job: ScoredJob) => void
+  onRetryJobs?: () => void
 }
 
 function parseScore(value: string): number | null {
@@ -355,7 +363,7 @@ function OutreachSection({
 
   return (
     <section className="mx-auto max-w-content px-4 pt-16">
-      <SectionHead num="09" eyebrow={t('Outreach engine', 'Moteur de prospection')} title={t('Turn the plan into conversations', 'Transformez le plan en conversations')} sub={intro || t('Track your applications and send messages that get replies. You log these yourself — nothing is invented.', 'Suivez vos candidatures et envoyez des messages qui obtiennent des réponses. Vous les consignez vous-même — rien n’est inventé.')} />
+      <SectionHead num="10" eyebrow={t('Outreach engine', 'Moteur de prospection')} title={t('Turn the plan into conversations', 'Transformez le plan en conversations')} sub={intro || t('Track your applications and send messages that get replies. You log these yourself — nothing is invented.', 'Suivez vos candidatures et envoyez des messages qui obtiennent des réponses. Vous les consignez vous-même — rien n’est inventé.')} />
       <div className="mt-7 grid gap-4 md:grid-cols-[1fr_1.3fr]">
         {/* tracker */}
         <div className="rounded-lg border border-border-light bg-surface p-5.5 shadow-card">
@@ -413,6 +421,228 @@ function OutreachSection({
           </button>
         </div>
       </div>
+    </section>
+  )
+}
+
+/* ---------- Jobs you can win (fit-ranked live openings) ---------- */
+const JOB_TIER_META: Record<JobFitTier, { label: string; icon: string; cls: string }> = {
+  strong: { label: 'Strong match', icon: '●●●', cls: 'bg-success-light text-success' },
+  stretch: { label: 'Stretch', icon: '●●○', cls: 'bg-accent-light text-accent' },
+  reach: { label: 'Reach', icon: '●○○', cls: 'bg-warning-light text-warning' }
+}
+
+function jobPostedDaysAgo(postedAt?: string | null): string | null {
+  if (!postedAt) return null
+  const ts = Date.parse(postedAt)
+  if (!Number.isFinite(ts)) return null
+  const days = Math.max(0, Math.round((Date.now() - ts) / 86_400_000))
+  return days === 0 ? 'Posted today' : `Posted ${days}d ago`
+}
+
+function jobSalaryLabel(min?: number | null, max?: number | null): string | null {
+  if (!min && !max) return null
+  const fmt = (n: number) => `$${Math.round(n).toLocaleString()}`
+  if (min && max) return `${fmt(min)}–${fmt(max)}`
+  return fmt((min || max) as number)
+}
+
+function JobsSection({
+  view,
+  targetRole,
+  location,
+  isProUser,
+  loggedJobIds,
+  onLog,
+  onCoverLetter,
+  onTailorResume,
+  onRetry
+}: {
+  view: JobsSearchView
+  targetRole: string
+  location: string
+  isProUser: boolean
+  loggedJobIds: Record<string, boolean>
+  onLog: (job: ScoredJob) => void
+  onCoverLetter: (job: ScoredJob) => void
+  onTailorResume: (job: ScoredJob) => void
+  onRetry: () => void
+}) {
+  const t = useT()
+  // Hide the whole section when there is nothing useful to show (no empty boxes).
+  if (view.status === 'success' && view.jobs.length === 0) return null
+
+  return (
+    <section className="mx-auto max-w-content px-4 pt-16">
+      <SectionHead
+        num="09"
+        eyebrow={t('Jobs you can win', 'Emplois à votre portée')}
+        title={t('Real openings, ranked by your fit', 'De vrais postes, classés selon votre adéquation')}
+        sub={t(
+          `Live postings for ${targetRole || 'your target role'} near ${location || 'you'}, scored against your profile. Apply directly — nothing is invented.`,
+          `Offres en direct pour ${targetRole || 'votre rôle cible'} près de ${location || 'chez vous'}, évaluées selon votre profil. Postulez directement — rien n’est inventé.`
+        )}
+      />
+
+      {view.status === 'loading' && (
+        <div className="mt-7 flex flex-col gap-4" role="status" aria-live="polite">
+          <span className="sr-only">{t('Loading job matches', 'Chargement des emplois correspondants')}</span>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-28 animate-pulse rounded-lg border border-border-light bg-bg-secondary" />
+          ))}
+        </div>
+      )}
+
+      {view.status === 'error' && (
+        <div className="mt-7 rounded-lg border border-border-light bg-surface p-5.5 shadow-card" role="alert">
+          <p className="text-[14px] text-text-secondary">
+            {t('We couldn’t load live jobs just now.', 'Impossible de charger les offres pour le moment.')}
+          </p>
+          <button
+            onClick={onRetry}
+            className="mt-3.5 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 py-2 text-[13.5px] font-semibold text-text-secondary hover:border-accent hover:text-accent"
+          >
+            <Icon name="refresh" size={15} /> {t('Try again', 'Réessayer')}
+          </button>
+        </div>
+      )}
+
+      {view.status === 'success' && (
+        <div className="mt-7 flex flex-col gap-4">
+          {view.jobs.map((job) => {
+            const tier = JOB_TIER_META[job.fit.tier]
+            const pct = job.fit.totalCount > 0 ? Math.round((job.fit.metCount / job.fit.totalCount) * 100) : 0
+            const salary = jobSalaryLabel(job.salaryMin, job.salaryMax)
+            const posted = jobPostedDaysAgo(job.postedAt)
+            const logged = Boolean(loggedJobIds[job.id])
+            return (
+              <div key={job.id} className="rounded-lg border border-border-light bg-surface p-5.5 shadow-card">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-[17px] font-bold">{job.title}</h3>
+                    <p className="mt-1 text-[13.5px] text-text-secondary">
+                      {job.company} · {job.location}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-pill px-2.5 py-1 text-[11.5px] font-semibold ${tier.cls}`}
+                  >
+                    <span aria-hidden="true">{tier.icon}</span>
+                    {t(tier.label, tier.label)}
+                  </span>
+                </div>
+
+                <p className="mt-3 text-[13.5px] font-semibold text-text-primary">
+                  {job.fit.totalCount > 0
+                    ? t(
+                        `You meet ${job.fit.metCount} of ${job.fit.totalCount} requirements`,
+                        `Vous répondez à ${job.fit.metCount} des ${job.fit.totalCount} exigences`
+                      )
+                    : t('Match detail unavailable for this posting', 'Détail de correspondance indisponible pour cette offre')}
+                </p>
+                {job.fit.totalCount > 0 && (
+                  <div className="mt-2 max-w-[320px]">
+                    <MatchBar value={pct} color={pct >= 70 ? 'var(--color-success)' : 'var(--color-accent)'} />
+                  </div>
+                )}
+
+                {job.fit.matched.length > 0 && (
+                  <p className="mt-2.5 text-[12.5px] leading-[1.5] text-text-secondary">
+                    <span className="font-semibold text-text-primary">{t('Matched:', 'Atouts :')}</span>{' '}
+                    {job.fit.matched.map((m) => m.label).join(', ')}
+                  </p>
+                )}
+                {job.fit.missing.length > 0 && (
+                  <p className="mt-1 text-[12.5px] leading-[1.5] text-text-secondary">
+                    <span className="font-semibold text-text-primary">{t('Still need:', 'À acquérir :')}</span>{' '}
+                    {job.fit.missing.map((m) => m.label).join(', ')}
+                  </p>
+                )}
+
+                {(salary || posted) && (
+                  <div className="mt-3 flex flex-wrap gap-3.5 text-[12.5px] text-text-secondary">
+                    {salary && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon name="chart" size={13} /> {salary}
+                      </span>
+                    )}
+                    {posted && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon name="clock" size={13} /> {posted}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <a
+                    href={job.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-2 text-[13.5px] font-semibold text-white shadow-button hover:bg-accent-hover"
+                  >
+                    <Icon name="arrow" size={15} /> {t('Apply', 'Postuler')}
+                  </a>
+                  <button
+                    onClick={() => onLog(job)}
+                    aria-pressed={logged}
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-3.5 py-2 text-[13.5px] font-semibold ${
+                      logged
+                        ? 'border-success bg-success-light text-success'
+                        : 'border-border bg-surface text-text-secondary hover:border-accent hover:text-accent'
+                    }`}
+                  >
+                    <Icon name={logged ? 'check' : 'plus'} size={15} />{' '}
+                    {logged ? t('Applied', 'Postulé') : t('Mark applied', 'Marquer comme postulé')}
+                  </button>
+                  {isProUser && (
+                    <>
+                      <button
+                        onClick={() => onCoverLetter(job)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 py-2 text-[13.5px] font-semibold text-text-secondary hover:border-accent hover:text-accent"
+                      >
+                        <Icon name="mail" size={15} /> {t('Cover letter', 'Lettre de motivation')}
+                      </button>
+                      <button
+                        onClick={() => onTailorResume(job)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 py-2 text-[13.5px] font-semibold text-text-secondary hover:border-accent hover:text-accent"
+                      >
+                        <Icon name="briefcase" size={15} /> {t('Tailor résumé', 'Adapter le CV')}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+
+          {!isProUser && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-accent/25 bg-[color:var(--color-accent)]/[0.05] p-5">
+              <div className="min-w-0">
+                <p className="text-[14px] font-bold text-accent">
+                  {t('Tailor your application for each job', 'Adaptez votre candidature à chaque emploi')}
+                </p>
+                <p className="mt-1 text-[13px] leading-[1.55] text-text-secondary">
+                  {t(
+                    'Pro and Lifetime members get a tailored cover letter and résumé guidance per posting.',
+                    'Les membres Pro et à vie obtiennent une lettre de motivation et des conseils de CV adaptés à chaque offre.'
+                  )}
+                </p>
+              </div>
+              <a
+                href="/pricing"
+                className="shrink-0 rounded-md bg-accent px-3.5 py-2 text-[13.5px] font-semibold text-white shadow-button hover:bg-accent-hover"
+              >
+                {t('Upgrade', 'Améliorer')}
+              </a>
+            </div>
+          )}
+
+          <div className="mt-1">
+            <Src>{t('Jobs by Adzuna', 'Emplois par Adzuna')}</Src>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
@@ -790,6 +1020,21 @@ export function PlannerResultsPrototype(props: PlannerResultsPrototypeProps) {
           ))}
         </div>
       </section>
+
+      {/* JOBS YOU CAN WIN */}
+      {props.jobsView && (
+        <JobsSection
+          view={props.jobsView}
+          targetRole={model.summaryBar.targetRole}
+          location={model.summaryBar.location}
+          isProUser={Boolean(props.isProUser)}
+          loggedJobIds={props.loggedJobIds ?? {}}
+          onLog={(job) => props.onLogJobApplication?.(job)}
+          onCoverLetter={(job) => props.onJobCoverLetter?.(job)}
+          onTailorResume={(job) => props.onJobTailorResume?.(job)}
+          onRetry={() => props.onRetryJobs?.()}
+        />
+      )}
 
       {/* OUTREACH */}
       {props.outreachTracker && props.onOutreachTrackerChange && (
