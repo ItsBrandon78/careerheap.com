@@ -53,6 +53,29 @@ export function buildPlannerJobRecommendationCards(
     })
 }
 
+export type JobFitTier = 'strong' | 'stretch' | 'reach'
+
+export type JobFitFactor = {
+  label: string
+  frequency: number
+}
+
+export type JobFit = {
+  tier: JobFitTier
+  metCount: number
+  totalCount: number
+  matched: JobFitFactor[]
+  missing: JobFitFactor[]
+}
+
+export type ScoredJob = PlannerJobRecommendationInput & {
+  salaryMin?: number | null
+  salaryMax?: number | null
+  postedAt?: string | null
+  matchedRole: string
+  fit: JobFit
+}
+
 export function derivePlannerJobRecommendationView(input: {
   status: 'loading' | 'error' | 'idle' | 'success'
   jobs: PlannerJobRecommendationInput[]
