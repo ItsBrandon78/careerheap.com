@@ -16,6 +16,7 @@ import {
   careerSwitchMoreTools
 } from '@/lib/planner/content'
 import { extractProfileSignals, isPersonalIdentifier } from '@/lib/planner/profileSignals'
+import type { JobsSearchView, ScoredJob } from '@/lib/planner/jobRecommendations'
 import { buildRecommendedTargetSections } from '@/lib/planner/recommendedTargets'
 import {
   type CareerSwitchPlannerResult,
@@ -2269,6 +2270,107 @@ export default function CareerSwitchPlannerPage({
       lastGeneratedAt
     ]
   )
+  // ---- Fit-ranked "Jobs you can win" (live Adzuna search) ----
+  const [jobsView, setJobsView] = useState<JobsSearchView>({ status: 'success', jobs: [] })
+  const [loggedJobIds, setLoggedJobIds] = useState<Record<string, boolean>>({})
+  const [jobsReloadKey, setJobsReloadKey] = useState(0)
+
+  const jobsSearchTargetRole = heroTargetRoleLabel?.trim() ?? ''
+  const jobsSearchLocation = locationText?.trim() ?? ''
+  const jobsBridgeRoleKey = v3DashboardModel.alternatives.cards
+    .slice(0, 2)
+    .map((card) => card.title)
+    .join('|')
+  const jobsSignalKey = [
+    ...currentProfileSignals.skills,
+    ...currentProfileSignals.certifications
+  ].join('|')
+
+  useEffect(() => {
+    if (!hasPlannerResults || !jobsSearchTargetRole || !jobsSearchLocation) {
+      setJobsView({ status: 'success', jobs: [] })
+      return
+    }
+    const bridgeRoles = jobsBridgeRoleKey ? jobsBridgeRoleKey.split('|').filter(Boolean) : []
+    const roles = Array.from(new Set([jobsSearchTargetRole, ...bridgeRoles]))
+    const profileSignals = {
+      skills: currentProfileSignals.skills,
+      certifications: currentProfileSignals.certifications,
+      experienceSignals: currentProfileSignals.experienceSignals
+    }
+    let cancelled = false
+    setJobsView({ status: 'loading' })
+    fetch('/api/jobs/search', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ roles, location: jobsSearchLocation, profileSignals })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return
+        setJobsView({ status: 'success', jobs: Array.isArray(data?.jobs) ? (data.jobs as ScoredJob[]) : [] })
+      })
+      .catch(() => {
+        if (!cancelled) setJobsView({ status: 'error' })
+      })
+    return () => {
+      cancelled = true
+    }
+    // currentProfileSignals is recomputed each render; jobsSignalKey tracks its content.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    hasPlannerResults,
+    jobsSearchTargetRole,
+    jobsSearchLocation,
+    jobsBridgeRoleKey,
+    jobsSignalKey,
+    jobsReloadKey
+  ])
+
+  const handleLogJobApplication = async (job: ScoredJob) => {
+    setLoggedJobIds((prev) => ({ ...prev, [job.id]: true }))
+    const currentSent = Number.parseInt(outreachTracker.sent || '0', 10)
+    handleOutreachTrackerChange('sent', String((Number.isFinite(currentSent) ? currentSent : 0) + 1))
+    try {
+      const authHeaders = await getSupabaseAuthHeaders()
+      await fetch('/api/tools/career-switch-planner/outcome', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          jobId: job.id,
+          jobTitle: job.title,
+          company: job.company,
+          stage: 'applied'
+        })
+      })
+    } catch {
+      /* outcome logging is best-effort; never block the UI */
+    }
+  }
+
+  const requestTailoredDoc = async (kind: 'cover-letter' | 'resume-guidance', job: ScoredJob) => {
+    try {
+      const authHeaders = await getSupabaseAuthHeaders()
+      const res = await fetch('/api/tools/career-switch-planner/tailor', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          kind,
+          role: jobsSearchTargetRole,
+          company: job.company,
+          jobPosting: job.description,
+          resumeText: experienceText
+        })
+      })
+      if (res.status === 402) return // free user — the section already shows the upgrade upsell
+      const data = (await res.json().catch(() => null)) as { result?: string } | null
+      if (kind === 'cover-letter' && data?.result) setEmailToolkitDraft(String(data.result))
+      if (kind === 'resume-guidance' && data?.result) setResumeToolkitDraft(String(data.result))
+    } catch {
+      /* surfaced via the Outreach draft area; never crash the dashboard */
+    }
+  }
+
   const plannerLoopStorageKey = useMemo(() => {
     if (!hasPlannerResults || !canPersistPlannerLoop || !user?.id) return null
     const signature = lastSubmittedDraftSignature || currentDraftSignature || 'draft'
@@ -2859,6 +2961,13 @@ export default function CareerSwitchPlannerPage({
                       ? 'Retry Save'
                       : 'Save Plan'
               }
+              jobsView={jobsView}
+              isProUser={isProUser}
+              loggedJobIds={loggedJobIds}
+              onLogJobApplication={handleLogJobApplication}
+              onJobCoverLetter={(job) => void requestTailoredDoc('cover-letter', job)}
+              onJobTailorResume={(job) => void requestTailoredDoc('resume-guidance', job)}
+              onRetryJobs={() => setJobsReloadKey((key) => key + 1)}
             />
           ) : (
             <div className="mx-auto w-full max-w-tool">
